@@ -1,19 +1,19 @@
 
-/* =====================================
-   RAILWAY MITRA - MAIN STYLESHEET
-   Main Home Page Design
-   ===================================== */
+/* =========================================
+   RAILWAY MITRA
+   ROYAL BLUE + SILVER 3D PREMIUM THEME
+   ========================================= */
 
 :root {
-    --primary: #12345A;
-    --secondary: #2684C7;
-    --background: #F3F6FA;
-    --surface: #FFFFFF;
-    --text: #172B43;
-    --muted: #718096;
-    --border: #E1E8F0;
-    --success: #16865B;
-    --shadow: 0 5px 18px rgba(18, 52, 90, 0.08);
+    --royal: #082D63;
+    --blue: #1456A0;
+    --bright: #4C91E8;
+    --silver: #C5D0DF;
+    --light: #F1F5FA;
+    --white: #FFFFFF;
+    --text: #102D50;
+    --muted: #708198;
+    --shadow: 0 12px 28px rgba(8, 45, 99, .16);
 }
 
 * {
@@ -28,15 +28,16 @@ html {
 
 body {
     font-family: Arial, Helvetica, sans-serif;
-    background: var(--background);
     color: var(--text);
+    background:
+        radial-gradient(circle at 10% 5%, #DCEBFF, transparent 35%),
+        linear-gradient(145deg, #F7FAFF, #DCE5F0);
     min-height: 100vh;
-    line-height: 1.5;
 }
 
 a {
-    text-decoration: none;
     color: inherit;
+    text-decoration: none;
 }
 
 button {
@@ -47,46 +48,62 @@ button {
 /* HEADER */
 
 .app-header {
-    background: var(--primary);
-    color: #FFFFFF;
-    padding: 16px 5%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     position: sticky;
     top: 0;
     z-index: 100;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 5%;
+    color: white;
+    background: linear-gradient(135deg, #061D40, #1456A0 65%, #397FC8);
+    border-bottom: 2px solid rgba(210, 225, 245, .6);
+    box-shadow: 0 7px 22px rgba(5, 30, 68, .3);
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 13px;
 }
 
 .brand-icon {
-    font-size: 34px;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    font-size: 30px;
+    border-radius: 16px;
+    background: linear-gradient(145deg, #FFFFFF, #9EB6D5);
+    box-shadow:
+        5px 5px 12px rgba(0, 0, 0, .3),
+        inset 2px 2px 5px white,
+        inset -3px -3px 7px #8198B5;
 }
 
 .brand h1 {
     font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
+    letter-spacing: .5px;
+    font-weight: 800;
+    text-shadow: 0 3px 7px rgba(0,0,0,.3);
 }
 
 .brand p {
+    color: #D6E7FF;
     font-size: 11px;
-    color: #D8E8FF;
+    margin-top: 3px;
 }
 
 .menu-btn {
-    background: rgba(255, 255, 255, 0.13);
-    color: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 9px;
-    padding: 7px 12px;
+    width: 45px;
+    height: 45px;
+    border: 1px solid rgba(255,255,255,.4);
+    border-radius: 13px;
+    color: white;
     font-size: 23px;
+    background: linear-gradient(145deg, #377EC6, #092C60);
+    box-shadow: 4px 5px 10px rgba(0,0,0,.3),
+                inset 1px 1px 3px rgba(255,255,255,.3);
 }
 
 /* MAIN CONTAINER */
@@ -95,168 +112,240 @@ button {
     width: 100%;
     max-width: 1150px;
     margin: auto;
-    padding: 20px 16px 35px;
+    padding: 22px 16px 38px;
 }
 
-/* WELCOME SECTION */
+/* WELCOME PANEL */
 
 .welcome-section {
-    background: linear-gradient(135deg, #12345A, #246BA6);
-    color: #FFFFFF;
-    border-radius: 18px;
-    padding: 30px 24px;
-    margin-bottom: 28px;
-    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    padding: 34px 25px;
+    margin-bottom: 30px;
+    border-radius: 22px;
+    color: white;
+    background: linear-gradient(130deg, #061D40, #124F94, #3985D0);
+    border: 1px solid rgba(255,255,255,.65);
+    box-shadow:
+        0 14px 30px rgba(8,45,99,.28),
+        inset 0 2px 3px rgba(255,255,255,.25);
+}
+
+.welcome-section::before {
+    content: "";
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    right: -55px;
+    top: -65px;
+    border-radius: 50%;
+    border: 22px solid rgba(255,255,255,.1);
+    box-shadow: 0 0 35px rgba(255,255,255,.12);
 }
 
 .welcome-section h2 {
-    font-size: 25px;
-    margin-bottom: 8px;
+    position: relative;
+    font-size: 26px;
+    margin-bottom: 9px;
 }
 
 .welcome-section p {
-    color: #D8E8FF;
-    font-size: 14px;
-    margin-bottom: 22px;
+    position: relative;
+    color: #DCEBFF;
+    font-size: 13px;
+    margin-bottom: 23px;
 }
 
 .profile-btn {
+    position: relative;
     display: inline-block;
-    background: #FFFFFF;
-    color: var(--primary);
-    padding: 11px 18px;
-    border-radius: 9px;
-    font-weight: 700;
+    padding: 12px 20px;
+    border-radius: 12px;
+    color: #082D63;
+    font-weight: 800;
     font-size: 14px;
-    transition: 0.2s;
+    background: linear-gradient(145deg, #FFFFFF, #B8C9DF);
+    border: 1px solid white;
+    box-shadow:
+        0 6px 0 #7895B8,
+        0 10px 17px rgba(0,0,0,.25),
+        inset 0 2px 4px white;
+    transition: .2s;
 }
 
-.profile-btn:hover {
-    background: #EAF3FF;
-    transform: translateY(-2px);
+.profile-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #7895B8;
 }
 
-/* FEATURE SECTION */
+/* SECTION TITLE */
 
 .dashboard-section h2 {
+    color: #082D63;
     font-size: 21px;
-    margin-bottom: 17px;
-    color: var(--primary);
+    margin-bottom: 19px;
+    padding-left: 10px;
+    border-left: 4px solid #3985D0;
 }
+
+/* 3D FEATURE CARDS */
 
 .feature-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    gap: 17px;
 }
 
 .feature-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px 14px;
-    min-height: 145px;
+    position: relative;
+    min-height: 155px;
+    padding: 19px 15px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     justify-content: center;
-    box-shadow: var(--shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
+    align-items: flex-start;
+    overflow: hidden;
+    border-radius: 17px;
+    border: 1px solid #FFFFFF;
+    background: linear-gradient(145deg, #FFFFFF, #DCE6F2);
+    box-shadow:
+        7px 8px 0 #B6C5D8,
+        0 12px 20px rgba(8,45,99,.15),
+        inset 2px 2px 5px white,
+        inset -2px -2px 5px rgba(125,151,184,.2);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.feature-card::after {
+    content: "";
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    right: -35px;
+    top: -40px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(76,145,232,.18), rgba(255,255,255,.05));
 }
 
 .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 9px 22px rgba(18, 52, 90, 0.13);
+    transform: translateY(-6px);
+    box-shadow:
+        7px 12px 0 #9FB3CC,
+        0 18px 25px rgba(8,45,99,.2),
+        inset 2px 2px 5px white;
+}
+
+.feature-card:active {
+    transform: translateY(3px);
+    box-shadow: 2px 3px 0 #A8BBD2;
 }
 
 .feature-card > span {
-    font-size: 29px;
-    margin-bottom: 9px;
+    position: relative;
+    z-index: 1;
+    width: 49px;
+    height: 49px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 12px;
+    font-size: 27px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #FFFFFF, #B6C9E0);
+    box-shadow:
+        4px 5px 9px rgba(8,45,99,.2),
+        inset 2px 2px 4px white,
+        inset -2px -2px 4px #91A9C7;
 }
 
 .feature-card h3 {
-    color: var(--primary);
+    position: relative;
+    z-index: 1;
+    color: #082D63;
     font-size: 15px;
+    font-weight: 800;
     margin-bottom: 5px;
 }
 
 .feature-card p {
-    color: var(--muted);
+    position: relative;
+    z-index: 1;
+    color: #63758E;
     font-size: 11px;
 }
 
-/* PRIVACY SECTION */
+/* PRIVACY PANEL */
 
 .privacy-section {
-    margin-top: 25px;
-    padding: 17px;
-    background: #E8F5EF;
-    border: 1px solid #CBE8D7;
-    border-radius: 13px;
     display: flex;
     align-items: center;
-    gap: 13px;
+    gap: 14px;
+    margin-top: 28px;
+    padding: 19px;
+    border-radius: 17px;
+    border: 1px solid white;
+    background: linear-gradient(145deg, #EAF2FC, #C9D9EC);
+    box-shadow:
+        5px 6px 0 #A9BDD5,
+        0 10px 18px rgba(8,45,99,.12),
+        inset 2px 2px 4px white;
 }
 
 .privacy-section > span {
-    font-size: 30px;
+    font-size: 32px;
+    filter: drop-shadow(2px 4px 3px rgba(0,0,0,.2));
 }
 
 .privacy-section h3 {
-    color: #176B49;
+    color: #0C477C;
     font-size: 15px;
     margin-bottom: 4px;
 }
 
 .privacy-section p {
-    color: #426B56;
+    color: #526A85;
     font-size: 12px;
 }
 
 /* FOOTER */
 
 .app-footer {
-    background: #102B49;
-    color: #FFFFFF;
     text-align: center;
-    padding: 25px 15px;
-    margin-top: 25px;
+    padding: 28px 15px;
+    margin-top: 28px;
+    color: white;
+    background: linear-gradient(135deg, #061D40, #124F94);
+    border-top: 2px solid #B8C9DF;
+    box-shadow: 0 -5px 20px rgba(8,45,99,.12);
 }
 
 .app-footer h3 {
-    font-size: 19px;
-    margin-bottom: 5px;
+    font-size: 20px;
+    margin-bottom: 6px;
 }
 
 .app-footer p {
-    color: #C5D7EA;
+    color: #D6E7FF;
     font-size: 12px;
     margin-top: 5px;
 }
 
-/* TABLET */
+/* MOBILE RESPONSIVE */
 
 @media (max-width: 768px) {
     .feature-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 14px;
     }
 
     .welcome-section {
-        padding: 25px 19px;
-    }
-
-    .welcome-section h2 {
-        font-size: 22px;
+        padding: 27px 20px;
     }
 }
 
-/* MOBILE */
-
 @media (max-width: 400px) {
     .container {
-        padding-left: 12px;
-        padding-right: 12px;
+        padding-left: 13px;
+        padding-right: 13px;
     }
 
     .brand h1 {
@@ -264,16 +353,18 @@ button {
     }
 
     .brand-icon {
-        font-size: 29px;
+        width: 46px;
+        height: 46px;
+        font-size: 27px;
     }
 
     .feature-grid {
-        gap: 9px;
+        gap: 11px;
     }
 
     .feature-card {
-        padding: 15px 10px;
-        min-height: 135px;
+        min-height: 145px;
+        padding: 15px 11px;
     }
 
     .feature-card h3 {
@@ -285,6 +376,18 @@ button {
     }
 
     .welcome-section h2 {
-        font-size: 20px;
+        font-size: 21px;
     }
 }
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+   }
+   
