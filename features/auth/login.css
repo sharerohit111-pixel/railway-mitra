@@ -1,0 +1,183 @@
+/* Railway Mitra - Login Page */
+
+.rm-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background:
+        radial-gradient(circle at 15% 15%, rgba(0, 229, 255, 0.16), transparent 35%),
+        radial-gradient(circle at 85% 85%, rgba(255, 54, 199, 0.16), transparent 35%),
+        #050B1A;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+}
+
+.rm-login-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 30px 24px;
+    border: 1px solid rgba(53, 232, 255, 0.35);
+    border-radius: 22px;
+    background: rgba(14, 25, 48, 0.94);
+    box-shadow:
+        0 0 25px rgba(0, 229, 255, 0.13),
+        0 0 35px rgba(255, 54, 199, 0.08);
+}
+
+.rm-login-back {
+    display: inline-block;
+    margin-bottom: 22px;
+    color: #35E8FF;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.rm-login-logo {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #00D9FF, #9B5CFF, #FF45D4);
+    box-shadow: 0 0 22px rgba(0, 229, 255, 0.35);
+    font-size: 34px;
+}
+
+.rm-login-card h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 27px;
+    color: #ffffff;
+}
+
+.rm-login-subtitle {
+    margin: 9px 0 28px;
+    text-align: center;
+    color: #AFC5DA;
+    font-size: 14px;
+}
+
+.rm-login-card h2 {
+    margin: 0 0 22px;
+    color: #35E8FF;
+    font-size: 19px;
+    text-align: center;
+}
+
+.rm-login-card form {
+    margin-bottom: 20px;
+}
+
+.rm-login-card label {
+    display: block;
+    margin-bottom: 9px;
+    color: #EAF7FF;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.rm-phone-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 13px;
+    border: 1px solid rgba(53, 232, 255, 0.35);
+    border-radius: 12px;
+    background: #091629;
+}
+
+.rm-phone-input span {
+    color: #35E8FF;
+    font-weight: bold;
+}
+
+.rm-login-card input {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 12px;
+    border: 1px solid rgba(53, 232, 255, 0.35);
+    border-radius: 12px;
+    outline: none;
+    background: #091629;
+    color: #ffffff;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.rm-phone-input input {
+    border: none;
+    background: transparent;
+    padding-left: 0;
+}
+
+.rm-login-card input:focus {
+    border-color: #35E8FF;
+    box-shadow: 0 0 12px rgba(53, 232, 255, 0.18);
+}
+
+.rm-phone-input:focus-within {
+    border-color: #35E8FF;
+    box-shadow: 0 0 12px rgba(53, 232, 255, 0.18);
+}
+
+.rm-login-card input::placeholder {
+    color: #8296AA;
+}
+
+.rm-login-card button {
+    width: 100%;
+    min-height: 49px;
+    margin-top: 18px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(100deg, #00CFFF, #765BFF, #FF45D4);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 18px rgba(0, 210, 255, 0.18);
+}
+
+.rm-login-card button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#recaptcha-container {
+    margin-top: 14px;
+    display: flex;
+    justify-content: center;
+}
+
+#loginMessage {
+    min-height: 20px;
+    margin: 14px 0;
+    text-align: center;
+    color: #35E8FF;
+    font-size: 14px;
+}
+
+.rm-login-security {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    text-align: center;
+    color: #AFC5DA;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 380px) {
+    .rm-login-card {
+        padding: 25px 18px;
+    }
+
+    .rm-login-card h1 {
+        font-size: 24px;
+    }
+}
