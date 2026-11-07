@@ -390,4 +390,196 @@ button {
         transition-duration: .01ms !important;
     }
    }
-   
+
+/* =====================================
+   RAILWAY MITRA - NEON PREMIUM THEME
+   Designed by Rohit Kumar
+===================================== */
+
+:root {
+    --navy: #050B1A;
+    --panel: #101D35;
+    --cyan: #35E8FF;
+    --pink: #FF45D4;
+    --purple: #9B5CFF;
+    --white: #F7FAFF;
+}
+
+body {
+    background:
+        radial-gradient(circle at 10% 10%, #102B55, transparent 40%),
+        radial-gradient(circle at 90% 80%, #381044, transparent 40%),
+        #050B1A !important;
+    color: var(--white) !important;
+}
+
+/* HEADER */
+
+.app-header {
+    background: linear-gradient(120deg, #07152D, #101C3D, #24103C) !important;
+    border-bottom: 1px solid #35E8FF !important;
+    box-shadow: 0 5px 25px #00DFFF35 !important;
+}
+
+.brand-icon {
+    background: linear-gradient(135deg, #00E5FF, #8B42FF, #FF36C9) !important;
+    color: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 0 18px #00DFFF99 !important;
+}
+
+.brand h1 {
+    background: linear-gradient(90deg, #35E8FF, #FFFFFF, #FF45D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+}
+
+/* WELCOME PANEL */
+
+.welcome-section {
+    background: linear-gradient(135deg, #07152D, #142B50, #301343) !important;
+    border: 1px solid #35E8FF !important;
+    box-shadow: 0 0 25px #00DFFF35,
+                0 0 35px #FF45D425 !important;
+    position: relative;
+    padding-top: 90px !important;
+    overflow: hidden;
+}
+
+.welcome-section::after {
+    content: "Rohit Kumar  |  Founder & Developer";
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    padding: 12px 15px;
+    border-radius: 15px;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 800;
+    background: linear-gradient(120deg, #142E50, #52205D);
+    border: 1px solid #FF45D4;
+    box-shadow: 0 0 15px #FF45D455;
+}
+
+.welcome-section h2 {
+    color: white !important;
+    text-shadow: 0 0 15px #35E8FF55;
+}
+
+.welcome-section p {
+    color: #A8EFFF !important;
+}
+
+/* PROFILE BUTTON */
+
+.profile-btn {
+    background: linear-gradient(110deg, #00BFEF, #7451FF, #E83DBD) !important;
+    color: white !important;
+    border: 1px solid #70F5FF !important;
+    box-shadow: 0 0 15px #35E8FF55 !important;
+}
+
+/* SECTION HEADINGS */
+
+.dashboard-section h2 {
+    color: #35E8FF !important;
+    text-shadow: 0 0 12px #35E8FF55;
+}
+
+/* FEATURE CARDS */
+
+.feature-card {
+    background: linear-gradient(145deg, #122846, #17203F, #28153D) !important;
+    border: 1px solid #287CBA !important;
+    border-radius: 20px !important;
+    box-shadow: 0 5px 18px #00000055,
+                inset 0 0 12px #35E8FF12 !important;
+    color: white !important;
+    transition: all .25s ease !important;
+}
+
+.feature-card span {
+    background: linear-gradient(135deg, #00E5FF, #8050FF, #FF45D4) !important;
+    color: white !important;
+    border-radius: 15px !important;
+    box-shadow: 0 0 15px #35E8FF55 !important;
+    text-shadow: 0 0 8px white;
+}
+
+.feature-card h3 {
+    color: #FFFFFF !important;
+}
+
+.feature-card p {
+    color: #A9DDFB !important;
+}
+
+.feature-card:active {
+    transform: scale(.97);
+}
+
+/* PRIVACY PANEL */
+
+.privacy-section {
+    background: linear-gradient(120deg, #102B45, #25143D) !important;
+    border: 1px solid #35E8FF !important;
+    color: white !important;
+    box-shadow: 0 0 15px #35E8FF25 !important;
+}
+
+.privacy-section h3 {
+    color: #35E8FF !important;
+}
+
+.privacy-section p {
+    color: #D3E8FF !important;
+}
+
+/* FOOTER */
+
+.app-footer {
+    background: linear-gradient(135deg, #071326, #201033) !important;
+    border-top: 2px solid #35E8FF !important;
+    color: white !important;
+}
+
+.app-footer h3 {
+    background: linear-gradient(90deg, #35E8FF, #FF45D4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent !important;
+}
+
+.app-footer p {
+    color: #D7C5FF !important;
+}
+
+/* MENU BUTTON */
+
+.menu-btn {
+    background: linear-gradient(135deg, #00BFEF, #8545D9, #E83DBD) !important;
+    color: white !important;
+    border: 1px solid #70F5FF !important;
+    box-shadow: 0 0 15px #35E8FF55 !important;
+}
+
+/* MOBILE */
+
+@media (max-width: 400px) {
+    .welcome-section {
+        padding: 90px 15px 22px !important;
+    }
+
+    .welcome-section::after {
+        font-size: 10px;
+        right: 10px;
+        top: 14px;
+        padding: 9px;
+    }
+
+    .feature-card {
+        border-radius: 17px !important;
+    }
+}
+
