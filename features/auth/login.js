@@ -1,9 +1,11 @@
 
 import { auth } from "../../assets/js/firebase.js";
-
 import {
     RecaptchaVerifier,
-    signInWithPhoneNumber
+    signInWithPhoneNumber,
+    GoogleAuthProvider,
+    getRedirectResult,
+    signInWithRedirect
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 const phoneForm = document.getElementById("phoneLoginForm");
@@ -125,5 +127,41 @@ otpForm.addEventListener("submit", async (event) => {
 
     } finally {
         verifyOtpBtn.disabled = false;
+    }
+});
+
+// Google Login
+const googleLoginBtn = document.getElementById("googleLoginBtn");
+
+const googleProvider = new GoogleAuthProvider();
+
+googleProvider.setCustomParameters({
+    prompt: "select_account"
+});
+
+// Check Google Login Result
+getRedirectResult(auth)
+    .then((result) => {
+        if (result && result.user) {
+            showMessage("Google से लॉगिन सफल हुआ। Railway Mitra में आपका स्वागत है।");
+            window.location.href = "../../index.html";
+        }
+    })
+    .catch((error) => {
+        console.error("Google Login Error:", error);
+        showMessage("Google Login में समस्या हुई: " + error.message, true);
+    });
+
+// Google Login Button
+googleLoginBtn.addEventListener("click", async () => {
+    googleLoginBtn.disabled = true;
+    showMessage("Google Account से लॉगिन किया जा रहा है...");
+
+    try {
+        await signInWithRedirect(auth, googleProvider);
+    } catch (error) {
+        console.error("Google Login Error:", error);
+        showMessage("Google Login असफल: " + error.message, true);
+        googleLoginBtn.disabled = false;
     }
 });
