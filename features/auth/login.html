@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071326">
+    <title>Railway Mitra - Mobile Login</title>
+
+    <link rel="stylesheet" href="../../assets/css/main.css">
+    <link rel="stylesheet" href="./login.css">
+</head>
+<body>
+
+    <main class="rm-login">
+        <section class="rm-login-card">
+
+            <a href="../../index.html" class="rm-login-back">
+                ← वापस जाएँ
+            </a>
+
+            <div class="rm-login-logo">🚆</div>
+
+            <h1>Railway Mitra</h1>
+            <p class="rm-login-subtitle">
+                आपका रेलवे डिजिटल साथी
+            </p>
+
+            <h2>मोबाइल नंबर से लॉगिन करें</h2>
+
+            <form id="phoneLoginForm">
+                <label for="phoneNumber">मोबाइल नंबर</label>
+
+                <div class="rm-phone-input">
+                    <span>+91</span>
+                    <input
+                        type="tel"
+                        id="phoneNumber"
+                        placeholder="10 अंकों का मोबाइल नंबर"
+                        inputmode="numeric"
+                        maxlength="10"
+                        required
+                    >
+                </div>
+
+                <div id="recaptcha-container"></div>
+
+                <button type="submit" id="sendOtpBtn">
+                    OTP भेजें
+                </button>
+            </form>
+
+            <form id="otpForm" hidden>
+                <label for="otpCode">OTP दर्ज करें</label>
+
+                <input
+                    type="text"
+                    id="otpCode"
+                    placeholder="6 अंकों का OTP"
+                    inputmode="numeric"
+                    maxlength="6"
+                    required
+                >
+
+                <button type="submit" id="verifyOtpBtn">
+                    OTP सत्यापित करें
+                </button>
+            </form>
+
+            <p id="loginMessage" role="status"></p>
+
+            <p class="rm-login-security">
+                🔒 आपकी जानकारी की सुरक्षा हमारी प्राथमिकता है।
+            </p>
+
+        </section>
+    </main>
+
+    <script type="module" src="./login.js"></script>
+
+</body>
+</html>
