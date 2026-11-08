@@ -41,20 +41,21 @@
         </select>
       </div>
       <div class="rm8-field">
-        <label for="cityClass">शहर की श्रेणी (HRA)</label>
-        <select id="cityClass">
-          <option value="24">X-Class · 24%</option>
-          <option value="16" selected>Y-Class · 16%</option>
-          <option value="8">Z-Class · 8%</option>
-        </select>
-      </div>
-      <div class="rm8-field">
         <label for="quarterAllotted">क्या सरकारी रेलवे क्वार्टर मिला हुआ है?</label>
         <select id="quarterAllotted">
           <option value="no" selected>नहीं — HRA मिलेगा (शहर के अनुसार)</option>
           <option value="yes">हाँ — HRA नहीं मिलेगा</option>
         </select>
         <small class="field-source">क्वार्टर मिलने पर इस अनुमान में वर्तमान और नया, दोनों HRA शून्य माने जाएँगे।</small>
+      </div>
+      <div class="rm8-field" id="cityClassField">
+        <label for="cityClass">शहर की श्रेणी (HRA)</label>
+        <select id="cityClass">
+          <option value="24">X-Class · 24%</option>
+          <option value="16" selected>Y-Class · 16%</option>
+          <option value="8">Z-Class · 8%</option>
+        </select>
+        <small class="field-source" id="hraRateNote">शहर के अनुसार HRA दर चुनें।</small>
       </div>
       <div class="rm8-field">
         <label for="baseTpta">Base Transport Allowance (₹)</label>
