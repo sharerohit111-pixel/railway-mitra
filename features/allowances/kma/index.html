@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071326">
+  <title>KMA Calculator | Railway Mitra</title>
+  <link rel="stylesheet" href="../../../assets/css/main.css">
+
+<style>
+.rm-kma-card{background:#0f172a;border-radius:14px;padding:20px;box-shadow:0 4px 15px rgba(0,0,0,.3);border:1px solid #1e293b;max-width:480px;margin:15px auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#f8fafc}
+.rm-kma-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #1e293b}
+.rm-kma-header h3{margin:0;font-size:18px;color:#38bdf8}
+.rm-kma-group{margin-bottom:14px}
+.rm-kma-group label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#cbd5e1}
+.rm-kma-group input,.rm-kma-group select{width:100%;padding:12px;border:1.5px solid #334155;border-radius:8px;font-size:15px;background:#1e293b;color:#fff;box-sizing:border-box}
+.rm-kma-group input:focus,.rm-kma-group select:focus{outline:none;border-color:#0284c7}
+.rm-kma-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.rm-kma-btn{width:100%;padding:13px;background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px}
+.rm-kma-btn:active{transform:scale(.98)}
+.rm-kma-result{display:none;margin-top:18px;background:#131c31;border:1.5px solid #0284c7;border-radius:10px;padding:16px}
+.rm-kma-main-amt{text-align:center;padding-bottom:12px;border-bottom:1px dashed #334155;margin-bottom:12px}
+.rm-kma-main-amt span{font-size:12px;color:#94a3b8;font-weight:600}
+.rm-kma-main-amt h2{margin:4px 0 0;font-size:28px;color:#38bdf8}
+.rm-kma-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rm-kma-box{background:#1e293b;padding:9px;border-radius:8px;border:1px solid #334155}
+.rm-kma-box small{display:block;font-size:11px;color:#94a3b8}
+.rm-kma-box strong{font-size:13.5px;color:#fff}
+.rm-kma-note{margin-top:12px;font-size:12px;color:#7dd3fc;background:#0c4a6e;padding:8px 10px;border-radius:6px;line-height:1.4}
+</style>
+</head>
+
+<body>
+<main style="max-width:600px;margin:24px auto;padding:16px;">
+
+<a href="../index.html" style="display:inline-block;color:#65eaff;text-decoration:none;margin-bottom:18px;">← भत्ता कैलकुलेटर पर वापस जाएँ</a>
+
+<div class="rm-kma-card">
+  <div class="rm-kma-header">
+    <span style="font-size:22px;">🚆</span>
+    <div>
+      <h3>Kilometreage Allowance (KMA)</h3>
+      <small style="color:#94a3b8;">Running Staff KMA &amp; ALK</small>
+    </div>
+  </div>
+
+  <div class="rm-kma-group">
+    <label for="rmKmaPost">1. Running Staff Post (अपना पद चुनें)</label>
+    <select id="rmKmaPost">
+      <optgroup label="Loco Running Staff">
+        <option value="lp_mail">Loco Pilot (Mail / Express) - Level 6</option>
+        <option value="lp_pass">Loco Pilot (Passenger) / Sr. Motorman - Level 6</option>
+        <option value="lp_goods">Loco Pilot (Goods) - Level 6</option>
+        <option value="lp_shunt1">Loco Pilot (Shunting) Gr. I - Level 6</option>
+        <option value="sr_alp">Sr. Assistant Loco Pilot (Sr. ALP) / LP Shunt Gr. II - Level 4</option>
+        <option value="alp" selected>Assistant Loco Pilot (ALP) - Level 2</option>
+      </optgroup>
+      <optgroup label="Traffic Running Staff (Train Manager / Guard)">
+        <option value="guard_mail">Mail / Express Train Manager (Guard) - Level 6</option>
+        <option value="guard_sr">Sr. Passenger / Goods Guard - Level 6</option>
+        <option value="guard_goods">Goods Train Manager (Guard) - Level 5</option>
+        <option value="guard_sr_asst">Sr. Assistant Guard / Brakesman - Level 4</option>
+        <option value="guard_asst">Assistant Guard / Brakesman - Level 2</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div class="rm-kma-group">
+    <label for="rmKmaDa">2. Current DA (%)</label>
+    <input type="number" id="rmKmaDa" value="63" min="0" step="0.01">
+  </div>
+
+  <div class="rm-kma-group">
+    <label for="rmKmaKm">3. Total Kilometres Run (कुल चलाए गए किलोमीटर)</label>
+    <input type="number" id="rmKmaKm" placeholder="उदाहरण: 3500" value="3500" min="0">
+  </div>
+
+  <div class="rm-kma-row">
+    <div class="rm-kma-group" style="margin-bottom:0;">
+      <label for="rmAlkOut">4. Outstation ALK Days (160 km/day)</label>
+      <input type="number" id="rmAlkOut" value="0" min="0" step="0.5">
+    </div>
+    <div class="rm-kma-group" style="margin-bottom:0;">
+      <label for="rmAlkHq">5. HQ ALK Days (120 km/day)</label>
+      <input type="number" id="rmAlkHq" value="0" min="0" step="0.5">
+    </div>
+  </div>
+
+  <button type="button" class="rm-kma-btn" onclick="calculateRmKMA()">Calculate KMA / गणना करें</button>
+
+  <div class="rm-kma-result" id="rmKmaResult">
+    <div class="rm-kma-main-amt">
+      <span>TOTAL RUNNING ALLOWANCE (KMA + ALK)</span>
+      <h2 id="rmTotalKma">₹0</h2>
+    </div>
+    <div class="rm-kma-grid">
+      <div class="rm-kma-box">
+        <small>KMA Rate (per 100 KM)</small>
+        <strong id="rmKmaRateShow">₹0</strong>
+      </div>
+      <div class="rm-kma-box">
+        <small>Running KMA Amount</small>
+        <strong id="rmKmaRunAmt">₹0</strong>
+      </div>
+      <div class="rm-kma-box">
+        <small>ALK Rate (160 KM/Day)</small>
+        <strong id="rmAlkRateShow">₹0</strong>
+      </div>
+      <div class="rm-kma-box">
+        <small>Total ALK Amount</small>
+        <strong id="rmAlkTotalAmt">₹0</strong>
+      </div>
+    </div>
+    <div class="rm-kma-note" id="rmKmaNote"></div>
+  </div>
+</div>
+</main>
+
+<script>
+function calculateRmKMA() {
+  const post = document.getElementById('rmKmaPost').value;
+  const da = Number(document.getElementById('rmKmaDa').value);
+  const totalKm = Number(document.getElementById('rmKmaKm').value);
+  const alkOutDays = Number(document.getElementById('rmAlkOut').value);
+  const alkHqDays = Number(document.getElementById('rmAlkHq').value);
+
+  if (![da,totalKm,alkOutDays,alkHqDays].every(Number.isFinite) ||
+      da < 0 || totalKm < 0 || alkOutDays < 0 || alkHqDays < 0) {
+    alert("कृपया सभी मान सही दर्ज करें।");
+    return;
+  }
+
+  const rateTable = {
+    lp_mail:       {r50:{kma:606,alk:969},rBase:{kma:530,alk:848}},
+    lp_pass:       {r50:{kma:600,alk:960},rBase:{kma:525,alk:840}},
+    lp_goods:      {r50:{kma:594,alk:951},rBase:{kma:520,alk:832}},
+    lp_shunt1:     {r50:{kma:461,alk:737},rBase:{kma:403,alk:645}},
+    sr_alp:        {r50:{kma:447,alk:715},rBase:{kma:391,alk:626}},
+    alp:           {r50:{kma:430,alk:688},rBase:{kma:376,alk:602}},
+    guard_mail:    {r50:{kma:549,alk:878},rBase:{kma:480,alk:768}},
+    guard_sr:      {r50:{kma:543,alk:869},rBase:{kma:475,alk:760}},
+    guard_goods:   {r50:{kma:537,alk:859},rBase:{kma:470,alk:750}},
+    guard_sr_asst: {r50:{kma:320,alk:512},rBase:{kma:280,alk:448}},
+    guard_asst:    {r50:{kma:305,alk:488},rBase:{kma:267,alk:427}}
+  };
+
+  const postRates = rateTable[post];
+  if (!postRates) {
+    alert("कृपया सही पद चुनें।");
+    return;
+  }
+
+  const selectedRates = da >= 50 ? postRates.r50 : postRates.rBase;
+
+  const kmaAmount = (totalKm / 100) * selectedRates.kma;
+  const alkOutAmount = alkOutDays * selectedRates.alk;
+  const alkHqAmount = alkHqDays * selectedRates.alk * 0.75;
+  const totalAlkAmount = alkOutAmount + alkHqAmount;
+  const grandTotal = Math.round(kmaAmount + totalAlkAmount);
+
+  const money = value => "₹" + Math.round(value).toLocaleString("en-IN");
+
+  document.getElementById('rmTotalKma').innerText = money(grandTotal);
+  document.getElementById('rmKmaRateShow').innerText = money(selectedRates.kma) + " / 100km";
+  document.getElementById('rmKmaRunAmt').innerText = money(kmaAmount);
+  document.getElementById('rmAlkRateShow').innerText = money(selectedRates.alk) + " / day";
+  document.getElementById('rmAlkTotalAmt').innerText = money(totalAlkAmount);
+
+  document.getElementById('rmKmaNote').innerText =
+    `गणना: ${totalKm} KM × ₹${selectedRates.kma}/100km = ${money(kmaAmount)} (KMA) + ${money(totalAlkAmount)} (ALK)। DA ${da >= 50 ? '50% या अधिक' : '50% से कम'} वाली दर चुनी गई है।`;
+
+  document.getElementById('rmKmaResult').style.display = 'block';
+}
+</script>
+
+<script type="module" src="../../../assets/js/auth-guard.js"></script>
+</body>
+</html>
