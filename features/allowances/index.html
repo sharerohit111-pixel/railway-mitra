@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071326">
+
+    <title>Allowances | Railway Mitra</title>
+
+    <link rel="stylesheet" href="../../assets/css/main.css">
+
+    <style>
+        html:not([data-auth-ready="true"]) body {
+            visibility: hidden;
+        }
+
+        .allowances-page {
+            width: min(100% - 28px, 600px);
+            margin: 24px auto;
+            padding-bottom: 35px;
+            color: #eaf6ff;
+            font-family: Arial, sans-serif;
+        }
+
+        .allowances-header {
+            padding: 25px 18px;
+            text-align: center;
+            border: 1px solid rgba(0, 220, 255, .25);
+            border-radius: 20px;
+            background: linear-gradient(145deg, #102747, #091426);
+        }
+
+        .allowances-home {
+            display: inline-block;
+            color: #65eaff;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .allowances-header h1 {
+            margin: 8px 0;
+            color: #fff;
+            font-size: 26px;
+        }
+
+        .allowances-header p {
+            color: #a8c7df;
+            margin: 8px 0 0;
+        }
+
+        .allowances-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 22px;
+        }
+
+        .allowance-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 19px;
+            border: 1px solid rgba(0, 210, 255, .25);
+            border-radius: 17px;
+            background: linear-gradient(145deg, #11243d, #0a1628);
+            color: #eaf6ff;
+            text-decoration: none;
+            box-shadow: 0 8px 22px rgba(0,0,0,.2);
+        }
+
+        .allowance-card.active {
+            border-color: rgba(0, 225, 255, .55);
+        }
+
+        .allowance-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(0, 200, 255, .12);
+            color: #62eaff;
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        .allowance-info {
+            flex: 1;
+        }
+
+        .allowance-info h2 {
+            margin: 0 0 6px;
+            font-size: 17px;
+            color: #fff;
+        }
+
+        .allowance-info p {
+            margin: 0;
+            color: #a8c7df;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .allowance-arrow {
+            color: #65eaff;
+            font-size: 23px;
+        }
+
+        .allowance-status {
+            display: inline-block;
+            margin-top: 7px;
+            color: #69eaff;
+            font-size: 11px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="allowances-page">
+
+        <header class="allowances-header">
+            <a href="../../index.html" class="allowances-home">
+                ← मुख्य पेज पर वापस जाएँ
+            </a>
+
+            <h1>भत्ता कैलकुलेटर</h1>
+            <p>Railway Mitra – Railway Allowances</p>
+        </header>
+
+        <section class="allowances-list">
+
+            <a href="./da/index.html"
+               class="allowance-card active">
+
+                <div class="allowance-icon">DA</div>
+
+                <div class="allowance-info">
+                    <h2>Dearness Allowance</h2>
+                    <p>महँगाई भत्ता की गणना करें</p>
+                    <span class="allowance-status">
+                        कैलकुलेटर उपलब्ध है
+                    </span>
+                </div>
+
+                <span class="allowance-arrow">›</span>
+            </a>
+
+            <div class="allowance-card">
+                <div class="allowance-icon">DA+</div>
+                <div class="allowance-info">
+                    <h2>DA Arrear</h2>
+                    <p>महँगाई भत्ते के बकाया की गणना</p>
+                    <span class="allowance-status">अभी उपलब्ध नहीं</span>
+                </div>
+            </div>
+
+            <div class="allowance-card">
+                <div class="allowance-icon">HRA</div>
+                <div class="allowance-info">
+                    <h2>House Rent Allowance</h2>
+                    <p>मकान किराया भत्ते की गणना</p>
+                    <span class="allowance-status">अभी उपलब्ध नहीं</span>
+                </div>
+            </div>
+
+            <div class="allowance-card">
+                <div class="allowance-icon">TA</div>
+                <div class="allowance-info">
+                    <h2>Transport Allowance</h2>
+                    <p>यात्रा भत्ते की गणना</p>
+                    <span class="allowance-status">अभी उपलब्ध नहीं</span>
+                </div>
+            </div>
+
+            <div class="allowance-card">
+                <div class="allowance-icon">NDA</div>
+                <div class="allowance-info">
+                    <h2>Night Duty Allowance</h2>
+                    <p>रात्रि ड्यूटी भत्ते की गणना</p>
+                    <span class="allowance-status">अभी उपलब्ध नहीं</span>
+                </div>
+            </div>
+
+            <div class="allowance-card">
+                <div class="allowance-icon">OTA</div>
+                <div class="allowance-info">
+                    <h2>Overtime Allowance</h2>
+                    <p>अतिरिक्त ड्यूटी भत्ते की गणना</p>
+                    <span class="allowance-status">अभी उपलब्ध नहीं</span>
+                </div>
+            </div>
+
+            <div class="allowance-card">
+                <div class="allowance-icon">KMA</div>
+                <div class="allowance-info">
+                    <h2>Kilometrage Allowance</h2>
+                    <p>किलोमीटर आधारित भत्ते की गणना</p>
+                    <span class="allowance-status">अभी उपलब्ध नहीं</span>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script type="module"
+            src="../../assets/js/auth-guard.js"></script>
+
+</body>
+</html>
