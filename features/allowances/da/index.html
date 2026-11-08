@@ -10,6 +10,11 @@
 
     <link rel="stylesheet" href="../../../assets/css/main.css">
     <link rel="stylesheet" href="./da.css">
+    <style>
+html:not([data-auth-ready="true"]) body {
+    visibility: hidden;
+}
+    </style>
 </head>
 
 <body>
@@ -94,5 +99,6 @@
     </main>
 
     <script src="./da.js"></script>
+    <script type="module" src="../../../assets/js/auth-guard.js"></script>
 </body>
 </html>
