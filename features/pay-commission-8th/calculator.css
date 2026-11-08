@@ -6,3 +6,4 @@
 #cityClassField.is-disabled{opacity:.38!important;filter:grayscale(1)!important;pointer-events:none!important}
 #cityClassField.is-disabled label,#cityClassField.is-disabled .field-source{color:#64748b!important}
 #cityClassField select:disabled{opacity:.45!important;color:#64748b!important;background:#0b1220!important;border:2px dashed #475569!important;-webkit-text-fill-color:#64748b!important;cursor:not-allowed!important}
+
