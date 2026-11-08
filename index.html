@@ -130,6 +130,19 @@
         <p>© 2026 Railway Mitra</p>
     </footer>
 
+    <script type="module">
+import { auth } from "./assets/js/firebase.js";
+
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.replace("./features/auth/login.html");
+    }
+});
+    </script>
     <script src="assets/js/app.js"></script>
 <script>
 if ("serviceWorker" in navigator) {
