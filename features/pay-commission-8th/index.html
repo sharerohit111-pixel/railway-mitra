@@ -49,6 +49,14 @@
         </select>
       </div>
       <div class="rm8-field">
+        <label for="quarterAllotted">क्या सरकारी रेलवे क्वार्टर मिला हुआ है?</label>
+        <select id="quarterAllotted">
+          <option value="no" selected>नहीं — HRA मिलेगा (शहर के अनुसार)</option>
+          <option value="yes">हाँ — HRA नहीं मिलेगा</option>
+        </select>
+        <small class="field-source">क्वार्टर मिलने पर इस अनुमान में वर्तमान और नया, दोनों HRA शून्य माने जाएँगे।</small>
+      </div>
+      <div class="rm8-field">
         <label for="baseTpta">Base Transport Allowance (₹)</label>
         <select id="baseTpta">
           <option value="1350">₹1,350 · Level 1–2 / Other City</option>
@@ -76,7 +84,7 @@
     <div class="rm8-result-head"><small>ESTIMATED NEW MONTHLY NET SALARY</small><strong id="netSalaryDisplay">₹0</strong><span id="salaryJumpDisplay">मासिक शुद्ध बढ़ोतरी: ₹0</span></div>
     <div class="rm8-result-grid">
       <div><small>नया Basic Pay</small><strong id="newBasicDisplay">₹0</strong></div>
-      <div><small>अनुमानित कुल Net Arrear</small><strong id="totalArrearDisplay">₹0</strong></div>
+      <div><small>अनुमानित कुल Net Arrear</small><strong id="totalArrearDisplay">₹0</strong><small id="arrearStatus" class="field-source"></small></div>
       <div><small>नया HRA</small><strong id="newHraDisplay">₹0</strong></div>
       <div><small>नई NPS कटौती (10%)</small><strong id="npsDisplay">-₹0</strong></div>
     </div>
