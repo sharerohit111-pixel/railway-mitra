@@ -209,6 +209,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Menu links
         const menuItems = [
             ["Employee Profile", "features/profile/index.html"],
+            ["8th Pay Commission", "features/pay-commission-8th/index.html"],
             ["Allowances", "features/allowances/index.html"]
         ];
 
