@@ -1,0 +1,370 @@
+<!-- ===== POST-BASED SMART OTA CALCULATOR SEGMENT START ===== -->
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071326">
+<title>Overtime Allowance | Railway Mitra</title>
+<link rel="stylesheet" href="../../../assets/css/main.css">
+
+<style>
+  .rm-ota-card {
+    background: #0f172a;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid #1e293b;
+    max-width: 480px;
+    margin: 15px auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #f8fafc;
+  }
+  .rm-ota-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #1e293b;
+  }
+  .rm-ota-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #38bdf8;
+  }
+  .rm-ota-group {
+    margin-bottom: 14px;
+  }
+  .rm-ota-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #cbd5e1;
+  }
+  .rm-ota-group input, .rm-ota-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px solid #334155;
+    border-radius: 8px;
+    font-size: 15px;
+    background: #1e293b;
+    color: #ffffff;
+    box-sizing: border-box;
+  }
+  .rm-ota-group input:focus, .rm-ota-group select:focus {
+    outline: none;
+    border-color: #0284c7;
+  }
+  .rm-ota-badge {
+    display: inline-block;
+    font-size: 11px;
+    background: #0c4a6e;
+    color: #7dd3fc;
+    padding: 4px 8px;
+    border-radius: 5px;
+    margin-top: 6px;
+  }
+  .rm-ota-btn {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .rm-ota-btn:active {
+    transform: scale(0.98);
+  }
+  .rm-ota-result {
+    display: none;
+    margin-top: 18px;
+    background: #131c31;
+    border: 1.5px solid #0284c7;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .rm-ota-main-amt {
+    text-align: center;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #334155;
+    margin-bottom: 12px;
+  }
+  .rm-ota-main-amt span {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+  .rm-ota-main-amt h2 {
+    margin: 4px 0 0;
+    font-size: 28px;
+    color: #38bdf8;
+  }
+  .rm-ota-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .rm-ota-box {
+    background: #1e293b;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+  }
+  .rm-ota-box small {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+  }
+  .rm-ota-box strong {
+    font-size: 13.5px;
+    color: #ffffff;
+  }
+  .rm-ota-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #7dd3fc;
+    background: #0c4a6e;
+    padding: 8px 10px;
+    border-radius: 6px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+
+<body>
+
+<main style="max-width:600px;margin:24px auto;padding:16px;">
+
+<a href="../index.html" style="display:inline-block;color:#65eaff;text-decoration:none;margin-bottom:18px;">
+  ← भत्ता कैलकुलेटर पर वापस जाएँ
+</a>
+
+<div class="rm-ota-card">
+  <div class="rm-ota-header">
+    <span style="font-size: 22px;">⏱️</span>
+    <div>
+      <h3>Overtime Allowance (OTA)</h3>
+      <small style="color: #94a3b8;">Post-Wise HOER Auto Calculation</small>
+    </div>
+  </div>
+
+  <!-- 1. Post Selection -->
+  <div class="rm-ota-group">
+    <label for="rmOtaPost">1. Select Your Post (अपनी पोस्ट चुनें)</label>
+    <select id="rmOtaPost" onchange="onPostChange()">
+      <optgroup label="Station Master &amp; Running Staff (Top Priority)">
+        <option value="continuous" selected>Station Master (SM) / ASM</option>
+        <option value="running">Loco Pilot / Assistant Loco Pilot (ALP)</option>
+        <option value="running">Train Manager (Guard)</option>
+      </optgroup>
+      <optgroup label="Continuous Roster (8 Hrs Shift / 96h in 14 Days)">
+        <option value="continuous">Track Maintainer / Gangman</option>
+        <option value="continuous">Pointsman / Shunting Master</option>
+        <option value="continuous">Technician / Artisan / Helper (S&amp;T, Elect, Mech)</option>
+        <option value="continuous">Booking / Parcel / Goods Clerk / TC</option>
+      </optgroup>
+      <optgroup label="Essentially Intermittent - EI (12 Hrs Shift / 72h in 7 Days)">
+        <option value="ei">Gateman (Traffic / Engineering Gate)</option>
+        <option value="ei">Chowkidar / Watchman / Caretaker</option>
+        <option value="ei">Pump Operator / Safaiwala (Small Station)</option>
+      </optgroup>
+      <optgroup label="Intensive Roster (6 Hrs Shift / 84h in 14 Days)">
+        <option value="intensive">Busy Cabinman / Leverman / Switchman</option>
+        <option value="intensive">Section Controller / Dy. Controller</option>
+      </optgroup>
+    </select>
+    <div class="rm-ota-badge" id="rmRosterBadge">Auto Roster: Continuous (96h Roster | 108h Stat. Limit in 14 Days)</div>
+  </div>
+
+  <!-- 2. Roster Classification -->
+  <div class="rm-ota-group">
+    <label for="rmOtaRosterOverride">2. Roster Classification (रोस्टर प्रकार - ऑटो सेट)</label>
+    <select id="rmOtaRosterOverride" onchange="onRosterOverride()">
+      <option value="continuous" selected>Continuous (8 Hrs/Day — 96h Roster / 108h Limit in 14 Days)</option>
+      <option value="running">Running Staff (104h Roster / 108h Limit in 14 Days + 30% Pay)</option>
+      <option value="ei">Essentially Intermittent - EI (12 Hrs/Day — 72h Roster / 75h Limit in 7 Days)</option>
+      <option value="ei60">Essentially Intermittent - EI Special (10 Hrs/Day — 60h Roster / 75h Limit in 7 Days)</option>
+      <option value="intensive">Intensive (6 Hrs/Day — 84h Roster / 90h Limit in 14 Days)</option>
+    </select>
+  </div>
+
+  <!-- 3. Basic Pay -->
+  <div class="rm-ota-group">
+    <label for="rmOtaBasic">3. Basic Pay (मूल वेतन ₹)</label>
+    <input type="number" id="rmOtaBasic" placeholder="e.g. 35400" value="35400" min="18000">
+  </div>
+
+  <!-- 4. Current DA -->
+  <div class="rm-ota-group">
+    <label for="rmOtaDa">4. Current DA (%)</label>
+    <input type="number" id="rmOtaDa" value="63" min="0">
+  </div>
+
+  <!-- 5. Base TPTA -->
+  <div class="rm-ota-group">
+    <label for="rmOtaBaseTa">5. Base Transport Allowance - TPTA (₹)</label>
+    <select id="rmOtaBaseTa">
+      <option value="0">₹0 (Running Staff - TPTA Not Applicable)</option>
+      <option value="900">₹900 (Level 1-2 Other City)</option>
+      <option value="1350">₹1,350 (Level 1-2 Higher TPTA City)</option>
+      <option value="1800" selected>₹1,800 (Level 3-8 Other City)</option>
+      <option value="3600">₹3,600 (Level 3-8 Higher City / Level 9+)</option>
+    </select>
+  </div>
+
+  <!-- 6. Total Duty Hours -->
+  <div class="rm-ota-group">
+    <label for="rmOtaTotalWorked" id="rmOtaHoursLabel">6. Total Duty Hours Worked in 14 Days (कुल ड्यूटी घंटे)</label>
+    <input type="number" id="rmOtaTotalWorked" placeholder="जैसे: 112" value="112" min="0" step="0.5">
+  </div>
+
+  <button type="button" class="rm-ota-btn" onclick="calculatePostOTA()">Calculate Overtime / गणना करें</button>
+
+  <!-- Result Section -->
+  <div class="rm-ota-result" id="rmOtaResult">
+    <div class="rm-ota-main-amt">
+      <span>TOTAL OVERTIME ALLOWANCE</span>
+      <h2 id="rmTotalOta">₹0</h2>
+    </div>
+
+    <div class="rm-ota-grid">
+      <div class="rm-ota-box">
+        <small>Normal Hourly Rate</small>
+        <strong id="rmOtaNormalRate">₹0/hr</strong>
+      </div>
+      <div class="rm-ota-box">
+        <small>Total OT Hours</small>
+        <strong id="rmOtaTotalHrs">0 Hrs</strong>
+      </div>
+      <div class="rm-ota-box">
+        <small>1.5x Slab (Roster → Stat.)</small>
+        <strong id="rmOtaSlab15">0 Hrs (₹0)</strong>
+      </div>
+      <div class="rm-ota-box">
+        <small>2.0x Slab (Above Stat.)</small>
+        <strong id="rmOtaSlab20">0 Hrs (₹0)</strong>
+      </div>
+    </div>
+
+    <div class="rm-ota-note" id="rmOtaNote"></div>
+  </div>
+</div>
+</main>
+
+<script>
+function onPostChange() {
+  const postType = document.getElementById('rmOtaPost').value;
+  document.getElementById('rmOtaRosterOverride').value = postType;
+  onRosterOverride();
+}
+
+function onRosterOverride() {
+  const roster = document.getElementById('rmOtaRosterOverride').value;
+  const badge = document.getElementById('rmRosterBadge');
+  const label = document.getElementById('rmOtaHoursLabel');
+  const hrsInput = document.getElementById('rmOtaTotalWorked');
+  const taSelect = document.getElementById('rmOtaBaseTa');
+
+  if (roster === 'ei') {
+    badge.innerText = "Auto Roster: EI 12-Hr Shift (72h Roster | 75h Stat. Limit in 7 Days)";
+    label.innerText = "6. Total Duty Hours Worked in 7 Days (1 सप्ताह के कुल घंटे)";
+    hrsInput.value = 80;
+    if (taSelect.value === "0") taSelect.value = "1800";
+  } else if (roster === 'ei60') {
+    badge.innerText = "Auto Roster: EI 10-Hr Shift (60h Roster | 75h Stat. Limit in 7 Days)";
+    label.innerText = "6. Total Duty Hours Worked in 7 Days (1 सप्ताह के कुल घंटे)";
+    hrsInput.value = 78;
+    if (taSelect.value === "0") taSelect.value = "1800";
+  } else if (roster === 'intensive') {
+    badge.innerText = "Auto Roster: Intensive 6-Hr Shift (84h Roster | 90h Stat. Limit in 14 Days)";
+    label.innerText = "6. Total Duty Hours Worked in 14 Days (2 सप्ताह के कुल घंटे)";
+    hrsInput.value = 94;
+    if (taSelect.value === "0") taSelect.value = "1800";
+  } else if (roster === 'running') {
+    badge.innerText = "Auto Roster: Running Staff (104h Roster | 108h Stat. Limit in 14 Days)";
+    label.innerText = "6. Total Duty Hours Worked in 14 Days (2 सप्ताह के कुल घंटे)";
+    hrsInput.value = 114;
+    taSelect.value = "0";
+  } else {
+    badge.innerText = "Auto Roster: Continuous 8-Hr Shift (96h Roster | 108h Stat. Limit in 14 Days)";
+    label.innerText = "6. Total Duty Hours Worked in 14 Days (2 सप्ताह के कुल घंटे)";
+    hrsInput.value = 112;
+    if (taSelect.value === "0") taSelect.value = "1800";
+  }
+}
+
+function calculatePostOTA() {
+  const roster = document.getElementById('rmOtaRosterOverride').value;
+  const basic = parseFloat(document.getElementById('rmOtaBasic').value) || 0;
+  const da = parseFloat(document.getElementById('rmOtaDa').value) || 0;
+  const baseTa = parseFloat(document.getElementById('rmOtaBaseTa').value) || 0;
+  const workedHours = parseFloat(document.getElementById('rmOtaTotalWorked').value) || 0;
+
+  if (basic <= 0) {
+    alert("कृपया सही Basic Pay दर्ज करें।");
+    return;
+  }
+
+  let config = { days: 14, rosterLimit: 96, statLimit: 108, staffFactor: 1.0, name: "Continuous" };
+
+  if (roster === 'intensive') {
+    config = { days: 14, rosterLimit: 84, statLimit: 90, staffFactor: 1.0, name: "Intensive" };
+  } else if (roster === 'ei') {
+    config = { days: 7, rosterLimit: 72, statLimit: 75, staffFactor: 1.0, name: "Essentially Intermittent (72h)" };
+  } else if (roster === 'ei60') {
+    config = { days: 7, rosterLimit: 60, statLimit: 75, staffFactor: 1.0, name: "Essentially Intermittent (60h)" };
+  } else if (roster === 'running') {
+    config = { days: 14, rosterLimit: 104, statLimit: 108, staffFactor: 1.30, name: "Running Staff" };
+  }
+
+  const daMult = 1 + (da / 100);
+  const emoluments = (basic * config.staffFactor * daMult) + (baseTa * daMult);
+  const hourlyRate = Math.floor((config.days / config.rosterLimit) * (emoluments / 30));
+
+  let hrs15 = 0;
+  let hrs20 = 0;
+
+  if (workedHours > config.rosterLimit) {
+    if (workedHours <= config.statLimit) {
+      hrs15 = workedHours - config.rosterLimit;
+    } else {
+      hrs15 = config.statLimit - config.rosterLimit;
+      hrs20 = workedHours - config.statLimit;
+    }
+  }
+
+  const amt15 = hrs15 * hourlyRate * 1.5;
+  const amt20 = hrs20 * hourlyRate * 2.0;
+  const totalOTA = Math.round(amt15 + amt20);
+  const totalOtHours = hrs15 + hrs20;
+
+  document.getElementById('rmTotalOta').innerText = "₹" + totalOTA.toLocaleString('en-IN');
+  document.getElementById('rmOtaNormalRate').innerText = "₹" + hourlyRate + "/hr";
+  document.getElementById('rmOtaTotalHrs').innerText = totalOtHours + " Hrs";
+  document.getElementById('rmOtaSlab15').innerText = `${hrs15} Hrs (₹${Math.round(amt15)})`;
+  document.getElementById('rmOtaSlab20').innerText = `${hrs20} Hrs (₹${Math.round(amt20)})`;
+
+  let note = "";
+
+  if (totalOtHours === 0) {
+    note = `ℹ️ ${config.name} की सामान्य सीमा (${config.rosterLimit} घंटे / ${config.days} दिन) से अधिक ड्यूटी न होने के कारण कोई OTA नहीं बना है।`;
+  } else {
+    note = `ℹ️ नियम (${config.name}): ${config.days} दिनों में ${config.rosterLimit}h तक सामान्य ड्यूटी, ${config.rosterLimit}h से ${config.statLimit}h तक (${hrs15}h) @ 1.5x, और ${config.statLimit}h से ऊपर (${hrs20}h) @ 2.0x दर से गणना की गई है।`;
+  }
+
+  document.getElementById('rmOtaNote').innerText = note;
+  document.getElementById('rmOtaResult').style.display = 'block';
+}
+</script>
+
+<script type="module" src="../../../assets/js/auth-guard.js"></script>
+
+</body>
+</html>
+<!-- ===== POST-BASED SMART OTA CALCULATOR SEGMENT END ===== -->
