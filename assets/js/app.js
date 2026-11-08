@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <a href="features/engineering/index.html">Engineering Tools</a>
             <a href="features/documents/index.html">Documents</a>
             <a href="features/updates/index.html">Railway Updates</a>
+            <a href="#" id="rmLogoutBtn">🚪 Logout</a>
         `;
 
         menu.style.cssText = `
@@ -70,6 +71,30 @@ document.addEventListener("DOMContentLoaded", function () {
                 border-bottom: 1px solid #E1E8F0;
                 font-size: 14px;
             `;
+           // Firebase Logout
+const logoutBtn = menu.querySelector("#rmLogoutBtn");
+
+if (logoutBtn) {
+    logoutBtn.addEventListener("click", async function (event) {
+        event.preventDefault();
+
+        try {
+            const { auth } = await import("./firebase.js");
+
+            const { signOut } = await import(
+                "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js"
+            );
+
+            await signOut(auth);
+
+            window.location.href = "features/auth/login.html";
+
+        } catch (error) {
+            console.error("Logout Error:", error);
+            alert("Logout नहीं हो पाया। कृपया दोबारा प्रयास करें।");
+        }
+    });
+    }
         });
 
         const header = document.querySelector(".app-header");
