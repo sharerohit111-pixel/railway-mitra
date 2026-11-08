@@ -1,0 +1,269 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071326">
+  <title>HRA Calculator | Railway Mitra</title>
+  <link rel="stylesheet" href="../../../assets/css/main.css">
+
+  <style>
+    body { color: #eaf6ff; }
+    .hra-page {
+      max-width: 600px;
+      margin: 24px auto;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+    }
+    .hra-back {
+      display: inline-block;
+      color: #65eaff;
+      text-decoration: none;
+      margin-bottom: 18px;
+    }
+    .rm-hra-card {
+      background: linear-gradient(145deg,#172b49,#101b32);
+      border: 1px solid rgba(0,210,255,.35);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,.25);
+      color: #eaf6ff;
+    }
+    .rm-hra-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(0,210,255,.2);
+    }
+    .rm-hra-header h3 {
+      margin: 0;
+      font-size: 20px;
+      color: #65eaff;
+    }
+    .rm-hra-group { margin-bottom: 16px; }
+    .rm-hra-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 7px;
+      color: #c8d8eb;
+    }
+    .rm-hra-group input, .rm-hra-group select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #36516e;
+      border-radius: 10px;
+      font-size: 16px;
+      color: #fff;
+      background: #0d192c;
+      box-sizing: border-box;
+    }
+    .rm-hra-group input:focus, .rm-hra-group select:focus {
+      outline: none;
+      border-color: #45dfff;
+    }
+    .rm-hra-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg,#087eae,#12b8d5);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .rm-hra-result {
+      display: none;
+      margin-top: 20px;
+      background: #0d2038;
+      border: 1px solid #20bddd;
+      border-radius: 12px;
+      padding: 15px;
+    }
+    .rm-hra-main-amt {
+      text-align: center;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed #398ca8;
+      margin-bottom: 14px;
+    }
+    .rm-hra-main-amt span { font-size: 12px; color: #b7d2e6; }
+    .rm-hra-main-amt h2 {
+      margin: 5px 0 0;
+      font-size: 28px;
+      color: #65eaff;
+    }
+    .rm-hra-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+    .rm-hra-box {
+      background: #172b49;
+      padding: 11px;
+      border-radius: 8px;
+      border: 1px solid #294966;
+    }
+    .rm-hra-box small {
+      display: block;
+      font-size: 11px;
+      color: #b7cce0;
+      margin-bottom: 5px;
+    }
+    .rm-hra-box strong { font-size: 15px; color: #fff; }
+    .rm-hra-note {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #8feaff;
+      background: #102c46;
+      padding: 10px;
+      border-radius: 7px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+<main class="hra-page">
+  <a class="hra-back" href="../index.html">← भत्ता कैलकुलेटर पर वापस जाएँ</a>
+
+  <div class="rm-hra-card">
+    <div class="rm-hra-header">
+      <span style="font-size:28px;">🏠</span>
+      <div>
+        <h3>HRA Calculator</h3>
+        <small>7th CPC House Rent Allowance</small>
+      </div>
+    </div>
+
+    <div class="rm-hra-group">
+      <label for="rmBasicPay">1. Basic Pay (मूल वेतन ₹)</label>
+      <input type="number" id="rmBasicPay" value="19900" min="1">
+    </div>
+
+    <div class="rm-hra-group">
+      <label for="rmDaPercent">2. Current DA (%)</label>
+      <input type="number" id="rmDaPercent" value="53" min="0" max="1000" step="0.1">
+    </div>
+
+    <div class="rm-hra-group">
+      <label for="rmCityType">3. City Type (शहर की श्रेणी)</label>
+      <select id="rmCityType">
+        <option value="X">X-Class (Metro)</option>
+        <option value="Y" selected>Y-Class (Tier-2)</option>
+        <option value="Z">Z-Class (Other Towns / Rural)</option>
+      </select>
+    </div>
+
+    <div class="rm-hra-group">
+      <label for="rmStaffType">4. Staff Type (कर्मचारी वर्ग)</label>
+      <select id="rmStaffType">
+        <option value="general">General Staff (सामान्य)</option>
+        <option value="running">Running Staff (Loco Pilot / Guard)</option>
+      </select>
+    </div>
+
+    <button type="button" class="rm-hra-btn" onclick="calculateRmHRA()">
+      Calculate HRA / गणना करें
+    </button>
+
+    <div class="rm-hra-result" id="rmHraResult" aria-live="polite">
+      <div class="rm-hra-main-amt">
+        <span>MONTHLY HRA (मासिक भत्ता)</span>
+        <h2 id="rmMonthlyHra">₹0</h2>
+      </div>
+
+      <div class="rm-hra-grid">
+        <div class="rm-hra-box">
+          <small>Annual HRA (सालाना)</small>
+          <strong id="rmAnnualHra">₹0</strong>
+        </div>
+        <div class="rm-hra-box">
+          <small>Applied Rate (लागू दर)</small>
+          <strong id="rmAppliedRate">0%</strong>
+        </div>
+        <div class="rm-hra-box">
+          <small>Calculation Base</small>
+          <strong id="rmEffBasic">₹0</strong>
+        </div>
+        <div class="rm-hra-box">
+          <small>Min. Guarantee</small>
+          <strong id="rmMinGuarantee">₹0</strong>
+        </div>
+      </div>
+
+      <div class="rm-hra-note" id="rmRuleNote"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+function calculateRmHRA() {
+  const basic = Number(document.getElementById("rmBasicPay").value);
+  const da = Number(document.getElementById("rmDaPercent").value);
+  const city = document.getElementById("rmCityType").value;
+  const staff = document.getElementById("rmStaffType").value;
+
+  if (!Number.isFinite(basic) || basic <= 0) {
+    alert("कृपया सही Basic Pay दर्ज करें।");
+    return;
+  }
+
+  if (!Number.isFinite(da) || da < 0 || da > 1000) {
+    alert("कृपया सही DA प्रतिशत दर्ज करें।");
+    return;
+  }
+
+  let rates = { X: 24, Y: 16, Z: 8 };
+
+  if (da >= 50) {
+    rates = { X: 30, Y: 20, Z: 10 };
+  } else if (da >= 25) {
+    rates = { X: 27, Y: 18, Z: 9 };
+  }
+
+  const rate = rates[city];
+  const effBasic = staff === "running" ? basic * 1.30 : basic;
+  const rawHra = effBasic * rate / 100;
+
+  const minFloors = { X: 5400, Y: 3600, Z: 1800 };
+  const minFloor = minFloors[city];
+  const isMinApplied = rawHra < minFloor;
+
+  const monthly = Math.round(isMinApplied ? minFloor : rawHra);
+  const annual = monthly * 12;
+
+  const money = value => "₹" + value.toLocaleString("en-IN");
+
+  document.getElementById("rmMonthlyHra").innerText = money(monthly);
+  document.getElementById("rmAnnualHra").innerText = money(annual);
+  document.getElementById("rmAppliedRate").innerText = rate + "% (" + city + ")";
+  document.getElementById("rmEffBasic").innerText = money(Math.round(effBasic));
+  document.getElementById("rmMinGuarantee").innerText = money(minFloor);
+
+  const noteEl = document.getElementById("rmRuleNote");
+
+  if (isMinApplied) {
+    noteEl.innerText =
+      "ℹ️ गणना किया गया HRA (" + money(Math.round(rawHra)) +
+      ") न्यूनतम सीमा से कम है, इसलिए " + city +
+      "-Class के लिए न्यूनतम " + money(minFloor) + " लागू किया गया है।";
+  } else if (staff === "running") {
+    noteEl.innerText =
+      "ℹ️ Running Staff के लिए Basic Pay में 30% पे-एलिमेंट (" +
+      money(Math.round(basic * 0.30)) + ") जोड़कर गणना की गई है।";
+  } else {
+    noteEl.innerText =
+      "ℹ️ यह गणना Basic Pay के " + rate +
+      "% पर आधारित है। DA स्लैब: " +
+      (da >= 50 ? "50% या अधिक" : da >= 25 ? "25%-49%" : "25% से कम") + "।";
+  }
+
+  document.getElementById("rmHraResult").style.display = "block";
+}
+</script>
+</body>
+</html>
