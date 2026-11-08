@@ -1,0 +1,193 @@
+
+/* =====================================
+   RAILWAY MITRA - DA CALCULATOR
+   Isolated stylesheet
+===================================== */
+
+.da-calculator {
+    width: min(100% - 28px, 520px);
+    margin: 24px auto;
+    padding-bottom: 35px;
+    color: #eaf6ff;
+    font-family: Arial, sans-serif;
+}
+
+.da-header {
+    text-align: center;
+    padding: 24px 16px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0, 220, 255, 0.25);
+    border-radius: 20px;
+    background: linear-gradient(145deg, #102747, #091426);
+    box-shadow: 0 0 24px rgba(0, 195, 255, 0.12);
+}
+
+.da-back {
+    display: inline-block;
+    float: left;
+    color: #6eeaff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.da-brand {
+    margin: 5px 0 18px;
+    color: #65eaff;
+    font-size: 12px;
+    letter-spacing: 3px;
+    font-weight: bold;
+}
+
+.da-header h1 {
+    margin: 10px 0 6px;
+    color: #ffffff;
+    font-size: 25px;
+}
+
+.da-subtitle {
+    margin: 0;
+    color: #a8c7df;
+    font-size: 14px;
+}
+
+.da-card,
+.da-result {
+    padding: 22px;
+    margin-bottom: 18px;
+    border: 1px solid rgba(0, 210, 255, 0.22);
+    border-radius: 18px;
+    background: linear-gradient(145deg, #11243d, #0a1628);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+}
+
+.da-card h2,
+.da-result h2 {
+    margin: 0 0 20px;
+    color: #72eaff;
+    font-size: 19px;
+}
+
+.da-field {
+    margin-bottom: 18px;
+}
+
+.da-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #d9edff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.da-field input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px;
+    border: 1px solid rgba(76, 205, 255, 0.4);
+    border-radius: 11px;
+    outline: none;
+    background: #071326;
+    color: #ffffff;
+    font-size: 17px;
+}
+
+.da-field input:focus {
+    border-color: #42e7ff;
+    box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
+}
+
+.da-effective {
+    margin: 8px 0 18px;
+    color: #a9c9e5;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.da-calculator button {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(100deg, #00c9ef, #2679ff);
+    color: #041326;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.da-calculator button:active {
+    transform: scale(0.98);
+}
+
+.da-calculator .da-reset {
+    border: 1px solid rgba(255, 105, 170, 0.5);
+    background: rgba(255, 70, 145, 0.12);
+    color: #ff9bc8;
+}
+
+.da-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(160, 210, 255, 0.12);
+    font-size: 14px;
+}
+
+.da-result-item span {
+    color: #b7d1e9;
+}
+
+.da-result-item strong {
+    color: #ffffff;
+    text-align: right;
+    font-size: 16px;
+}
+
+.da-result-item.da-highlight strong {
+    color: #5ceaff;
+    font-size: 19px;
+}
+
+.da-result-item.da-total {
+    margin-top: 8px;
+    padding: 17px 12px;
+    border: 1px solid rgba(0, 225, 255, 0.3);
+    border-radius: 12px;
+    background: rgba(0, 190, 255, 0.08);
+}
+
+.da-result-item.da-total strong {
+    color: #ff8ed0;
+    font-size: 20px;
+}
+
+.da-note {
+    padding: 0 5px;
+    color: #9bb6ce;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+@media (max-width: 380px) {
+    .da-calculator {
+        width: calc(100% - 20px);
+    }
+
+    .da-card,
+    .da-result {
+        padding: 17px;
+    }
+
+    .da-header h1 {
+        font-size: 22px;
+    }
+
+    .da-result-item {
+        font-size: 13px;
+    }
+  }
