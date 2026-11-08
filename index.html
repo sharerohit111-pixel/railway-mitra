@@ -1,144 +1,74 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#071326">
-
-    <title>Railway Mitra</title>
-
-    <meta name="description" content="Railway Mitra - Your Railway Digital Companion">
-<link rel="manifest" href="./manifest.json">
-    <link rel="stylesheet" href="assets/css/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071326">
+  <meta name="description" content="Railway Mitra - Your Railway Digital Companion">
+  <title>Railway Mitra</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="assets/css/main.css">
 </head>
-
 <body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">🚆</div>
+      <div>
+        <h1>Railway Mitra</h1>
+        <p data-i18n="tagline">Your Railway Digital Companion</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="language-btn" id="languageToggle" type="button" aria-label="Switch language to Hindi">हिन्दी</button>
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false">☰</button>
+    </div>
+  </header>
 
-    <header class="app-header">
-        <div class="brand">
-            <div class="brand-icon">🚆</div>
-            <div>
-                <h1>Railway Mitra</h1>
-                <p>Your Railway Digital Companion</p>
-            </div>
-        </div>
+  <main class="container" id="home">
+    <section class="welcome-section">
+      <h2 data-i18n="welcome">Welcome to Railway Mitra</h2>
+      <p data-i18n="intro">Your Railway Services, Salary and Employee Tools in One Place.</p>
+      <a href="features/profile/index.html" class="profile-btn" data-i18n="profile">👤 My Employee Profile</a>
+    </section>
 
-        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
-            ☰
-        </button>
-    </header>
+    <section class="dashboard-section" id="services">
+      <h2 data-i18n="services">Employee Services</h2>
+      <div class="feature-grid" id="featureGrid" aria-live="polite">
+        <p class="module-loading">Loading employee services…</p>
+      </div>
+    </section>
 
-    <main class="container">
+    <section class="privacy-section">
+      <span aria-hidden="true">🔐</span>
+      <div>
+        <h3 data-i18n="privacy">Privacy First</h3>
+        <p data-i18n="privacyText">Your personal employee information must remain private and protected.</p>
+      </div>
+    </section>
+  </main>
 
-        <section class="welcome-section">
-            <h2>Welcome to Railway Mitra</h2>
-            <p>Your Railway Services, Salary and Employee Tools in One Place.</p>
+  <footer class="app-footer">
+    <h3>Railway Mitra</h3>
+    <p data-i18n="tagline">Your Railway Digital Companion</p>
+    <p>© 2026 Railway Mitra</p>
+  </footer>
 
-            <a href="features/profile/index.html" class="profile-btn">
-                👤 My Employee Profile
-            </a>
-        </section>
-
-        <section class="dashboard-section">
-            <h2>Employee Services</h2>
-
-            <div class="feature-grid">
-
-                <a href="features/salary/index.html" class="feature-card">
-                    <span>💰</span>
-                    <h3>Salary & Pay</h3>
-                    <p>Salary and Pay Calculators</p>
-                </a>
-
-                <a href="features/allowances/index.html" class="feature-card">
-                    <span>📊</span>
-                    <h3>Allowances</h3>
-                    <p>DA, HRA, TA, NDA, OTA</p>
-                </a>
-
-                <a href="features/arrears/index.html" class="feature-card">
-                    <span>🧮</span>
-                    <h3>Arrear Calculator</h3>
-                    <p>DA and Other Arrears</p>
-                </a>
-
-                <a href="features/duty/index.html" class="feature-card">
-                    <span>🕒</span>
-                    <h3>Duty Management</h3>
-                    <p>Duty and Attendance Records</p>
-                </a>
-
-                <a href="features/leave/index.html" class="feature-card">
-                    <span>📅</span>
-                    <h3>Leave Management</h3>
-                    <p>Leave and Balance Calculator</p>
-                </a>
-
-                <a href="features/retirement/index.html" class="feature-card">
-                    <span>🏦</span>
-                    <h3>NPS & Pension</h3>
-                    <p>Retirement Planning Tools</p>
-                </a>
-
-                <a href="features/finance/index.html" class="feature-card">
-                    <span>💳</span>
-                    <h3>Loan & Finance</h3>
-                    <p>EMI and Financial Tools</p>
-                </a>
-
-                <a href="features/rules/index.html" class="feature-card">
-                    <span>📚</span>
-                    <h3>Railway Rules</h3>
-                    <p>Rules, Manuals and Circulars</p>
-                </a>
-
-                <a href="features/engineering/index.html" class="feature-card">
-                    <span>🛤️</span>
-                    <h3>Engineering Tools</h3>
-                    <p>Track and P-Way Information</p>
-                </a>
-
-                <a href="features/documents/index.html" class="feature-card">
-                    <span>📁</span>
-                    <h3>Documents & PDF</h3>
-                    <p>Documents and PDF Utilities</p>
-                </a>
-
-                <a href="features/updates/index.html" class="feature-card">
-                    <span>🔔</span>
-                    <h3>Railway Updates</h3>
-                    <p>Orders and Notifications</p>
-                </a>
-
-            </div>
-        </section>
-
-        <section class="privacy-section">
-            <span>🔐</span>
-            <div>
-                <h3>Privacy First</h3>
-                <p>Your personal employee information must remain private and protected.</p>
-            </div>
-        </section>
-
-    </main>
-
-    <footer class="app-footer">
-        <h3>Railway Mitra</h3>
-        <p>Your Railway Digital Companion</p>
-        <p>© 2026 Railway Mitra</p>
-    </footer>
+  <nav class="bottom-nav" aria-label="Quick navigation">
+    <a href="#home"><span aria-hidden="true">⌂</span><small data-nav-home>Home</small></a>
+    <a href="#services"><span aria-hidden="true">▦</span><small data-nav-services>Services</small></a>
+    <a href="features/rules/index.html"><span aria-hidden="true">▤</span><small data-nav-rules>Rules</small></a>
+    <a href="features/profile/index.html"><span aria-hidden="true">♙</span><small data-nav-profile>Profile</small></a>
+  </nav>
 
   <script src="assets/js/module-loader.js"></script>
-    <script src="assets/js/app.js"></script>
-<script>
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
+  <script src="assets/js/app.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js")
-            .catch(error => console.error("Service Worker Error:", error));
-    });
-}
-</script>
+          .catch(error => console.error("Service Worker Error:", error));
+      });
+    }
+  </script>
 </body>
 </html>
