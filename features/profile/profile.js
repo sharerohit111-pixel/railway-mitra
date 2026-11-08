@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const fields = ["employeeId","name","post","level","basicPay","tpa","division","zone","employeeNumber","hrmsId","department"];
   const existing = api.getProfile() || {};
   document.getElementById("employeeId").value = existing.employeeId || ("RM-" + String(Date.now()).slice(-8));
+  document.getElementById("heroEmployeeId").textContent = document.getElementById("employeeId").value;
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (el && existing[id] !== undefined && existing[id] !== null) el.value = existing[id];
