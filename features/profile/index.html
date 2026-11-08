@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071326">
+  <title>Employee Profile | Railway Mitra</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .profile-page{max-width:680px;margin:22px auto;padding:16px;color:#eaf3ff}
+    .profile-hero,.profile-form{background:#111d35;border:1px solid #267b99;border-radius:18px;padding:20px;margin-bottom:18px}
+    .profile-hero{background:linear-gradient(120deg,#102b49,#24133f);border:1px solid #35d8f2}
+    .profile-hero h1{margin:8px 0;color:#fff}.profile-hero p{color:#bfd7f2}
+    .profile-id{display:inline-block;padding:8px 12px;border:1px solid #d946ef;border-radius:20px;color:#fff;font-weight:700}
+    .profile-form h2{color:#36d8f2;margin-top:0}
+    .profile-fields{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+    .profile-field{display:flex;flex-direction:column;gap:6px}
+    .profile-field.full{grid-column:1/-1}
+    .profile-field label{font-size:14px;color:#cbdcf1}
+    .profile-field input,.profile-field select{width:100%;box-sizing:border-box;padding:12px;border:1px solid #48617d;border-radius:9px;background:#1d2c46;color:#fff;font-size:16px}
+    .profile-field input:focus,.profile-field select:focus{outline:2px solid #25c9e8}
+    .profile-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .profile-actions button{border:0;border-radius:10px;padding:13px 18px;font-weight:700;font-size:15px}
+    .save-btn{background:linear-gradient(120deg,#06b6d4,#7c3aed);color:#fff}.clear-btn{background:#26364f;color:#ffd5d5}
+    #profileMessage{min-height:22px;margin-top:14px}#profileMessage.success{color:#6ee7b7}#profileMessage.error{color:#fca5a5}
+    .profile-note{background:#1c2b45;padding:14px;border-radius:12px;color:#c5d6ec;line-height:1.6;font-size:13px}
+    @media(max-width:520px){.profile-fields{grid-template-columns:1fr}.profile-field.full{grid-column:auto}}
+  </style>
+</head>
+<body>
+<main class="profile-page">
+  <a href="../../index.html" style="color:#62e6f5;text-decoration:none">← डैशबोर्ड पर वापस जाएँ</a>
+  <section class="profile-hero">
+    <div class="profile-id">Employee ID: <span id="heroEmployeeId">स्वतः बनेगी</span></div>
+    <p>RAILWAY MITRA · EMPLOYEE SERVICES</p>
+    <h1>Employee Profile</h1>
+    <p>अपनी कर्मचारी जानकारी एक बार भरें। जुड़े हुए कैलकुलेटर इसी प्रोफाइल से आवश्यक विवरण अपने आप प्राप्त करेंगे।</p>
+  </section>
+  <section class="profile-form">
+    <h2>कर्मचारी की मूल जानकारी</h2>
+    <form id="employeeProfileForm">
+      <div class="profile-fields">
+        <div class="profile-field full"><label for="employeeId">Railway Mitra Employee ID</label><input id="employeeId" readonly></div>
+        <div class="profile-field full"><label for="name">Name / कर्मचारी का नाम *</label><input id="name" required maxlength="100" placeholder="पूरा नाम"></div>
+        <div class="profile-field"><label for="post">Post / पद *</label><input id="post" required placeholder="जैसे Track Maintainer"></div>
+        <div class="profile-field"><label for="level">Level / वेतन स्तर *</label><select id="level" required><option value="">चुनें</option><option>Level 1</option><option>Level 2</option><option>Level 3</option><option>Level 4</option><option>Level 5</option><option>Level 6</option><option>Level 7</option><option>Level 8</option><option>Level 9</option><option>Level 10</option><option>Level 11</option><option>Level 12</option><option>Level 13</option><option>Level 13A</option><option>Level 14</option><option>Level 15</option></select></div>
+        <div class="profile-field"><label for="basicPay">Basic Pay (₹) *</label><input id="basicPay" type="number" min="1" step="1" required placeholder="मूल वेतन"></div>
+        <div class="profile-field"><label for="tpa">TPA (₹)</label><input id="tpa" type="number" min="0" step="1" placeholder="परिवहन भत्ता"></div>
+        <div class="profile-field"><label for="division">Division / मंडल *</label><input id="division" required placeholder="जैसे Bikaner"></div>
+        <div class="profile-field"><label for="zone">Zone / रेलवे जोन *</label><input id="zone" required placeholder="जैसे North Western Railway"></div>
+        <div class="profile-field"><label for="employeeNumber">Railway Employee Number</label><input id="employeeNumber" placeholder="वैकल्पिक"></div>
+        <div class="profile-field"><label for="hrmsId">HRMS ID</label><input id="hrmsId" placeholder="वैकल्पिक"></div>
+        <div class="profile-field full"><label for="department">Department / विभाग</label><input id="department" placeholder="जैसे Engineering / P-Way"></div>
+      </div>
+      <div class="profile-actions"><button class="save-btn" type="submit">प्रोफाइल सेव करें</button><button class="clear-btn" type="button" id="clearProfile">प्रोफाइल हटाएँ</button></div>
+      <p id="profileMessage" role="status"></p>
+    </form>
+  </section>
+  <p class="profile-note">महत्वपूर्ण: इस प्रारंभिक संस्करण में प्रोफाइल इसी ब्राउज़र/डिवाइस में सेव होती है। यह अभी Firebase खाते के साथ दूसरे डिवाइस पर सिंक नहीं होती। व्यक्तिगत HRMS या बैंक संबंधी संवेदनशील जानकारी साझा न करें।</p>
+</main>
+<script src="../../assets/js/employee-data.js"></script>
+<script src="./profile.js"></script>
+</body>
+</html>
