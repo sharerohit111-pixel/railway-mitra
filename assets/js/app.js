@@ -204,18 +204,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // Menu links
         const menuItems = [
-            ["My Profile", "features/profile/index.html"],
-            ["Salary & Pay", "features/salary/index.html"],
-            ["Allowances", "features/allowances/index.html"],
-            ["Arrear Calculator", "features/arrears/index.html"],
-            ["Duty Management", "features/duty/index.html"],
-            ["Leave Management", "features/leave/index.html"],
-            ["NPS & Pension", "features/retirement/index.html"],
-            ["Loan & Finance", "features/finance/index.html"],
-            ["Railway Rules", "features/rules/index.html"],
-            ["Engineering Tools", "features/engineering/index.html"],
-            ["Documents", "features/documents/index.html"],
-            ["Railway Updates", "features/updates/index.html"]
+            ["Allowances", "features/allowances/index.html"]
         ];
 
         menuItems.forEach(function (item) {
