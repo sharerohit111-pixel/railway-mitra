@@ -583,3 +583,23 @@ body {
     }
 }
 
+
+
+/* Dashboard additions: language selector, responsive navigation and clear states. */
+.header-actions{display:flex;align-items:center;gap:9px}
+.language-btn{min-height:40px;padding:0 12px;border:1px solid #35E8FF;border-radius:11px;background:linear-gradient(120deg,#12375C,#452052);color:#fff;font-weight:700;box-shadow:0 0 12px #35E8FF35}
+.feature-grid{align-items:stretch}
+.feature-card{min-height:132px;padding:15px 13px;box-shadow:0 5px 16px #00000045,inset 0 0 12px #35E8FF12}
+.feature-card>span{width:43px;height:43px;margin-bottom:9px;font-size:24px}
+.feature-card:focus-visible,.language-btn:focus-visible,.menu-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.module-loading,.module-error{grid-column:1/-1;padding:18px;border:1px solid #35E8FF55;border-radius:14px;color:#d7efff;background:#101d35}
+.mobile-menu{display:none;position:absolute;top:calc(100% + 8px);right:5%;width:min(290px,90vw);max-height:70vh;overflow:auto;padding:9px;border:1px solid #35E8FF;border-radius:14px;background:#0b1730;box-shadow:0 12px 30px #0009;z-index:300}
+.mobile-menu.is-open{display:block}
+.mobile-menu a{display:block;padding:12px;color:#effaff;border-bottom:1px solid #ffffff20;text-decoration:none;font-size:14px}
+.mobile-menu a:last-child{border-bottom:0;color:#ffb4c2}
+.bottom-nav{position:sticky;bottom:0;z-index:90;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:8px max(10px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));border-top:1px solid #35E8FF66;background:#08142bed;backdrop-filter:blur(12px)}
+.bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:2px;color:#d9f7ff;text-decoration:none;font-size:19px}
+.bottom-nav small{font-size:10px;color:#c4d8ee}
+.app-footer{padding-bottom:24px}
+@media(min-width:769px){.bottom-nav{max-width:700px;margin:0 auto;border:1px solid #35E8FF55;border-bottom:0;border-radius:16px 16px 0 0}}
+@media(max-width:400px){.header-actions{gap:6px}.language-btn{min-height:38px;padding:0 9px;font-size:12px}.feature-card{min-height:125px}.feature-card>span{width:39px;height:39px;font-size:22px}}
