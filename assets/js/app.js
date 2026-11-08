@@ -1,51 +1,244 @@
-
-/* =====================================
-   RAILWAY MITRA
-   MAIN APPLICATION JAVASCRIPT
-   ===================================== */
+/*
+========================================
+RAILWAY MITRA
+MAIN APPLICATION JAVASCRIPT
+Modular Development System
+========================================
+*/
 
 "use strict";
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
 
-    // Update footer year automatically
+    // =====================================
+    // 1. FOOTER YEAR UPDATE
+    // =====================================
+
     const footer = document.querySelector(".app-footer");
 
     if (footer) {
-        const footerParagraphs = footer.querySelectorAll("p");
-        const lastParagraph = footerParagraphs[footerParagraphs.length - 1];
+        const footerYear = footer.querySelector("p:last-of-type");
 
-        if (lastParagraph) {
-            lastParagraph.textContent =
+        if (footerYear) {
+            footerYear.textContent =
                 "© " + new Date().getFullYear() + " Railway Mitra";
         }
     }
 
-    // Mobile menu button
-    const menuButton = document.getElementById("menuBtn");
+
+    // =====================================
+    // 2. MODULE ICONS AND DESCRIPTIONS
+    // =====================================
+
+    const moduleDetails = {
+        profile: {
+            icon: "👤",
+            description: "Personal Employee Information"
+        },
+        salary: {
+            icon: "💰",
+            description: "Salary and Pay Calculators"
+        },
+        allowances: {
+            icon: "📊",
+            description: "DA, HRA, TA, NDA, OTA"
+        },
+        arrears: {
+            icon: "🧮",
+            description: "DA and Other Arrears"
+        },
+        duty: {
+            icon: "🕒",
+            description: "Duty and Attendance Records"
+        },
+        leave: {
+            icon: "📅",
+            description: "Leave and Balance Calculator"
+        },
+        retirement: {
+            icon: "🏦",
+            description: "Retirement Planning Tools"
+        },
+        finance: {
+            icon: "💳",
+            description: "EMI and Financial Tools"
+        },
+        rules: {
+            icon: "📚",
+            description: "Rules, Manuals and Circulars"
+        },
+        engineering: {
+            icon: "🚆",
+            description: "Track and P-Way Information"
+        },
+        documents: {
+            icon: "📁",
+            description: "Documents and PDF Utilities"
+        },
+        updates: {
+            icon: "🔔",
+            description: "Orders and Notifications"
+        }
+    };
+
+
+    // =====================================
+    // 3. DYNAMIC MODULE CARD SYSTEM
+    // =====================================
+
+    async function loadModuleCards() {
+
+        const featureGrid =
+            document.getElementById("featureGrid");
+
+        if (!featureGrid) {
+            console.error("Feature Grid not found.");
+            return;
+        }
+
+        const loader = window.RailwayMitraModuleLoader;
+
+        if (!loader || typeof loader.load !== "function") {
+            console.error("Module Loader not available.");
+            return;
+        }
+
+        try {
+
+            const modules = await loader.load();
+
+            if (!Array.isArray(modules)) {
+                throw new Error("Invalid module list.");
+            }
+
+            featureGrid.replaceChildren();
+
+            modules.forEach(function (module) {
+
+                if (
+                    !module ||
+                    module.enabled !== true ||
+                    typeof module.id !== "string" ||
+                    typeof module.name !== "string" ||
+                    typeof module.path !== "string"
+                ) {
+                    return;
+                }
+
+                // Create module card
+                const card = document.createElement("a");
+
+                card.href = module.path;
+                card.className = "feature-card";
+                card.dataset.moduleId = module.id;
+
+                // Module icon
+                const iconBox = document.createElement("span");
+
+                const details =
+                    moduleDetails[module.id] || {
+                        icon: "📌",
+                        description: "Railway Employee Services"
+                    };
+
+                iconBox.textContent = details.icon;
+
+                // Module title
+                const title = document.createElement("h3");
+
+                title.textContent = module.name;
+
+                // Module description
+                const description = document.createElement("p");
+
+                if (
+                    module.id === "allowances" &&
+                    Array.isArray(module.calculators)
+                ) {
+                    description.textContent =
+                        module.calculators.join(", ");
+                } else {
+                    description.textContent = details.description;
+                }
+
+                // Add elements to card
+                card.appendChild(iconBox);
+                card.appendChild(title);
+                card.appendChild(description);
+
+                // Add card to dashboard
+                featureGrid.appendChild(card);
+
+            });
+
+            console.log(
+                "Railway Mitra modules loaded:",
+                modules.length
+            );
+
+        } catch (error) {
+
+            console.error("Module Loading Error:", error);
+
+            featureGrid.textContent =
+                "Unable to load employee services. Please refresh the page.";
+
+        }
+    }
+
+
+    // =====================================
+    // 4. MOBILE MENU
+    // =====================================
+
+    const menuButton =
+        document.getElementById("menuBtn");
 
     if (menuButton) {
 
         const menu = document.createElement("nav");
 
         menu.className = "mobile-menu";
+        menu.id = "mobileMenu";
+        menu.setAttribute("aria-label", "Main navigation");
 
-        menu.innerHTML = `
-            <a href="features/profile/index.html">My Profile</a>
-            <a href="features/salary/index.html">Salary & Pay</a>
-            <a href="features/allowances/index.html">Allowances</a>
-            <a href="features/arrears/index.html">Arrear Calculator</a>
-            <a href="features/duty/index.html">Duty Management</a>
-            <a href="features/leave/index.html">Leave Management</a>
-            <a href="features/retirement/index.html">NPS & Pension</a>
-            <a href="features/finance/index.html">Loan & Finance</a>
-            <a href="features/rules/index.html">Railway Rules</a>
-            <a href="features/engineering/index.html">Engineering Tools</a>
-            <a href="features/documents/index.html">Documents</a>
-            <a href="features/updates/index.html">Railway Updates</a>
-            <a href="#" id="rmLogoutBtn">🚪 Logout</a>
-        `;
+        // Menu links
+        const menuItems = [
+            ["My Profile", "features/profile/index.html"],
+            ["Salary & Pay", "features/salary/index.html"],
+            ["Allowances", "features/allowances/index.html"],
+            ["Arrear Calculator", "features/arrears/index.html"],
+            ["Duty Management", "features/duty/index.html"],
+            ["Leave Management", "features/leave/index.html"],
+            ["NPS & Pension", "features/retirement/index.html"],
+            ["Loan & Finance", "features/finance/index.html"],
+            ["Railway Rules", "features/rules/index.html"],
+            ["Engineering Tools", "features/engineering/index.html"],
+            ["Documents", "features/documents/index.html"],
+            ["Railway Updates", "features/updates/index.html"]
+        ];
 
+        menuItems.forEach(function (item) {
+
+            const link = document.createElement("a");
+
+            link.href = item[1];
+            link.textContent = item[0];
+
+            menu.appendChild(link);
+
+        });
+
+        // Logout link
+        const logoutLink = document.createElement("a");
+
+        logoutLink.href = "#";
+        logoutLink.id = "rmLogoutBtn";
+        logoutLink.textContent = "🚪 Logout";
+
+        menu.appendChild(logoutLink);
+
+        // Menu styling
         menu.style.cssText = `
             display: none;
             position: absolute;
@@ -55,14 +248,16 @@ document.addEventListener("DOMContentLoaded", function () {
             max-height: 70vh;
             overflow-y: auto;
             background: #FFFFFF;
-            border: 1px solid #E1E8F0;
+            border: 1px solid #1E8F0F;
             border-radius: 12px;
             padding: 10px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.18);
             z-index: 200;
         `;
 
+        // Menu links styling
         menu.querySelectorAll("a").forEach(function (link) {
+
             link.style.cssText = `
                 display: block;
                 padding: 12px;
@@ -71,59 +266,83 @@ document.addEventListener("DOMContentLoaded", function () {
                 border-bottom: 1px solid #E1E8F0;
                 font-size: 14px;
             `;
-           // Firebase Logout
-const logoutBtn = menu.querySelector("#rmLogoutBtn");
 
-if (logoutBtn) {
-    logoutBtn.addEventListener("click", async function (event) {
-        event.preventDefault();
-
-        try {
-            const { auth } = await import("./firebase.js");
-
-            const { signOut } = await import(
-                "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js"
-            );
-
-            await signOut(auth);
-
-            window.location.href = "features/auth/login.html";
-
-        } catch (error) {
-            console.error("Logout Error:", error);
-            alert("Logout नहीं हो पाया। कृपया दोबारा प्रयास करें।");
-        }
-    });
-    }
         });
 
-        const header = document.querySelector(".app-header");
+        // Add menu to header
+        const header =
+            document.querySelector(".app-header");
 
         if (header) {
+
             header.style.position = "sticky";
             header.appendChild(menu);
+
+        } else {
+
+            document.body.appendChild(menu);
+
         }
 
+        // Menu open / close
         menuButton.setAttribute("aria-expanded", "false");
 
-        menuButton.addEventListener("click", function () {
+        menuButton.setAttribute("aria-controls", "mobileMenu");
 
-            const isOpen = menu.style.display === "block";
+        function closeMenu() {
 
-            menu.style.display = isOpen ? "none" : "block";
+            menu.style.display = "none";
+
+            menuButton.textContent = "☰";
 
             menuButton.setAttribute(
                 "aria-expanded",
-                String(!isOpen)
+                "false"
             );
 
             menuButton.setAttribute(
                 "aria-label",
-                isOpen ? "Open menu" : "Close menu"
+                "Open menu"
             );
 
-            menuButton.textContent = isOpen ? "☰" : "✕";
+        }
+
+        menuButton.addEventListener("click", function () {
+
+            const isOpen =
+                menu.style.display === "block";
+
+            if (isOpen) {
+
+                closeMenu();
+
+            } else {
+
+                menu.style.display = "block";
+
+                menuButton.textContent = "✕";
+
+                menuButton.setAttribute(
+                    "aria-expanded",
+                    "true"
+                );
+
+                menuButton.setAttribute(
+                    "aria-label",
+                    "Close menu"
+                );
+
+            }
+
         });
+
+        // Close menu after selecting a link
+        menu.querySelectorAll("a:not(#rmLogoutBtn)")
+            .forEach(function (link) {
+
+                link.addEventListener("click", closeMenu);
+
+            });
 
         // Close menu when clicking outside
         document.addEventListener("click", function (event) {
@@ -132,28 +351,85 @@ if (logoutBtn) {
                 !menu.contains(event.target) &&
                 !menuButton.contains(event.target)
             ) {
-                menu.style.display = "none";
-                menuButton.textContent = "☰";
-                menuButton.setAttribute("aria-expanded", "false");
-                menuButton.setAttribute("aria-label", "Open menu");
+                closeMenu();
             }
 
         });
 
+        // Close menu with Escape key
+        document.addEventListener("keydown", function (event) {
+
+            if (event.key === "Escape") {
+                closeMenu();
+            }
+
+        });
+
+        // =====================================
+        // 5. FIREBASE LOGOUT
+        // =====================================
+
+        const logoutBtn =
+            menu.querySelector("#rmLogoutBtn");
+
+        if (logoutBtn) {
+
+            logoutBtn.addEventListener(
+                "click",
+                async function (event) {
+
+                    event.preventDefault();
+
+                    try {
+
+                        const { auth } =
+                            await import("./firebase.js");
+
+                        const { signOut } =
+                            await import(
+                                "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js"
+                            );
+
+                        await signOut(auth);
+
+                        window.location.href =
+                            "features/auth/login.html";
+
+                    } catch (error) {
+
+                        console.error(
+                            "Logout Error:",
+                            error
+                        );
+
+                        alert(
+                            "Logout नहीं हो पाया। कृपया दोबारा प्रयास करें।"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
     }
 
-    console.log("Railway Mitra initialized successfully.");
 
-})
-document.addEventListener("DOMContentLoaded", async function () {
-    const loader = window.RailwayMitraModuleLoader;
+    // =====================================
+    // 6. LOAD MODULES
+    // =====================================
 
-    if (!loader) {
-        console.error("Module Loader not found.");
-        return;
-    }
+    await loadModuleCards();
 
-    const modules = await loader.load();
 
-    console.log("Railway Mitra modules loaded:", modules);
+    // =====================================
+    // 7. APPLICATION READY
+    // =====================================
+
+    console.log(
+        "Railway Mitra initialized successfully."
+    );
+
 });
+
