@@ -13,3 +13,16 @@
 #cityClassField.is-disabled{opacity:.38!important;filter:grayscale(1)!important;pointer-events:none!important}
 #cityClassField.is-disabled select:disabled{opacity:.45!important;color:#64748b!important;background:#0b1220!important;border:2px dashed #475569!important;-webkit-text-fill-color:#64748b!important;cursor:not-allowed!important}
 @media(max-width:520px){.rm8-actions-split{grid-template-columns:1fr}}
+
+.rm8-mode-card{background:var(--rm8-card);border:1px solid var(--rm8-border);border-radius:16px;padding:20px;margin-bottom:16px}
+.rm8-mode-card h2{font-size:18px;margin:0 0 16px}
+.rm8-mode-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rm8-mode-options button,.rm8-form-heading button{border:0;border-radius:11px;padding:17px 12px;background:linear-gradient(100deg,#0284c7,#06b6d4);color:#fff;font-weight:700;font-size:16px;min-height:58px}
+.rm8-form-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
+.rm8-form-heading h2{margin:0}
+.rm8-form-heading button{font-size:12px;padding:9px 12px;min-height:0;background:#334155;white-space:nowrap}
+.rm8-actions{display:grid;gap:10px}
+.rm8-actions button[hidden],[hidden]{display:none!important}
+#cityClassField.is-disabled{opacity:.38!important;filter:grayscale(1)!important;pointer-events:none!important}
+#cityClassField select:disabled{opacity:.4!important;color:#64748b!important;background:#0b1220!important;border:2px dashed #475569!important;-webkit-text-fill-color:#64748b!important;cursor:not-allowed!important}
+@media(max-width:520px){.rm8-mode-options{grid-template-columns:1fr}.rm8-form-heading{align-items:flex-start}}
