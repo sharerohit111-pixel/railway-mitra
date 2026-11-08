@@ -27,46 +27,51 @@ function calculate(){
   const baseTpta=Number($("baseTpta").value);
   const oldDaPercent=Number($("currentDa").value);
   const eff=$("effectiveDate").value;
+  const quarterAllotted=$("quarterAllotted").value==="yes";
   if(!Number.isFinite(oldBasic)||oldBasic<=0){alert("Employee Profile में सही Basic Pay सेव करें।");return;}
   if(!Number.isFinite(oldDaPercent)||oldDaPercent<0||oldDaPercent>200){alert("वर्तमान DA प्रतिशत जाँचें।");return;}
   if(!eff){alert("संभावित प्रभावी तिथि चुनें।");return;}
   // User-supplied estimate method; not an official 8th CPC pay-matrix calculation.
   const oldDa=oldBasic*oldDaPercent/100;
-  const oldHraRate=hraPercent===24?30:hraPercent===16?20:10;
-  const oldHra=oldBasic*oldHraRate/100;
+  const oldHra=quarterAllotted?0:oldBasic*(hraPercent===24?30:hraPercent===16?20:10)/100;
   const oldTa=baseTpta*(1+oldDaPercent/100);
   const oldGross=oldBasic+oldDa+oldHra+oldTa;
   const oldNps=(oldBasic+oldDa)*.10;
   const oldNet=oldGross-oldNps;
   const newBasic=Math.round(oldBasic*factor/100)*100;
   const newDa=0;
-  const newHra=newBasic*hraPercent/100;
+  const newHra=quarterAllotted?0:newBasic*hraPercent/100;
   const newTa=baseTpta;
   const newGross=newBasic+newDa+newHra+newTa;
   const newNps=newBasic*.10;
   const newNet=newGross-newNps;
-  const monthlyNetDiff=Math.max(0,newNet-oldNet);
+  const monthlyNetDiff=newNet-oldNet;
   const [year,month]=eff.split("-").map(Number);
   const now=new Date();
-  const monthIndex=(now.getFullYear()-year)*12+(now.getMonth()+1-month);
-  const months=Math.max(0,monthIndex+(monthIndex>=0?1:0));
-  const arrears=monthlyNetDiff*months;
+  const currentMonthIndex=now.getFullYear()*12+now.getMonth();
+  const effectiveMonthIndex=year*12+(month-1);
+  const months=Math.max(0,currentMonthIndex-effectiveMonthIndex+1);
+  const arrears=Math.max(0,monthlyNetDiff)*months;
   $("netSalaryDisplay").textContent=money(newNet);
-  $("salaryJumpDisplay").textContent="वर्तमान अनुमानित Net "+money(oldNet)+" से मासिक अंतर +"+money(monthlyNetDiff);
+  $("salaryJumpDisplay").textContent="वर्तमान अनुमानित Net "+money(oldNet)+" से मासिक अंतर "+(monthlyNetDiff>=0?"+":"")+money(monthlyNetDiff);
   $("newBasicDisplay").textContent=money(newBasic);
   $("totalArrearDisplay").textContent=money(arrears);
-  $("newHraDisplay").textContent=money(newHra)+" ("+hraPercent+"%)";
+  $("arrearStatus").textContent=months===0?"चुनी गई प्रभावी तिथि भविष्य में है — अभी एरियर 0 माह।":months+" माह की अनुमानित गणना";
+  $("newHraDisplay").textContent=money(newHra)+(quarterAllotted?" (क्वार्टर — 0%)":" ("+hraPercent+"%)");
   $("npsDisplay").textContent="-"+money(newNps);
   $("oldGrossDisplay").textContent=money(oldGross);
   $("newGrossDisplay").textContent=money(newGross);
   $("arrearMonthsDisplay").textContent=months+" माह";
-  $("netGainDisplay").textContent="+"+money(monthlyNetDiff)+" / माह";
+  $("netGainDisplay").textContent=(monthlyNetDiff>=0?"+":"")+money(monthlyNetDiff)+" / माह";
   $("resultBox").hidden=false;
   $("resultBox").scrollIntoView({behavior:"smooth",block:"start"});
 }
 document.addEventListener("DOMContentLoaded",function(){
   fillFromProfile();
   $("calculateBtn").addEventListener("click",calculate);
+  ["effectiveDate","quarterAllotted","cityClass","fitmentFactor","baseTpta","currentDa","basicPay"].forEach(id=>{
+    $(id).addEventListener("change",()=>{$("resultBox").hidden=true;});
+  });
   window.addEventListener("railwaymitra:profile-updated",fillFromProfile);
 });
 })();
