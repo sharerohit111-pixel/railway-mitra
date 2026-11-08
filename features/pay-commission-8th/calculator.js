@@ -45,24 +45,32 @@ function calculate(){
   const effectiveMonthIndex=year*12+(month-1);
   const endMonthIndex=endYear*12+(endMonth-1);
   if(endDate<eff+"-01"){alert("एरियर की अंतिम तारीख, प्रभावी महीने से पहले नहीं हो सकती।");return;}
+  // Monthly salary estimate: Basic + DA + TA, less 10% NPS on Basic + DA.
+  // Arrear estimate: only the Basic + DA difference, less 10% NPS on that difference.
+  // TA and HRA are deliberately excluded from arrears.
   const oldDa=oldBasic*oldDaPercent/100;
   const oldTa=baseTpta*(1+oldDaPercent/100);
   const oldGross=oldBasic+oldDa+oldTa;
   const oldNps=(oldBasic+oldDa)*.10;
   const oldNet=oldGross-oldNps;
   const newBasic=Math.round(oldBasic*factor/100)*100;
+  const newDa=0;
   const newTa=baseTpta;
-  const newGross=newBasic+newTa;
-  const newNps=newBasic*.10;
+  const newGross=newBasic+newDa+newTa;
+  const newNps=(newBasic+newDa)*.10;
   const newNet=newGross-newNps;
   const monthlyNetDiff=newNet-oldNet;
+  const basicDaDifference=(newBasic+newDa)-(oldBasic+oldDa);
+  const monthlyArrearAfterNps=basicDaDifference*.90;
   const months=Math.max(0,endMonthIndex-effectiveMonthIndex+1);
-  const arrears=Math.max(0,monthlyNetDiff)*months;
+  const arrears=Math.max(0,monthlyArrearAfterNps)*months;
   $("netSalaryDisplay").textContent=money(newNet);
   $("salaryJumpDisplay").textContent="वर्तमान अनुमानित Net "+money(oldNet)+" से मासिक अंतर "+(monthlyNetDiff>=0?"+":"")+money(monthlyNetDiff);
   $("newBasicDisplay").textContent=money(newBasic);
   $("totalArrearDisplay").textContent=money(arrears);
-  $("arrearStatus").textContent=months===0?"चुनी गई तारीख प्रभावी तिथि से पहले है।":months+" माह की अनुमानित गणना";
+  $("arrearStatus").textContent=months===0
+    ?"चुनी गई तारीख प्रभावी तिथि से पहले है।"
+    :months+" माह · केवल Basic + DA अंतर − 10% NPS; TA/HRA शामिल नहीं";
   $("npsDisplay").textContent="-"+money(newNps);
   $("oldGrossDisplay").textContent=money(oldGross);
   $("newGrossDisplay").textContent=money(newGross);
