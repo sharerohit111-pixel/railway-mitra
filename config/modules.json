@@ -1,87 +1,17 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "modules": [
-    {
-      "id": "profile",
-      "name": "My Profile",
-      "path": "features/profile/index.html",
-      "enabled": true
-    },
-    {
-      "id": "salary",
-      "name": "Salary",
-      "path": "features/salary/index.html",
-      "enabled": true
-    },
-    {
-      "id": "allowances",
-      "name": "Allowances",
-      "path": "features/allowances/index.html",
-      "enabled": true,
-      "protected": true,
-      "calculators": [
-        "DA",
-        "DA Arrear",
-        "HRA",
-        "TA",
-        "NDA",
-        "OTA",
-        "KMA"
-      ]
-    },
-    {
-      "id": "arrears",
-      "name": "Arrear Calculator",
-      "path": "features/arrears/index.html",
-      "enabled": true
-    },
-    {
-      "id": "duty",
-      "name": "Duty Management",
-      "path": "features/duty/index.html",
-      "enabled": true
-    },
-    {
-      "id": "leave",
-      "name": "Leave Management",
-      "path": "features/leave/index.html",
-      "enabled": true
-    },
-    {
-      "id": "retirement",
-      "name": "NPS & Pension",
-      "path": "features/retirement/index.html",
-      "enabled": true
-    },
-    {
-      "id": "finance",
-      "name": "Loan & Finance",
-      "path": "features/finance/index.html",
-      "enabled": true
-    },
-    {
-      "id": "rules",
-      "name": "Railway Rules",
-      "path": "features/rules/index.html",
-      "enabled": true
-    },
-    {
-      "id": "engineering",
-      "name": "Engineering Tools",
-      "path": "features/engineering/index.html",
-      "enabled": true
-    },
-    {
-      "id": "documents",
-      "name": "Documents",
-      "path": "features/documents/index.html",
-      "enabled": true
-    },
-    {
-      "id": "updates",
-      "name": "Railway Updates",
-      "path": "features/updates/index.html",
-      "enabled": true
-    }
+    {"id":"profile","name":"My Profile","path":"features/profile/index.html","enabled":true},
+    {"id":"salary","name":"Salary & Pay","path":"features/salary/index.html","enabled":true},
+    {"id":"allowances","name":"Allowances","path":"features/allowances/index.html","enabled":true,"protected":true,"calculators":["DA","DA Arrear","HRA","TA","NDA","OTA","KMA"]},
+    {"id":"arrears","name":"Arrear Information","path":"features/arrears/index.html","enabled":true},
+    {"id":"duty","name":"Duty Management","path":"features/duty/index.html","enabled":true},
+    {"id":"leave","name":"Leave Management","path":"features/leave/index.html","enabled":true},
+    {"id":"retirement","name":"NPS & Pension","path":"features/retirement/index.html","enabled":true},
+    {"id":"finance","name":"Loan & Finance","path":"features/finance/index.html","enabled":true},
+    {"id":"rules","name":"Railway Rules","path":"features/rules/index.html","enabled":true},
+    {"id":"engineering","name":"Engineering Tools","path":"features/engineering/index.html","enabled":true},
+    {"id":"documents","name":"Documents & PDF","path":"features/documents/index.html","enabled":true},
+    {"id":"updates","name":"Railway Updates","path":"features/updates/index.html","enabled":true}
   ]
 }
