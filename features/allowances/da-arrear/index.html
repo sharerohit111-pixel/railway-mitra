@@ -114,7 +114,11 @@
   </div>
 </div>
 
+<script src="../../../assets/js/employee-data.js"></script>
 <script src="./da-arrear.js"></script>
+<script>
+  if (window.RailwayMitraEmployeeData) window.RailwayMitraEmployeeData.applyToForm({ basicPay: "basicPay", tpaAmount: "tpa" });
+</script>
 <script type="module" src="../../../assets/js/auth-guard.js"></script>
 </body>
 </html>
