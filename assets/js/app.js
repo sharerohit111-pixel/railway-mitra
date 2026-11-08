@@ -204,6 +204,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // Menu links
         const menuItems = [
+            ["Employee Profile", "features/profile/index.html"],
             ["Allowances", "features/allowances/index.html"]
         ];
 
