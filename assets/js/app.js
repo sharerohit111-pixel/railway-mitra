@@ -43,6 +43,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             icon: "📊",
             description: "DA, HRA, TA, NDA, OTA"
         },
+        paycommission8: {
+            icon: "📈",
+            description: "8th CPC Salary and Arrear Estimate"
+        },
         arrears: {
             icon: "🧮",
             description: "DA and Other Arrears"
@@ -205,6 +209,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Menu links
         const menuItems = [
             ["Employee Profile", "features/profile/index.html"],
+            ["8th Pay Commission", "features/pay-commission-8th/index.html"],
             ["Allowances", "features/allowances/index.html"]
         ];
 
