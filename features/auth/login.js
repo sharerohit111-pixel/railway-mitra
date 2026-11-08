@@ -4,8 +4,7 @@ import {
     RecaptchaVerifier,
     signInWithPhoneNumber,
     GoogleAuthProvider,
-    getRedirectResult,
-    signInWithRedirect
+    signInWithPopup
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 const phoneForm = document.getElementById("phoneLoginForm");
@@ -139,29 +138,27 @@ googleProvider.setCustomParameters({
     prompt: "select_account"
 });
 
-// Check Google Login Result
-getRedirectResult(auth)
-    .then((result) => {
-        if (result && result.user) {
-            showMessage("Google से लॉगिन सफल हुआ। Railway Mitra में आपका स्वागत है।");
-            window.location.href = "../../index.html";
-        }
-    })
-    .catch((error) => {
-        console.error("Google Login Error:", error);
-        showMessage("Google Login में समस्या हुई: " + error.message, true);
-    });
-
-// Google Login Button
+// Google Login - Popup Method
 googleLoginBtn.addEventListener("click", async () => {
     googleLoginBtn.disabled = true;
     showMessage("Google Account से लॉगिन किया जा रहा है...");
 
     try {
-        await signInWithRedirect(auth, googleProvider);
+        const result = await signInWithPopup(auth, googleProvider);
+
+        showMessage("लॉगिन सफल हुआ! Railway Mitra में आपका स्वागत है।");
+
+        window.location.href = "../../index.html";
+
     } catch (error) {
         console.error("Google Login Error:", error);
-        showMessage("Google Login असफल: " + error.message, true);
+
+        showMessage(
+            "Google Login में समस्या: " + error.message,
+            true
+        );
+
+    } finally {
         googleLoginBtn.disabled = false;
     }
 });
