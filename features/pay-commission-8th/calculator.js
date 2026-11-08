@@ -29,6 +29,16 @@ function fillFromProfile(){
     tptaSelect.value=value;$("tptaSource").textContent="Level के आधार पर प्रारंभिक विकल्प चुना गया; शहर के अनुसार जाँचें।";
   }
 }
+function updateHraRateControl(){
+  const quarterAllotted=$("quarterAllotted").value==="yes";
+  const field=$("cityClassField");
+  const select=$("cityClass");
+  select.disabled=quarterAllotted;
+  field.classList.toggle("is-disabled",quarterAllotted);
+  $("hraRateNote").textContent=quarterAllotted
+    ?"क्वार्टर आवंटित है — HRA लागू नहीं, इसलिए शहर की दर निष्क्रिय है।"
+    :"शहर के अनुसार HRA दर चुनें।";
+}
 function calculate(){
   const oldBasic=Number($("basicPay").value);
   const factor=Number($("fitmentFactor").value);
@@ -80,6 +90,11 @@ function calculate(){
 document.addEventListener("DOMContentLoaded",function(){
   $("arrearEndDate").value=todayISO();
   fillFromProfile();
+  updateHraRateControl();
+  $("quarterAllotted").addEventListener("change",function(){
+    updateHraRateControl();
+    $("resultBox").hidden=true;
+  });
   $("calculateBtn").addEventListener("click",calculate);
   ["effectiveDate","arrearEndDate","quarterAllotted","cityClass","fitmentFactor","baseTpta","currentDa","basicPay"].forEach(id=>{
     $(id).addEventListener("change",()=>{$("resultBox").hidden=true;});
