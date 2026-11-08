@@ -41,23 +41,6 @@
         </select>
       </div>
       <div class="rm8-field">
-        <label for="quarterAllotted">क्या सरकारी रेलवे क्वार्टर मिला हुआ है?</label>
-        <select id="quarterAllotted">
-          <option value="no" selected>नहीं — HRA मिलेगा (शहर के अनुसार)</option>
-          <option value="yes">हाँ — HRA नहीं मिलेगा</option>
-        </select>
-        <small class="field-source">क्वार्टर मिलने पर इस अनुमान में वर्तमान और नया, दोनों HRA शून्य माने जाएँगे।</small>
-      </div>
-      <div class="rm8-field" id="cityClassField">
-        <label for="cityClass">शहर की श्रेणी (HRA)</label>
-        <select id="cityClass">
-          <option value="24">X-Class · 24%</option>
-          <option value="16" selected>Y-Class · 16%</option>
-          <option value="8">Z-Class · 8%</option>
-        </select>
-        <small class="field-source" id="hraRateNote">शहर के अनुसार HRA दर चुनें।</small>
-      </div>
-      <div class="rm8-field">
         <label for="baseTpta">Base Transport Allowance (₹)</label>
         <select id="baseTpta">
           <option value="1350">₹1,350 · Level 1–2 / Other City</option>
@@ -91,7 +74,6 @@
     <div class="rm8-result-grid">
       <div><small>नया Basic Pay</small><strong id="newBasicDisplay">₹0</strong></div>
       <div><small>अनुमानित कुल Net Arrear</small><strong id="totalArrearDisplay">₹0</strong><small id="arrearStatus" class="field-source"></small></div>
-      <div><small>नया HRA</small><strong id="newHraDisplay">₹0</strong></div>
       <div><small>नई NPS कटौती (10%)</small><strong id="npsDisplay">-₹0</strong></div>
     </div>
     <div class="rm8-breakdown">
@@ -101,9 +83,9 @@
       <div><span>एरियर की गणना अंतिम तारीख तक</span><strong id="arrearEndDisplay">—</strong></div>
       <div><span>मासिक शुद्ध लाभ</span><strong id="netGainDisplay">+₹0</strong></div>
     </div>
-    <p class="rm8-disclaimer">यह परिणाम आपके चुने हुए Fitment Factor, HRA, TPTA, DA और प्रभावी तिथि पर आधारित अनुमान है। इसमें वास्तविक Pay Matrix, सरकारी अधिसूचना, कर, अन्य कटौतियाँ, अलग-अलग महीनों के DA बदलाव और वेतन-वृद्धि शामिल नहीं हैं। इसे आधिकारिक वेतन निर्धारण या देय एरियर न मानें।</p>
+    <p class="rm8-disclaimer">यह परिणाम आपके चुने हुए Fitment Factor, TPTA, DA और प्रभावी तिथि पर आधारित अनुमान है। इसमें वास्तविक Pay Matrix, सरकारी अधिसूचना, कर, अन्य कटौतियाँ, अलग-अलग महीनों के DA बदलाव और वेतन-वृद्धि शामिल नहीं हैं। इसे आधिकारिक वेतन निर्धारण या देय एरियर न मानें।</p>
   </section>
-  <p class="rm8-note">कैलकुलेटर में Basic Pay, Level और TPA Employee Profile से स्वतः लिए जाते हैं। TPTA और शहर की श्रेणी को परिणाम निकालने से पहले जाँच लें।</p>
+  <p class="rm8-note">कैलकुलेटर में Basic Pay, Level और TPA Employee Profile से स्वतः लिए जाते हैं। TPTA को परिणाम निकालने से पहले जाँच लें।</p>
 </main>
 <script src="../../assets/js/employee-data.js"></script>
 <script src="./calculator.js"></script>
