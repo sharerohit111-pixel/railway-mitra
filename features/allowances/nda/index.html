@@ -265,7 +265,12 @@ function calculateRmNDA() {
   document.getElementById('rmNdaResult').style.display = 'block';
 }
 </script>
-
+<script src="../../../assets/js/employee-data.js"></script>
+<script>
+  if (window.RailwayMitraEmployeeData) {
+    window.RailwayMitraEmployeeData.applyToForm({ rmNdaBasic: "basicPay" });
+  }
+</script>
 <script type="module" src="../../../assets/js/auth-guard.js"></script>
 </body>
 </html>

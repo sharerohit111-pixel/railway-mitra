@@ -5,7 +5,7 @@
       "id": "profile",
       "name": "My Profile",
       "path": "features/profile/index.html",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "salary",
