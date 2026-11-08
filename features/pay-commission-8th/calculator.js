@@ -34,7 +34,9 @@ function updateHraRateControl(){
   const field=$("cityClassField");
   const select=$("cityClass");
   select.disabled=quarterAllotted;
+  select.setAttribute("aria-disabled",String(quarterAllotted));
   field.classList.toggle("is-disabled",quarterAllotted);
+  field.setAttribute("aria-disabled",String(quarterAllotted));
   $("hraRateNote").textContent=quarterAllotted
     ?"क्वार्टर आवंटित है — HRA लागू नहीं, इसलिए शहर की दर निष्क्रिय है।"
     :"शहर के अनुसार HRA दर चुनें।";
@@ -91,10 +93,10 @@ document.addEventListener("DOMContentLoaded",function(){
   $("arrearEndDate").value=todayISO();
   fillFromProfile();
   updateHraRateControl();
-  $("quarterAllotted").addEventListener("change",function(){
+  ["change","input"].forEach(eventName=>$("quarterAllotted").addEventListener(eventName,function(){
     updateHraRateControl();
     $("resultBox").hidden=true;
-  });
+  }));
   $("calculateBtn").addEventListener("click",calculate);
   ["effectiveDate","arrearEndDate","quarterAllotted","cityClass","fitmentFactor","baseTpta","currentDa","basicPay"].forEach(id=>{
     $(id).addEventListener("change",()=>{$("resultBox").hidden=true;});
