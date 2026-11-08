@@ -29,46 +29,30 @@ function fillFromProfile(){
     tptaSelect.value=value;$("tptaSource").textContent="Level के आधार पर प्रारंभिक विकल्प चुना गया; शहर के अनुसार जाँचें।";
   }
 }
-function updateHraRateControl(){
-  const quarterAllotted=$("quarterAllotted").value==="yes";
-  const field=$("cityClassField");
-  const select=$("cityClass");
-  select.disabled=quarterAllotted;
-  select.setAttribute("aria-disabled",String(quarterAllotted));
-  field.classList.toggle("is-disabled",quarterAllotted);
-  field.setAttribute("aria-disabled",String(quarterAllotted));
-  $("hraRateNote").textContent=quarterAllotted
-    ?"क्वार्टर आवंटित है — HRA लागू नहीं, इसलिए शहर की दर निष्क्रिय है।"
-    :"शहर के अनुसार HRA दर चुनें।";
-}
 function calculate(){
   const oldBasic=Number($("basicPay").value);
   const factor=Number($("fitmentFactor").value);
-  const hraPercent=Number($("cityClass").value);
   const baseTpta=Number($("baseTpta").value);
   const oldDaPercent=Number($("currentDa").value);
   const eff=$("effectiveDate").value;
   const endDate=$("arrearEndDate").value;
-  const quarterAllotted=$("quarterAllotted").value==="yes";
   if(!Number.isFinite(oldBasic)||oldBasic<=0){alert("Employee Profile में सही Basic Pay सेव करें।");return;}
   if(!Number.isFinite(oldDaPercent)||oldDaPercent<0||oldDaPercent>200){alert("वर्तमान DA प्रतिशत जाँचें।");return;}
   if(!eff){alert("संभावित प्रभावी तिथि चुनें।");return;}
   if(!endDate){alert("एरियर की गणना की अंतिम तारीख चुनें।");return;}
   const [year,month]=eff.split("-").map(Number);
-  const [endYear,endMonth,endDay]=endDate.split("-").map(Number);
+  const [endYear,endMonth]=endDate.split("-").map(Number);
   const effectiveMonthIndex=year*12+(month-1);
   const endMonthIndex=endYear*12+(endMonth-1);
   if(endDate<eff+"-01"){alert("एरियर की अंतिम तारीख, प्रभावी महीने से पहले नहीं हो सकती।");return;}
   const oldDa=oldBasic*oldDaPercent/100;
-  const oldHra=quarterAllotted?0:oldBasic*(hraPercent===24?30:hraPercent===16?20:10)/100;
   const oldTa=baseTpta*(1+oldDaPercent/100);
-  const oldGross=oldBasic+oldDa+oldHra+oldTa;
+  const oldGross=oldBasic+oldDa+oldTa;
   const oldNps=(oldBasic+oldDa)*.10;
   const oldNet=oldGross-oldNps;
   const newBasic=Math.round(oldBasic*factor/100)*100;
-  const newHra=quarterAllotted?0:newBasic*hraPercent/100;
   const newTa=baseTpta;
-  const newGross=newBasic+newHra+newTa;
+  const newGross=newBasic+newTa;
   const newNps=newBasic*.10;
   const newNet=newGross-newNps;
   const monthlyNetDiff=newNet-oldNet;
@@ -79,7 +63,6 @@ function calculate(){
   $("newBasicDisplay").textContent=money(newBasic);
   $("totalArrearDisplay").textContent=money(arrears);
   $("arrearStatus").textContent=months===0?"चुनी गई तारीख प्रभावी तिथि से पहले है।":months+" माह की अनुमानित गणना";
-  $("newHraDisplay").textContent=money(newHra)+(quarterAllotted?" (क्वार्टर — 0%)":" ("+hraPercent+"%)");
   $("npsDisplay").textContent="-"+money(newNps);
   $("oldGrossDisplay").textContent=money(oldGross);
   $("newGrossDisplay").textContent=money(newGross);
@@ -92,13 +75,8 @@ function calculate(){
 document.addEventListener("DOMContentLoaded",function(){
   $("arrearEndDate").value=todayISO();
   fillFromProfile();
-  updateHraRateControl();
-  ["change","input"].forEach(eventName=>$("quarterAllotted").addEventListener(eventName,function(){
-    updateHraRateControl();
-    $("resultBox").hidden=true;
-  }));
   $("calculateBtn").addEventListener("click",calculate);
-  ["effectiveDate","arrearEndDate","quarterAllotted","cityClass","fitmentFactor","baseTpta","currentDa","basicPay"].forEach(id=>{
+  ["effectiveDate","arrearEndDate","fitmentFactor","baseTpta","currentDa","basicPay"].forEach(id=>{
     $(id).addEventListener("change",()=>{$("resultBox").hidden=true;});
   });
   window.addEventListener("railwaymitra:profile-updated",fillFromProfile);
