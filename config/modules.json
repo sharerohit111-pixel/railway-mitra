@@ -14,6 +14,13 @@
       "enabled": false
     },
     {
+      "id": "paycommission8",
+      "name": "8th Pay Commission",
+      "path": "features/pay-commission-8th/index.html",
+      "enabled": true,
+      "description": "8th CPC Salary and Arrear Estimate"
+    },
+    {
       "id": "allowances",
       "name": "Allowances",
       "path": "features/allowances/index.html",
