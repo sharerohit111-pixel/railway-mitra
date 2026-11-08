@@ -117,7 +117,22 @@
 <script src="../../../assets/js/employee-data.js"></script>
 <script src="./da-arrear.js"></script>
 <script>
-  if (window.RailwayMitraEmployeeData) window.RailwayMitraEmployeeData.applyToForm({ basicPay: "basicPay", tpaAmount: "tpa" });
+  if (window.RailwayMitraEmployeeData) {
+    const employee = window.RailwayMitraEmployeeData.getProfile();
+    if (employee) {
+      const postSelect = document.getElementById("postSelect");
+      const postText = (employee.post || "").toLowerCase();
+      let matchingOption = null;
+      if (postText.includes("track")) matchingOption = postSelect.querySelector('option[value="trackman"]');
+      else if (postText.includes("technician") || postText.includes("helper")) matchingOption = postSelect.querySelector('option[value="tech"]');
+      else if (postText.includes("station master")) matchingOption = postSelect.querySelector('option[value="sm"]');
+      if (matchingOption) {
+        postSelect.value = matchingOption.value;
+        autoFillPostDetails();
+      }
+      window.RailwayMitraEmployeeData.applyToForm({ basicPay: "basicPay", tpaAmount: "tpa" });
+    }
+  }
 </script>
 <script type="module" src="../../../assets/js/auth-guard.js"></script>
 </body>
