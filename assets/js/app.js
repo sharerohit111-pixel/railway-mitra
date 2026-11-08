@@ -43,6 +43,10 @@ document.addEventListener("DOMContentLoaded", async function () {
             icon: "📊",
             description: "DA, HRA, TA, NDA, OTA"
         },
+        paycommission8: {
+            icon: "📈",
+            description: "8th CPC Salary and Arrear Estimate"
+        },
         arrears: {
             icon: "🧮",
             description: "DA and Other Arrears"
