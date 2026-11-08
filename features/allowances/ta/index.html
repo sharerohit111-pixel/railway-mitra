@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071326">
+<title>Transport Allowance | Railway Mitra</title>
+
+<link rel="stylesheet" href="../../../assets/css/main.css">
+
+<style>
+.rm-tpta-card {
+  background: #0f172a;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,.3);
+  border: 1px solid #1e293b;
+  max-width: 480px;
+  margin: 15px auto;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  color: #f8fafc;
+}
+.rm-tpta-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #1e293b;
+}
+.rm-tpta-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #38bdf8;
+}
+.rm-tpta-group { margin-bottom: 14px; }
+.rm-tpta-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #cbd5e1;
+}
+.rm-tpta-group input,
+.rm-tpta-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #334155;
+  border-radius: 8px;
+  font-size: 15px;
+  background: #1e293b;
+  color: #fff;
+  box-sizing: border-box;
+}
+.rm-tpta-group input:focus,
+.rm-tpta-group select:focus {
+  outline: none;
+  border-color: #0284c7;
+}
+.rm-tpta-btn {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg,#0284c7,#0369a1);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.rm-tpta-btn:active { transform: scale(.98); }
+.rm-tpta-result {
+  display: none;
+  margin-top: 18px;
+  background: #131c31;
+  border: 1.5px solid #0284c7;
+  border-radius: 10px;
+  padding: 16px;
+}
+.rm-tpta-main-amt {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #334155;
+  margin-bottom: 12px;
+}
+.rm-tpta-main-amt span {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+.rm-tpta-main-amt h2 {
+  margin: 4px 0 0;
+  font-size: 28px;
+  color: #38bdf8;
+}
+.rm-tpta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rm-tpta-box {
+  background: #1e293b;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+.rm-tpta-box small {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+}
+.rm-tpta-box strong {
+  font-size: 14px;
+  color: #fff;
+}
+.rm-tpta-note {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #7dd3fc;
+  background: #0c4a6e;
+  padding: 8px 10px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+.tpta-page {
+  max-width: 600px;
+  margin: 24px auto;
+  padding: 16px;
+}
+.tpta-back {
+  display: inline-block;
+  color: #65eaff;
+  text-decoration: none;
+  margin-bottom: 18px;
+}
+</style>
+</head>
+
+<body>
+<main class="tpta-page">
+
+<a href="../index.html" class="tpta-back">
+← भत्ता कैलकुलेटर पर वापस जाएँ
+</a>
+
+<!-- ===== TRANSPORT ALLOWANCE (TPTA) SEGMENT START ===== -->
+
+<div class="rm-tpta-card">
+  <div class="rm-tpta-header">
+    <span style="font-size:22px;">🚌</span>
+    <div>
+      <h3>Transport Allowance (TPTA)</h3>
+      <small style="color:#94a3b8;">7th CPC Monthly Commute Allowance</small>
+    </div>
+  </div>
+
+  <div class="rm-tpta-group">
+    <label for="rmTptaLevel">1. Pay Level (पे लेवल)</label>
+    <select id="rmTptaLevel">
+      <option value="low">Level 1 &amp; 2 (Basic Pay &lt; ₹24,200)</option>
+      <option value="mid" selected>Level 3 to 8 (या Level 1-2 Basic ≥ ₹24,200)</option>
+      <option value="high">Level 9 &amp; Above (अधिकारी वर्ग)</option>
+    </select>
+  </div>
+
+  <div class="rm-tpta-group">
+    <label for="rmTptaDa">2. Current DA (%)</label>
+    <input type="number" id="rmTptaDa" value="63" min="0" max="1000" step="0.1">
+  </div>
+
+  <div class="rm-tpta-group">
+    <label for="rmTptaCity">3. City Category (शहर की श्रेणी)</label>
+    <select id="rmTptaCity">
+      <option value="other" selected>Other Places (सामान्य शहर / कस्बे)</option>
+      <option value="higher">19 Higher TPTA Cities (Delhi, Mumbai, Lucknow, etc.)</option>
+    </select>
+  </div>
+
+  <div class="rm-tpta-group">
+    <label for="rmTptaSpecial">4. Employee Category (कर्मचारी श्रेणी)</label>
+    <select id="rmTptaSpecial">
+      <option value="normal" selected>Normal Employee (सामान्य कर्मचारी)</option>
+      <option value="divyang">Divyang / PH (दिव्यांग - दोगुना भत्ता)</option>
+      <option value="running">Running Staff (Loco Pilot / Guard)</option>
+    </select>
+  </div>
+
+  <button type="button" class="rm-tpta-btn" onclick="calculateRmTPTA()">
+    Calculate Transport Allowance
+  </button>
+
+  <div class="rm-tpta-result" id="rmTptaResult" aria-live="polite">
+    <div class="rm-tpta-main-amt">
+      <span>MONTHLY TRANSPORT ALLOWANCE</span>
+      <h2 id="rmMonthlyTpta">₹0</h2>
+    </div>
+
+    <div class="rm-tpta-grid">
+      <div class="rm-tpta-box">
+        <small>Base TA (मूल भत्ता)</small>
+        <strong id="rmBaseTpta">₹0</strong>
+      </div>
+      <div class="rm-tpta-box">
+        <small>DA on TA (भत्ते पर DA)</small>
+        <strong id="rmDaOnTpta">₹0</strong>
+      </div>
+      <div class="rm-tpta-box">
+        <small>Annual TA (सालाना)</small>
+        <strong id="rmAnnualTpta">₹0</strong>
+      </div>
+      <div class="rm-tpta-box">
+        <small>Applied DA Rate</small>
+        <strong id="rmTptaDaRate">63%</strong>
+      </div>
+    </div>
+
+    <div class="rm-tpta-note" id="rmTptaNote"></div>
+  </div>
+</div>
+
+<script>
+function calculateRmTPTA() {
+  const level = document.getElementById('rmTptaLevel').value;
+  const daInput = document.getElementById('rmTptaDa').value;
+  const da = Number(daInput);
+  const city = document.getElementById('rmTptaCity').value;
+  const special = document.getElementById('rmTptaSpecial').value;
+
+  if (daInput.trim() === '' || !Number.isFinite(da) || da < 0 || da > 1000) {
+    alert("कृपया सही DA प्रतिशत दर्ज करें।");
+    return;
+  }
+
+  const money = value =>
+    "₹" + Math.round(value).toLocaleString('en-IN');
+
+  if (special === 'running') {
+    document.getElementById('rmMonthlyTpta').innerText = "₹0";
+    document.getElementById('rmBaseTpta').innerText = "₹0";
+    document.getElementById('rmDaOnTpta').innerText = "₹0";
+    document.getElementById('rmAnnualTpta').innerText = "₹0";
+    document.getElementById('rmTptaDaRate').innerText = da + "%";
+    document.getElementById('rmTptaNote').innerText =
+      "ℹ️ Running Staff (Loco Pilot / Guard) के लिए इस कैलकुलेटर में मासिक Transport Allowance शून्य दिखाया गया है। लागू पात्रता की पुष्टि संबंधित रेलवे नियमों से करें।";
+    document.getElementById('rmTptaResult').style.display = 'block';
+    return;
+  }
+
+  let baseTA = 0;
+
+  if (level === 'high') {
+    baseTA = city === 'higher' ? 7200 : 3600;
+  } else if (level === 'mid') {
+    baseTA = city === 'higher' ? 3600 : 1800;
+  } else {
+    baseTA = city === 'higher' ? 1350 : 900;
+  }
+
+  if (special === 'divyang') {
+    baseTA = baseTA * 2;
+    if (baseTA < 2250) baseTA = 2250;
+  }
+
+  const daAmount = Math.round(baseTA * (da / 100));
+  const totalMonthly = baseTA + daAmount;
+  const totalAnnual = totalMonthly * 12;
+
+  document.getElementById('rmMonthlyTpta').innerText = money(totalMonthly);
+  document.getElementById('rmBaseTpta').innerText = money(baseTA);
+  document.getElementById('rmDaOnTpta').innerText = money(daAmount);
+  document.getElementById('rmAnnualTpta').innerText = money(totalAnnual);
+  document.getElementById('rmTptaDaRate').innerText = da + "%";
+
+  let note =
+    `ℹ️ गणना: ${money(baseTA)} (Base TA) + ${money(daAmount)} (${da}% DA) = ${money(totalMonthly)} प्रति माह।`;
+
+  if (special === 'divyang') {
+    note =
+      `ℹ️ दिव्यांग (PH) श्रेणी के लिए दोगुना Base TA (${money(baseTA)}) और ${da}% DA की गणना की गई है।`;
+  }
+
+  document.getElementById('rmTptaNote').innerText = note;
+  document.getElementById('rmTptaResult').style.display = 'block';
+}
+</script>
+
+<!-- ===== TRANSPORT ALLOWANCE (TPTA) SEGMENT END ===== -->
+
+</main>
+
+<script type="module" src="../../../assets/js/auth-guard.js"></script>
+</body>
+          </html>
+          
