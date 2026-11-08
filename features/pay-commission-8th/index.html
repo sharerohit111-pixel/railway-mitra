@@ -71,6 +71,11 @@
         <input type="month" id="effectiveDate" value="2026-01">
       </div>
       <div class="rm8-field">
+        <label for="arrearEndDate">एरियर की गणना किस तारीख तक करनी है?</label>
+        <input type="date" id="arrearEndDate" value="2026-11-09">
+        <small class="field-source">डिफ़ॉल्ट आज की तारीख है। चाहें तो अपनी दूसरी तारीख चुनें।</small>
+      </div>
+      <div class="rm8-field">
         <label for="currentDa">वर्तमान 7th CPC DA (%)</label>
         <input type="number" id="currentDa" value="60" min="0" max="200" step="0.01">
       </div>
@@ -92,6 +97,7 @@
       <div><span>वर्तमान 7th CPC अनुमानित Gross</span><strong id="oldGrossDisplay">₹0</strong></div>
       <div><span>8th CPC अनुमानित Gross</span><strong id="newGrossDisplay">₹0</strong></div>
       <div><span>एरियर के अनुमानित महीने</span><strong id="arrearMonthsDisplay">0 माह</strong></div>
+      <div><span>एरियर की गणना अंतिम तारीख तक</span><strong id="arrearEndDisplay">—</strong></div>
       <div><span>मासिक शुद्ध लाभ</span><strong id="netGainDisplay">+₹0</strong></div>
     </div>
     <p class="rm8-disclaimer">यह परिणाम आपके चुने हुए Fitment Factor, HRA, TPTA, DA और प्रभावी तिथि पर आधारित अनुमान है। इसमें वास्तविक Pay Matrix, सरकारी अधिसूचना, कर, अन्य कटौतियाँ, अलग-अलग महीनों के DA बदलाव और वेतन-वृद्धि शामिल नहीं हैं। इसे आधिकारिक वेतन निर्धारण या देय एरियर न मानें।</p>
