@@ -144,4 +144,16 @@ if (logoutBtn) {
 
     console.log("Railway Mitra initialized successfully.");
 
+})
+document.addEventListener("DOMContentLoaded", async function () {
+    const loader = window.RailwayMitraModuleLoader;
+
+    if (!loader) {
+        console.error("Module Loader not found.");
+        return;
+    }
+
+    const modules = await loader.load();
+
+    console.log("Railway Mitra modules loaded:", modules);
 });
