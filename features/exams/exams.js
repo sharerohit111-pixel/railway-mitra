@@ -27,9 +27,17 @@
     <section class="exam-hero"><div class="exam-kicker">Departmental Examination Preparation</div><h1>${title}</h1><p>${subtitle}</p></section>`;
   const card = (icon,title,description,href,meta="Open section") => `
     <a class="exam-card" href="${href}"><span class="exam-card-icon">${icon}</span><h3>${title}</h3><p>${description}</p><span class="exam-card-meta"><span>${meta}</span><span>→</span></span></a>`;
-  async function loadCatalog(){
-    try { const res=await fetch("catalog.json",{cache:"no-store"}); if(!res.ok) throw new Error("Catalog unavailable"); return await res.json(); }
-    catch(error){ console.warn("Exam catalog not loaded:",error); return {streams:{}}; }
+  async function loadPublishedTests(streamId, category){
+    const [{auth,app},{getFunctions,httpsCallable},{onAuthStateChanged}] = await Promise.all([
+      import("../../assets/js/firebase.js"),
+      import("https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js"),
+      import("https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js")
+    ]);
+    const user = auth.currentUser || await new Promise(resolve=>{const unsub=onAuthStateChanged(auth,u=>{unsub();resolve(u);});});
+    if(!user) throw new Error("Please sign in to view published GDCE tests.");
+    const fn=httpsCallable(getFunctions(app,"asia-south1"),"listPublishedTests");
+    const response=await fn({streamId,category});
+    return response.data.tests || [];
   }
   async function render(){
     if(page==="home"){
@@ -62,15 +70,18 @@
       return;
     }
     if(page==="tests"){
-      const catalog=await loadCatalog();
-      const streamData=catalog.streams?.[streamId];
-      const items=streamData?.[typeId] || [];
+      let items=[];
+      let loadError="";
+      try { items=await loadPublishedTests(streamId,typeId); }
+      catch(error) { loadError=error.message || "Could not load published tests."; }
       root.innerHTML = header(esc(stream.name)+" — "+esc(type.plural),type.description,"stream.html?stream="+encodeURIComponent(streamId)) + `
         <h2 class="exam-section-title">${esc(type.plural)}</h2>
         <div id="examTestList" class="exam-list"></div>
-        <div class="exam-notice">No question paper is published here yet. When you provide a PDF, we will solve and verify every question with its explanation before publishing the test.</div>`;
+        <div class="exam-notice">Only verified papers published by the owner will appear here. Questions and answer keys are delivered securely by Firebase.</div>`;
       const list=root.querySelector("#examTestList");
-      if(items.length){
+      if(loadError){
+        list.innerHTML=`<div class="exam-empty"><div class="exam-empty-icon">🔐</div><h3>Sign in / connection required</h3><p>${esc(loadError)}</p></div>`;
+      } else if(items.length){
         list.innerHTML=items.map(item=>`<div class="exam-list-item"><div><strong>${esc(item.title)}</strong><small>${Number(item.totalQuestions)||0} questions • ${Number(item.durationMinutes)||0} minutes</small></div><div style="display:flex;align-items:center;gap:9px"><span class="exam-pill">${item.access==="free"?"FREE":"PAID"}</span><a class="exam-back" href="runner.html?test=${encodeURIComponent(item.testId)}">Start →</a></div></div>`).join("");
       } else {
         list.innerHTML='<div class="exam-empty"><div class="exam-empty-icon">📚</div><h3>No tests published yet</h3><p>This category is ready for unlimited future papers and tests. Your first PDF will be processed and added after answer verification.</p></div>';
