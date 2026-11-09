@@ -4,7 +4,7 @@ This is the trusted backend source for the GDCE exam feature. It is not deployed
 
 ## Deploy only after reviewing Firebase project and billing
 
-1. Install Node.js 20 and Firebase CLI on a trusted development computer.
+1. Install Node.js 22 and Firebase CLI on a trusted development computer.
 2. From the repository root, run `npm --prefix functions install`.
 3. Confirm the selected Firebase project is exactly `railway-mitra` using `firebase projects:list` and `firebase use railway-mitra`.
 4. Review the live Firestore rules before changing them. The proposed merged rules are in `features/exams/FIRESTORE_RULES_SETUP.txt`; do not overwrite live rules without merging every existing production path.
