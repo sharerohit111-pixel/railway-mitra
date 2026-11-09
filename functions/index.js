@@ -133,7 +133,11 @@ exports.startExam = onCall({ region: REGION }, async request => {
   if (test.access !== "free") {
     const entitlement = await db.collection("userEntitlements").doc(uid).get();
     const e = entitlement.exists ? entitlement.data() : {};
-    const active = e.active === true && (!e.expiresAt || e.expiresAt.toMillis() > Date.now());
+    // Fail closed if a stored expiry value is malformed; never grant paid access
+    // because an unexpected field type caused a runtime exception.
+    const expiryValid = e.expiresAt === undefined ||
+      (e.expiresAt instanceof Timestamp && e.expiresAt.toMillis() > Date.now());
+    const active = e.active === true && expiryValid;
     if (!active) throw new HttpsError("permission-denied", "An active all-tests subscription is required.");
   }
 
