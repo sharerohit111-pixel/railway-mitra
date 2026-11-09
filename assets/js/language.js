@@ -28,7 +28,22 @@
     "प्रोफाइल सेव नहीं हो सकी। कृपया डिवाइस की स्टोरेज अनुमति जाँचें।":"Could not save profile. Please check device storage permissions.",
     "क्या आप इस डिवाइस से कर्मचारी प्रोफाइल हटाना चाहते हैं?":"Do you want to delete the employee profile from this device?",
     "इस डिवाइस से प्रोफाइल हटा दी गई है।":"Profile deleted from this device.",
-    "वेतन एवं भत्ते":"Salary & Allowances","भत्ते":"Allowances","मदद":"Help","सेवाएँ":"Services",
+    "वेतन एवं भत्ते":"Salary & Allowances",
+    "मूल वेतन (Basic Pay)":"Basic Pay", "मूल वेतन (Basic Pay) ₹":"Basic Pay (₹)", "वर्तमान 7th CPC Basic Pay (₹)":"Current 7th CPC Basic Pay (₹)",
+    "भत्ता की गणना करें":"Calculate Allowance", "कुल एरियर":"Total Arrears", "एरियर राशि":"Arrear Amount",
+    "अपना पद चुनें":"Select Your Post", "Select Your Post (अपनी पोस्ट चुनें)":"Select Your Post",
+    "मासिक शुद्ध बढ़ोतरी":"Monthly Net Increase", "वर्तमान अनुमानित Net":"Current Estimated Net", "नया अनुमानित Gross":"Estimated New Gross",
+    "वर्तमान 7th CPC अनुमानित Gross":"Current Estimated 7th CPC Gross", "वर्तमान अनुमानित Net":"Current Estimated Net",
+    "मासिक वेतन के इस अनुमान में Basic, DA, HRA और TPTA शामिल हैं तथा NPS घटाया गया है। सरकारी क्वार्टर मिलने पर HRA शून्य है। HRA दरें अनुमानित हैं, आधिकारिक 8th CPC अधिसूचना नहीं।":"This monthly salary estimate includes Basic, DA, HRA and TPTA, with NPS deducted. HRA is zero if a government quarter is allotted. HRA rates are estimates, not an official 8th CPC notification.",
+    "केवल Basic + DA अंतर − 10% NPS; TA/HRA शामिल नहीं":"Only Basic + DA difference minus 10% NPS; TA/HRA are excluded",
+    "क्वार्टर मिलने पर मासिक HRA ₹0 माना जाएगा।":"If a quarter is allotted, monthly HRA will be ₹0.",
+    "Profile TPA विकल्पों से मेल नहीं खाता; सही Base TPTA चुनें।":"Profile TPA does not match the available options; select the correct Base TPTA.",
+    "कृपया पुष्टि करें":"Please verify", "शहर के अनुसार जाँचें।":"Verify according to your city.",
+    "गणना के परिणाम":"Calculation Results", "अनुमानित प्रभावी तिथि":"Estimated Effective Date",
+    "नई NPS कटौती":"New NPS Deduction", "एरियर की गणना अंतिम तारीख तक":"Arrears calculated up to",
+    "मूल वेतन + DA":"Basic Pay + DA", "महँगाई भत्ता की गणना करें":"Calculate Dearness Allowance",
+    "वेतन और एरियर की गणना करें":"Calculate Salary and Arrears", "कर्मचारी की जानकारी":"Employee Information",
+    "कर्मचारी सेवाएँ":"Employee Services", "गोपनीयता पहले":"Privacy First", "आपकी व्यक्तिगत कर्मचारी जानकारी निजी और सुरक्षित रहनी चाहिए।":"Your personal employee information must remain private and protected.""भत्ते":"Allowances","मदद":"Help","सेवाएँ":"Services",
     "ट्रैक मेंटेनर":"Track Maintainer","शहर की श्रेणी":"City Class","चुनें":"Select","अपना पद चुनें":"Select Your Post",
     "अपनी पोस्ट चुनें":"Select Your Post","वर्तमान DA (%)":"Current DA (%)","वर्तमान Basic Pay":"Current Basic Pay",
     "महीनों की संख्या":"Number of Months","कुल एरियर":"Total Arrears","एरियर राशि":"Arrear Amount",
@@ -58,7 +73,7 @@
       const base=originals.get(node);
       node.nodeValue=replaceText(base,map);
     }
-    root.querySelectorAll("input[placeholder],button[aria-label],a[aria-label],option").forEach(el=>{
+    root.querySelectorAll("input[placeholder],button[aria-label],a[aria-label],option,optgroup[label]").forEach(el=>{
       ["placeholder","aria-label"].forEach(attr=>{
         if(!el.hasAttribute(attr))return;
         const key="data-rm-original-"+attr;
