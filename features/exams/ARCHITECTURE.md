@@ -23,10 +23,10 @@ Each test record must independently store: question count, duration, positive ma
 5. Publish only after review approval.
 
 ## Data model (Firestore design)
-- `examStreams/{streamId}`: stream metadata and active state.
-- `examTests/{testId}`: exam type, stream, category, paper/year, test settings, access and publication state.
-- `examTests/{testId}/questions/{questionId}`: question, options, answer, explanation, subject/topic, source and verification status.
-- `examAttempts/{attemptId}`: candidate UID, test ID, timestamps, answers, navigation states, scoring breakdown and analytics.
+- `examTestCatalog/{testId}`: public test metadata, stream, category, settings, free/paid access and publication state.
+- `examTests/{testId}/questionsPublic/{questionId}`: question text and options only; no answer key or explanation.
+- `examTests/{testId}/answerKeys/{questionId}`: correct option and explanation; callable backend/Admin SDK only.
+- `users/{uid}/examAttempts/{attemptId}`: candidate-owned attempt, server timestamps, submitted answers, scoring breakdown and post-submission review.
 - `studyMaterials/{materialId}`: title, stream, file reference, description and independent price.
 - `userEntitlements/{uid}`: subscription entitlement and expiry, written only by trusted backend after payment verification.
 - `adminAuditLogs/{logId}`: administrator changes and timestamps.
