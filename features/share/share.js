@@ -4,7 +4,7 @@
 (function () {
     "use strict";
 
-    const APP_URL = "https://sharerohit111-pixel.github.io/railway-mitra/";
+    const APP_URL = "https://sharerohit111-pixel.github.io/railway-mitra/install/";
     const SHARE_TITLE = "Railway Mitra";
     const SHARE_TEXT = "Railway Mitra – Your Railway Digital Companion. Salary, allowances, railway tools and useful employee services in one place.";
 
