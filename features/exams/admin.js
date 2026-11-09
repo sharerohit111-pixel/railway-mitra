@@ -18,7 +18,7 @@ form.addEventListener("submit",async event=>{
   const streamTitle={ "gdce-je-civil":"GDCE JE Civil Engineering","gdce-je-electrical":"GDCE JE Electrical Engineering","gdce-je-mechanical":"GDCE JE Mechanical Engineering","gdce-train-manager":"GDCE Train Manager" }[streamId];
   const response=await publish({test:{
    testId:String(data.get("testId")).trim(),title:String(data.get("title")).trim(),streamId,streamTitle,
-   category:String(data.get("category")),durationMinutes:Number(data.get("durationMinutes")),
+   category:String(data.get("category")),sourceLabel:String(data.get("sourceLabel")||"").trim(),sourceYear:data.get("sourceYear")?Number(data.get("sourceYear")):null,durationMinutes:Number(data.get("durationMinutes")),
    positiveMarksPerQuestion:Number(data.get("positiveMarksPerQuestion")),
    negativeMarksPerWrongAnswer:Number(data.get("negativeMarksPerWrongAnswer")),
    published:true,questions
