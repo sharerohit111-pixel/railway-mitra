@@ -21,7 +21,7 @@ form.addEventListener("submit",async event=>{
    category:String(data.get("category")),durationMinutes:Number(data.get("durationMinutes")),
    positiveMarksPerQuestion:Number(data.get("positiveMarksPerQuestion")),
    negativeMarksPerWrongAnswer:Number(data.get("negativeMarksPerWrongAnswer")),
-   price:Number(data.get("price")),published:true,questions
+   published:true,questions
   }});
   status.textContent="Success: "+response.data.testId+" — "+response.data.totalQuestions+" verified questions stored. Access: "+response.data.access.toUpperCase()+". Published: "+(response.data.published?"Yes":"No");
   form.reset();
