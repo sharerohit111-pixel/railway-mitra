@@ -1,0 +1,271 @@
+{
+  "batch": "061-066",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q61",
+      "questionNumber": 61,
+      "questionText": {
+        "en": "Read the following statements and choose the correct option.\nStatement 1: A rigid body is an ideal material that does not undergo any deformation under applied loads.\nStatement 2: In reality, all materials behave as rigid bodies under all loading conditions.",
+        "hi": "निम्नलिखित कथनों को पढ़ें और सही विकल्प चुनें।\nकथन 1: दृढ़ पिंड (rigid body) एक आदर्श पदार्थ है जो प्रयुक्त भार के अंतर्गत किसी विरूपण से नहीं गुजरता है।\nकथन 2: वास्तव में, सभी पदार्थ सभी भारण स्थितियों के तहत दृढ़ पिंडों के रूप में व्यवहार करते हैं।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Only Statement 2 is correct.",
+            "hi": "केवल कथन 2 सही है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Both statements are correct.",
+            "hi": "दोनों कथन सही हैं।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Both statements are incorrect.",
+            "hi": "दोनों कथन गलत हैं।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Only Statement 1 is correct.",
+            "hi": "केवल कथन 1 सही है।"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Statement 1 is correct: By definition in engineering mechanics, a rigid body is an idealized body in which the distance between any two particles remains completely unchanged (zero deformation) regardless of the external forces applied. Statement 2 is incorrect: In reality, no physical material is perfectly rigid; all real materials undergo some degree of elastic or plastic deformation when subjected to loads.",
+        "hi": "कथन 1 सही है: इंजीनियरिंग यांत्रिकी में दृढ़ पिंड (rigid body) एक आदर्श अवधारणा है, जिसमें बाहरी बल लगाने पर भी किसी भी दो कणों के बीच की दूरी नहीं बदलती (अर्थात कोई विरूपण/deformation नहीं होता)। कथन 2 गलत है: वास्तविकता में कोई भी पदार्थ पूर्णतः दृढ़ नहीं होता; सभी वास्तविक पदार्थ भार लगाने पर कुछ न कुछ विरूपण से गुजरते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q62",
+      "questionNumber": 62,
+      "questionText": {
+        "en": "The coefficient of permeability for a soil is 0.80 mm/s at a void ratio of 0.5. Find the permeability of the same soil at the same temperature, but with a void ratio of 0.25.",
+        "hi": "0.5 के रिक्ति अनुपात (void ratio) पर किसी मिट्टी के लिए पारगम्यता गुणांक 0.80 mm/s है। उसी तापमान पर, लेकिन रिक्ति अनुपात 0.25 के साथ उसी मिट्टी की पारगम्यता ज्ञात कीजिए।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "0.2 mm/s",
+            "hi": "0.2 mm/s"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "1.6 mm/s",
+            "hi": "1.6 mm/s"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "0.12 mm/s",
+            "hi": "0.12 mm/s"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "0.4 mm/s",
+            "hi": "0.4 mm/s"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "According to the Kozeny-Carman equation, for a given soil at constant temperature, the coefficient of permeability (k) is proportional to e³/(1+e). Thus, k₂/k₁ = [e₂³/(1+e₂)]/[e₁³/(1+e₁)]. Given k₁ = 0.80 mm/s, e₁ = 0.5 and e₂ = 0.25: k₂/0.80 = [0.25³/1.25]/[0.5³/1.5] = 0.15. Therefore k₂ = 0.80 × 0.15 = 0.12 mm/s.",
+        "hi": "कोज़ेनी-कार्मन समीकरण (Kozeny-Carman equation) के अनुसार, समान तापमान पर एक ही मिट्टी के लिए पारगम्यता गुणांक (k), e³/(1+e) के समानुपाती होता है।\nk₂/k₁ = [e₂³/(1+e₂)]/[e₁³/(1+e₁)]\nयहाँ k₁ = 0.80 mm/s, e₁ = 0.5 और e₂ = 0.25 रखने पर अनुपात 0.15 प्राप्त होता है। अतः k₂ = 0.80 × 0.15 = 0.12 mm/s।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q63",
+      "questionNumber": 63,
+      "questionText": {
+        "en": "What does the silt carried by canals mainly consist of?",
+        "hi": "नहरों द्वारा वहन किए जाने वाली गाद (Silt) में मुख्य रूप से क्या होता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Fine soil particles carried by water",
+            "hi": "जल द्वारा वहन किए जाने वाले सूक्ष्म मृदा कण"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Chemical impurities",
+            "hi": "रासायनिक अशुद्धियाँ"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Organic matter in water",
+            "hi": "जल में कार्बनिक पदार्थ"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Large boulders",
+            "hi": "बड़े गोलाश्म"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Silt carried by river and canal water consists primarily of fine-grained alluvial soil/mineral particles (grain size typically between 0.002 mm and 0.075 mm) eroded from the river catchment and transported in suspension by flowing water.",
+        "hi": "नदियों और नहरों के पानी के साथ बहकर आने वाली गाद (Silt) में मुख्य रूप से जलग्रहण क्षेत्र से कटकर आए और जल द्वारा वहन किए जाने वाले सूक्ष्म मृदा कण (fine soil particles) होते हैं (आकार लगभग 0.002 mm से 0.075 mm)।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q64",
+      "questionNumber": 64,
+      "questionText": {
+        "en": "Two rods of equal length and mass, one lying along the x-axis (horizontal) and the other along the y-axis (vertical), cross each other at their mid-lengths. The moment of inertia generated about the z-axis perpendicular to the plane is:",
+        "hi": "समान लंबाई और द्रव्यमान की दो छड़ें, जिनमें से एक x-अक्ष (क्षैतिज) के अनुदिश और दूसरी y-अक्ष (ऊर्ध्वाधर) के अनुदिश स्थित है, एक-दूसरे को मध्य लंबाई पर क्रॉस करती हैं। तल के लंबवत z-अक्ष के परितः जड़त्व आघूर्ण ______ होगा।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Will be more than the rod lying along the y-axis.",
+            "hi": "उस छड़ से अधिक होगा जो y-अक्ष के अनुदिश स्थित है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Will be equal for both rods.",
+            "hi": "दोनों छड़ों के लिए समान होगा।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Will be zero.",
+            "hi": "शून्य होगा।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Will be more than the rod lying along the x-axis.",
+            "hi": "उस छड़ से अधिक होगा जो x-अक्ष के अनुदिश स्थित है।"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "The moment of inertia of a uniform thin rod of mass M and length L about an axis passing through its center and perpendicular to its length (here, the z-axis) is Iₓ = (1/12)ML². Since both rods have the same mass M, the same length L, and are perpendicular to the z-axis at their midpoints, the moment of inertia about the z-axis is equal for both rods.",
+        "hi": "M द्रव्यमान और L लंबाई की किसी एकसमान पतली छड़ का उसके केंद्र से गुजरने वाले और लंबाई के लंबवत अक्ष (z-अक्ष) के परितः जड़त्व आघूर्ण I = (1/12)ML² होता है। चूँकि दोनों छड़ों का द्रव्यमान और लंबाई समान है तथा दोनों मध्य बिंदु पर z-अक्ष के लंबवत हैं, इसलिए z-अक्ष के परितः जड़त्व आघूर्ण दोनों छड़ों के लिए समान होगा।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q65",
+      "questionNumber": 65,
+      "questionText": {
+        "en": "Which of the following properties of bitumen is most critical in determining its performance at high pavement temperatures?",
+        "hi": "उच्च पेवमेंट तापमान (high pavement temperatures) पर बिटुमेन के प्रदर्शन को निर्धारित करने में निम्नलिखित में से कौन-सा गुण सबसे महत्वपूर्ण है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Penetration",
+            "hi": "वेधन / पेनेट्रेशन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Softening point",
+            "hi": "मृदुलनांक / सॉफ्टनिंग पॉइंट"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Flash point",
+            "hi": "प्रज्वलन / फ्लैश पॉइंट"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Ductility",
+            "hi": "तन्यता / डक्टिलिटी"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "The Softening Point (determined by the Ring and Ball test) indicates the temperature at which bitumen attains a particular degree of softening under standard test conditions. A higher softening point ensures that the bitumen binder will not bleed, soften excessively, or cause rutting in flexible pavements during high summer pavement temperatures.",
+        "hi": "मृदुलनांक (Softening point), जिसे रिंग एंड बॉल परीक्षण द्वारा ज्ञात किया जाता है, वह तापमान दर्शाता है जिस पर बिटुमेन मानक परीक्षण परिस्थितियों में एक निश्चित स्तर तक नरम हो जाता है। उच्च सॉफ्टनिंग पॉइंट यह सुनिश्चित करता है कि गर्मियों में उच्च सड़क तापमान पर बिटुमेन अत्यधिक नरम न हो तथा रटिंग (rutting) और बिटुमेन के पिघलकर बाहर आने (bleeding) की समस्या कम हो।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q66",
+      "questionNumber": 66,
+      "questionText": {
+        "en": "In IS 456:2000, the limiting moment of resistance of a rectangular singly reinforced section is based on ____.",
+        "hi": "IS 456:2000 में, एक आयताकार एकल प्रबलित खंड (rectangular singly reinforced section) का सीमांत प्रतिरोध आघूर्ण (limiting moment of resistance) ______ पर आधारित होता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Percentage of binding wires used",
+            "hi": "उपयोग किए गए बाइंडिंग तारों का प्रतिशत"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Ultimate tensile strain in concrete",
+            "hi": "कंक्रीट में चरम तनन विकृति"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Compression steel yield strength",
+            "hi": "संपीडन स्टील की पराभव सामर्थ्य"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Limiting depth of Neutral axis",
+            "hi": "उदासीन अक्ष की सीमांत गहराई"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "As per IS 456:2000 (Annex G, Clause G-1.1), to ensure ductile failure (where steel yields before concrete crushes), the maximum depth of the neutral axis is restricted to x_u,max. Therefore, the limiting moment of resistance (M_u,lim) of a singly reinforced rectangular section is directly governed by the limiting depth of the neutral axis (x_u,max/d), which depends on the grade of steel used.",
+        "hi": "IS 456:2000 (अनुलग्नक G) के अनुसार, तन्य विफलता (ductile failure) सुनिश्चित करने के लिए उदासीन अक्ष की अधिकतम गहराई x_u,max तक सीमित रखी जाती है। इसलिए, एकल प्रबलित आयताकार खंड का सीमांत प्रतिरोध आघूर्ण मुख्य रूप से उदासीन अक्ष की सीमांत गहराई (limiting depth of Neutral axis) पर आधारित होता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
