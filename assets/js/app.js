@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // =====================================
 
     const moduleDetails = {
+        dutyDiary: { icon: "📅", description: "Duty Roster & Allowance Diary" },
         profile: {
             icon: "👤",
             description: "Personal Employee Information"
