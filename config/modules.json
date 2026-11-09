@@ -96,6 +96,13 @@
       "name": "India Map",
       "path": "features/map/index.html",
       "enabled": true
+    },
+    {
+      "id": "dutyDiary",
+      "name": "Duty Roster & Allowance Diary",
+      "path": "features/duty-diary/index.html",
+      "enabled": true,
+      "description": "Daily duty records and monthly allowance ledger"
     }
   ]
 }
