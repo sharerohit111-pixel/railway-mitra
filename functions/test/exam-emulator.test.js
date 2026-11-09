@@ -126,7 +126,7 @@ test("non-admin cannot publish; owner admin can publish verified test", async ()
   const testId = "admin-publish-" + suffix;
   const testInput = {
     testId, title: "Admin publish emulator test", streamId: "gdce-je-civil",
-    streamTitle: "GDCE JE Civil Engineering", category: "practice",
+    streamTitle: "GDCE JE Civil Engineering", category: "practice", sourceLabel: "Emulator source paper", sourceYear: 2025,
     durationMinutes: 20, positiveMarksPerQuestion: 1, negativeMarksPerWrongAnswer: 0.25,
     published: true,
     questions: [{
@@ -142,6 +142,9 @@ test("non-admin cannot publish; owner admin can publish verified test", async ()
   assert.equal(published.status, 200);
   assert.equal(published.body.result.published, true);
   assert.equal(published.body.result.access, "paid");
+  const catalogueRecord = await db.collection("examTestCatalog").doc(testId).get();
+  assert.equal(catalogueRecord.data().sourceLabel, "Emulator source paper");
+  assert.equal(catalogueRecord.data().sourceYear, 2025);
   await db.collection("examTestCatalog").doc(testId).delete();
   await db.collection("examTests").doc(testId).collection("questionsPublic").doc("q1").delete();
   await db.collection("examTests").doc(testId).collection("answerKeys").doc("q1").delete();
