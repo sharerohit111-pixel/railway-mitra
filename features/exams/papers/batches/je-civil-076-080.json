@@ -1,0 +1,215 @@
+{
+  "batch": "076-080",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q76",
+      "questionNumber": 76,
+      "questionText": {
+        "en": "The moment distribution method used in structural analysis is best described as:",
+        "hi": "संरचनात्मक विश्लेषण में प्रयुक्त आघूर्ण वितरण विधि (moment distribution method) का सबसे अच्छा वर्णन इस प्रकार किया जा सकता है:"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "An iterative stiffness-based method for indeterminate beams and frames.",
+            "hi": "अनिश्चित बीम और फ्रेम के लिए एक पुनरावृत्तीय कठोरता-आधारित विधि"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "An energy-based method for determinate beams and frames.",
+            "hi": "निश्चित बीम और फ्रेम के लिए एक ऊर्जा-आधारित विधि"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "A matrix-based method for simply supported beam systems.",
+            "hi": "शुद्धालंबित बीम प्रणालियों के लिए एक मैट्रिक्स-आधारित विधि"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "A force-based method for pin-jointed truss systems.",
+            "hi": "पिन-जॉइंटेड ट्रस प्रणालियों के लिए एक बल-आधारित विधि"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Developed by Hardy Cross, the Moment Distribution Method is a displacement (stiffness) method that solves statically indeterminate beams and rigid-jointed frames through successive approximations (iterations) of locking and unlocking joints until equilibrium is achieved.",
+        "hi": "हार्डी क्रॉस द्वारा विकसित आघूर्ण वितरण विधि (Moment Distribution Method) एक कठोरता-आधारित विस्थापन विधि है, जो जोड़ों को बार-बार लॉक और अनलॉक करने की पुनरावृत्तीय (iterative) प्रक्रिया द्वारा स्थैतिक रूप से अनिश्चित बीम और फ्रेम का विश्लेषण करती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q77",
+      "questionNumber": 77,
+      "questionText": {
+        "en": "For a singly reinforced RCC beam under flexure, when the Aₛₜ provided is greater than the Aₛₜ that is required for a balanced section, the beam is expected to fail by:",
+        "hi": "बंकन (flexure) के अधीन एकल प्रबलित RCC बीम के लिए, जब प्रदान किया गया Aₛₜ संतुलित खंड के लिए आवश्यक Aₛₜ से अधिक होता है, तो बीम के किस प्रकार विफल होने की अपेक्षा की जाती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Torsional instability",
+            "hi": "मरोड़ अस्थिरता"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Shear cracking followed by collapse",
+            "hi": "अपकर्षण दरार के बाद ढहना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Brittle crushing of concrete in compression",
+            "hi": "संपीड़न में कंक्रीट का भंगुर संपीडन / Brittle crushing"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Ductile yielding of steel in tension",
+            "hi": "तनन में स्टील का तन्य पराभव / Ductile yielding"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "When the provided tension steel area (Aₛₜ) exceeds the balanced steel area (Aₛₜ,lim), the beam becomes over-reinforced. In an over-reinforced section, concrete reaches its ultimate compressive strain (0.0035) before the steel yields, resulting in sudden brittle crushing of concrete in compression without prior warning.",
+        "hi": "जब बीम में दिया गया तनन इस्पात क्षेत्रफल (Aₛₜ) संतुलित खंड के आवश्यक इस्पात से अधिक होता है, तो उसे अति-प्रबलित खंड (over-reinforced section) कहते हैं। इसमें स्टील के खिंचने (yielding) से पहले ही संपीड़न में कंक्रीट अपनी चरम विकृति तक पहुँच जाता है, जिससे बिना चेतावनी के अचानक संपीड़न में कंक्रीट का भंगुर संपीडन (brittle crushing) हो जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q78",
+      "questionNumber": 78,
+      "questionText": {
+        "en": "The width of a rectangular lamina is 200 mm and its depth is 300 mm. Using the standard formula, find the moment of inertia about its centroidal x-axis (parallel to the width) in mm⁴.",
+        "hi": "एक आयताकार पट्टल की चौड़ाई 200 mm तथा गहराई 300 mm है। मानक सूत्र का उपयोग करके इसके केंद्रक x-अक्ष (चौड़ाई के समानांतर) के सापेक्ष जड़त्व आघूर्ण mm⁴ में ज्ञात कीजिए।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": "45 × 10⁸ mm⁴"
+        },
+        {
+          "key": "B",
+          "text": "4.5 × 10⁶ mm⁴"
+        },
+        {
+          "key": "C",
+          "text": "4.5 × 10⁸ mm⁴"
+        },
+        {
+          "key": "D",
+          "text": "4.5 × 10⁸ m⁴"
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Width (b) = 200 mm, depth (d) = 300 mm. Moment of inertia about the centroidal x-axis: Iₓₓ = bd³/12 = [200 × (300)³]/12 = [200 × 27 × 10⁶]/12 = 450 × 10⁶ mm⁴ = 4.5 × 10⁸ mm⁴.",
+        "hi": "चौड़ाई (b) = 200 mm, गहराई (d) = 300 mm। केंद्रक x-अक्ष के परितः जड़त्व आघूर्ण: Iₓₓ = bd³/12 = [200 × (300)³]/12 = [200 × 27 × 10⁶]/12 = 450 × 10⁶ mm⁴ = 4.5 × 10⁸ mm⁴।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q79",
+      "questionNumber": 79,
+      "questionText": {
+        "en": "Which of the following sections is most suitable for long compression members to prevent local buckling?",
+        "hi": "स्थानीय आकुंचन (local buckling) को रोकने के लिए लंबे संपीड़न अवयवों (long compression members) हेतु निम्नलिखित में से कौन-सा अनुप्रस्थ-काट सबसे उपयुक्त है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Solid rectangular section",
+            "hi": "ठोस आयताकार अनुप्रस्थ-काट"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Flat plate section",
+            "hi": "चपटी प्लेट अनुप्रस्थ-काट"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Solid circular section",
+            "hi": "ठोस वृत्ताकार अनुप्रस्थ-काट"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Built-up I-section with batten or lacing",
+            "hi": "बैटन या लेसिंग युक्त निर्मित I-अनुप्रस्थ-काट"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "For long compression members (columns), increasing the radius of gyration (r) reduces the slenderness ratio (Lₑ/r) and increases buckling resistance. A built-up I-section connected with lacing or battens places the material farther away from the centroidal axes, maximizing the moment of inertia and preventing both overall and local buckling economically.",
+        "hi": "लंबे संपीड़न अवयवों (कॉलम) में आकुंचन (buckling) रोकने के लिए परिभ्रमण त्रिज्या (r) का अधिक होना आवश्यक है। बैटन या लेसिंग से जुड़े निर्मित I-अनुप्रस्थ-काट में पदार्थ केंद्रक अक्ष से दूर वितरित रहता है, जिससे जड़त्व आघूर्ण बढ़ता है और स्थानीय व समग्र आकुंचन दोनों से प्रभावी सुरक्षा मिलती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q80",
+      "questionNumber": 80,
+      "questionText": {
+        "en": "In an FBD, how is tension in a string represented?",
+        "hi": "मुक्त पिंड आरेख (FBD) में, किसी डोरी (string) में तनाव (tension) को किस प्रकार दर्शाया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "By an arrow pointing towards the object along the direction of the string",
+            "hi": "डोरी की दिशा के अनुदिश वस्तु की ओर संकेत करते हुए एक तीर द्वारा"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "By an arrow pointing perpendicular to the string",
+            "hi": "डोरी के लंबवत संकेत करते हुए एक तीर द्वारा"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "By an arrow pointing away from the object along the direction of the string",
+            "hi": "डोरी की दिशा के अनुदिश वस्तु से दूर संकेत करते हुए एक तीर द्वारा"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "By an arrow pointing downward",
+            "hi": "नीचे की ओर संकेत करते हुए एक तीर द्वारा"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "A flexible string or rope can only pull an object, never push it. Therefore, in a Free Body Diagram (FBD), the tension force exerted by a string is always drawn along the axis of the string pointing away from the body being analyzed.",
+        "hi": "कोई भी लचीली डोरी या रस्सी किसी वस्तु को केवल खींच (pull) सकती है, धक्का नहीं दे सकती। इसलिए, मुक्त पिंड आरेख (FBD) में डोरी द्वारा लगाए गए तनाव बल को हमेशा डोरी की दिशा के अनुदिश वस्तु से दूर (बाहर की ओर) संकेत करते हुए एक तीर द्वारा दर्शाया जाता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
