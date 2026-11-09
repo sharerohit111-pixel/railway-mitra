@@ -1,0 +1,227 @@
+{
+  "batch": "031-035",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q31",
+      "questionNumber": 31,
+      "questionText": {
+        "en": "For a cantilever beam with UDL, the shear force diagram is:",
+        "hi": "समानवितरित भार (UDL) वाली कैंटिलीवर बीम (cantilever beam) के लिए, अपरूपण बल आरेख (shear force diagram) होता है:"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Linearly varying and zero at free end",
+            "hi": "रेखिक रूप से परिवर्तित होने वाला और मुक्त सिरे पर शून्य"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Parabolic and zero at free end",
+            "hi": "परवलयाकार और मुक्त सिरे पर शून्य"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Parabolic and zero at fixed end",
+            "hi": "परवलयाकार और स्थिर सिरे पर शून्य"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Constant from free end to fixed end",
+            "hi": "मुक्त सिरे से स्थिर सिरे तक स्थिर"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "For a cantilever beam of length L carrying a Uniformly Distributed Load (UDL) of intensity w, the shear force at a distance x from the free end is Vx = w·x. At the free end (x = 0), V = 0, and it increases linearly to a maximum value of wL at the fixed support (x = L).",
+        "hi": "L लंबाई और w तीव्रता वाले समवितरित भार (UDL) से लदी कैंटिलीवर बीम में मुक्त सिरे से x दूरी पर अपरूपण बल Vx = w·x होता है। मुक्त सिरे (x = 0) पर इसका मान शून्य होता है और स्थिर सिरे (x = L) की ओर रेखिक रूप से बढ़कर wL हो जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q32",
+      "questionNumber": 32,
+      "questionText": {
+        "en": "Which of the following is the first and most critical step in the painting process?",
+        "hi": "पेंटिंग प्रक्रिया में निम्नलिखित में से कौन-सा पहला और सबसे महत्वपूर्ण चरण है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Cleaning the brushes",
+            "hi": "ब्रशों को साफ करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Applying the topcoat",
+            "hi": "टॉपकोट लगाना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Choosing the paint colour",
+            "hi": "पेंट का रंग चुनना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Surface preparation",
+            "hi": "सतह की तैयारी / सरफेस प्रिपरेशन"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Surface preparation (cleaning dust, grease, rust, loose paint, and smoothing irregularities) is the first and most critical step before applying primer or paint. Proper surface preparation ensures strong paint adhesion, uniform finish, and long-term durability against peeling or blistering.",
+        "hi": "प्राइमर या पेंट लगाने से पहले सतह की तैयारी (Surface preparation)—अर्थात धूल, चिकनाई, जंग और पुरानी उखड़ी हुई पपड़ी को साफ करना—पहला और अत्यंत महत्वपूर्ण चरण है। इससे पेंट की सतह पर पकड़ मजबूत बनती है और पेंट लंबे समय तक टिकाऊ रहता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q33",
+      "questionNumber": 33,
+      "questionText": {
+        "en": "A simply supported Warren truss of 10 m span carries a UDL of 10 kN/m on its top chord. The reactions at supports (assume pin and roller supports) at left and right are ________ respectively.",
+        "hi": "10 m पाट (span) वाला एक सुगठित वॉरेन ट्रस (simply supported Warren truss) अपनी शीर्ष कॉर्ड पर 10 kN/m का UDL वहन करता है। बाएँ और दाएँ आलंबों (पिन और रोलर आलंब मान लें) पर प्रतिक्रियाएँ क्रमशः ________ हैं।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "40 kN and 10 kN",
+            "hi": "40 kN और 10 kN"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "50 kN and 50 kN",
+            "hi": "50 kN और 50 kN"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "25 kN and 25 kN",
+            "hi": "25 kN और 25 kN"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "30 kN and 20 kN",
+            "hi": "30 kN और 20 kN"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Total downward load on the truss: W = UDL × Span = 10 kN/m × 10 m = 100 kN. Since the loading is symmetric on a simply supported truss, both left (RA) and right (RB) supports share the total load equally: RA = RB = 100/2 = 50 kN.",
+        "hi": "ट्रस पर लगने वाला कुल ऊर्ध्वाधर भार: W = UDL × पाट (Span) = 10 kN/m × 10 m = 100 kN। चूँकि शुंडाकारित ट्रस पर भार सममित (symmetric) रूप से वितरित है, इसलिए बाएँ (RA) और दाएँ (RB) दोनों आलंबों पर प्रतिक्रिया समान रूप से विभाजित होगी: RA = RB = 100/2 = 50 kN।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q34",
+      "questionNumber": 34,
+      "questionText": {
+        "en": "Which drainage/dewatering method is suitable for fine-grained cohesive soils?",
+        "hi": "महीन कणों वाली संसंजक मृदाओं (fine-grained cohesive soils) के लिए कौन-सी जल निकासी विधि उपयुक्त होती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Deep well system",
+            "hi": "गहरी कुआँ प्रणाली"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Electro-Osmosis method",
+            "hi": "विद्युत-परासरण विधि"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Shallow well system",
+            "hi": "उथली कुआँ प्रणाली"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Well point system",
+            "hi": "कूप बिंदु प्रणाली"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Fine-grained cohesive soils (such as clays and silts) have extremely low permeability, making conventional gravity-based pumping methods (like well points or deep wells) ineffective. The Electro-Osmosis method passes a direct current (DC) between anodes and cathodes placed in the soil, forcing pore water to migrate toward the cathode well for extraction.",
+        "hi": "महीन कणों वाली संसंजक मृदाओं (जैसे चिकनी मिट्टी/क्ले और सिल्ट) की पारगम्यता (permeability) अत्यंत कम होती है, जिससे पारंपरिक पंपिंग विधियाँ (जैसे वेल पॉइंट या डीप वेल) काम नहीं करतीं। विद्युत-परासरण विधि (Electro-Osmosis method) में मिट्टी में इलेक्ट्रोड लगाकर दिष्ट धारा (DC) प्रवाहित की जाती है, जिससे रंध्र जल (pore water) एनोड से कैथोड कुएँ की ओर प्रवाहित होकर बाहर निकाला जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q35",
+      "questionNumber": 35,
+      "questionText": {
+        "en": "Which of the following principles involves transforming waste materials into new products?",
+        "hi": "निम्नलिखित में से किस सिद्धांत में अपशिष्ट पदार्थों को नए उत्पादों में रूपांतरित करना शामिल है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Reuse",
+            "hi": "पुनः उपयोग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Recycle",
+            "hi": "पुनर्चक्रण"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Reduce",
+            "hi": "कम उपयोग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Recover",
+            "hi": "पुनः प्राप्ति"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Among the waste management principles (3Rs/4Rs), Recycling refers to collecting, processing, and reprocessing discarded waste materials (such as plastic, paper, glass, metal, or construction debris) to manufacture new useful products.",
+        "hi": "अपशिष्ट प्रबंधन के सिद्धांतों (3Rs/4Rs) में पुनर्चक्रण (Recycle) का अर्थ बेकार या त्यागे गए पदार्थों (जैसे प्लास्टिक, कागज, धातु या निर्माण अपशिष्ट) को एकत्र करके उन्‍हें संसाधित करना और नए उपयोगी उत्पादों में बदलना है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
