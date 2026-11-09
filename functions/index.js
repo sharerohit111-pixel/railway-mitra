@@ -313,5 +313,5 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
     createdAt: FieldValue.serverTimestamp()
   });
   await batch.commit();
-  return { success: true, testId, totalQuestions, published: input.published === true };
+  return { success: true, testId, totalQuestions, access, price, published: input.published === true };
 });
