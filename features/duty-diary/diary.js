@@ -75,8 +75,7 @@ $("nextMonth").addEventListener("click",()=>changeMonth(1));
 $("is-ta").addEventListener("change",toggleTaFields);
 $("diaryForm").addEventListener("submit",event=>{event.preventDefault();saveCurrentDayData();});
 $("clearDayBtn").addEventListener("click",()=>loadDayData(selectedDate));
-$("clearDayBtn").addEventListener("dblclick",clearCurrentDay);
-$("clearDayBtn").title="Tap to reset form; double-tap to delete saved record";
+$("deleteDayBtn").addEventListener("click",clearCurrentDay);
 try{await enableIndexedDbPersistence(db);}catch(error){if(error.code!=="failed-precondition"&&error.code!=="unimplemented")console.warn("Firestore offline persistence:",error.message);}
 renderCalendar();loadDayData(selectedDate);
 onAuthStateChanged(auth,async user=>{
