@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326">
+<meta name="description" content="Interactive India map in Railway Mitra using OpenFreeMap and OpenStreetMap data.">
+<title>Railway Map | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="map.css">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand"><div class="brand-icon">🗺️</div><div><h1>Railway Map</h1><p>Interactive India Map · Railway Mitra</p></div></div>
+  <a class="map-home" href="../../">Home</a>
+</header>
+<main class="map-wrap">
+  <section class="map-intro">
+    <span class="map-eyebrow">OPEN MAP · INDIA</span>
+    <h2>Explore India on the map.</h2>
+    <p>Move, zoom and explore roads, places and mapped railway features. Use the location button to view your current position.</p>
+  </section>
+  <section class="map-panel" aria-label="Interactive map of India">
+    <div class="map-toolbar">
+      <span class="map-live"><i></i> Interactive map</span>
+      <button id="indiaView" type="button">India view</button>
+      <button id="locateMe" type="button">◎ My location</button>
+    </div>
+    <div id="indiaMap" role="application" aria-label="Interactive map of India"></div>
+    <p id="mapMessage" class="map-message" aria-live="polite">Loading map…</p>
+  </section>
+  <section class="map-info">
+    <h2>What is available now?</h2>
+    <ul>
+      <li>Interactive India basemap with pan and zoom.</li>
+      <li>Roads, place labels and mapped transport features from OpenStreetMap-derived map data.</li>
+      <li>Optional current-location marker, if you grant browser location permission.</li>
+    </ul>
+    <div class="map-note"><strong>Station search status:</strong> Dedicated station search and verified station pins are not enabled yet. We will add them only after selecting a reliable data source and checking its reuse terms. Map data can be incomplete or outdated and is not an official railway operational map.</div>
+  </section>
+  <footer class="map-footer">
+    <p><strong>Map:</strong> OpenFreeMap · OpenMapTiles · © OpenStreetMap contributors</p>
+    <p><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap copyright and licence</a> · <a href="https://openfreemap.org/tos/" target="_blank" rel="noopener">OpenFreeMap Terms</a></p>
+    <p>Railway Mitra is independent and is not affiliated with Indian Railways or the Government of India.</p>
+  </footer>
+</main>
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="map.js"></script>
+</body>
+</html>
