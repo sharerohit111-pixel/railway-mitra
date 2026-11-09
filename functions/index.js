@@ -111,7 +111,9 @@ exports.listPublishedTests = onCall({ region: REGION }, async request => {
         durationMinutes: x.durationMinutes,
         positiveMarksPerQuestion: x.positiveMarksPerQuestion,
         negativeMarksPerWrongAnswer: x.negativeMarksPerWrongAnswer,
-        access: x.access
+        access: x.access,
+        sourceLabel: x.sourceLabel || "",
+        sourceYear: x.sourceYear || null
       };
     })
   };
@@ -311,6 +313,9 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   const streamId = cleanString(input.streamId, "streamId", 80);
   const streamTitle = cleanString(input.streamTitle, "streamTitle", 160);
   const category = cleanString(input.category, "category", 20);
+  const sourceLabel = typeof input.sourceLabel === "string" ? input.sourceLabel.trim().slice(0, 200) : "";
+  const sourceYear = input.sourceYear === undefined || input.sourceYear === "" ? null :
+    validNumber(input.sourceYear, "sourceYear", 1900, new Date().getFullYear() + 1);
   if (!["gdce-je-civil", "gdce-je-electrical", "gdce-je-mechanical", "gdce-train-manager"].includes(streamId)) {
     throw new HttpsError("invalid-argument", "Unsupported GDCE stream.");
   }
@@ -349,6 +354,7 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
     testId, title, streamId, streamTitle, category,
     totalQuestions, durationMinutes, positiveMarksPerQuestion,
     negativeMarksPerWrongAnswer, access, subscriptionRequired,
+    sourceLabel, sourceYear,
     published: input.published === true,
     updatedAt: FieldValue.serverTimestamp()
   });
