@@ -280,7 +280,15 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   const durationMinutes = validNumber(input.durationMinutes, "durationMinutes", 1, 300);
   const positiveMarksPerQuestion = validNumber(input.positiveMarksPerQuestion, "positiveMarksPerQuestion", 0, 100);
   const negativeMarksPerWrongAnswer = validNumber(input.negativeMarksPerWrongAnswer, "negativeMarksPerWrongAnswer", 0, 100);
-  const access = input.access === "free" ? "free" : "paid";
+  const existingStreamTests = await db.collection("examTestCatalog").where("streamId", "==", streamId).get();
+  const existingMockCount = existingStreamTests.docs.filter(d => d.data().category === "mock").length;
+  const mustBeFree = category === "mock" && existingMockCount === 0;
+  const access = mustBeFree ? "free" : "paid";
+  if (input.access && input.access !== access) {
+    throw new HttpsError("failed-precondition", mustBeFree
+      ? "The first mock test in each GDCE stream must be free."
+      : "Only the first mock test in each GDCE stream is free; this test must be paid.");
+  }
   const price = access === "free" ? 0 : validNumber(input.price, "price", 1, 100000);
   const testRef = db.collection("examTestCatalog").doc(testId);
   const batch = db.batch();
