@@ -109,8 +109,7 @@ exports.listPublishedTests = onCall({ region: REGION }, async request => {
         durationMinutes: x.durationMinutes,
         positiveMarksPerQuestion: x.positiveMarksPerQuestion,
         negativeMarksPerWrongAnswer: x.negativeMarksPerWrongAnswer,
-        access: x.access,
-        price: x.price
+        access: x.access
       };
     })
   };
@@ -318,7 +317,7 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
       ? "The first mock test in each GDCE stream must be free."
       : "Only the first mock test in each GDCE stream is free; this test must be paid.");
   }
-  const price = access === "free" ? 0 : validNumber(input.price, "price", 1, 100000);
+  const subscriptionRequired = access === "paid";
   const testRef = db.collection("examTestCatalog").doc(testId);
   if ((await testRef.get()).exists) {
     throw new HttpsError("already-exists", "This test ID already exists. Use a new ID for a new paper version.");
@@ -327,7 +326,7 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   batch.set(testRef, {
     testId, title, streamId, streamTitle, category,
     totalQuestions, durationMinutes, positiveMarksPerQuestion,
-    negativeMarksPerWrongAnswer, access, price,
+    negativeMarksPerWrongAnswer, access, subscriptionRequired,
     published: input.published === true,
     updatedAt: FieldValue.serverTimestamp()
   });
@@ -344,5 +343,5 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
     createdAt: FieldValue.serverTimestamp()
   });
   await batch.commit();
-  return { success: true, testId, totalQuestions, access, price, published: input.published === true };
+  return { success: true, testId, totalQuestions, access, published: input.published === true };
 });
