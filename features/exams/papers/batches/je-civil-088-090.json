@@ -1,0 +1,139 @@
+{
+  "batch": "088-090",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q88",
+      "questionNumber": 88,
+      "questionText": {
+        "en": "Which of the following kerb marking schemes is INCORRECTLY matched?",
+        "hi": "निम्नलिखित में से कौन-सी कर्ब मार्किंग योजना (kerb marking scheme) गलत सुमेलित (INCORRECTLY matched) है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Black and White – Visibility enhancement",
+            "hi": "काला और सफेद – दृश्यता में सुधार"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Yellow and Black – Parking restrictions",
+            "hi": "पीला और काला – पार्किंग प्रतिबंध"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Green and White – Indicates national highways",
+            "hi": "हरा और सफेद – राष्ट्रीय राजमार्गों को इंगित करता है"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Red and White – Special no-parking zones",
+            "hi": "लाल और सफेद – विशेष नो-पार्किंग ज़ोन"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "As per IRC:35 (Code of Practice for Road Markings), Black and White kerb markings are used for general visibility enhancement, Yellow and Black indicate parking restrictions, and Red and White denote strict no-parking/no-stopping zones. Green and White kerb markings do not indicate national highways (green color is used on highway milestone tops for State Highways, not kerb markings).",
+        "hi": "IRC:35 (सड़क अंकन संहिता) के अनुसार, काला और सफेद कर्ब अंकन सामान्य दृश्यता बढ़ाने के लिए, पीला और काला पार्किंग प्रतिबंध के लिए, तथा लाल और सफेद विशेष नो-पार्किंग ज़ोन के लिए उपयोग होता है। हरा और सफेद कर्ब अंकन राष्ट्रीय राजमार्गों को इंगित नहीं करता, इसलिए विकल्प 3 गलत सुमेलित है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q89",
+      "questionNumber": 89,
+      "questionText": {
+        "en": "If orientation of the plane table is lost during the survey, which method is most suitable to reorient it?",
+        "hi": "यदि सर्वेक्षण के दौरान प्लेन टेबल (plane table) का अभिविन्यास (orientation) बिगड़ जाए/खो जाए, तो इसे पुनः अभिविन्यासित करने के लिए कौन-सी विधि सबसे उपयुक्त है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "By estimation",
+            "hi": "अनुमान द्वारा"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Back sighting method",
+            "hi": "पश्च अवलोकन विधि / Back sighting method"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "By re-plotting the entire survey",
+            "hi": "पूरे सर्वेक्षण को पुनः आलेखित करके"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "By ignoring the orientation error",
+            "hi": "अभिविन्यास त्रुटि की अनदेखी करके"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "When the plane table is set up over a known station and its orientation is disturbed or lost, the Back Sighting method (aligning the alidade along the previously plotted ray between the current station and a previous station, and rotating the board until the previous station is bisected) is the simplest, fastest, and most accurate method to restore orientation.",
+        "hi": "यदि किसी ज्ञात स्टेशन पर प्लेन टेबल का अभिविन्यास बिगड़ जाए, तो पश्च अवलोकन विधि (Back sighting method)—जिसमें एलिडेड को पिछले स्टेशन से वर्तमान स्टेशन को जोड़ने वाली पहले से खींची गई रेखा पर रखकर बोर्ड को तब तक घुमाया जाता है जब तक पिछला स्टेशन लक्ष्यित न हो जाए—अभिविन्यास बहाल करने की सबसे उपयुक्त और सटीक विधि है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q90",
+      "questionNumber": 90,
+      "questionText": {
+        "en": "In a vertical single column manometer, the orientation of the column is kept:",
+        "hi": "ऊर्ध्वाधर एकल स्तंभ मैनोमीटर (vertical single column manometer) में, स्तंभ का अभिविन्यास (orientation) रखा जाता है:"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Inclined at a certain angle",
+            "hi": "एक निश्चित कोण पर झुका हुआ"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Horizontal",
+            "hi": "क्षैतिज"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Exactly vertical to improve sensitivity",
+            "hi": "संवेदनशीलता में सुधार के लिए ठीक ऊर्ध्वाधर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Bent in a loop",
+            "hi": "लूप में मुड़ा हुआ"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "A vertical single column (micromanometer) uses a large cross-sectional reservoir connected to a narrow vertical tube. Because the reservoir area (A) is much larger than the tube area (a), a tiny drop in reservoir level produces a large, easily readable rise in the exactly vertical column, improving measurement sensitivity and accuracy without needing to read two limbs.",
+        "hi": "ऊर्ध्वाधर एकल स्तंभ मैनोमीटर में एक बड़े क्षेत्रफल वाले जलाशय (reservoir) के साथ एक पतली नली जुड़ी होती है। जलाशय का क्षेत्रफल नली के क्षेत्रफल से बहुत अधिक होने के कारण दाब में छोटे-से परिवर्तन पर ठीक ऊर्ध्वाधर नली में तरल के स्तर में स्पष्ट और बड़ी वृद्धि दिखाई देती है, जिससे माप की संवेदनशीलता और सटीकता बढ़ जाती है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
