@@ -90,6 +90,12 @@
       "name": "Railway Updates",
       "path": "features/updates/index.html",
       "enabled": false
+    },
+    {
+      "id": "map",
+      "name": "India Map",
+      "path": "features/map/index.html",
+      "enabled": true
     }
   ]
 }
