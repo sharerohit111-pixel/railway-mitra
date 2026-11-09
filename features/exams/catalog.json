@@ -90,5 +90,13 @@
     "finalScore",
     "accuracy",
     "timeSpent"
-  ]
+  ],
+  "security": {
+    "questionDelivery": "trusted-backend-only",
+    "publicCatalogMustNotContainQuestionTextOrCorrectAnswers": true,
+    "scoring": "trusted-server-only",
+    "attemptWrites": "authenticated-user-only",
+    "adminWrites": "owner-role-only",
+    "paymentEntitlements": "trusted-server-only"
+  }
 }
