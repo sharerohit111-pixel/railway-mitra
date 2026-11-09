@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Firebase is loaded lazily so the profile remains usable offline.
   try {
-    const [{auth,db},{onAuthStateChanged},{doc,getDoc,setDoc}] = await Promise.all([
+    const [{auth,db},{onAuthStateChanged},{doc,getDoc,setDoc,deleteDoc}] = await Promise.all([
       import("../../assets/js/firebase.js"),
       import("https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js"),
       import("https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js")
