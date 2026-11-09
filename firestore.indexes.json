@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "examTestCatalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "streamId", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "published", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "examTestCatalog",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "streamId", "order": "ASCENDING" },
+        { "fieldPath": "category", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
