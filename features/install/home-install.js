@@ -80,9 +80,7 @@
         }
 
         if (isAppInstalled()) {
-            button.textContent = "Already Installed";
-            button.disabled = true;
-            status.textContent = "Railway Mitra is already installed on this device.";
+            section.remove();
             return;
         }
 
@@ -122,10 +120,7 @@
 
         window.addEventListener("appinstalled", function () {
             deferredInstallPrompt = null;
-            button.textContent = "Installed";
-            button.disabled = true;
-            status.textContent = "Railway Mitra has been installed successfully.";
-            help.hidden = true;
+            section.remove();
         });
     }
 
