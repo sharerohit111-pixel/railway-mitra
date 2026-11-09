@@ -1,0 +1,43 @@
+name: Deploy GDCE Cloud Functions
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: "Type railway-mitra to confirm the production Firebase project"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-functions:
+    if: ${{ inputs.confirm_project == 'railway-mitra' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_RAILWAY_MITRA }}
+
+      - name: Install Firebase Functions dependencies
+        run: npm --prefix functions install --no-audit --no-fund
+
+      - name: Check Functions syntax
+        run: npm --prefix functions run lint
+
+      - name: Run GDCE backend emulator tests
+        run: npx --yes firebase-tools@latest emulators:exec --project railway-mitra --only auth,firestore,functions "npm --prefix functions test"
+
+      - name: Deploy GDCE Cloud Functions and Firestore indexes
+        run: npx --yes firebase-tools@latest deploy --only functions,firestore:indexes --project railway-mitra --non-interactive
