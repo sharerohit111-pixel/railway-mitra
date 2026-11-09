@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "structure-only-no-papers-published",
+  "subscription": {
+    "currency": "INR",
+    "allTestsPrice": 300,
+    "scope": "all-tests-in-app",
+    "duration": "admin-configurable",
+    "excludes": "study-material"
+  },
+  "studyMaterial": {
+    "pricing": "per-item-admin-configurable"
+  },
+  "defaults": {
+    "firstMockFreePerStream": true,
+    "negativeMarkingPerTest": true,
+    "questionCountPerTest": true,
+    "durationPerTest": true,
+    "positiveMarksPerQuestionPerTest": true
+  },
+  "streams": {
+    "gdce-je-civil": {
+      "title": "GDCE JE Civil Engineering",
+      "mock": [],
+      "previous": [],
+      "practice": []
+    },
+    "gdce-je-electrical": {
+      "title": "GDCE JE Electrical Engineering",
+      "mock": [],
+      "previous": [],
+      "practice": []
+    },
+    "gdce-je-mechanical": {
+      "title": "GDCE JE Mechanical Engineering",
+      "mock": [],
+      "previous": [],
+      "practice": []
+    },
+    "gdce-train-manager": {
+      "title": "GDCE Train Manager",
+      "mock": [],
+      "previous": [],
+      "practice": []
+    }
+  },
+  "testRecordFields": [
+    "testId",
+    "title",
+    "examType",
+    "streamId",
+    "testCategory",
+    "sourcePaperId",
+    "year",
+    "totalQuestions",
+    "durationMinutes",
+    "positiveMarksPerQuestion",
+    "negativeMarksPerWrongAnswer",
+    "access",
+    "price",
+    "published",
+    "questions"
+  ],
+  "questionRecordFields": [
+    "questionId",
+    "questionNumber",
+    "questionText",
+    "options",
+    "correctOption",
+    "explanation",
+    "subject",
+    "topic",
+    "sourcePaperId",
+    "verificationStatus"
+  ],
+  "attemptRecordFields": [
+    "attemptId",
+    "candidateUid",
+    "testId",
+    "startedAt",
+    "submittedAt",
+    "answers",
+    "visitedQuestions",
+    "markedForReview",
+    "correctCount",
+    "wrongCount",
+    "unattemptedCount",
+    "positiveScore",
+    "negativeScore",
+    "finalScore",
+    "accuracy",
+    "timeSpent"
+  ]
+}
