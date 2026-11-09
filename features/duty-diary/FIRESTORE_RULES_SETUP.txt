@@ -1,0 +1,19 @@
+RAILWAY MITRA — DUTY DIARY FIRESTORE SECURITY RULES
+
+Cloud sync needs this rule published in Firebase Console:
+https://console.firebase.google.com/project/railway-mitra/firestore
+
+Open Firestore Database > Rules. Merge this match block into the existing rules; do not delete rules used by other app features.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/dutyDiary/{dateId} {
+      allow read, create, update, delete: if request.auth != null
+        && request.auth.uid == userId
+        && dateId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+  }
+}
+
+Click Publish. Until these rules are published, Firestore may reject diary access. Never use public rules such as allow read, write: if true.
