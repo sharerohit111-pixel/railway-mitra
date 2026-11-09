@@ -31,11 +31,8 @@ service cloud.firestore {
     match /users/{userId}/examAttempts/{attemptId} {
       allow read: if request.auth != null
         && request.auth.uid == userId;
-      allow create: if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.candidateUid == request.auth.uid
-        && request.resource.data.testId is string
-        && request.resource.data.finalScore is number;
+      // Attempts are created and submitted only by trusted Cloud Functions/Admin SDK.
+      allow create: if false;
       allow update, delete: if false;
     }
 
@@ -48,11 +45,10 @@ service cloud.firestore {
         && request.auth.token.admin == true;
     }
 
-    // Public question content must NOT include correct answers/explanations.
+    // Question text/options are delivered only by authenticated callable functions.
+    // Deny direct client access to prevent bulk scraping of the question bank.
     match /examTests/{testId}/questionsPublic/{questionId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null
-        && request.auth.token.admin == true;
+      allow read, write: if false;
     }
 
     // Answer keys and explanations are private. Prefer Admin SDK only.
@@ -98,4 +94,4 @@ DATA PATHS:
 - Subscription entitlement: userEntitlements/{uid}
 - Study material metadata: studyMaterials/{materialId}
 
-This ruleset intentionally does not implement scoring, payment verification, or secure question delivery. Those require trusted Cloud Functions/Admin SDK endpoints and must be deployed and tested separately.
+Trusted Cloud Functions are now included in the feature branch, but they are NOT deployed. They must be deployed and tested before any test is published. Callable functions use the Admin SDK, so candidate clients do not need direct write access to attempt documents or direct read access to question documents.
