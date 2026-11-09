@@ -1,6 +1,7 @@
 "use strict";
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { setGlobalOptions } = require("firebase-functions/v2");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 
@@ -8,6 +9,7 @@ initializeApp();
 const db = getFirestore();
 const REGION = "asia-south1";
 const MAX_QUESTIONS = 200;
+setGlobalOptions({ maxInstances: 10 });
 
 function requireUser(request) {
   if (!request.auth || !request.auth.uid) {
