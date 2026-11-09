@@ -1,0 +1,227 @@
+{
+  "batch": "026-030",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q26",
+      "questionNumber": 26,
+      "questionText": {
+        "en": "A new waste-to-energy plant is proposed near a residential area. What would be the primary environmental concern associated with this facility?",
+        "hi": "किसी आवासीय क्षेत्र के निकट एक नया अपशिष्ट-से-ऊर्जा संयंत्र (waste-to-energy plant) प्रस्तावित है। इस सुविधा से संबंधित प्राथमिक पर्यावरणीय चिंता क्या होगी?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Traffic congestion due to waste transportation",
+            "hi": "अपशिष्ट परिवहन के कारण यातायात संकुलता"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Leachate generation affecting groundwater",
+            "hi": "भूजल को प्रभावित करने वाला लीचेट उत्पादन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Excessive noise pollution from machinery",
+            "hi": "मशीनरी से उत्पन्न अत्यधिक ध्वनि प्रदूषण"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Emission of toxic gases during incineration",
+            "hi": "भस्मीकरण के दौरान विषाक्त गैसों का उत्सर्जन"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Waste-to-energy plants primarily burn municipal solid waste (incineration) to generate electricity. If located near a residential area, the biggest environmental and health concern is air pollution caused by the emission of toxic gases such as dioxins, furans, sulfur dioxide (SO₂), nitrogen oxides (NOₓ), and heavy metals.",
+        "hi": "अपशिष्ट-से-ऊर्जा संयंत्र (Waste-to-energy plants) बिजली उत्पन्न करने के लिए मुख्य रूप से कचरे को जलाते (भस्मीकरण/incineration) हैं। आवासीय क्षेत्र के पास होने पर सबसे बड़ी पर्यावरणीय और स्वास्थ्य चिंता भस्मीकरण के दौरान निकलने वाली विषाक्त गैसों (जैसे डाइऑक्सिन, फ्यूरान, सल्फर डाइऑक्साइड और भारी धातुएँ) का उत्सर्जन है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q27",
+      "questionNumber": 27,
+      "questionText": {
+        "en": "A body moves in a straight line with a variable speed. Its displacement in 10 s is 50 m. What will be the average velocity?",
+        "hi": "एक पिंड एक सरल रेखा में परिवर्तनशील चाल से गतिमान है। 10 s में इसका विस्थापन 50 m है। औसत वेग कितना होगा?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "25 m/s",
+            "hi": "25 m/s"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "50 m/s",
+            "hi": "50 m/s"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "5 m/s",
+            "hi": "5 m/s"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "10 m/s",
+            "hi": "10 m/s"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Average velocity is defined as the total displacement divided by the total time taken: Average Velocity = Total Displacement / Total Time = 50 m / 10 s = 5 m/s.",
+        "hi": "औसत वेग (Average velocity) कुल विस्थापन और कुल समय का अनुपात होता है: औसत वेग = कुल विस्थापन / कुल समय = 50 m / 10 s = 5 m/s।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q28",
+      "questionNumber": 28,
+      "questionText": {
+        "en": "A textile factory discharges untreated dye-laden water into a nearby stream. What would be the most direct environmental consequence of this action?",
+        "hi": "एक कपड़ा कारखाना, अनुपचारित रंग-युक्त जल को पास की धारा में निस्सारित करता है। इस क्रिया का सबसे प्रत्यक्ष पर्यावरणीय परिणाम क्या होगा?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Rapid growth of large aquatic plants",
+            "hi": "बड़े जलीय पौधों की तीव्र वृद्धि"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Reduction in aquatic life diversity",
+            "hi": "जलीय जीवन विविधता में कमी"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Increase in water temperature",
+            "hi": "जल के तापमान में वृद्धि"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Increase in water salinity",
+            "hi": "जल लवणता में वृद्धि"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Untreated textile dyes are toxic to aquatic organisms and block sunlight from penetrating the water. This prevents photosynthesis in aquatic plants, depletes dissolved oxygen (DO), and directly leads to the death of fish and other organisms, causing a reduction in aquatic life diversity.",
+        "hi": "कपड़ा उद्योगों से निकलने वाली बिना उपचारित रंगाई (dye) जलीय जीवों के लिए विषाक्त होती है और पानी में सूर्य के प्रकाश को प्रवेश करने से रोकती है। इससे प्रकाश संश्लेषण रुक जाता है, पानी में घुली ऑक्सीजन कम हो जाती है और मछलियों व अन्य जीवों की मृत्यु होने लगती है, जिससे जलीय जीवन विविधता में कमी आती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q29",
+      "questionNumber": 29,
+      "questionText": {
+        "en": "Which of the following is a social-economic Directive Principle?",
+        "hi": "निम्नलिखित में से कौन-सा सामाजिक-आर्थिक निदेशक सिद्धांत है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Equal pay for equal work",
+            "hi": "समान काम के लिए समान वेतन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Separation of powers",
+            "hi": "शक्तियों का पृथक्करण"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Independence of the judiciary",
+            "hi": "न्यायपालिका की स्वतंत्रता"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Promotion of international peace",
+            "hi": "अंतरराष्ट्रीय शांति को बढ़ावा देना"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Equal pay for equal work for both men and women (enshrined in Article 39(d) of the Indian Constitution) is a Socialistic (Social-Economic) Directive Principle of State Policy (DPSP) aimed at establishing economic justice and social welfare. Separation of judiciary from executive (Article 50) and promotion of international peace (Article 51) fall under Liberal-Intellectual principles.",
+        "hi": "पुरुषों और महिलाओं दोनों के लिए समान काम के लिए समान वेतन (भारतीय संविधान के अनुच्छेद 39(d) में निहित) राज्य के नीति निदेशक तत्व (DPSP) के अंतर्गत एक समाजवादी (सामाजिक-आर्थिक) सिद्धांत है, जिसका उद्देश्य आर्थिक न्याय और सामाजिक कल्याण सुनिश्चित करना है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q30",
+      "questionNumber": 30,
+      "questionText": {
+        "en": "A nearby lake frequently experiences algal blooms. Which activity in the surrounding area is responsible for this?",
+        "hi": "पास की एक झील में प्रायः शैवाल प्रस्फुटन (algal bloom) होता रहता है। इसके लिए आसपास के क्षेत्र की कौन-सी गतिविधि उत्तरदायी है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Discharging untreated sewage into the lake",
+            "hi": "झील में अनुपचारित सीवेज/मल का निस्सरण करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Using sandbags for flood control",
+            "hi": "बाढ़ नियंत्रण के लिए बालू के थैलों का उपयोग करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Building stone walkways around the lake",
+            "hi": "झील के चारों ओर पत्थर के पैदल पथ बनाना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Planting native trees along the lake shore",
+            "hi": "झील तट पर स्थानीय पेड़-पौधे लगाना"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Untreated sewage contains high amounts of nutrients such as nitrates and phosphates. When discharged into a lake, these nutrients cause eutrophication, triggering excessive growth of algae on the water surface known as an algal bloom.",
+        "hi": "अनुपचारित मलजल (untreated sewage) में नाइट्रेट और फॉस्फेट जैसे पोषक तत्वों की अत्यधिक मात्रा होती है। झील में इसके निस्सरण (eutrophication) होने पर, पोषक तत्वों के कारण पानी की सतह पर शैवाल तेजी से फैलते हैं और शैवाल प्रस्फुटन (algal bloom) की स्थिति उत्पन्न होती है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
