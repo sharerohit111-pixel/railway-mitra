@@ -15,7 +15,7 @@ jobs:
   deploy-functions:
     if: ${{ inputs.confirm_project == 'railway-mitra' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -33,10 +33,11 @@ jobs:
       - name: Install Firebase Functions dependencies
         run: npm --prefix functions install --no-audit --no-fund
 
-      - name: Check Functions syntax and tests
-        run: |
-          npm --prefix functions run lint
-          npm --prefix functions test
+      - name: Check Functions syntax
+        run: npm --prefix functions run lint
 
-      - name: Deploy only GDCE Cloud Functions
-        run: npx --yes firebase-tools@latest deploy --only functions --project railway-mitra --non-interactive
+      - name: Run GDCE backend emulator tests
+        run: npx --yes firebase-tools@latest emulators:exec --project railway-mitra --only auth,firestore,functions "npm --prefix functions test"
+
+      - name: Deploy GDCE Cloud Functions and Firestore indexes
+        run: npx --yes firebase-tools@latest deploy --only functions,firestore:indexes --project railway-mitra --non-interactive
