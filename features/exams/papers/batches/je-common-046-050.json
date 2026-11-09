@@ -1,0 +1,227 @@
+{
+  "batch": "046-050",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q46",
+      "questionNumber": 46,
+      "questionText": {
+        "en": "Fill in the blank in the following statement. The production of foul-smelling gases in unmanaged landfill sites is mainly due to ________.",
+        "hi": "निम्न कथन में रिक्त स्थान की पूर्ति कीजिए। अव्यवस्थित कचरा भराव क्षेत्रों में दुर्गंधयुक्त गैसों का उत्पादन मुख्य रूप से ________ के कारण होता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Oxidation reactions",
+            "hi": "ऑक्सीकरण अभिक्रियाएँ"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Anaerobic decomposition",
+            "hi": "अवायवीय अपघटन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Aerobic decomposition",
+            "hi": "वायवीय अपघटन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Photosynthesis",
+            "hi": "प्रकाश संश्लेषण"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "In unmanaged landfills, compacted waste lacks oxygen, leading to anaerobic decomposition by microorganisms. This process releases foul-smelling gases such as hydrogen sulfide (H₂S), ammonia (NH₃), and volatile organic compounds alongside methane.",
+        "hi": "अव्यवस्थित कचरा भराव क्षेत्रों (landfills) में कचरे के संपीड़न से ऑक्सीजन की कमी हो जाती है, जिससे सूक्ष्मजीवों द्वारा अवायवीय अपघटन (anaerobic decomposition) होता है। इस प्रक्रिया में मीथेन के साथ-साथ हाइड्रोजन सल्फाइड (H₂S) और अमोनिया जैसी दुर्गंधयुक्त गैसें निकलती हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q47",
+      "questionNumber": 47,
+      "questionText": {
+        "en": "________ is the air pollutant that binds with hemoglobin in the blood and disrupts oxygen supply.",
+        "hi": "________ वह वायु प्रदूषक है, जो रक्त में हीमोग्लोबिन से जुड़कर ऑक्सीजन की आपूर्ति को बाधित करता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Nitrogen dioxide",
+            "hi": "नाइट्रोजन डाइऑक्साइड"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Sulfur dioxide",
+            "hi": "सल्फर डाइऑक्साइड"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Carbon monoxide",
+            "hi": "कार्बन मोनोऑक्साइड"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Ozone",
+            "hi": "ओजोन"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Carbon monoxide (CO) has an affinity for hemoglobin that is about 200 times greater than that of oxygen. When inhaled, it forms carboxyhemoglobin, severely reducing the blood's capacity to carry oxygen to body tissues and vital organs.",
+        "hi": "कार्बन मोनोऑक्साइड (CO) की रक्त के हीमोग्लोबिन के साथ जुड़ने की क्षमता ऑक्सीजन की तुलना में लगभग 200 गुना अधिक होती है। यह हीमोग्लोबिन से जुड़कर कार्बोक्सीहीमोग्लोबिन बनाती है, जिससे शरीर के ऊतकों और अंगों तक ऑक्सीजन की आपूर्ति बाधित हो जाती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q48",
+      "questionNumber": 48,
+      "questionText": {
+        "en": "A real and inverted image is formed at a distance of 30 cm from a concave mirror when the object is placed 40 cm from the mirror. What will be the magnification produced by the mirror?",
+        "hi": "जब किसी वस्तु को अवतल दर्पण से 40 cm की दूरी पर रखा जाता है, तो दर्पण से 30 cm की दूरी पर एक वास्तविक और उल्टा प्रतिबिंब बनता है। दर्पण द्वारा उत्पन्न आवर्धन (magnification) क्या होगा?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "3/4",
+            "hi": "3/4"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "4/3",
+            "hi": "4/3"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "4/3",
+            "hi": "4/3"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "-3/4",
+            "hi": "-3/4"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "By sign convention for a concave mirror, object distance u = −40 cm and real image distance v = −30 cm. The magnification (m) is given by m = −v/u = −(−30/−40) = −3/4.",
+        "hi": "अवतल दर्पण के लिए परिपाटी के अनुसार, वस्तु की दूरी u = −40 cm तथा वास्तविक प्रतिबिंब की दूरी v = −30 cm है। दर्पण का आवर्धन (m) होगा: m = −v/u = −(−30/−40) = −3/4."
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q49",
+      "questionNumber": 49,
+      "questionText": {
+        "en": "Why are ultrasounds preferred for cleaning objects with complex shapes?",
+        "hi": "जटिल आकार वाली वस्तुओं की सफाई के लिए पराश्रव्य तरंगों (ultrasounds) को प्राथमिकता क्यों दी जाती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "They have very high speed in liquids",
+            "hi": "द्रवों में इनकी चाल बहुत अधिक होती है"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Their high frequency dislodges dirt particles",
+            "hi": "इनकी उच्च आवृत्ति धूल/गंदगी के कणों को अलग कर देती है"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "They increase temperature of solution",
+            "hi": "ये घोल का तापमान बढ़ा देती हैं"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "They produce magnetic effect",
+            "hi": "ये चुंबकीय प्रभाव उत्पन्न करती हैं"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Objects to be cleaned are placed in a cleaning solution and ultrasonic waves are sent through it. Due to their high frequency, the waves create intense vibrations and microscopic cavitation bubbles that detach dust, grease, and dirt particles even from hard-to-reach corners.",
+        "hi": "साफ की जाने वाली वस्तुओं को एक सफाई के घोल (cleaning solution) में रखकर उसमें पराश्रव्य तरंगें भेजी जाती हैं। उच्च आवृत्ति (high frequency) के कारण ये तरंगें तीव्र कंपन उत्पन्न करती हैं, जिससे जटिल कोनों में फँसी धूल, चिकनाई और गंदगी के कण भी आसानी से अलग होकर नीचे गिर जाते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q50",
+      "questionNumber": 50,
+      "questionText": {
+        "en": "Which method is commonly used for the safe disposal of infectious biomedical waste?",
+        "hi": "संक्रामक जैव चिकित्सा अपशिष्ट के सुरक्षित निपटान के लिए सामान्यतः किस विधि का उपयोग किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Composting",
+            "hi": "कम्पोस्टिंग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Landfilling",
+            "hi": "भूमि भराव"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Recycling",
+            "hi": "पुनर्चक्रण"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Incineration",
+            "hi": "भस्मीकरण"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Incineration involves burning infectious biomedical waste (such as anatomical waste, soiled dressings, and sharps) at extremely high temperatures (800°C to 1100°C). This completely destroys harmful pathogens and reduces waste volume safely.",
+        "hi": "भस्मीकरण (Incineration) में संक्रामक जैव चिकित्सा अपशिष्ट (biomedical waste) को अत्यंत उच्च तापमान (800°C से 1100°C) पर जला दिया जाता है। यह विधि हानिकारक रोगाणुओं (pathogens) को पूरी तरह नष्ट कर देती है और संक्रामक कचरे से सुरक्षित रूप से निपटने में मदद करती है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
