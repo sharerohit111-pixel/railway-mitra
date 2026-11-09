@@ -1,0 +1,101 @@
+RAILWAY MITRA — MERGED FIRESTORE RULES (REVIEW BEFORE PUBLISHING)
+
+This version preserves the existing employee-profile and duty-diary paths documented in features/duty-diary/FIRESTORE_RULES_SETUP.txt and adds isolated exam collections. It is a proposed ruleset for Firebase Console review; it has NOT been published to Firebase.
+
+IMPORTANT:
+1. Compare this complete ruleset with the currently published Firebase rules before replacing anything.
+2. If any other production collection rules exist, preserve and merge them too.
+3. Set the owner custom claim admin=true only from a trusted Admin SDK environment. Never set it from browser JavaScript.
+4. Do not publish questions containing answer keys in public catalogue files.
+5. Admin SDK Cloud Functions bypass Firestore rules; secure their callable endpoints with authentication and admin-claim checks.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Existing Duty Diary: user can access only their own records.
+    match /users/{userId}/dutyDiary/{dateId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+
+    // Existing Employee Profile: user can access only their own main profile.
+    match /users/{userId}/employeeProfile/{profileId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId
+        && profileId == 'main';
+    }
+
+    // Exam attempts: candidates can create and read only their own attempts.
+    // No client updates/deletes; preserve submitted records.
+    match /users/{userId}/examAttempts/{attemptId} {
+      allow read: if request.auth != null
+        && request.auth.uid == userId;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.candidateUid == request.auth.uid
+        && request.resource.data.testId is string
+        && request.resource.data.finalScore is number;
+      allow update, delete: if false;
+    }
+
+    // Published test metadata can be read by signed-in users.
+    // Admin SDK or an authenticated owner claim may manage it.
+    match /examTestCatalog/{testId} {
+      allow read: if request.auth != null
+        && resource.data.published == true;
+      allow create, update, delete: if request.auth != null
+        && request.auth.token.admin == true;
+    }
+
+    // Public question content must NOT include correct answers/explanations.
+    match /examTests/{testId}/questionsPublic/{questionId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null
+        && request.auth.token.admin == true;
+    }
+
+    // Answer keys and explanations are private. Prefer Admin SDK only.
+    match /examTests/{testId}/answerKeys/{questionId} {
+      allow read, write: if false;
+    }
+
+    // Candidate subscription entitlements: users can read their own status.
+    // Only trusted backend/Admin SDK may write entitlement documents.
+    match /userEntitlements/{userId} {
+      allow read: if request.auth != null
+        && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    // Study material catalogue: only published items readable by signed-in users.
+    match /studyMaterials/{materialId} {
+      allow read: if request.auth != null
+        && resource.data.published == true;
+      allow write: if request.auth != null
+        && request.auth.token.admin == true;
+    }
+
+    // Admin audit records are never writable from the client.
+    match /adminAuditLogs/{logId} {
+      allow read, write: if false;
+    }
+
+    // Default deny for all other collections.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+DATA PATHS:
+- Employee profile: users/{uid}/employeeProfile/main
+- Duty diary: users/{uid}/dutyDiary/YYYY-MM-DD
+- Exam attempts: users/{uid}/examAttempts/{attemptId}
+- Published test metadata: examTestCatalog/{testId}
+- Public question content: examTests/{testId}/questionsPublic/{questionId}
+- Private answer key: examTests/{testId}/answerKeys/{questionId}
+- Subscription entitlement: userEntitlements/{uid}
+- Study material metadata: studyMaterials/{materialId}
+
+This ruleset intentionally does not implement scoring, payment verification, or secure question delivery. Those require trusted Cloud Functions/Admin SDK endpoints and must be deployed and tested separately.
