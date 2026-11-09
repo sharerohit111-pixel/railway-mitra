@@ -1,0 +1,227 @@
+{
+  "batch": "067-071",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q67",
+      "questionNumber": 67,
+      "questionText": {
+        "en": "According to IS 456:2000, if the 28-day compressive strength of concrete cubes falls below the required value, what is the next step?",
+        "hi": "IS 456:2000 के अनुसार यदि 28 दिनों में कंक्रीट क्यूब का सामर्थ्य आवश्यक मान से कम हो जाता है, तो अगला कदम क्या होता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Core testing or load testing is conducted.",
+            "hi": "कोर परीक्षण या विस्तृत लोड परीक्षण किया जाता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "The structure is ratified/approved.",
+            "hi": "संरचना को प्रमाणित/स्वीकृत कर दिया जाता है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Additional curing is done.",
+            "hi": "अतिरिक्त तराई की जाती है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "The structure is demolished.",
+            "hi": "संरचना को ध्वस्त कर दिया जाता है।"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "As per IS 456:2000 (Clause 17.4), when concrete fails to meet the 28-day cube strength acceptance criteria, the structural adequacy is investigated by drilling and testing concrete cores from the hardened structure or performing an in-situ load test before deciding on strengthening or rejection.",
+        "hi": "IS 456:2000 (खंड 17.4) के अनुसार, यदि 28 दिनों के क्यूब परीक्षण में कंक्रीट का सामर्थ्य निर्धारित मान से कम आता है, तो संरचना को गिराने से पहले उसकी वास्तविक मजबूती जाँचने के लिए कोर परीक्षण (Core testing) या लोड परीक्षण (Load testing) किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q68",
+      "questionNumber": 68,
+      "questionText": {
+        "en": "Which of the following information is NOT provided by a building section drawing?",
+        "hi": "बिल्डिंग सेक्शन ड्रॉइंग (building section drawing) निम्नलिखित में से कौन-सी जानकारी नहीं देती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Foundation used for the structure",
+            "hi": "संरचना के लिए प्रयुक्त नींव"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Height of the structure",
+            "hi": "संरचना की ऊँचाई"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Length and width of rooms",
+            "hi": "कमरों की लंबाई और चौड़ाई"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Type of material used for the structure",
+            "hi": "संरचना के लिए प्रयुक्त सामग्री का प्रकार"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "A building section drawing shows a vertical cut through the building, illustrating vertical dimensions (floor-to-ceiling height, plinth height, lintel levels), foundation details, slab thickness, and construction materials. The horizontal dimensions—specifically the length and width of rooms—are shown in the Floor Plan, not in a single section drawing.",
+        "hi": "बिल्डिंग सेक्शन ड्रॉइंग भवन के ऊर्ध्वाधर (vertical) कट को दर्शाती है, जिससे संरचना की ऊँचाई, नींव का विवरण और निर्माण सामग्री की जानकारी मिलती है। कमरों की लंबाई और चौड़ाई (क्षैतिज माप) की जानकारी फ्लोर प्लान (Floor Plan) से मिलती है, न कि सेक्शन ड्रॉइंग से।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q69",
+      "questionNumber": 69,
+      "questionText": {
+        "en": "Which of the following is a major combustible constituent of biogas?",
+        "hi": "निम्नलिखित में से कौन-सा, बायोगैस का एक मुख्य दहनशील घटक है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Carbon dioxide",
+            "hi": "कार्बन डाइऑक्साइड"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Butane",
+            "hi": "ब्यूटेन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Hydrogen sulfide",
+            "hi": "हाइड्रोजन सल्फाइड"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Methane",
+            "hi": "मीथेन"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Biogas is produced by the anaerobic digestion of organic matter and consists primarily of Methane (CH₄) (about 50%–75%), which is its main combustible energy-giving component, along with non-combustible carbon dioxide (CO₂) and traces of hydrogen sulfide.",
+        "hi": "जैविक कचरे के अवायवीय अपघटन से बनने वाली बायोगैस का मुख्य दहनशील (जलने वाला) घटक मीथेन (CH₄) है, जो इसमें लगभग 50%–75% तक पाया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q70",
+      "questionNumber": 70,
+      "questionText": {
+        "en": "In a Queen Post Truss Roof, which of the following statements is FALSE?",
+        "hi": "क्वीन पोस्ट ट्रस रूफ (Queen Post Truss Roof) में, निम्नलिखित में से कौन-सा कथन असत्य (FALSE) है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "It has a straining beam and straining sill.",
+            "hi": "इसमें एक स्ट्रेनिंग बीम और स्ट्रेनिंग सिल होता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "It has two tension members.",
+            "hi": "इसमें दो तनन अवयव होते हैं।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "It is suitable for spans of 8 to 12 m.",
+            "hi": "यह 8 से 12 m के स्पैन के लिए उपयुक्त है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "It has one central vertical post.",
+            "hi": "इसमें एक केंद्रीय ऊर्ध्वाधर पोस्ट होता है।"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "A Queen Post Truss (used for spans of 8 to 12 m) consists of two vertical tension posts (queen posts) connected at the top by a straining beam and at the bottom by a straining sill. Having one central vertical post is a feature of a King Post Truss (used for spans of 5 to 8 m), making statement 4 false.",
+        "hi": "क्वीन पोस्ट ट्रस (जो 8 से 12 m के स्पैन के लिए उपयुक्त है) में दो ऊर्ध्वाधर तनन पोस्ट (queen posts), एक स्ट्रेनिंग बीम और एक स्ट्रेनिंग सिल होते हैं। एक केंद्रीय ऊर्ध्वाधर पोस्ट होना किंग पोस्ट ट्रस (King Post Truss) की विशेषता है, इसलिए कथन 4 असत्य है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q71",
+      "questionNumber": 71,
+      "questionText": {
+        "en": "The epoxy injection method is used for the effective repair of which of the following types of cracks?",
+        "hi": "एपॉक्सी इंजेक्शन विधि (Epoxy injection method) का उपयोग निम्नलिखित में से किस प्रकार की दरारों की प्रभावी मरम्मत के लिए किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Dormant cracks",
+            "hi": "मौन दरारें / Dormant cracks"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Active cracks",
+            "hi": "सक्रिय दरारें / Active cracks"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Moving cracks",
+            "hi": "चल दरारें / Moving cracks"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Expanding cracks",
+            "hi": "प्रसारी दरारें / Expanding cracks"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Epoxy injection restores structural bond by filling narrow concrete cracks with rigid epoxy resin. Because cured epoxy is rigid and non-flexible, it can only be used on dormant (non-moving) cracks where the underlying cause of cracking has stopped; otherwise, continued movement in active/moving cracks will cause new cracks adjacent to the repair.",
+        "hi": "एपॉक्सी इंजेक्शन विधि का उपयोग कंक्रीट की संकीर्ण दरारों को भरकर संरचनात्मक मजबूती वापस लाने के लिए किया जाता है। कठोर होने के बाद एपॉक्सी लचीला नहीं रहता, इसलिए इसका उपयोग केवल मौन दरारों (Dormant cracks)—अर्थात ऐसी दरारें जिनका फैलना रुक चुका है—की मरम्मत के लिए किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
