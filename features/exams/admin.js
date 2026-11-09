@@ -21,9 +21,9 @@ form.addEventListener("submit",async event=>{
    category:String(data.get("category")),durationMinutes:Number(data.get("durationMinutes")),
    positiveMarksPerQuestion:Number(data.get("positiveMarksPerQuestion")),
    negativeMarksPerWrongAnswer:Number(data.get("negativeMarksPerWrongAnswer")),
-   price:Number(data.get("price")),access:"paid",published:data.get("published")==="on",questions
+   price:Number(data.get("price")),published:data.get("published")==="on",questions
   }});
-  status.textContent="Success: "+response.data.testId+" — "+response.data.totalQuestions+" verified questions stored. Published: "+(response.data.published?"Yes":"No");
+  status.textContent="Success: "+response.data.testId+" — "+response.data.totalQuestions+" verified questions stored. Access: "+response.data.access.toUpperCase()+". Published: "+(response.data.published?"Yes":"No");
   form.reset();
  }catch(error){status.textContent=error.message||"Could not publish this test.";status.classList.add("error");}
 });
