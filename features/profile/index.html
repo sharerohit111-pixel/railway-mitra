@@ -24,7 +24,18 @@
     .save-btn{background:linear-gradient(120deg,#06b6d4,#7c3aed);color:#fff}.clear-btn{background:#26364f;color:#ffd5d5}
     #profileMessage{min-height:22px;margin-top:14px}#profileMessage.success{color:#6ee7b7}#profileMessage.error{color:#fca5a5}
     .profile-note{background:#1c2b45;padding:14px;border-radius:12px;color:#c5d6ec;line-height:1.6;font-size:13px}
-    @media(max-width:520px){.profile-fields{grid-template-columns:1fr}.profile-field.full{grid-column:auto}}
+    .optional-toggle{margin-top:16px;width:100%;padding:13px 16px;border:1px solid #2c9ab5;border-radius:11px;background:#142b46;color:#70e8f6;font-size:15px;font-weight:800;text-align:left}
+    .optional-panel{margin-top:13px;padding:16px;border:1px solid #315779;border-radius:13px;background:#0d192d}
+    .optional-panel[hidden]{display:none}
+    .optional-intro{margin:0 0 14px;color:#a9c3dc;font-size:13px;line-height:1.5}
+    .optional-tag{font-size:11px;color:#83d9c9;font-weight:700}
+    .custom-field-row{display:grid;grid-template-columns:1fr 1.3fr;gap:10px;margin:10px 0}
+    .custom-field-row input{min-width:0;width:100%;box-sizing:border-box;padding:12px;border:1px solid #48617d;border-radius:9px;background:#1d2c46;color:#fff;font-size:15px}
+    .custom-field-row input::placeholder{color:#8297b1}
+    .optional-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+    .optional-actions button{border:1px solid #3b668a;border-radius:9px;padding:10px 13px;background:#203956;color:#dff7ff;font-weight:700}
+    .optional-actions button:disabled{opacity:.4}
+    @media(max-width:520px){.profile-fields{grid-template-columns:1fr}.profile-field.full{grid-column:auto}.custom-field-row{grid-template-columns:1fr}}
   </style>
   <script src="../../assets/js/language.js" defer></script>
 </head>
@@ -52,6 +63,21 @@
         <div class="profile-field"><label for="employeeNumber">Railway Employee Number</label><input id="employeeNumber" placeholder="वैकल्पिक"></div>
         <div class="profile-field full"><label for="department">Department / विभाग</label><input id="department" placeholder="जैसे Engineering / P-Way"></div>
       </div>
+      <button type="button" class="optional-toggle" id="toggleOptional" aria-expanded="false">＋ Add More Employee Details <span class="optional-tag">OPTIONAL</span></button>
+      <section class="optional-panel" id="optionalPanel" hidden>
+        <p class="optional-intro">नीचे दी गई सभी जानकारी वैकल्पिक है। केवल वही विवरण भरें जिन्हें आप अपनी प्रोफाइल में रखना चाहते हैं। संवेदनशील निजी जानकारी जैसे आधार, बैंक खाता या पासवर्ड यहाँ न भरें।</p>
+        <div class="profile-fields">
+          <div class="profile-field"><label for="billUnit">Bill Unit <span class="optional-tag">Optional</span></label><input id="billUnit" maxlength="60" placeholder="Bill Unit"></div>
+          <div class="profile-field"><label for="hrmsId">HRMS ID <span class="optional-tag">Optional</span></label><input id="hrmsId" maxlength="60" placeholder="HRMS ID"></div>
+          <div class="profile-field"><label for="pfNumber">PF / NPS Number <span class="optional-tag">Optional</span></label><input id="pfNumber" maxlength="60" placeholder="PF / NPS reference"></div>
+          <div class="profile-field"><label for="officialMobile">Official Mobile <span class="optional-tag">Optional</span></label><input id="officialMobile" type="tel" maxlength="20" placeholder="Mobile number"></div>
+          <div class="profile-field full"><label for="officialEmail">Official Email <span class="optional-tag">Optional</span></label><input id="officialEmail" type="email" maxlength="120" placeholder="name@railway.gov.in"></div>
+        </div>
+        <h3 style="color:#70e8f6;margin:20px 0 8px">Your Own Fields</h3>
+        <p class="optional-intro">इन खाली बॉक्स में अपनी पसंद का नाम और उसका विवरण लिखें।</p>
+        <div id="customFields"></div>
+        <div class="optional-actions"><button type="button" id="addCustomField">＋ Add Custom Field</button></div>
+      </section>
       <div class="profile-actions"><button class="save-btn" type="submit">प्रोफाइल सेव करें</button><button class="clear-btn" type="button" id="clearProfile">प्रोफाइल हटाएँ</button></div>
       <p id="profileMessage" role="status"></p>
     </form>
