@@ -329,8 +329,7 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
     totalQuestions, durationMinutes, positiveMarksPerQuestion,
     negativeMarksPerWrongAnswer, access, price,
     published: input.published === true,
-    updatedAt: FieldValue.serverTimestamp(),
-    updatedBy: adminUid
+    updatedAt: FieldValue.serverTimestamp()
   });
   questions.forEach(({ publicQuestion, answerKey }) => {
     batch.set(db.collection("examTests").doc(testId).collection("questionsPublic").doc(publicQuestion.questionId), publicQuestion);
