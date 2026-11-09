@@ -1,0 +1,227 @@
+{
+  "batch": "036-040",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q36",
+      "questionNumber": 36,
+      "questionText": {
+        "en": "A launching girder is a special-purpose __________ used in bridge construction, especially in the construction of segmental bridges that utilize precast box girder bridge segments or precast girders in highway and high-speed rail bridge construction projects.",
+        "hi": "लॉन्चिंग गर्डर (launching girder) एक विशेष प्रयोजन वाला __________ होता है, जिसका उपयोग पुल निर्माण में किया जाता है, विशेष रूप से उन खंडीय पुलों के निर्माण में, जो राजमार्गों और उच्च-गति रेल पुल निर्माण परियोजनाओं में पूर्व-निर्मित बॉक्स गर्डर (precast box girder) पुल खंडों या पूर्व-निर्मित गर्डरों का उपयोग करते हैं।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "tower crane",
+            "hi": "टॉवर क्रेन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "overhead crane",
+            "hi": "ओवरहेड क्रेन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "crawler crane",
+            "hi": "क्रॉलर क्रेन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "mobile gantry crane",
+            "hi": "मोबाइल गैंट्री क्रेन"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "A launching girder (or launching gantry) is a specialized mobile gantry crane designed to span between bridge piers. It lifts, transports, and places heavy precast box girder segments or bridge beams into position from above without needing ground-level cranes, making it ideal for elevated highways and high-speed rail viaducts.",
+        "hi": "लॉन्चिंग गर्डर (launching girder) एक विशेष प्रकार की मोबाइल गैंट्री क्रेन (mobile gantry crane) होती है जो पुल के दो पियर्स (स्तंभों) के बीच किसी सहारे की तरह रहती है। यह भारी पूर्व-निर्मित बॉक्स गर्डर खंडों को ऊपर से उठाकर सटीक स्थान पर रखती है, जिससे नीचे जमीन पर क्रेन की आवश्यकता नहीं पड़ती।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q37",
+      "questionNumber": 37,
+      "questionText": {
+        "en": "In a California Bearing Ratio (CBR) test, the recorded penetration resistance of a soil sample is 325 kg at 2.5 mm penetration and 723.5 kg at 5 mm penetration. Based on standard CBR test procedures, what is the design CBR value for this soil? (Round off to the nearest whole number).",
+        "hi": "कैलिफोर्निया बेयरिंग रेशियो (CBR) परीक्षण में, एक मृदा नमूने का दर्ज किया गया वेधन प्रतिरोध 2.5 mm वेधन पर 325 kg और 5 mm वेधन पर 723.5 kg है। मानक CBR परीक्षण प्रक्रियाओं के आधार पर, इस मिट्टी के लिए डिजाइन CBR मान क्या होगा? (निकटतम पूर्ण संख्या तक पूर्णांकित करें)।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "15%",
+            "hi": "15%"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "35%",
+            "hi": "35%"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "25%",
+            "hi": "25%"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "45%",
+            "hi": "45%"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Standard loads for crushed stone aggregates are 1370 kg at 2.5 mm penetration and 2055 kg at 5.0 mm penetration. CBR at 2.5 mm = (325/1370) × 100 = 23.72%. CBR at 5.0 mm = (723.5/2055) × 100 = 35.21%. As per standard procedure (IS 2720 Part 16), normally the CBR value at 2.5 mm is taken; however, if the value at 5.0 mm is greater and remains higher upon retesting, the 5.0 mm CBR value is adopted as the design CBR. Rounding 35.21% to the nearest whole number gives 35%.",
+        "hi": "मानक कुचले हुए पत्थर के लिए मानक भार 2.5 mm वेधन पर 1370 kg तथा 5.0 mm वेधन पर 2055 kg होता है। 2.5 mm पर CBR = (325/1370) × 100 = 23.72%। 5.0 mm पर CBR = (723.5/2055) × 100 = 35.21%। मानक नियम (IS 2720 Part 16) के अनुसार यदि 5.0 mm पर CBR मान 2.5 mm से अधिक हो और पुनः परीक्षण में भी अधिक रहे, तो 5.0 mm वाला मान डिजाइन CBR के रूप में लिया जाता है। 35.21% को पूर्णांकित करने पर उत्तर 35% होगा।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q38",
+      "questionNumber": 38,
+      "questionText": {
+        "en": "The arrow head in a force representation indicates:",
+        "hi": "बल के निरूपण (force representation) में तीर का सिरा (arrow head) क्या दर्शाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "the magnitude of the force",
+            "hi": "बल का परिमाण"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "the starting point of the force",
+            "hi": "बल का प्रारंभिक बिंदु"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "the direction in which the force acts",
+            "hi": "वह दिशा जिसमें बल कार्य करता है"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "the type of force applied",
+            "hi": "लगाए गए बल का प्रकार"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Force is a vector quantity represented graphically by a straight line with an arrowhead. The length of the line indicates the magnitude, the tail shows the point of application, and the arrowhead indicates the direction (sense) in which the force acts.",
+        "hi": "बल एक सदिश राशि (vector quantity) है जिसे तीर वाली रेखा द्वारा दर्शाया जाता है। रेखा की लंबाई बल के परिमाण को, रेखा की दिशा (tail) बल के प्रारंभिक बिंदु को, तथा तीर का सिरा (arrow head) उस दिशा को दर्शाता है जिसमें बल कार्य करता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q39",
+      "questionNumber": 39,
+      "questionText": {
+        "en": "In planning a residence, the principle of orientation is adopted to ensure:",
+        "hi": "किसी आवास (residence) की योजना बनाते समय, अभिविन्यास (orientation) का सिद्धांत किस बात को सुनिश्चित करने के लिए अपनाया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "beautiful aesthetic appearance of the residence",
+            "hi": "आवास की सुंदर सौंदर्यपूर्ण उपस्थिति"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "rooms are oriented to achieve the required privacy",
+            "hi": "आवश्यक गोपनीयता प्राप्त करने के लिए कमरों का अभिविन्यास"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "natural elements are used effectively in the design",
+            "hi": "डिजाइन में प्राकृतिक तत्वों का प्रभावी ढंग से उपयोग किया जाए"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "proper sanitation and hygiene in the residence",
+            "hi": "आवास में उचित स्वच्छता और स्वास्थ्य रक्षा"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "In building planning, orientation refers to placing and positioning the building and its rooms with respect to the sun, prevailing winds, and rainfall so that natural elements (sunlight, natural ventilation, and shade) are utilized effectively for thermal comfort and energy efficiency.",
+        "hi": "भवन नियोजन में अभिविन्यास (orientation) का अर्थ इमारत और उसके कमरों को सूर्य की दिशा, प्रचलित हवाओं और वर्षा के अनुकूल इस प्रकार व्यवस्थित करना है कि डिजाइन में प्राकृतिक तत्वों (सूर्य के प्रकाश, प्राकृतिक हवा और छाया) का प्रभावी ढंग से उपयोग हो सके।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q40",
+      "questionNumber": 40,
+      "questionText": {
+        "en": "Identify the correct statements from the following. A: Densification of soil is a type of mechanical stabilisation. B: Addition of calcium chloride can facilitate soil compaction. C: Heating of soil is not a method of soil stabilisation.",
+        "hi": "निम्नलिखित में से सही कथनों की पहचान कीजिए। A: मिट्टी का सघनीकरण (Densification) यांत्रिक स्थिरीकरण का एक प्रकार है। B: कैल्शियम क्लोराइड मिलाने से मिट्टी के संघनन (compaction) में सुविधा हो सकती है। C: मिट्टी को गर्म करना (Heating) मृदा स्थिरीकरण की एक विधि नहीं है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "B and C only",
+            "hi": "केवल B और C"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "C only",
+            "hi": "केवल C"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "A and B only",
+            "hi": "केवल A और B"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "A only",
+            "hi": "केवल A"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Statement A is correct: Mechanical stabilization improves soil strength through physical processes like compaction (densification) and blending of aggregates without chemical additives. Statement B is correct: Calcium chloride (CaCl2) is a hygroscopic salt that retains moisture in soil, lowers water evaporation, and acts as a compaction aid to achieve higher dry density. Statement C is incorrect: Thermal stabilization (heating or freezing) is a recognized method of soil stabilization (e.g., heating clayey soils alters clay minerals and increases strength).",
+        "hi": "कथन A सही है: बिना किसी रासायनिक मिश्रण के केवल संघनन (सघनीकरण/densification) या मिलावट के मिश्रण द्वारा मिट्टी की मजबूती बढ़ाना यांत्रिक स्थिरीकरण कहलाता है। कथन B सही है: कैल्शियम क्लोराइड एक आर्द्रताग्राही (hygroscopic) लवण है जो मिट्टी में नमी बनाए रखकर संघनन (compaction) की प्रक्रिया को आसान बनाता है। कथन C गलत है: मिट्टी को गर्म करना (तापीय स्थिरीकरण / thermal stabilization) मृदा स्थिरीकरण की एक मान्य विधि है, जिससे चिकनी मिट्टी के गुणों में सुधार होता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
