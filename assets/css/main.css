@@ -667,3 +667,17 @@ body {
  .welcome-highlight strong{font-size:11px}
  .welcome-highlight small{font-size:9px}
 }
+
+
+/* Compact welcome panel: preserve the original top owner ribbon */
+@media(max-width:600px){
+ .welcome-section{padding:18px 17px 15px!important;margin-bottom:22px!important}
+ .welcome-eyebrow{margin-bottom:11px!important;padding:6px 10px!important}
+ .welcome-section h2{font-size:25px!important;line-height:1.08!important;margin-bottom:8px!important}
+ .welcome-section .welcome-description{font-size:11px!important;line-height:1.4!important;margin-bottom:12px!important}
+ .welcome-highlights{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;margin:0!important}
+ .welcome-highlight{flex-direction:column!important;justify-content:center!important;text-align:center!important;gap:5px!important;padding:8px 4px!important;min-height:68px!important}
+ .welcome-highlight-icon{width:27px!important;height:27px!important;flex-basis:27px!important;font-size:15px!important;border-radius:9px!important}
+ .welcome-highlight strong{font-size:9px!important;line-height:1.2!important;margin:0!important}
+ .welcome-highlight small{display:none!important}
+}
