@@ -57,9 +57,9 @@
     "positiveMarksPerQuestion",
     "negativeMarksPerWrongAnswer",
     "access",
-    "price",
     "published",
-    "questions"
+    "questions",
+    "subscriptionRequired"
   ],
   "questionRecordFields": [
     "questionId",
