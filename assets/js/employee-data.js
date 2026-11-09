@@ -32,7 +32,6 @@
       division: String(profile.division || "").trim(),
       zone: String(profile.zone || "").trim(),
       employeeNumber: String(profile.employeeNumber || "").trim(),
-      hrmsId: String(profile.hrmsId || "").trim(),
       department: String(profile.department || "").trim(),
       updatedAt: new Date().toISOString()
     };
