@@ -210,7 +210,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const menuItems = [
             ["Employee Profile", "features/profile/index.html"],
             ["8th Pay Commission", "features/pay-commission-8th/index.html"],
-            ["Allowances", "features/allowances/index.html"]
+            ["Allowances", "features/allowances/index.html"],
+            ["Railway Rules", "features/rules/index.html"]
         ];
 
         menuItems.forEach(function (item) {
