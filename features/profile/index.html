@@ -26,8 +26,7 @@
     .profile-note{background:#1c2b45;padding:14px;border-radius:12px;color:#c5d6ec;line-height:1.6;font-size:13px}
     @media(max-width:520px){.profile-fields{grid-template-columns:1fr}.profile-field.full{grid-column:auto}}
   </style>
-
-<script src="../../assets/js/language.js" defer></script>
+  <script src="../../assets/js/language.js" defer></script>
 </head>
 <body>
 <main class="profile-page">
@@ -51,14 +50,13 @@
         <div class="profile-field"><label for="division">Division / मंडल *</label><input id="division" required placeholder="जैसे Bikaner"></div>
         <div class="profile-field"><label for="zone">Zone / रेलवे जोन *</label><input id="zone" required placeholder="जैसे North Western Railway"></div>
         <div class="profile-field"><label for="employeeNumber">Railway Employee Number</label><input id="employeeNumber" placeholder="वैकल्पिक"></div>
-        <div class="profile-field"><label for="hrmsId">HRMS ID</label><input id="hrmsId" placeholder="वैकल्पिक"></div>
         <div class="profile-field full"><label for="department">Department / विभाग</label><input id="department" placeholder="जैसे Engineering / P-Way"></div>
       </div>
       <div class="profile-actions"><button class="save-btn" type="submit">प्रोफाइल सेव करें</button><button class="clear-btn" type="button" id="clearProfile">प्रोफाइल हटाएँ</button></div>
       <p id="profileMessage" role="status"></p>
     </form>
   </section>
-  <p class="profile-note">महत्वपूर्ण: इस प्रारंभिक संस्करण में प्रोफाइल इसी ब्राउज़र/डिवाइस में सेव होती है। यह अभी Firebase खाते के साथ दूसरे डिवाइस पर सिंक नहीं होती। व्यक्तिगत HRMS या बैंक संबंधी संवेदनशील जानकारी साझा न करें।</p>
+  <p class="profile-note">महत्वपूर्ण: इस प्रारंभिक संस्करण में प्रोफाइल इसी ब्राउज़र/डिवाइस में सेव होती है। यह अभी Firebase खाते के साथ दूसरे डिवाइस पर सिंक नहीं होती।</p>
 </main>
 <script src="../../assets/js/employee-data.js"></script>
 <script src="./profile.js"></script>
