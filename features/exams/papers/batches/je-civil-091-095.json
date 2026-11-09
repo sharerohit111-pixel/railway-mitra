@@ -1,0 +1,215 @@
+{
+  "batch": "091-095",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q91",
+      "questionNumber": 91,
+      "questionText": {
+        "en": "Find the cost of the plastic strainer required in a 30 mm diameter and 30 m deep tubewell driven by a hydraulic hand pump. A medium slit size strainer of 200 cm length is placed in the water-bearing layer of the tubewell at 20 m below ground level, and another high slit size strainer of 300 cm length is placed in the water-bearing layer of the tubewell at 30 m. Assume the rate of strainer for both slit sizes is ₹350/meter.",
+        "hi": "हाइड्रोलिक हैंड पंप वाले 30 mm व्यास और 30 m गहरे एक ट्यूबवेल में आवश्यक प्लास्टिक स्ट्रेनर (plastic strainer) की लागत ज्ञात कीजिए। 200 cm लंबाई वाले मध्यम स्लिट आकार के एक स्ट्रेनर को भू-स्तर से 20 m नीचे ट्यूबवेल की जलधारी परत में लगाया जाता है और 300 cm लंबाई वाले उच्च स्लिट आकार के दूसरे स्ट्रेनर को 30 m पर जलधारी परत में लगाया जाता है। मान लीजिए कि दोनों स्लिट आकारों के लिए स्ट्रेनर की दर ₹350/मीटर है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": "₹1,600/-"
+        },
+        {
+          "key": "B",
+          "text": "₹1,750/-"
+        },
+        {
+          "key": "C",
+          "text": "₹1,900/-"
+        },
+        {
+          "key": "D",
+          "text": "₹600/-"
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Length of first strainer = 200 cm = 2 m. Length of second strainer = 300 cm = 3 m. Total length = 2 m + 3 m = 5 m. Total cost = 5 m × ₹350/m = ₹1,750/-.",
+        "hi": "पहले स्ट्रेनर की लंबाई = 200 cm = 2 m। दूसरे स्ट्रेनर की लंबाई = 300 cm = 3 m। आवश्यक प्लास्टिक स्ट्रेनर की कुल लंबाई = 2 m + 3 m = 5 m। कुल लागत = 5 m × ₹350/m = ₹1,750/-।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q92",
+      "questionNumber": 92,
+      "questionText": {
+        "en": "In an RCC beam, what type of reinforcement is provided to resist shear?",
+        "hi": "RCC बीम में, अपरूपण (shear) को रोकने के लिए किस प्रकार का सुदृढीकरण प्रदान किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Compression bars",
+            "hi": "संपीड़न बार"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Longitudinal bars",
+            "hi": "अनुदैर्ध्य बार"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Lateral ties",
+            "hi": "पार्श्विक बंधन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Stirrups",
+            "hi": "रकाब / Stirrups"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "In an RCC beam, stirrups (vertical or inclined closed steel loops wrapped around the main longitudinal bars) are provided as shear reinforcement to resist diagonal tension cracks caused by shear forces. Note: Lateral ties are used in columns, whereas stirrups are used in beams.",
+        "hi": "RCC बीम में अपरूपण बलों (shear forces) के कारण उत्पन्न होने वाली विकर्ण तनन दरारों (diagonal tension cracks) को रोकने के लिए मुख्य अनुदैर्ध्य छड़ों के चारों ओर रकाब (Stirrups) प्रदान किए जाते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q93",
+      "questionNumber": 93,
+      "questionText": {
+        "en": "'Reinforced concrete walls cantilevering vertically from the base designed to resist lateral forces' applies to which of the following terms?",
+        "hi": "'आधार से ऊर्ध्वाधर रूप से कैंटिलीवर करती हुई प्रबलित कंक्रीट की दीवारें जिन्हें पार्श्व बलों (lateral forces) का प्रतिरोध करने के लिए डिजाइन किया गया है' निम्नलिखित में से किस शब्द पर लागू होता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Shear wall",
+            "hi": "अपरूपण दीवार"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Panel wall",
+            "hi": "पैनल दीवार"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Load bearing wall",
+            "hi": "भार वहन करने वाली दीवार"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Partition wall",
+            "hi": "विभाजन दीवार"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "A Shear Wall is a rigid structural reinforced concrete wall that acts like a vertical cantilever fixed at the foundation. Its primary purpose is to resist in-plane lateral forces caused by wind and earthquakes in multi-storey buildings.",
+        "hi": "अपरूपण दीवार (Shear wall) नींव से ऊर्ध्वाधर कैंटिलीवर की तरह जुड़ी एक दृढ़ प्रबलित कंक्रीट दीवार होती है, जिसे बहुमंजिला इमारतों में हवा और भूकंप के कारण लगने वाले पार्श्व बलों (lateral forces) को सहन करने के लिए डिजाइन किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q94",
+      "questionNumber": 94,
+      "questionText": {
+        "en": "Which of the following is a key difference between short columns and long columns?",
+        "hi": "लघु स्तंभ (short columns) और दीर्घ स्तंभों (long columns) के बीच निम्नलिखित में से कौन-सा एक प्रमुख अंतर है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Short columns fail due to buckling, while long columns fail due to crushing.",
+            "hi": "लघु स्तंभ आकुंचन के कारण विफल होते हैं, जबकि दीर्घ स्तंभ संदलन के कारण विफल होते हैं।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Long columns experience pure axial compression, while short columns experience lateral deflection.",
+            "hi": "दीर्घ स्तंभ शुद्ध अक्षीय संपीड़न का अनुभव करते हैं, जबकि लघु स्तंभ पार्श्व विक्षेपण का अनुभव करते हैं।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Long columns have a higher slenderness ratio compared to short columns.",
+            "hi": "लघु स्तंभों की तुलना में दीर्घ स्तंभों का कृशता अनुपात अधिक होता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Short columns are only used in steel structures, while long columns are used in concrete structures.",
+            "hi": "लघु स्तंभों का उपयोग केवल इस्पात संरचनाओं में किया जाता है, जबकि दीर्घ स्तंभों का उपयोग कंक्रीट संरचनाओं में किया जाता है।"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Long columns have a higher slenderness ratio (λ = Le/rmin) than short columns (for instance, in RCC as per IS 456:2000, a column with Le/D > 12 is classified as a long/slender column). Consequently, short columns fail primarily by material crushing, whereas long columns fail predominantly by elastic buckling.",
+        "hi": "दीर्घ स्तंभों (long columns) का कृशता अनुपात (slenderness ratio, λ = Le/rmin) लघु स्तंभों की तुलना में अधिक होता है। उदाहरण के लिए IS 456:2000 के अनुसार Le/D > 12 होने पर स्तंभ दीर्घ माना जाता है। लघु स्तंभ संदलन (crushing) से और दीर्घ स्तंभ आकुंचन (buckling) से विफल होते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q95",
+      "questionNumber": 95,
+      "questionText": {
+        "en": "Which of the following pairs is correctly matched regarding door fittings?",
+        "hi": "निम्नलिखित में से कौन-सा युग्म दरवाजे की फिटिंग के संबंध में सुमेलित है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Hinges – Used to lock the door",
+            "hi": "हिंज – दरवाजे को लॉक करने के लिए उपयोग किया जाता है"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Door Stopper – Used to hold the door at an angle",
+            "hi": "डोर स्टॉपर – दरवाजे को एक कोण पर रखने के लिए उपयोग किया जाता है"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Aldrop – Used for sliding doors",
+            "hi": "एल्ड्रॉप – स्लाइडिंग दरवाजों के लिए उपयोग किया जाता है"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Tower Bolt – Used to open the door automatically",
+            "hi": "टावर बोल्ट – दरवाजा स्वतः खुलने के लिए उपयोग किया जाता है"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "A Door Stopper is fitted at the bottom of a door shutter to hold the open door steady at a desired angle and prevent it from banging against the wall. Hinges allow swinging movement, while aldrops and tower bolts are used for locking/bolting hinged doors.",
+        "hi": "डोर स्टॉपर (Door Stopper) दरवाजे के निचले हिस्से में लगाया जाता है ताकि खुले हुए दरवाजे को एक निश्चित कोण पर रोका जा सके और उसे दीवार से टकराने से बचाया जा सके।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
