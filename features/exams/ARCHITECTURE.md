@@ -42,3 +42,14 @@ Navigation and catalogue structure only. No real paper or question has been publ
 
 ## Mandatory question and answer security boundary
 The public `catalog.json` may contain test metadata only. Never put question text, options, correct answers, explanations or answer keys in this static file or any public GitHub-hosted asset. Those files are downloadable by every visitor. Question delivery must be served from a protected backend. Correct answers must remain server-side and scoring must be performed by a trusted server function after submission. The browser runner is deliberately fail-closed until this backend exists; do not enable a test by adding question objects to the public catalogue.
+
+
+## Trusted Cloud Functions (implementation added; deployment pending)
+- Firebase Functions v2 callable endpoints run in `asia-south1`.
+- `listPublishedTests` returns published metadata only.
+- `startExam` checks authentication and paid entitlement, creates a user-owned attempt, and returns question text/options without answer keys.
+- `submitExam` validates the attempt owner and submitted question IDs, reads answer keys with Admin SDK, calculates the score on the server, and writes the final result/review to the user's attempt.
+- `adminPublishTest` requires the Firebase custom claim `admin === true`; it writes public question text/options separately from private answer keys and creates an audit record.
+- The callable endpoints use Admin SDK and do not depend on client write permissions. The proposed Firestore rules must deny direct client reads/writes to `questionsPublic`, `answerKeys`, and candidate attempt creation.
+- No payment gateway or subscription purchase is implemented. Paid access is granted only by a trusted backend entitlement record; never by a browser-side flag.
+- The Functions source and Firebase configuration are committed to the feature branch only. They have not been installed, deployed, or tested against production Firebase.
