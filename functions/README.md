@@ -12,6 +12,21 @@ This is the trusted backend source for the GDCE exam feature. It is not deployed
 6. Verify the owner UID from Firebase Console → Authentication → Users. Then, from a trusted computer authenticated with Google Application Default Credentials and the correct project selected, set `GOOGLE_CLOUD_PROJECT=railway-mitra` and run `npm run set-owner-admin -- <FIREBASE_AUTH_UID>` from the `functions` folder. The script preserves existing custom claims and verifies the result. Never expose a service-account key in GitHub or browser code. Do not use an email address in place of the UID.
 7. Test with a private unpublished test first, using a separate test account. Verify that unauthenticated calls fail, non-admin publishing fails, question endpoints do not reveal keys, and score is computed by the backend.
 
+## Local Firebase Emulator test suite
+
+These tests use only local Auth, Firestore, and Functions emulators. They create temporary test users and test documents, then clean them up. They do not deploy code or change production Firebase data.
+
+From the repository root on a trusted development computer:
+
+```bash
+npm --prefix functions install
+firebase emulators:exec --project railway-mitra --only auth,firestore,functions "npm --prefix functions test"
+```
+
+The emulator ports are configured in the root `firebase.json`: Auth 9099, Firestore 8080, Functions 5001. The suite checks unauthenticated rejection, answer-key separation, free test start, server-side scoring, idempotent submission, paid-test entitlement denial, and admin-only publishing.
+
+A passing local emulator suite is a prerequisite, not a substitute for a separately approved production deployment and live Firestore rules review.
+
 ## Callable functions
 
 - `listPublishedTests({streamId, category})`: metadata only; requires sign-in.
