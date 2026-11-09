@@ -24,7 +24,7 @@ Region: `asia-south1`.
 ## Access policy
 
 - First mock test in each GDCE stream is forced free.
-- Every subsequent mock test, previous-year paper and practice set is paid.
+- Every subsequent mock test, previous-year paper and practice set requires the ₹300 all-tests subscription. Tests are not individually priced; study material remains separately priced per item.
 - Paid access requires a trusted `userEntitlements/{uid}` record with `active: true` and an optional future `expiresAt` timestamp.
 - No payment gateway or browser-side entitlement editor is included.
 - Existing test IDs are immutable in this first version; create a new test ID for a new paper/version.
