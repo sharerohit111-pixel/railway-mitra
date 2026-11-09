@@ -1,90 +1,205 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#071326">
+
     <title>Railway Mitra</title>
+
     <meta name="description" content="Railway Mitra - Your Railway Digital Companion">
-    <link rel="manifest" href="./manifest.json">
+<link rel="manifest" href="./manifest.json">
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="features/exams/exams.css">
     <link rel="stylesheet" href="features/share/share.css">
     <link rel="stylesheet" href="features/install/home-install.css?v=2">
-    <script src="assets/js/language.js" defer></script>
-    <script src="features/share/share.js" defer></script>
-    <script src="features/install/home-install.js?v=3" defer></script>
+
+  <script src="assets/js/language.js" defer></script>
+  <script src="features/share/share.js" defer></script>
+  <script src="features/install/home-install.js?v=3" defer></script>
 </head>
+
 <body>
+
     <header class="app-header">
         <div class="brand">
             <div class="brand-icon">🚆</div>
-            <div><h1>Railway Mitra</h1><p>Your Railway Digital Companion</p></div>
+            <div>
+                <h1>Railway Mitra</h1>
+                <p>Your Railway Digital Companion</p>
+            </div>
         </div>
-        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+            ☰
+        </button>
     </header>
 
     <main class="container">
+
         <section class="welcome-section" aria-label="Railway Mitra introduction">
             <div class="welcome-glow welcome-glow-one" aria-hidden="true"></div>
             <div class="welcome-glow welcome-glow-two" aria-hidden="true"></div>
+
             <div class="welcome-content">
                 <div class="welcome-owner">Rohit Kumar <span>| Founder &amp; Developer</span></div>
-                <div class="welcome-eyebrow"><span class="welcome-live-dot"></span>YOUR DIGITAL RAILWAY COMPANION</div>
-                <h2>Everything for your<br><span>Railway Journey.</span></h2>
-                <p class="welcome-description">Salary, allowances, employee profile and useful railway tools — all organised in one simple place.</p>
-                <div class="welcome-highlights">
-                    <div class="welcome-highlight"><span class="welcome-highlight-icon">₹</span><div><strong>Pay &amp; Salary</strong><small>Salary estimates and arrears</small></div></div>
-                    <div class="welcome-highlight"><span class="welcome-highlight-icon">▤</span><div><strong>Allowances</strong><small>DA, TA, NDA, OTA and more</small></div></div>
-                    <div class="welcome-highlight"><span class="welcome-highlight-icon">👤</span><div><strong>Employee Profile</strong><small>Your details in one place</small></div></div>
+                <div class="welcome-eyebrow">
+                    <span class="welcome-live-dot"></span>
+                    YOUR DIGITAL RAILWAY COMPANION
                 </div>
+
+                <h2>Everything for your<br><span>Railway Journey.</span></h2>
+                <p class="welcome-description">
+                    Salary, allowances, employee profile and useful railway tools —
+                    all organised in one simple place.
+                </p>
+
+                <div class="welcome-highlights">
+                    <div class="welcome-highlight">
+                        <span class="welcome-highlight-icon">₹</span>
+                        <div><strong>Pay & Salary</strong><small>Salary estimates and arrears</small></div>
+                    </div>
+                    <div class="welcome-highlight">
+                        <span class="welcome-highlight-icon">▤</span>
+                        <div><strong>Allowances</strong><small>DA, TA, NDA, OTA and more</small></div>
+                    </div>
+                    <div class="welcome-highlight">
+                        <span class="welcome-highlight-icon">👤</span>
+                        <div><strong>Employee Profile</strong><small>Your details in one place</small></div>
+                    </div>
+                </div>
+
             </div>
         </section>
 
         <section class="dashboard-section">
             <h2>Employee Services</h2>
+
             <div class="feature-grid" id="featureGrid">
-                <a href="features/salary/index.html" class="feature-card"><span>💰</span><h3>Salary &amp; Pay</h3><p>Salary and Pay Calculators</p></a>
-                <a href="features/allowances/index.html" class="feature-card"><span>📊</span><h3>Allowances</h3><p>DA, HRA, TA, NDA, OTA</p></a>
-                <a href="features/arrears/index.html" class="feature-card"><span>🧮</span><h3>Arrear Calculator</h3><p>DA and Other Arrears</p></a>
-                <a href="features/duty/index.html" class="feature-card"><span>🕒</span><h3>Duty Management</h3><p>Duty and Attendance Records</p></a>
-                <a href="features/leave/index.html" class="feature-card"><span>📅</span><h3>Leave Management</h3><p>Leave and Balance Calculator</p></a>
-                <a href="features/retirement/index.html" class="feature-card"><span>🏦</span><h3>NPS &amp; Pension</h3><p>Retirement Planning Tools</p></a>
-                <a href="features/finance/index.html" class="feature-card"><span>💳</span><h3>Loan &amp; Finance</h3><p>EMI and Financial Tools</p></a>
-                <a href="features/rules/index.html" class="feature-card"><span>📚</span><h3>Railway Rules</h3><p>Rules, Manuals and Circulars</p></a>
-                <a href="features/engineering/index.html" class="feature-card"><span>🛤️</span><h3>Engineering Tools</h3><p>Track and P-Way Information</p></a>
-                <a href="features/documents/index.html" class="feature-card"><span>📁</span><h3>Documents &amp; PDF</h3><p>Documents and PDF Utilities</p></a>
-                <a href="features/updates/index.html" class="feature-card"><span>🔔</span><h3>Railway Updates</h3><p>Orders and Notifications</p></a>
-                <a href="features/weather/index.html" class="feature-card"><span>🌦️</span><h3>IMD Weather</h3><p>Weather Forecasts &amp; District Warnings</p></a>
-                <a href="features/map/index.html" class="feature-card"><span>🗺️</span><h3>India Map</h3><p>Interactive Map &amp; Location</p></a>
-                <a href="features/compliance/index.html" class="feature-card"><span>🛡️</span><h3>Data Sources &amp; Compliance</h3><p>Copyright, Licenses and Data Credits</p></a>
+
+                <a href="features/salary/index.html" class="feature-card">
+                    <span>💰</span>
+                    <h3>Salary & Pay</h3>
+                    <p>Salary and Pay Calculators</p>
+                </a>
+
+                <a href="features/allowances/index.html" class="feature-card">
+                    <span>📊</span>
+                    <h3>Allowances</h3>
+                    <p>DA, HRA, TA, NDA, OTA</p>
+                </a>
+
+                <a href="features/arrears/index.html" class="feature-card">
+                    <span>🧮</span>
+                    <h3>Arrear Calculator</h3>
+                    <p>DA and Other Arrears</p>
+                </a>
+
+                <a href="features/duty/index.html" class="feature-card">
+                    <span>🕒</span>
+                    <h3>Duty Management</h3>
+                    <p>Duty and Attendance Records</p>
+                </a>
+
+                <a href="features/leave/index.html" class="feature-card">
+                    <span>📅</span>
+                    <h3>Leave Management</h3>
+                    <p>Leave and Balance Calculator</p>
+                </a>
+
+                <a href="features/retirement/index.html" class="feature-card">
+                    <span>🏦</span>
+                    <h3>NPS & Pension</h3>
+                    <p>Retirement Planning Tools</p>
+                </a>
+
+                <a href="features/finance/index.html" class="feature-card">
+                    <span>💳</span>
+                    <h3>Loan & Finance</h3>
+                    <p>EMI and Financial Tools</p>
+                </a>
+
+                <a href="features/rules/index.html" class="feature-card">
+                    <span>📚</span>
+                    <h3>Railway Rules</h3>
+                    <p>Rules, Manuals and Circulars</p>
+                </a>
+
+                <a href="features/engineering/index.html" class="feature-card">
+                    <span>🛤️</span>
+                    <h3>Engineering Tools</h3>
+                    <p>Track and P-Way Information</p>
+                </a>
+
+                <a href="features/documents/index.html" class="feature-card">
+                    <span>📁</span>
+                    <h3>Documents & PDF</h3>
+                    <p>Documents and PDF Utilities</p>
+                </a>
+
+                <a href="features/updates/index.html" class="feature-card">
+                    <span>🔔</span>
+                    <h3>Railway Updates</h3>
+                    <p>Orders and Notifications</p>
+                </a>
+
+                <a href="features/weather/index.html" class="feature-card">
+                    <span>🌦️</span>
+                    <h3>IMD Weather</h3>
+                    <p>Weather Forecasts & District Warnings</p>
+                </a>
+
+                <a href="features/map/index.html" class="feature-card">
+                    <span>🗺️</span>
+                    <h3>India Map</h3>
+                    <p>Interactive Map & Location</p>
+                </a>
+
+                <a href="features/compliance/index.html" class="feature-card">
+                    <span>🛡️</span>
+                    <h3>Data Sources & Compliance</h3>
+                    <p>Copyright, Licenses and Data Credits</p>
+                </a>
+
             </div>
         </section>
 
         <section class="dashboard-section exam-entry-section">
             <h2>Exam Preparation</h2>
             <a href="features/exams/index.html" class="feature-card exam-entry-card">
-                <span>🎓</span><h3>Departmental &amp; Other Exams</h3>
+                <span>🎓</span>
+                <h3>Departmental &amp; Other Exams</h3>
                 <p>GDCE, LDCE, Mock Tests, Previous Year Papers &amp; Study Material</p>
                 <span class="exam-entry-arrow" aria-hidden="true">→</span>
             </a>
         </section>
 
         <section class="privacy-section">
-            <span>🔐</span><div><h3>Privacy First</h3><p>Your personal employee information must remain private and protected.</p></div>
+            <span>🔐</span>
+            <div>
+                <h3>Privacy First</h3>
+                <p>Your personal employee information must remain private and protected.</p>
+            </div>
         </section>
+
     </main>
 
-    <footer class="app-footer"><h3>Railway Mitra</h3><p>Your Railway Digital Companion</p><p>© 2026 Railway Mitra</p></footer>
-    <script src="assets/js/module-loader.js"></script>
+    <footer class="app-footer">
+        <h3>Railway Mitra</h3>
+        <p>Your Railway Digital Companion</p>
+        <p>© 2026 Railway Mitra</p>
+    </footer>
+
+  <script src="assets/js/module-loader.js"></script>
     <script src="assets/js/app.js"></script>
-    <script>
-    if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-            navigator.serviceWorker.register("./service-worker.js")
-                .catch(error => console.error("Service Worker Error:", error));
-        });
-    }
-    </script>
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+            .catch(error => console.error("Service Worker Error:", error));
+    });
+}
+</script>
 </body>
 </html>
