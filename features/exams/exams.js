@@ -46,7 +46,7 @@
         <div class="exam-card-grid">${card("🚆","Railway Departmental Exams","GDCE and LDCE examination preparation, question papers and study resources.","gdce.html","Departmental only")}</div>
         <h2 class="exam-section-title">B. Other Exams</h2>
         <div class="exam-card-grid"><div class="exam-card"><span class="exam-card-icon">🌐</span><h3>Other Exams</h3><p>A separate app for other competitive examinations, mock tests, practice sets and study material.</p><span class="exam-card-meta"><span class="exam-pill pending">Under Progress</span><span>Coming soon</span></span></div></div>
-        <div class="exam-notice">Other Exams will open through a separate app link after that app is developed. This section is intentionally shown as Under Progress for now.</div>`;
+        <div class="exam-notice">Other Exams will open through a separate app link after that app is developed. This section is intentionally shown as Under Progress for now.</div><p class="exam-admin-note"><a class="exam-back" href="admin.html">Owner Admin Workspace →</a></p>`;
       return;
     }
     if(page==="gdce"){
