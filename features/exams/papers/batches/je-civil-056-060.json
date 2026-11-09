@@ -1,0 +1,227 @@
+{
+  "batch": "056-060",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q56",
+      "questionNumber": 56,
+      "questionText": {
+        "en": "Which grade of bitumen is widely used in place of the old 80/100 penetration grade in spray applications such as surface-dressing and paving in very cold climates, and is also used to manufacture bitumen emulsion and modified bitumen products?",
+        "hi": "सतही ड्रेसिंग (surface-dressing) और अत्यंत ठंडे मौसम में पक्के मार्ग (paving) के निर्माण जैसे छिड़काव अनुप्रयोगों में, पुरानी 80/100 वेधन ग्रेड (penetration grade) के स्थान पर व्यापक रूप से बिटुमेन की किस श्रेणी का उपयोग किया जाता है और साथ ही जिसका उपयोग बिटुमेन इमल्शन और संशोधित बिटुमेन उत्पादों के निर्माण के लिए भी किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "VG-30 bitumen",
+            "hi": "VG-30 बिटुमेन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "VG-20 bitumen",
+            "hi": "VG-20 बिटुमेन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "VG-10 bitumen",
+            "hi": "VG-10 बिटुमेन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "VG-40 bitumen",
+            "hi": "VG-40 बिटुमेन"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "As per IS 73:2013, Viscosity Grade VG-10 replaced the older 80/100 penetration grade bitumen. Due to its low viscosity, VG-10 is ideally suited for spraying applications like surface dressing, paving in very cold climates, and manufacturing bitumen emulsions and modified bitumen products.",
+        "hi": "IS 73:2013 के अनुसार, विस्कोसिटी ग्रेड VG-10 को पुराने 80/100 पेनेट्रेशन ग्रेड बिटुमेन के स्थान पर लाया गया है। कम श्यानता (viscosity) के कारण इसका उपयोग मुख्य रूप से सतही ड्रेसिंग (छिड़काव), अत्यधिक ठंडे क्षेत्रों में सड़क निर्माण तथा बिटुमेन इमल्शन और संशोधित बिटुमेन बनाने के लिए किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q57",
+      "questionNumber": 57,
+      "questionText": {
+        "en": "Which of the following is the correct pair related to the application and classification of bricks?",
+        "hi": "ईंटों के अनुप्रयोग और वर्गीकरण से संबंधित निम्नलिखित में से कौन-सा युग्म सही है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Second-class bricks – Paving of roads",
+            "hi": "द्वितीय श्रेणी की ईंटें – सड़कों का पक्का निर्माण"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Third-class bricks – External exposed walls",
+            "hi": "तृतीय श्रेणी की ईंटें – बाहरी खुली दीवारें"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Fourth-class bricks – Decorative facing works",
+            "hi": "चतुर्थ श्रेणी की ईंटें – सजावटी फेसिंग कार्य"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "First-class bricks – Load-bearing walls",
+            "hi": "प्रथम श्रेणी की ईंटें – भार वहन करने वाली दीवारें"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "First-class bricks are well-burnt, uniform in size and shape, have sharp edges, and possess high compressive strength (minimum 10.5 N/mm²) with low water absorption (≤ 20%). Therefore, they are used for superior, permanent structures such as load-bearing walls, reinforced brickwork, and external exposed faces. Fourth-class/jhama bricks are overburnt and used as aggregates in foundations/roads, while third-class bricks are for temporary structures.",
+        "hi": "प्रथम श्रेणी की ईंटें (First-class bricks) अच्छी तरह पकी हुई, एकसमान आकार, तीखे किनारों और उच्च संपीडन सामर्थ्य वाली होती हैं। इसलिए इनका उपयोग स्थायी और भार वहन करने वाली दीवारों (load-bearing walls) तथा बाहरी चिनाई कार्यों में किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q58",
+      "questionNumber": 58,
+      "questionText": {
+        "en": "Which type of canal alignment generally requires the minimum number of cross drainage works?",
+        "hi": "किस प्रकार के नहर संरेखण के लिए सामान्यतः न्यूनतम क्रॉस ड्रेनेज (cross drainage) कार्यों की आवश्यकता होती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Side slope canal",
+            "hi": "पार्श्व ढाल नहर"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Ridge canal",
+            "hi": "रिज नहर / जलविभाजक नहर"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Inundation canal",
+            "hi": "जलप्लावन नहर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Contour canal",
+            "hi": "समोच्च नहर"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "A Ridge canal (or watershed canal) is aligned along the natural ridge line (highest elevation dividing two drainage basins). Because natural drainage streams flow away from the ridge on both sides, the canal does not cross any natural drains or rivers, thereby requiring practically zero (minimum) cross-drainage works and allowing irrigation on both sides.",
+        "hi": "रिज नहर (Ridge canal / जलविभाजक नहर) को दो जलग्रहण क्षेत्रों को अलग करने वाली सबसे ऊँची प्राकृतिक रेखा (ridge line) के साथ संरेखित किया जाता है। चूँकि प्राकृतिक नाले और नदियाँ इस रेखा से दोनों ओर ढाल की तरफ बहती हैं, इसलिए यह नहर किसी प्राकृतिक जलधारा को पार नहीं करती और इसमें न्यूनतम क्रॉस ड्रेनेज कार्यों की आवश्यकता होती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q59",
+      "questionNumber": 59,
+      "questionText": {
+        "en": "Which plane table method is used when the instrument is set up at a point whose location is not previously known on the map?",
+        "hi": "जब उपकरण (plane table) को ऐसे बिंदु पर स्थापित किया जाता है जिसका स्थान मानचित्र पर पहले से ज्ञात नहीं है, तो किस प्लेन टेबल विधि का उपयोग किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Intersection",
+            "hi": "प्रतिच्छेदन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Radiation",
+            "hi": "विकिरण"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Traversing",
+            "hi": "ट्रैवर्सिंग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Resection",
+            "hi": "स्थिति निर्धारण / रिसेक्शन"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Resection is the plane table surveying method used to determine and plot the unknown position of the instrument station on the drawing sheet by taking sights toward previously plotted (known) ground stations (such as via the Two-Point Problem or Three-Point Problem).",
+        "hi": "रिसेक्शन (Resection / स्थिति निर्धारण) प्लेन टेबल सर्वेक्षण की वह विधि है जिसका उपयोग मानचित्र पर पहले से अंकित ज्ञात बिंदुओं की सहायता से उपकरण के अज्ञात स्टेशन बिंदु की स्थिति को ड्राइंग शीट पर निर्धारित करने के लिए किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q60",
+      "questionNumber": 60,
+      "questionText": {
+        "en": "For repair and waterproofing purposes, _____ is used to fill cracks, voids, cavities, etc.",
+        "hi": "मरम्मत तथा जलरोधी प्रयोजन हेतु, _____ का उपयोग दरारें, अंतराल, कैविटी (cavities) आदि को भरने के लिए किया जाता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Tamping",
+            "hi": "टैम्पिंग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Ramming",
+            "hi": "कुटाई"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Curing",
+            "hi": "क्योरिंग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Grouting",
+            "hi": "ग्राउटिंग"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Grouting is the process of injecting a fluid mixture (such as cement slurry, chemical grout, or epoxy) under pressure into structural cracks, voids, rock fissures, or cavities to seal leaks, restore structural integrity, and achieve waterproofing.",
+        "hi": "ग्राउटिंग (Grouting) वह प्रक्रिया है जिसमें संरचनाओं की दरारों, रिक्तियों, चट्टानों की दरारों या कैविटी (cavities) को भरने तथा पानी के रिसाव को रोकने (जलरोधी बनाने) के लिए दबाव के साथ तरल सीमेंट घोल या रासायनिक मिश्रण भरा जाता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
