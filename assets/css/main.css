@@ -681,3 +681,66 @@ body {
  .welcome-highlight strong{font-size:9px!important;line-height:1.2!important;margin:0!important}
  .welcome-highlight small{display:none!important}
 }
+
+
+/* Final mobile welcome-card spacing and compact layout */
+@media (max-width:600px){
+  .welcome-section{
+    padding:14px 14px 12px!important;
+    margin-bottom:18px!important;
+  }
+  .welcome-section .welcome-content{max-width:100%!important}
+  .welcome-eyebrow{margin-bottom:8px!important}
+  .welcome-section h2{
+    font-size:23px!important;
+    line-height:1.06!important;
+    margin-bottom:6px!important;
+  }
+  .welcome-section .welcome-description{
+    font-size:10px!important;
+    line-height:1.32!important;
+    margin-bottom:9px!important;
+  }
+  .welcome-highlights{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:5px!important;
+    margin:0!important;
+  }
+  .welcome-highlight{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    justify-content:flex-start!important;
+    gap:5px!important;
+    min-width:0!important;
+    min-height:0!important;
+    padding:7px 6px!important;
+    border-radius:11px!important;
+  }
+  .welcome-highlight>div{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:4px!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+  .welcome-highlight strong{
+    display:block!important;
+    margin:0!important;
+    font-size:9px!important;
+    line-height:1.2!important;
+    white-space:normal!important;
+  }
+  .welcome-highlight small{
+    display:block!important;
+    font-size:8px!important;
+    line-height:1.2!important;
+    white-space:normal!important;
+  }
+  .welcome-highlight-icon{
+    width:23px!important;height:23px!important;flex:0 0 23px!important;
+    font-size:13px!important;border-radius:8px!important;
+  }
+}
