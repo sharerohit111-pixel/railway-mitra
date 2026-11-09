@@ -196,6 +196,8 @@ exports.startExam = onCall({ region: REGION }, async request => {
 
 exports.submitExam = onCall({ region: REGION }, async request => {
   const uid = requireUser(request);
+  // Record server receipt immediately, before Firestore reads and answer-key validation.
+  const receivedAtMs = Date.now();
   const attemptId = cleanId(request.data.attemptId, "attemptId", 140);
   const submittedAnswers = request.data.answers;
   if (!submittedAnswers || typeof submittedAnswers !== "object" || Array.isArray(submittedAnswers)) {
@@ -239,7 +241,6 @@ exports.submitExam = onCall({ region: REGION }, async request => {
   // Callable requests can arrive a few seconds after the candidate's local timer
   // reaches zero due to network transit. Allow a small, fixed 10-second transport grace.
   // After that hard cutoff, ignore the payload rather than accepting arbitrarily late answers.
-  const receivedAtMs = Date.now();
   const deadlineAtMs = attempt.deadlineAt ? attempt.deadlineAt.toMillis() : 0;
   if (!deadlineAtMs) {
     throw new HttpsError("failed-precondition", "This attempt has no valid server deadline.");
