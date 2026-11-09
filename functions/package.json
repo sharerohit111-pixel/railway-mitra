@@ -9,7 +9,8 @@
   "scripts": {
     "lint": "node --check index.js",
     "serve": "firebase emulators:start --only functions",
-    "deploy": "firebase deploy --only functions"
+    "deploy": "firebase deploy --only functions",
+    "set-owner-admin": "node scripts/set-owner-admin.js"
   },
   "dependencies": {
     "firebase-admin": "^14.2.0",
