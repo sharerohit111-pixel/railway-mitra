@@ -1,0 +1,227 @@
+{
+  "batch": "041-045",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q41",
+      "questionNumber": 41,
+      "questionText": {
+        "en": "Which statement is true about a parallel connection of resistors?",
+        "hi": "प्रतिरोधकों के समानांतर कनेक्शन के बारे में कौन-सा कथन सत्य है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "The total current is the sum of the currents flowing through the individual resistors.",
+            "hi": "कुल धारा, अलग-अलग प्रतिरोधकों से प्रवाहित धाराओं का योग होती है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "The total current is equal to the current flowing through any one branch.",
+            "hi": "कुल धारा किसी भी एक शाखा में प्रवाहित धारा के समान होती है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Adding more resistors increases the total resistance.",
+            "hi": "अधिक प्रतिरोधकों को जोड़ने पर कुल प्रतिरोध बढ़ जाता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Each resistor carries the same current regardless of its resistance.",
+            "hi": "प्रत्येक प्रतिरोधक समान धारा वहन करता है चाहे प्रतिरोध कुछ भी हो।"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "In a parallel circuit, the voltage across each branch remains the same, while the total current divides among the branches according to their resistance (I = I₁ + I₂ + I₃ + ...). Also, adding more resistors in parallel decreases the total equivalent resistance.",
+        "hi": "समानांतर क्रम (parallel connection) में जुड़े प्रतिरोधकों के सिरों पर विभवांतर (voltage) समान रहता है, जबकि कुल विद्युत धारा अलग-अलग शाखाओं में उनके प्रतिरोध के अनुसार विभाजित हो जाती है (I = I₁ + I₂ + I₃ + ...)."
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q42",
+      "questionNumber": 42,
+      "questionText": {
+        "en": "According to Bohr's atomic model, electrons revolve around the nucleus in ________.",
+        "hi": "बोर (Bohr) के परमाणु मॉडल के अनुसार, इलेक्ट्रॉन नाभिक के चारों ओर ________ परिक्रमण करते हैं।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Straight lines",
+            "hi": "सरल रेखाओं में"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Discrete orbits",
+            "hi": "विविक्त कक्षाओं में"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Elliptical paths",
+            "hi": "दीर्घवृत्ताकार पथ पर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Random paths",
+            "hi": "यादृच्छिक पथ पर"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "According to Niels Bohr's atomic model (1913), electrons revolve around the positively charged nucleus only in certain fixed, stable, circular paths with fixed energy levels known as discrete orbits (or shells: K, L, M, N) without radiating energy.",
+        "hi": "नील्स बोर के परमाणु मॉडल (1913) के अनुसार, इलेक्ट्रॉन नाभिक के चारों ओर केवल कुछ निश्चित ऊर्जा स्तरों वाले स्थिर वृत्ताकार पथों में ही घूमते हैं, जिन्हें विविक्त कक्षाएँ (discrete orbits) या कोश (K, L, M, N) कहा जाता है। इन कक्षाओं में घूमते हुए इलेक्ट्रॉन ऊर्जा का विकिरण नहीं करते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q43",
+      "questionNumber": 43,
+      "questionText": {
+        "en": "Which of the following is a heterogeneous mixture?",
+        "hi": "निम्नलिखित में से कौन-सा एक विषमांगी मिश्रण (heterogeneous mixture) है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Salt solution",
+            "hi": "नमक का घोल"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Air",
+            "hi": "वायु"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Sand and water",
+            "hi": "रेत और पानी"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Sugar solution",
+            "hi": "चीनी का घोल"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "A heterogeneous mixture has a non-uniform composition where the different components remain physically distinct and visible. Sand and water do not dissolve into each other and separate easily, whereas salt solution, air, and sugar solution are uniform homogeneous mixtures.",
+        "hi": "विषमांगी मिश्रण (heterogeneous mixture) वह होता है जिसकी बनावट एकसमान नहीं होती और उसके घटक अलग-अलग दिखाई देते हैं। रेत और पानी आपस में नहीं घुलते और अलग-अलग परत बनाते हैं, जबकि नमक का घोल, वायु और चीनी का घोल समांगी मिश्रण (homogeneous mixtures) हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q44",
+      "questionNumber": 44,
+      "questionText": {
+        "en": "Which of the following statements are correct? Statement I: In an open pit design transfer station, refuse collection vehicles dump waste into an open pit, from where waste material is mechanically or manually transferred into larger open pits. Statement II: In a direct transfer station, waste from smaller vehicles is transferred directly into larger vehicles.",
+        "hi": "निम्नलिखित में से कौन-से कथन सही हैं? कथन I: ओपन पिट डिजाइन ट्रांसफर स्टेशन में, कूड़ा एकत्र करने वाले वाहन अपशिष्ट को एक खुले गड्ढे में डालते हैं, जहाँ से अपशिष्ट सामग्री को यांत्रिक रूप से या मैन्युअल रूप से बड़े खुले गड्ढों में स्थानांतरित किया जाता है। कथन II: डायरेक्ट ट्रांसफर स्टेशन में, छोटे वाहनों से निकाले गए अपशिष्ट को सीधे बड़े वाहनों में स्थानांतरित किया जाता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Only Statement II is correct",
+            "hi": "केवल कथन II सही है"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Both Statements I and II are correct",
+            "hi": "कथन I और II दोनों सही हैं"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Neither Statement I nor Statement II is correct",
+            "hi": "न तो कथन I और न ही कथन II सही है"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Only Statement I is correct",
+            "hi": "केवल कथन I सही है"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "In a direct-discharge transfer station, smaller collection trucks empty waste directly into larger transport trailers or compactors (making Statement II correct). In a storage/open-pit transfer station, waste is dumped into a storage pit first and then loaded into large haul vehicles/trailers (not into larger open pits), making Statement I incorrect.",
+        "hi": "डायरेक्ट ट्रांसफर स्टेशन में छोटे कचरा वाहन सीधे बड़े परिवहन वाहनों (trailers) में खाली किए जाते हैं (इसलिए कथन II सही है)। वहीं, ओपन पिट ट्रांसफर स्टेशन में गड्ढे (pit) में कचरा डंपकर बड़े परिवहन वाहनों में भरा जाता है, न कि बड़े गड्ढों में; इसलिए कथन I गलत है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q45",
+      "questionNumber": 45,
+      "questionText": {
+        "en": "Who wrote the book 'The Second Orbit' published in June 2026?",
+        "hi": "जून 2026 में प्रकाशित पुस्तक 'द सेकंड ऑर्बिट' (The Second Orbit) किसने लिखी?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Anil Joshi",
+            "hi": "अनिल जोशी"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Priya Sharma",
+            "hi": "प्रिया शर्मा"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Rohit Kumar",
+            "hi": "रोहित कुमार"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Shubhanshu Shukla",
+            "hi": "शुभांशु शुक्ला"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "'The Second Orbit', published in June 2026, was authored by Indian astronaut and Group Captain Shubhanshu Shukla (selected for the Gaganyaan mission and Axiom-4 spaceflight), sharing insights on space exploration and human spaceflight.",
+        "hi": "जून 2026 में प्रकाशित पुस्तक 'द सेकंड ऑर्बिट' के लेखक भारतीय अंतरिक्ष यात्री और ग्रुप कैप्टन शुभांशु शुक्ला हैं (जो गगनयान मिशन और एक्सिओम-4 अंतरिक्ष उड़ान से जुड़े हैं)।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
