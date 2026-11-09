@@ -1,10 +1,10 @@
-RAILWAY MITRA — MERGED FIRESTORE RULES (REVIEW BEFORE PUBLISHING)
+RAILWAY MITRA — EXAM FIRESTORE RULES TEMPLATE (NOT A COMPLETE LIVE RULESET)
 
-This version preserves the existing employee-profile and duty-diary paths documented in features/duty-diary/FIRESTORE_RULES_SETUP.txt and adds isolated exam collections. It is a proposed ruleset for Firebase Console review; it has NOT been published to Firebase.
+IMPORTANT: This file is a reference template only. It is NOT a verified copy of the currently deployed Firebase rules and is NOT safe to paste over the live rules as a complete replacement. It shows the exam-related match blocks plus two previously documented paths for context. Before any rules change, export/copy the actual live rules, preserve every existing production match block, then merge only the required exam blocks. No rules have been deployed.
 
 IMPORTANT:
-1. Compare this complete ruleset with the currently published Firebase rules before replacing anything.
-2. If any other production collection rules exist, preserve and merge them too.
+1. Do NOT replace the live rules with this file. First copy the actual deployed rules from Firebase Console → Firestore Database → Rules.
+2. Merge only the exam match blocks into the actual live rules and preserve every other production collection and user-data path.
 3. Set the owner custom claim admin=true only from a trusted Admin SDK environment. Never set it from browser JavaScript.
 4. Do not publish questions containing answer keys in public catalogue files.
 5. Admin SDK Cloud Functions bypass Firestore rules; secure their callable endpoints with authentication and admin-claim checks.
@@ -77,7 +77,8 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Default deny for all other collections.
+    // Default deny for all other collections is shown here as a template pattern only.
+    // Preserve the live project's existing catch-all/default rules when merging.
     match /{document=**} {
       allow read, write: if false;
     }
