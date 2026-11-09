@@ -1,0 +1,227 @@
+{
+  "batch": "041-045",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q41",
+      "questionNumber": 41,
+      "questionText": {
+        "en": "Cracks resulting from sulphate attack CANNOT be prevented by using which of the following measures?",
+        "hi": "निम्नलिखित में से किस उपाय के उपयोग से सल्फेट के हमले (sulphate attack) के परिणामस्वरूप होने वाली दरारों को नहीं रोका जा सकता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Use of rich cement mortar or concrete in construction works",
+            "hi": "निर्माण कार्यों में समृद्ध सीमेंट मोर्टार या कंक्रीट का उपयोग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Use of bricks with a high percentage of soluble salts",
+            "hi": "विलेय लवणों के उच्च प्रतिशत वाली ईंटों का उपयोग"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Use of sulphate-resisting cement in construction works",
+            "hi": "निर्माण कार्यों में सल्फेट प्रतिरोधी सीमेंट का उपयोग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Provision of damp-proofing to maintain dry conditions",
+            "hi": "शुष्क परिस्थितियों को बनाए रखने के लिए डैम्प-प्रूफिंग का प्रावधान"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Sulphate attack occurs when soluble sulphates react with tricalcium aluminate (C3A) in hardened cement in the presence of moisture, forming expansive compounds (ettringite) that cause cracking. Using bricks containing a high percentage of soluble salts actually introduces more sulphates into the masonry and worsens cracking rather than preventing it.",
+        "hi": "सल्फेट हमला (sulphate attack) तब होता है जब नमी की उपस्थिति में घुलनशील सल्फेट सीमेंट के कठोर C3A से क्रिया करके फैलने वाले यौगिक (एट्रिंगाइट) बनाते हैं, जिससे दरारें पड़ती हैं। विलेय लवणों (soluble salts) के उच्च प्रतिशत वाली ईंटों का उपयोग करने से दीवार में सल्फेट की मात्रा और बढ़ जाती है, जिससे दरारें रोकने के बजाय और बढ़ जाती हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q42",
+      "questionNumber": 42,
+      "questionText": {
+        "en": "Consider the following statements and choose the correct option. Statement 1: Prolonged exposure to noise levels above 85 dB can cause permanent hearing loss. Statement 2: Temporary Threshold Shift (TTS) is permanent damage caused by short-term exposure to loud noise.",
+        "hi": "निम्नलिखित कथनों पर विचार करें और सही विकल्प चुनें। कथन 1: 85 dB से अधिक ध्वनि स्तर के लंबे समय तक संपर्क में रहने से स्थायी श्रवण हानि हो सकती है। कथन 2: अस्थायी प्रभाव सीमा स्थानांतरण (TTS) तेज ध्वनि के अल्पकालिक संपर्क के कारण होने वाली स्थायी क्षति है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Statement 1 is true, but Statement 2 is false.",
+            "hi": "कथन 1 सत्य है, लेकिन कथन 2 असत्य है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Both statements are true, and Statement 2 correctly explains Statement 1.",
+            "hi": "दोनों कथन सत्य हैं, तथा कथन 2 कथन 1 की सही व्याख्या करता है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Both statements are true, but Statement 2 does not explain Statement 1.",
+            "hi": "दोनों कथन सत्य हैं, लेकिन कथन 2 कथन 1 की व्याख्या नहीं करता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Statement 1 is false, but Statement 2 is true.",
+            "hi": "कथन 1 असत्य है, लेकिन कथन 2 सत्य है।"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Statement 1 is true: Continuous or prolonged exposure to noise levels exceeding 85 dB damages inner ear hair cells and leads to Noise-Induced Hearing Loss (NIHL), which is permanent. Statement 2 is false: Temporary Threshold Shift (TTS) is a temporary (reversible) reduction in hearing sensitivity after brief exposure to loud noise, which recovers after a period of quiet rest—not permanent damage.",
+        "hi": "कथन 1 सत्य है: 85 dB से अधिक ध्वनि स्तर के लंबे समय तक संपर्क में रहने से कान की आंतरिक कोशिकाएँ क्षतिग्रस्त हो जाती हैं, जिससे स्थायी श्रवण हानि (hearing loss) हो सकती है। कथन 2 असत्य है: अस्थायी प्रभाव सीमा स्थानांतरण (TTS) तेज शोर के अल्पकालिक संपर्क के बाद सुनने की क्षमता में होने वाली एक अस्थायी (reversible) कमी है, जो कुछ समय शांत वातावरण में रहने पर ठीक हो जाती है; यह स्थायी क्षति नहीं है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q43",
+      "questionNumber": 43,
+      "questionText": {
+        "en": "In a penetration macadam type bituminous surfacing, what is the correct sequence of construction?",
+        "hi": "पेनेट्रेशन मैकाडम (penetration macadam) प्रकार की बिटुमिनस सतह निर्माण में, निर्माण का सही क्रम क्या है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Placing fine aggregates before bitumen application",
+            "hi": "बिटुमेन लगाने से पहले महीन मिलावा बिछाना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Premixing bitumen with aggregates, followed by compaction",
+            "hi": "मिलावे के साथ बिटुमेन को पहले से मिलाना, और उसके बाद संघनन करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Laying coarse aggregates, followed by bitumen application and spreading screenings",
+            "hi": "मोटे मिलावे को बिछाना, उसके बाद बिटुमेन लगाना और स्क्रीनिंग/की-एग्रीगेट फैलाना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Applying bitumen first, then placing and compacting aggregates",
+            "hi": "पहले बिटुमेन लगाना, फिर मिलावे को बिछाना और संघनित करना"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "In penetration (grouted) macadam construction, first a layer of coarse aggregates is spread and dry-rolled to interlock. Next, hot bitumen (or emulsion) is sprayed over it so it penetrates into the voids, followed immediately by spreading smaller key aggregates (screenings) and rolling to lock the surface.",
+        "hi": "पेनेट्रेशन मैकाडम (penetration macadam) निर्माण में सबसे पहले मोटे मिलावे (coarse aggregates) को बिछाकर हल्का रोल किया जाता है। इसके बाद ऊपर से गर्म बिटुमेन का छिड़काव किया जाता है ताकि वह रिक्तियों में अंदर तक रिस जाए, और फिर रिक्तियों को भरने के लिए छोटा मिलावा (screenings / key aggregates) फैलाकर रोलिंग की जाती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q44",
+      "questionNumber": 44,
+      "questionText": {
+        "en": "Which type of masonry junction is commonly used when future extension of a wall is anticipated?",
+        "hi": "जब किसी दीवार के भविष्य में विस्तार की संभावना हो, तो सामान्यतः किस प्रकार के चिनाई जोड़ (masonry junction) का उपयोग किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Quoining junction",
+            "hi": "क्वॉइनिंग जंक्शन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Cross-junction",
+            "hi": "क्रॉस-जंक्शन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Dado junction",
+            "hi": "डैडो जंक्शन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Toothed junction",
+            "hi": "टूथ्ड जंक्शन / दाँतेदार जोड़"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Toothing (leaving alternate courses projecting out like teeth at the end of a brick wall) is provided when a wall is to be extended in the future, ensuring a proper structural bond and interlocking between the old and new brickwork.",
+        "hi": "जब किसी दीवार को भविष्य में आगे बढ़ाने (विस्तार करने) की योजना होती है, तो दीवार के सिरे पर हर दूसरी पंक्ति में ईंटों को आगे निकालकर टूथ्ड जंक्शन (दाँतेदार जोड़ / Toothing) छोड़ा जाता है, ताकि पुरानी और नई दीवार के बीच मजबूत पकड़ बन सके।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q45",
+      "questionNumber": 45,
+      "questionText": {
+        "en": "A sample of coarse aggregate weighing 5 kg is completely immersed in water for 24 hours. After surface drying, its weight is found to be 5.08 kg. If the oven-dried weight of the sample becomes 5 kg, what is the water absorption percentage of the aggregate?",
+        "hi": "5 kg वजन वाले मोटे एग्रीगेट का एक नमूना 24 घंटे के लिए पानी में पूरी तरह डुबोया जाता है। पृष्ठ सुखाने के बाद, इसका वजन 5.08 kg पाया जाता है। यदि नमूने को ओवन में सुखाने पर वजन 5 kg हो जाता है, तो एग्रीगेट का जल अवशोषण प्रतिशत कितना है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "2.5%",
+            "hi": "2.5%"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "3%",
+            "hi": "3%"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "1.6%",
+            "hi": "1.6%"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "4%",
+            "hi": "4%"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Saturated Surface-Dry weight (W1) = 5.08 kg. Oven-dried weight (W2) = 5 kg. Water Absorption (%) = ((W1 − W2) / W2) × 100 = ((5.08 − 5) / 5) × 100 = (0.08 / 5) × 100 = 1.6%.",
+        "hi": "संतृप्त पृष्ठ-शुष्क वजन (W1) = 5.08 kg। ओवन में सुखाने पर वजन (W2) = 5 kg। जल अवशोषण प्रतिशत = ((W1 − W2) / W2) × 100 = ((5.08 − 5) / 5) × 100 = (0.08 / 5) × 100 = 1.6%।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
