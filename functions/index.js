@@ -31,6 +31,14 @@ function cleanString(value, field, max = 300) {
   return value.trim();
 }
 
+function cleanId(value, field, max = 120) {
+  const id = cleanString(value, field, max);
+  if (!/^[A-Za-z0-9_-]+$/.test(id)) {
+    throw new HttpsError("invalid-argument", field + " must use only letters, numbers, hyphens or underscores.");
+  }
+  return id;
+}
+
 function validNumber(value, field, min, max) {
   const n = Number(value);
   if (!Number.isFinite(n) || n < min || n > max) {
@@ -40,7 +48,7 @@ function validNumber(value, field, min, max) {
 }
 
 function normalizeQuestion(q, index) {
-  const questionId = cleanString(q.questionId || "q" + (index + 1), "questionId", 100);
+  const questionId = cleanId(q.questionId || "q" + (index + 1), "questionId", 100);
   const questionText = cleanString(q.questionText, "questionText", 8000);
   if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 8) {
     throw new HttpsError("invalid-argument", "Each question needs 2 to 8 options.");
@@ -110,7 +118,7 @@ exports.listPublishedTests = onCall({ region: REGION }, async request => {
 
 exports.startExam = onCall({ region: REGION }, async request => {
   const uid = requireUser(request);
-  const testId = cleanString(request.data.testId, "testId", 120);
+  const testId = cleanId(request.data.testId, "testId", 120);
   const testSnap = await db.collection("examTestCatalog").doc(testId).get();
   if (!testSnap.exists || testSnap.data().published !== true) {
     throw new HttpsError("not-found", "This test is not published.");
@@ -181,7 +189,7 @@ exports.startExam = onCall({ region: REGION }, async request => {
 
 exports.submitExam = onCall({ region: REGION }, async request => {
   const uid = requireUser(request);
-  const attemptId = cleanString(request.data.attemptId, "attemptId", 140);
+  const attemptId = cleanId(request.data.attemptId, "attemptId", 140);
   const submittedAnswers = request.data.answers;
   if (!submittedAnswers || typeof submittedAnswers !== "object" || Array.isArray(submittedAnswers)) {
     throw new HttpsError("invalid-argument", "Answers must be an object.");
@@ -274,7 +282,7 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   const adminUid = requireAdmin(request);
   const input = request.data.test;
   if (!input || typeof input !== "object") throw new HttpsError("invalid-argument", "Test metadata is required.");
-  const testId = cleanString(input.testId, "testId", 120);
+  const testId = cleanId(input.testId, "testId", 120);
   const title = cleanString(input.title, "title", 200);
   const streamId = cleanString(input.streamId, "streamId", 80);
   const streamTitle = cleanString(input.streamTitle, "streamTitle", 160);
