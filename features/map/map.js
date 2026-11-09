@@ -19,7 +19,44 @@
   });
   map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),"top-right");
   map.addControl(new maplibregl.ScaleControl({maxWidth:110,unit:"metric"}),"bottom-left");
-  map.on("load",function(){message.textContent="Map ready. Zoom or move the map to explore India.";});
+  map.on("load",function(){
+    const style=map.getStyle();
+    const sourceId=style.sources && style.sources.openmaptiles ? "openmaptiles" : null;
+    if(!sourceId){
+      message.textContent="Map ready, but the railway-line data layer is unavailable in this map style.";
+      const toggle=document.getElementById("toggleRailways");
+      if(toggle)toggle.disabled=true;
+      return;
+    }
+    const firstSymbol=(style.layers||[]).find(layer=>layer.type==="symbol");
+    const beforeId=firstSymbol ? firstSymbol.id : undefined;
+    map.addLayer({
+      id:"rm-railway-lines",
+      type:"line",
+      source:sourceId,
+      "source-layer":"transportation",
+      filter:["all",["==",["get","class"],"rail"],["==",["geometry-type"],"LineString"]],
+      minzoom:4,
+      layout:{"line-cap":"round","line-join":"round","visibility":"visible"},
+      paint:{
+        "line-color":"#e13cc7",
+        "line-width":["interpolate",["linear"],["zoom"],4,0.9,7,1.6,11,2.4,15,4.2],
+        "line-opacity":0.96
+      }
+    },beforeId);
+    const toggle=document.getElementById("toggleRailways");
+    if(toggle){
+      toggle.setAttribute("aria-pressed","true");
+      toggle.addEventListener("click",function(){
+        const visible=map.getLayoutProperty("rm-railway-lines","visibility")!=="none";
+        map.setLayoutProperty("rm-railway-lines","visibility",visible?"none":"visible");
+        toggle.setAttribute("aria-pressed",String(!visible));
+        toggle.textContent=visible?"Show railway lines":"Hide railway lines";
+        message.textContent=visible?"Railway line overlay is hidden.":"Railway lines mapped in OpenStreetMap are highlighted.";
+      });
+    }
+    message.textContent="Map ready. Railway lines mapped in OpenStreetMap are highlighted; coverage may vary.";
+  });
   map.on("error",function(){message.textContent="Some map tiles could not load. Check your internet connection and try again.";});
   document.getElementById("indiaView").addEventListener("click",function(){
     map.fitBounds(indiaBounds,{padding:28,duration:700});
