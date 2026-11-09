@@ -1,0 +1,227 @@
+{
+  "batch": "026-030",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q26",
+      "questionNumber": 26,
+      "questionText": {
+        "en": "In a float-type rain gauge, the rainfall is measured by:",
+        "hi": "फ्लोट-प्रकार के वर्षामापी (float-type rain gauge) में, वर्षा की मात्रा किसके द्वारा मापी जाती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Weight of water",
+            "hi": "पानी के भार द्वारा"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "The number of bucket tips",
+            "hi": "बाल्टी के पलटने की संख्या द्वारा"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Manual measurement",
+            "hi": "मैनुअल माप द्वारा"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Rise in water level inside a float chamber",
+            "hi": "फ्लोट चेंबर के अंदर जल स्तर में वृद्धि द्वारा"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "In a float-type recording rain gauge, rainwater collected by the funnel enters a float chamber. As the water level rises inside the chamber, a light hollow float rises vertically, moving a pen arm over a rotating chart drum to record cumulative rainfall over time.",
+        "hi": "फ्लोट-प्रकार के वर्षामापी में कीप (funnel) द्वारा एकत्रित वर्षा का पानी फ्लोट चेंबर में जाता है। जैसे-जैसे चेंबर के अंदर जल स्तर बढ़ता है, उसमें लगा एक हल्का फ्लोट ऊपर उठता है, जिससे जुड़ी हुई पेन (pen) घूमते हुए चार्ट पर वर्षा की मात्रा को दर्ज करती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q27",
+      "questionNumber": 27,
+      "questionText": {
+        "en": "Which of the following statements regarding fineness modulus is correct as per Indian Standards?",
+        "hi": "भारतीय मानकों (Indian Standards) के अनुसार सूक्ष्मता मापांक (fineness modulus) के संबंध में निम्नलिखित में से कौन-सा कथन सही है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Fineness modulus is used for grading zone classification in IS 383",
+            "hi": "IS 383 में ग्रेडिंग जोन वर्गीकरण के लिए सूक्ष्मता मापांक का उपयोग किया जाता है"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Fineness modulus replaces grading requirements in IS 383",
+            "hi": "IS 383 में सूक्ष्मता मापांक ग्रेडिंग आवश्यकताओं को प्रतिस्थापित करता है"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "IS 383 mandates fineness modulus limits for fine aggregates",
+            "hi": "IS 383 महीन मिलावटों के लिए सूक्ष्मता मापांक की सीमा अनिवार्य करता है"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Fineness modulus is an indicative index derived from sieve analysis",
+            "hi": "सूक्ष्मता मापांक चालनी विश्लेषण से प्राप्त एक संकेतक सूचकांक है"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "According to IS 383, Fineness Modulus (FM) is an empirical, indicative index derived from sieve analysis (obtained by adding the cumulative percentages retained on standard sieves from 80 mm down to 150 micron and dividing by 100). It indicates the average particle size of an aggregate, while grading zones (Zone I to IV) are classified based on percentage passing through a 600-micron sieve.",
+        "hi": "IS 383 के अनुसार, सूक्ष्मता मापांक (Fineness Modulus) मानक चालनीयों के सेट पर रुके संचयी प्रतिशत (cumulative percentage retained) के योग को 100 से भाग देकर निकाला गया चालनी विश्लेषण से प्राप्त एक संकेतक सूचकांक (indicative index) है, जो मिलावट के औसत कण आकार को दर्शाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q28",
+      "questionNumber": 28,
+      "questionText": {
+        "en": "A circular steel column has a diameter of 200 mm and an effective length of 4 m. Find its slenderness ratio.",
+        "hi": "एक वृत्ताकार स्टील कॉलम का व्यास 200 mm और प्रभावी लंबाई 4 m है। इसका कुशता अनुपात (slenderness ratio) ज्ञात कीजिए।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "40",
+            "hi": "40"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "80",
+            "hi": "80"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "100",
+            "hi": "100"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "60",
+            "hi": "60"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Diameter D = 200 mm and effective length Le = 4 m = 4000 mm. For a solid circular section, minimum radius of gyration rmin = D/4 = 200/4 = 50 mm. Slenderness ratio λ = Le/rmin = 4000/50 = 80.",
+        "hi": "वृत्ताकार कॉलम का व्यास D = 200 mm तथा प्रभावी लंबाई Le = 4 m = 4000 mm। ठोस वृत्ताकार अनुप्रस्थ-काट के लिए न्यूनतम परिभ्रमण त्रिज्या rmin = D/4 = 200/4 = 50 mm। कुशता अनुपात λ = Le/rmin = 4000/50 = 80।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q29",
+      "questionNumber": 29,
+      "questionText": {
+        "en": "For a roadside obstruction located on a curve, the object marking should be:",
+        "hi": "किसी मोड़ (curve) पर स्थित सड़क किनारे के अवरोध (roadside obstruction) के लिए, वस्तु अंकन (object marking) होना चाहिए:"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Illuminated with a flashing lamp",
+            "hi": "फ्लैशिंग लैंप से प्रकाशित"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Vertical and retro-reflective",
+            "hi": "ऊर्ध्वाधर और रेट्रो-रिफ्लेक्टिव / परावर्तक"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Painted in dull colors without reflectivity",
+            "hi": "बिना परावर्तकता के फीके रंगों से रंगा हुआ"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Horizontal with warning stripes",
+            "hi": "चेतावनी धारियों के साथ क्षैतिज"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "As per IRC:35 (Code of Practice for Road Markings), physical obstructions on or near the roadway—especially at horizontal curves where headlight alignment changes—must be marked with vertical (or diagonal) alternating black and white/yellow retro-reflective stripes so they remain clearly visible to drivers at night.",
+        "hi": "IRC:35 (सड़क अंकन संहिता) के अनुसार, सड़क के किनारे या मोड़ (curve) पर स्थित किसी भी भौतिक अवरोध को रात में स्पष्ट रूप से दृश्यमान बनाने के लिए उस पर ऊर्ध्वाधर (vertical) और रेट्रो-रिफ्लेक्टिव (परावर्तक) पट्टियों का अंकन किया जाना चाहिए।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q30",
+      "questionNumber": 30,
+      "questionText": {
+        "en": "Which of the following is the main moving component in a reciprocating pump?",
+        "hi": "प्रत्यागामी पंप (reciprocating pump) में निम्नलिखित में से कौन-सा मुख्य गतिशील घटक है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Suction pipe",
+            "hi": "चूषण पाइप"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Delivery pipe",
+            "hi": "निकास पाइप"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Piston",
+            "hi": "पिस्टन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Cylinder",
+            "hi": "सिलेंडर"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "A reciprocating pump is a positive-displacement pump in which a piston (or plunger) moves back and forth (reciprocates) inside a stationary cylinder, creating suction to draw liquid in and pressure to discharge it through the delivery pipe.",
+        "hi": "प्रत्यागामी पंप (reciprocating pump) में पिस्टन (Piston) या प्लंजर एक स्थिर सिलेंडर के भीतर आगे-पीछे (reciprocating गति) करता है, जिससे चूषण (suction) और दबाव उत्पन्न होकर द्रव पंप होता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
