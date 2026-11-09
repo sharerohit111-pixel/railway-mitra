@@ -1,0 +1,219 @@
+{
+  "batch": "096-100",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q96",
+      "questionNumber": 96,
+      "questionText": {
+        "en": "Identify the earthwork equipment shown in the figure.",
+        "hi": "चित्र में दिखाए गए अर्थवर्क (earthwork) उपकरण की पहचान कीजिए।"
+      },
+      "diagramDescription": {
+        "en": "Source figure: crawler-mounted excavator with a long lattice boom, hoist rope raising/lowering an open-front bucket vertically, and a separate drag rope pulling the bucket horizontally toward the machine. Labels: hoist rope, hoist coupler, bucket, coupler and rope.",
+        "hi": "स्रोत चित्र में क्रॉलर पर लगा उत्खनन उपकरण है। इसमें लंबा जालीदार बूम, बाल्टी को ऊपर-नीचे उठाने वाली होइस्ट रस्सी और बाल्टी को मशीन की ओर क्षैतिज रूप से खींचने वाली ड्रैग रस्सी है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Forward Loader",
+            "hi": "फॉरवर्ड लोडर"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Grab",
+            "hi": "ग्रैब"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Dragline",
+            "hi": "ड्रैगलाइन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Conveyors",
+            "hi": "कन्वेयर"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "The diagram illustrates a Dragline excavator. It consists of a long lattice boom, a hoist rope (which raises and lowers the bucket vertically), and a drag rope (which pulls the open-front bucket horizontally toward the machine to scrape and excavate soft earth below ground level).",
+        "hi": "दिया गया चित्र एक ड्रैगलाइन (Dragline) उत्खनन उपकरण दर्शाता है। इसमें लंबा बूम, बाल्टी को ऊपर-नीचे उठाने के लिए होइस्ट रोप तथा जमीन की सतह से मिट्टी को खुरचकर मशीन की ओर खींचने के लिए ड्रैग रोप लगी होती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q97",
+      "questionNumber": 97,
+      "questionText": {
+        "en": "Which command in CAD is used to remove the portion of an object that extends beyond a boundary?",
+        "hi": "CAD में किसी ऑब्जेक्ट के उस भाग को हटाने के लिए किस कमांड का उपयोग किया जाता है जो बाउंड्री से आगे तक विस्तृत होता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Rotate",
+            "hi": "रोटेट"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Extend",
+            "hi": "एक्सटेंड"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Trim",
+            "hi": "ट्रिम"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Copy",
+            "hi": "कॉपी"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "In AutoCAD and other CAD software, the TRIM command (shortcut TR) cuts away and removes the portion of lines, arcs, or objects that extend past a selected cutting edge or boundary. EXTEND lengthens objects to meet a boundary.",
+        "hi": "AutoCAD और अन्य CAD सॉफ्टवेयर में TRIM कमांड (शॉर्टकट TR) का उपयोग किसी रेखा या ऑब्जेक्ट के उस अतिरिक्त हिस्से को काटकर हटाने के लिए किया जाता है जो किसी निर्धारित सीमा (boundary) से आगे निकलता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q98",
+      "questionNumber": 98,
+      "questionText": {
+        "en": "What is an agreement enforced by law between two parties called?",
+        "hi": "दो पक्षों के बीच कानून द्वारा प्रवर्तनीय समझौते को क्या कहा जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Settlement",
+            "hi": "निपटान"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Tender",
+            "hi": "निविदा"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Contract",
+            "hi": "अनुबंध"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Contractor",
+            "hi": "ठेकेदार"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "As defined under Section 2(h) of the Indian Contract Act, 1872, a Contract is a legally binding agreement enforceable by law between two or more parties to execute specific work or services for a mutually agreed consideration.",
+        "hi": "भारतीय संविदा अधिनियम, 1872 की धारा 2(h) के अनुसार, दो या दो से अधिक पक्षों के बीच किया गया ऐसा समझौता जो कानून द्वारा प्रवर्तनीय होता है, अनुबंध (Contract) कहलाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q99",
+      "questionNumber": 99,
+      "questionText": {
+        "en": "Which of the following is a natural method of timber seasoning where wood is dried by keeping it exposed to air?",
+        "hi": "निम्नलिखित में से कौन-सी लकड़ी के संशोषण (timber seasoning) की एक प्राकृतिक विधि है, जहाँ काठ को हवा के संपर्क में रखकर सुखाया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Kiln seasoning",
+            "hi": "भट्ठा संशोषण"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Water seasoning",
+            "hi": "जल संशोषण"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Chemical seasoning",
+            "hi": "रासायनिक संशोषण"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Air seasoning",
+            "hi": "वायु संशोषण"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Air seasoning (natural seasoning) dries timber by stacking sawn planks with spacers under a ventilated shed so natural ambient air circulates freely around the wood and gradually removes excess moisture. Kiln, chemical, and electrical seasoning are artificial methods.",
+        "hi": "वायु संशोषण (Air seasoning) लकड़ी सुखाने की प्राकृतिक विधि है। इसमें लकड़ी की तख्तियों को छायादार हवादार स्थान पर अंतराल देकर रखा जाता है, ताकि प्राकृतिक हवा उनके चारों ओर प्रवाहित होकर धीरे-धीरे नमी सुखा दे।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q100",
+      "questionNumber": 100,
+      "questionText": {
+        "en": "Find the hydraulic radius (m) for a rectangular channel section of width (b) and depth (d).",
+        "hi": "चौड़ाई (b) और गहराई (d) वाले आयताकार चैनल परिच्छेद के लिए हाइड्रोलिक त्रिज्या (m) ज्ञात कीजिए।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": "m = (b + 2d)/(b · d)"
+        },
+        {
+          "key": "B",
+          "text": "m = d/(b + 2d)"
+        },
+        {
+          "key": "C",
+          "text": "m = (b · d)/(b + 2d)"
+        },
+        {
+          "key": "D",
+          "text": "m = b/(b + 2d)"
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Hydraulic radius (m or R) is the ratio of wetted cross-sectional area (A) to wetted perimeter (P). Wetted area A = b · d. Wetted perimeter P = b + 2d. Therefore, m = A/P = (b · d)/(b + 2d).",
+        "hi": "हाइड्रोलिक त्रिज्या (m या R) चैनल के भीगे हुए अनुप्रस्थ-काट क्षेत्रफल (A) और भीगे हुए परिमाप (P) का अनुपात है। भीगा हुआ क्षेत्रफल A = b · d तथा भीगा हुआ परिमाप P = b + 2d। अतः m = A/P = (b · d)/(b + 2d)।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
