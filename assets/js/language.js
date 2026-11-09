@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  const KEY = "railwayMitra.language.v1";
+  const KEY = "railwayMitra.languageMode.v2";
   const HI_EN = {
     "मुख्य पेज पर वापस जाएँ":"Back to Home Page","डैशबोर्ड पर वापस जाएँ":"Back to Dashboard","भत्ता कैलकुलेटर पर वापस जाएँ":"Back to Allowance Calculator","वापस":"Back",
     "भत्ता कैलकुलेटर":"Allowance Calculator","भत्ता कैलकुलेटर उपलब्ध है":"Calculator Available","कैलकुलेटर उपलब्ध है":"Calculator Available",
@@ -43,7 +43,8 @@
     "नई NPS कटौती":"New NPS Deduction", "एरियर की गणना अंतिम तारीख तक":"Arrears calculated up to",
     "मूल वेतन + DA":"Basic Pay + DA", "महँगाई भत्ता की गणना करें":"Calculate Dearness Allowance",
     "वेतन और एरियर की गणना करें":"Calculate Salary and Arrears", "कर्मचारी की जानकारी":"Employee Information",
-    "कर्मचारी सेवाएँ":"Employee Services", "गोपनीयता पहले":"Privacy First", "आपकी व्यक्तिगत कर्मचारी जानकारी निजी और सुरक्षित रहनी चाहिए।":"Your personal employee information must remain private and protected.""भत्ते":"Allowances","मदद":"Help","सेवाएँ":"Services",
+    "कर्मचारी सेवाएँ":"Employee Services", "गोपनीयता पहले":"Privacy First", "आपकी व्यक्तिगत कर्मचारी जानकारी निजी और सुरक्षित रहनी चाहिए।":"Your personal employee information must remain private and protected.",
+    "भत्ते":"Allowances","मदद":"Help","सेवाएँ":"Services",
     "ट्रैक मेंटेनर":"Track Maintainer","शहर की श्रेणी":"City Class","चुनें":"Select","अपना पद चुनें":"Select Your Post",
     "अपनी पोस्ट चुनें":"Select Your Post","वर्तमान DA (%)":"Current DA (%)","वर्तमान Basic Pay":"Current Basic Pay",
     "महीनों की संख्या":"Number of Months","कुल एरियर":"Total Arrears","एरियर राशि":"Arrear Amount",
@@ -55,7 +56,7 @@
     "अपनी जानकारी भरें":"Enter Your Details","सेव करें":"Save","हटाएँ":"Delete","वेतन स्तर चुनें":"Select Pay Level"
   };
   const EN_HI = Object.fromEntries(Object.entries(HI_EN).map(([hi,en])=>[en,hi]));
-  let lang = localStorage.getItem(KEY) || "en";
+  let lang = localStorage.getItem(KEY) || "mix";
   const originals = new WeakMap();
   function replaceText(value, map) {
     let out=value;
@@ -63,7 +64,7 @@
     return out;
   }
   function translate(root) {
-    const map=lang==="en"?HI_EN:EN_HI;
+    const map=lang==="en"?HI_EN:null;
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
       acceptNode(n){return n.parentElement && !/^(SCRIPT|STYLE|NOSCRIPT)$/.test(n.parentElement.tagName) && n.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}
     });
@@ -71,33 +72,54 @@
     while((node=walker.nextNode())){
       if(!originals.has(node)) originals.set(node,node.nodeValue);
       const base=originals.get(node);
-      node.nodeValue=replaceText(base,map);
+      node.nodeValue=map?replaceText(base,map):base;
     }
     root.querySelectorAll("input[placeholder],button[aria-label],a[aria-label],option,optgroup[label]").forEach(el=>{
-      ["placeholder","aria-label"].forEach(attr=>{
+      ["placeholder","aria-label","label"].forEach(attr=>{
         if(!el.hasAttribute(attr))return;
         const key="data-rm-original-"+attr;
         if(!el.hasAttribute(key))el.setAttribute(key,el.getAttribute(attr));
-        el.setAttribute(attr,replaceText(el.getAttribute(key),map));
+        const base=el.getAttribute(key);
+        el.setAttribute(attr,map?replaceText(base,map):base);
       });
     });
-    document.documentElement.lang=lang==="hi"?"hi":"en";
-    document.querySelectorAll("title").forEach(t=>{if(!t.dataset.rmHi)t.dataset.rmHi=t.textContent;t.textContent=replaceText(t.dataset.rmHi,map);});
+    document.documentElement.lang=lang==="en"?"en":"hi";
+    document.querySelectorAll("title").forEach(t=>{
+      if(!t.dataset.rmOriginal)t.dataset.rmOriginal=t.textContent;
+      t.textContent=map?replaceText(t.dataset.rmOriginal,map):t.dataset.rmOriginal;
+    });
     const btn=document.getElementById("rmLanguageToggle");
-    if(btn){btn.textContent=lang==="en"?"हिंदी":"English";btn.setAttribute("aria-label",lang==="en"?"Switch language to Hindi":"भाषा English में बदलें");}
+    if(btn){
+      btn.textContent=lang==="en"?"हिंदी + English":"English";
+      btn.setAttribute("aria-label",lang==="en"?"Switch to Hindi and English mix":"Switch to full English");
+      btn.title=lang==="en"?"वर्तमान मिश्रित भाषा में लौटें":"पूरे ऐप को English में बदलें";
+    }
   }
   function addToggle(){
     if(document.getElementById("rmLanguageToggle"))return;
     const b=document.createElement("button");b.id="rmLanguageToggle";b.type="button";
-    b.style.cssText="position:fixed;right:14px;bottom:78px;z-index:99999;padding:9px 14px;border:1px solid #39dff5;border-radius:999px;background:linear-gradient(135deg,#087eae,#7838c8);color:#fff;font-weight:800;font-size:13px;box-shadow:0 4px 16px #0008";
-    b.addEventListener("click",()=>{lang=lang==="en"?"hi":"en";localStorage.setItem(KEY,lang);translate(document.body);});
+    b.style.cssText="position:fixed;right:14px;bottom:78px;z-index:99999;padding:10px 15px;border:1px solid #39dff5;border-radius:999px;background:linear-gradient(135deg,#087eae,#7838c8);color:#fff;font-weight:800;font-size:14px;box-shadow:0 4px 16px #0008;cursor:pointer";
+    b.addEventListener("click",()=>{
+      lang=lang==="en"?"mix":"en";
+      localStorage.setItem(KEY,lang);
+      translate(document.body);
+    });
     document.body.appendChild(b);translate(document.body);
   }
   document.addEventListener("DOMContentLoaded",addToggle);
   const observer=new MutationObserver(records=>{
     if(!document.body)return;
-    for(const rec of records){if(rec.type==="childList")rec.addedNodes.forEach(n=>{if(n.nodeType===Node.ELEMENT_NODE)translate(n);else if(n.nodeType===Node.TEXT_NODE&&n.nodeValue.trim()){const map=lang==="en"?HI_EN:EN_HI;n.nodeValue=replaceText(n.nodeValue,map);}});}
+    for(const rec of records){
+      if(rec.type==="childList")rec.addedNodes.forEach(n=>{
+        if(n.nodeType===Node.ELEMENT_NODE)translate(n);
+        else if(n.nodeType===Node.TEXT_NODE&&n.nodeValue.trim()){
+          if(!originals.has(n))originals.set(n,n.nodeValue);
+          if(lang==="en")n.nodeValue=replaceText(originals.get(n),HI_EN);
+          else n.nodeValue=originals.get(n);
+        }
+      });
+    }
   });
   observer.observe(document.documentElement,{childList:true,subtree:true});
-  window.RailwayMitraLanguage={get:()=>lang,set(value){if(!["en","hi"].includes(value))return;lang=value;localStorage.setItem(KEY,lang);if(document.body)translate(document.body);}};
+  window.RailwayMitraLanguage={get:()=>lang,set(value){if(!["en","mix"].includes(value))return;lang=value;localStorage.setItem(KEY,lang);if(document.body)translate(document.body);}};
 })();
