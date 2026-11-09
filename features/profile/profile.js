@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const message = document.getElementById("profileMessage");
   if (!api || !form) return;
 
-  const fields = ["employeeId","name","post","level","basicPay","tpa","division","zone","employeeNumber","hrmsId","department"];
+  const fields = ["employeeId","name","post","level","basicPay","tpa","division","zone","employeeNumber","department"];
   const existing = api.getProfile() || {};
   document.getElementById("employeeId").value = existing.employeeId || ("RM-" + String(Date.now()).slice(-8));
   document.getElementById("heroEmployeeId").textContent = document.getElementById("employeeId").value;
