@@ -1,0 +1,227 @@
+{
+  "batch": "046-050",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q46",
+      "questionNumber": 46,
+      "questionText": {
+        "en": "In hydrological studies, interception is an important process because it:",
+        "hi": "जल विज्ञान अध्ययन (hydrological studies) में, अवरोधन (interception) एक महत्वपूर्ण प्रक्रिया है क्योंकि यह:"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Controls groundwater flow directly",
+            "hi": "भूजल प्रवाह को सीधे नियंत्रित करता है"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Affects the amount of rainfall reaching the ground",
+            "hi": "जमीन तक पहुँचने वाली वर्षा की मात्रा को प्रभावित करता है"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Increases total rainfall",
+            "hi": "कुल वर्षा को बढ़ाता है"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Has no effect on catchment hydrology",
+            "hi": "जल ग्रहण क्षेत्र के जल विज्ञान पर कोई प्रभाव नहीं डालता है"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Interception is the portion of precipitation caught and held by vegetation canopy (leaves, branches, stems) before reaching the ground, where it eventually evaporates back into the atmosphere. Because this intercepted water never reaches the soil surface, it directly reduces and affects the net amount of rainfall reaching the ground for runoff or infiltration.",
+        "hi": "अवरोधन (Interception) वर्षा के जल का वह हिस्सा है जो जमीन पर गिरने से पहले ही पेड़-पौधों की पत्तियों, शाखाओं और तनों द्वारा रोक लिया जाता है और बाद में वाष्पित होकर वायुमंडल में लौट जाता है। चूँकि यह पानी मिट्टी की सतह तक नहीं पहुँच पाता, इसलिए यह सीधे तौर पर जमीन तक पहुँचने वाली वर्षा की मात्रा को प्रभावित करता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q47",
+      "questionNumber": 47,
+      "questionText": {
+        "en": "What is the term described as a rectangular system of measurement to determine the position of points in a drawing area?",
+        "hi": "वह शब्द क्या है, जिसे ड्राइंग क्षेत्र में बिंदुओं की स्थिति निर्धारित करने के लिए एक आयताकार मापन प्रणाली (rectangle system of measurement) के रूप में वर्णित किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Absolute coordinates",
+            "hi": "निरपेक्ष निर्देशांक"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Polar coordinates",
+            "hi": "पोलर निर्देशांक"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Cartesian coordinates",
+            "hi": "कार्तीय निर्देशांक"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Relative coordinates",
+            "hi": "सापेक्ष निर्देशांक"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "In CAD and engineering drawings, the Cartesian coordinate system is a rectangular grid system using perpendicular axes (X, Y, and Z) intersecting at an origin (0, 0, 0) to precisely define the exact position of points in space.",
+        "hi": "CAD और इंजीनियरिंग ड्रॉइंग में कार्तीय निर्देशांक प्रणाली (Cartesian coordinate system) एक आयताकार मापन प्रणाली है, जो एक मूल बिंदु (0, 0, 0) पर परस्पर लंबवत अक्षों (X, Y और Z) का उपयोग करके ड्राइंग क्षेत्र में किसी भी बिंदु की सटीक स्थिति निर्धारित करती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q48",
+      "questionNumber": 48,
+      "questionText": {
+        "en": "Read the two statements given below and select the most appropriate option. Assertion (A): Coursed rubble masonry always gives the same finish quality as ashlar masonry. Reason (R): In coursed rubble masonry, stones are roughly dressed and laid in leveled courses.",
+        "hi": "नीचे दिए गए दो कथनों को पढ़ें और सबसे उपयुक्त विकल्प चुनें। अभिकथन (A): स्तरदार अनगढ़ पत्थर की चिनाई (Coursed rubble masonry) हमेशा एशलर चिनाई (ashlar masonry) के समान फिनिश गुणवत्ता देती है। कारण (R): स्तरदार अनगढ़ पत्थर की चिनाई में पत्थरों को मोटे तौर पर गढ़ा (roughly dressed) जाता है और समतल स्तर (leveled courses) में बिछाया जाता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Both A and R are true, but R does not explain A.",
+            "hi": "A और R दोनों सत्य हैं, लेकिन R, A की व्याख्या नहीं करता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "A is true, R is false.",
+            "hi": "A सत्य है, R असत्य है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "A is false, R is true.",
+            "hi": "A असत्य है, R सत्य है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Both A and R are true, and R explains A.",
+            "hi": "A और R दोनों सत्य हैं, और R, A की व्याख्या करता है।"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Assertion (A) is false because ashlar masonry uses finely dressed, precision-cut stones with uniform thin mortar joints, giving a much smoother and superior finish than coursed rubble masonry. Reason (R) is true because in coursed rubble masonry, stones are only roughly dressed (hammer-dressed) and laid in horizontal courses of uniform height.",
+        "hi": "अभिकथन (A) असत्य है क्योंकि एशलर चिनाई (ashlar masonry) में बारीकी से तराशे गए (finely dressed) एकसमान आकार के पत्थरों और पतले जोड़ों का उपयोग होता है, जिससे इसकी फिनिश गुणवत्ता स्तरदार अनगढ़ पत्थर की चिनाई की तुलना में कहीं अधिक चिकनी और उच्च होती है। कारण (R) सत्य है क्योंकि स्तरदार अनगढ़ पत्थर की चिनाई में पत्थरों को मोटे तौर पर गढ़ा जाता है और समान स्तर में बिछाया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q49",
+      "questionNumber": 49,
+      "questionText": {
+        "en": "Which of the following is the default rendering engine in the latest 3ds Max?",
+        "hi": "निम्नलिखित में से कौन-सा, ऑटोडेस्क (Autodesk) के नवीनतम 3ds Max संस्करण में डिफ़ॉल्ट रेंडरिंग इंजन है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Scanline Renderer",
+            "hi": "स्कैनलाइन रेंडरर"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "V-Ray",
+            "hi": "वी-रे"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Arnold",
+            "hi": "अर्नोल्ड"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Mental Ray",
+            "hi": "मेंटल रे"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Starting from 3ds Max 2018 and continuing in the latest versions, Arnold (an advanced Monte Carlo ray-tracing renderer) replaced Mental Ray and Scanline to become the built-in default rendering engine in Autodesk 3ds Max.",
+        "hi": "Autodesk 3ds Max के नवीनतम संस्करणों में अर्नोल्ड (Arnold) एक अंतर्निहित डिफ़ॉल्ट रेंडरिंग इंजन है, जो उच्च-गुणवत्ता वाले यथार्थवादी (photorealistic) 3D रेंडरिंग के लिए उपयोग किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q50",
+      "questionNumber": 50,
+      "questionText": {
+        "en": "What is the floor finish used in timber flooring called?",
+        "hi": "लकड़ी के फर्श (timber flooring) में प्रयुक्त फर्श परिरज्जा को क्या कहा जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Boarding",
+            "hi": "बोर्डिंग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Lapping",
+            "hi": "लैपिंग"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Tiling",
+            "hi": "टाइलिंग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Bridging",
+            "hi": "ब्रिजिंग"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "In timber floor construction, the wooden planks or boards nailed directly over the timber joists to form the finished walking surface are collectively referred to as boarding (or floor boarding).",
+        "hi": "लकड़ी के फर्श (timber flooring) के निर्माण में, धरनों (joists) के ऊपर बिछाए जाने वाले लकड़ी के तख्तों से बनी ऊपरी फर्श की सतह या परिरज्जा को बोर्डिंग (Boarding) कहा जाता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
