@@ -262,10 +262,12 @@ exports.submitExam = onCall({ region: REGION }, async request => {
     expired: Boolean(expired)
   };
 
-  await db.runTransaction(async tx => {
+  const finalRecord = await db.runTransaction(async tx => {
     const fresh = await tx.get(attemptRef);
     if (!fresh.exists) throw new HttpsError("not-found", "Exam attempt not found.");
-    if (fresh.data().status === "submitted") return;
+    if (fresh.data().status === "submitted") {
+      return { result: fresh.data().result, answerReview: fresh.data().answerReview || [], alreadySubmitted: true };
+    }
     if (fresh.data().status !== "inProgress") throw new HttpsError("failed-precondition", "This attempt is not active.");
     tx.update(attemptRef, {
       status: "submitted",
@@ -274,8 +276,9 @@ exports.submitExam = onCall({ region: REGION }, async request => {
       result,
       answerReview
     });
+    return { result, answerReview, alreadySubmitted: false };
   });
-  return { result, answerReview, alreadySubmitted: false };
+  return finalRecord;
 });
 
 exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async request => {
@@ -317,6 +320,9 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   }
   const price = access === "free" ? 0 : validNumber(input.price, "price", 1, 100000);
   const testRef = db.collection("examTestCatalog").doc(testId);
+  if ((await testRef.get()).exists) {
+    throw new HttpsError("already-exists", "This test ID already exists. Use a new ID for a new paper version.");
+  }
   const batch = db.batch();
   batch.set(testRef, {
     testId, title, streamId, streamTitle, category,
