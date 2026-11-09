@@ -68,7 +68,7 @@ function listenToCloud(uid){
  unsubscribeRecords=onSnapshot(recordsRef(uid),snapshot=>{
   snapshot.docChanges().forEach(change=>{if(change.type==="removed")delete diaryRecords[change.doc.id];else diaryRecords[change.doc.id]=change.doc.data();});
   writeLocal();renderCalendar();loadDayData(selectedDate);setSync(navigator.onLine?"Cloud synced":"Offline · device copy");
- },error=>{console.error("Diary listener:",error);setSync("Cloud unavailable");showMessage("Cloud access failed. Firestore rules may need publishing.",true);});
+ },error=>{console.error("Diary listener:",error);setSync("Cloud unavailable");showMessage("Cloud error: "+(error.code||"unknown")+" — "+(error.message||"No details returned"),true);});
 }
 $("prevMonth").addEventListener("click",()=>changeMonth(-1));
 $("nextMonth").addEventListener("click",()=>changeMonth(1));
