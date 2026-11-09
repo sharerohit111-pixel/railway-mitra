@@ -163,19 +163,25 @@ exports.startExam = onCall({ region: REGION }, async request => {
     positiveMarksPerQuestion: positiveMarks,
     negativeMarksPerWrongAnswer: negativeMarks
   };
+  // Capture one trusted server clock value and return it with the deadline.
+  // The client uses this offset to avoid relying on the device clock or a drifting interval.
+  const serverNowMs = Date.now();
+  const deadlineAtMs = serverNowMs + durationMinutes * 60 * 1000;
   await attemptRef.set({
     candidateUid: uid,
     testId,
     streamId: test.streamId,
     category: test.category,
     status: "inProgress",
-    startedAt: FieldValue.serverTimestamp(),
-    deadlineAt: Timestamp.fromMillis(Date.now() + durationMinutes * 60 * 1000),
+    startedAt: Timestamp.fromMillis(serverNowMs),
+    deadlineAt: Timestamp.fromMillis(deadlineAtMs),
     questionIds: questions.map(q => q.questionId),
     testSettings: settings
   });
   return {
     attemptId: attemptRef.id,
+    serverNowMs,
+    deadlineAtMs,
     test: {
       testId,
       title: test.title,
@@ -230,8 +236,17 @@ exports.submitExam = onCall({ region: REGION }, async request => {
     throw new HttpsError("invalid-argument", "An answer option does not belong to its question.");
   }
   const settings = attempt.testSettings;
-  const expired = attempt.deadlineAt && Date.now() > attempt.deadlineAt.toMillis() + 5000;
-  const acceptedAnswers = expired ? {} : submittedAnswers;
+  // Callable requests can arrive a few seconds after the candidate's local timer
+  // reaches zero due to network transit. Allow a small, fixed 10-second transport grace.
+  // After that hard cutoff, ignore the payload rather than accepting arbitrarily late answers.
+  const receivedAtMs = Date.now();
+  const deadlineAtMs = attempt.deadlineAt ? attempt.deadlineAt.toMillis() : 0;
+  if (!deadlineAtMs) {
+    throw new HttpsError("failed-precondition", "This attempt has no valid server deadline.");
+  }
+  const expired = receivedAtMs > deadlineAtMs;
+  const beyondSubmissionGrace = receivedAtMs > deadlineAtMs + 10000;
+  const acceptedAnswers = beyondSubmissionGrace ? {} : submittedAnswers;
   let correct = 0, wrong = 0, unattempted = 0;
   const answerReview = [];
   for (const id of attempt.questionIds) {
@@ -250,7 +265,7 @@ exports.submitExam = onCall({ region: REGION }, async request => {
   const positiveScore = correct * settings.positiveMarksPerQuestion;
   const negativeScore = wrong * settings.negativeMarksPerWrongAnswer;
   const total = settings.totalQuestions;
-  const elapsed = Math.max(0, Math.round((Date.now() - attempt.startedAt.toMillis()) / 1000));
+  const elapsed = Math.max(0, Math.round((receivedAtMs - attempt.startedAt.toMillis()) / 1000));
   const result = {
     correct,
     wrong,
