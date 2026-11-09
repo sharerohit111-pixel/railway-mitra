@@ -44,3 +44,7 @@ Region: `asia-south1`.
 - No payment gateway or browser-side entitlement editor is included.
 - Existing test IDs are immutable in this first version; create a new test ID for a new paper/version.
 - The question bank and answer keys are never directly readable from browser clients; only callable functions using Admin SDK can access them.
+
+## Paper source metadata
+
+The owner publishing form accepts an optional source label and paper year. These values are stored in `examTestCatalog` and shown in the published test list. Record the official paper/source details accurately; do not label generated practice questions as official previous-year papers.
