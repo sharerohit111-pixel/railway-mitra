@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0.0",
+  "test": {
+    "testId": "gdce-je-civil-previous-2026",
+    "title": "GDCE JE Civil 2026",
+    "streamId": "gdce-je-civil",
+    "category": "previous",
+    "year": 2026,
+    "totalQuestions": 150,
+    "durationMinutes": 120,
+    "positiveMarksPerQuestion": 1,
+    "negativeMarksPerWrongAnswer": 0.3333333333333333
+  },
+  "sections": [
+    {
+      "id": "je-common",
+      "title": "JE Common",
+      "questionNumbers": "1-50"
+    },
+    {
+      "id": "je-civil-allied",
+      "title": "JE Civil and Allied Engineering",
+      "questionNumbers": "1-100"
+    }
+  ],
+  "question": {
+    "questionId": "string",
+    "sectionId": "je-common|je-civil-allied",
+    "questionNumber": "number",
+    "questionText": {
+      "en": "string",
+      "hi": "string"
+    },
+    "options": [
+      {
+        "key": "A|B|C|D",
+        "text": {
+          "en": "string",
+          "hi": "string"
+        }
+      }
+    ],
+    "correctOption": "A|B|C|D",
+    "diagram": {
+      "src": "optional relative image path",
+      "sourcePage": "number",
+      "sourceCrop": "optional crop coordinates"
+    },
+    "solution": {
+      "en": "string",
+      "hi": "string"
+    },
+    "verificationStatus": "pending|verified"
+  },
+  "publishingRequirements": [
+    "150 questions exactly",
+    "4 bilingual options per question",
+    "source green tick answer key verified",
+    "diagram crop attached where present",
+    "bilingual solution checked",
+    "verificationStatus=verified for every question"
+  ]
+}
