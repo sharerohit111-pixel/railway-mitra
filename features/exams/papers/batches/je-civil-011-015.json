@@ -1,0 +1,227 @@
+{
+  "batch": "011-015",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q11",
+      "questionNumber": 11,
+      "questionText": {
+        "en": "The working principle of a vibratory roller is based on:",
+        "hi": "वाइब्रेटरी रोलर (vibratory roller) का कार्य सिद्धांत निम्नलिखित में से किस पर आधारित है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Generation of air suction inside the drum during rolling action",
+            "hi": "रोलिंग क्रिया के दौरान ड्रम के अंदर वायु चूषण का निर्माण"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Hydraulic pressure applied directly on the drum surface",
+            "hi": "ड्रम की सतह पर सीधे लगाया गया हाइड्रोलिक दबाव"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Conversion of static load into centrifugal force by rotating weights",
+            "hi": "घूर्णन भारों द्वारा स्थैतिक भार को अपकेंद्रीय बल में परिवर्तित करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Pneumatic compression produced by tyres mounted on axle",
+            "hi": "एक्सल पर लगे टायरों द्वारा उत्पन्न वायवीय संपीड़न"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "A vibratory roller uses eccentric weights rotating on a shaft inside the drum. This rotation generates rapid centrifugal forces that add dynamic impact vibrations to the roller's static weight, rearranging soil or asphalt particles for deeper and faster compaction.",
+        "hi": "वाइब्रेटरी रोलर के ड्रम के अंदर एक शाफ्ट पर असंतुलित (eccentric) भार घूमते हैं। इनके घूर्णन से उत्पन्न होने वाला अपकेंद्रीय बल (centrifugal force) रोलर के स्थैतिक भार के साथ मिलकर तीव्र कंपन पैदा करता है, जिससे मिट्टी या डामर के कण सघन रूप से व्यवस्थित हो जाते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q12",
+      "questionNumber": 12,
+      "questionText": {
+        "en": "Which type of elevator is best suited for high-rise buildings?",
+        "hi": "ऊँची इमारतों (high-rise buildings) के लिए किस प्रकार का लिफ्ट (elevator) सबसे उपयुक्त होती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Hydraulic elevator",
+            "hi": "हाइड्रोलिक लिफ्ट"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Pneumatic elevator",
+            "hi": "वायवीय लिफ्ट"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Belt elevator",
+            "hi": "बेल्ट लिफ्ट"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Traction elevator",
+            "hi": "ट्रैक्शन लिफ्ट"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Traction elevators use steel ropes or belts passing over a motor-driven sheave with a counterweight system. Because of the counterweight balancing the car, they consume less energy, achieve much higher travel speeds, and are not limited by piston length, making them ideal for high-rise buildings.",
+        "hi": "ट्रैक्शन लिफ्ट (Traction elevator) में मोटर से जुड़ी हुई शीव (sheave) और काउंटरवेट (counterweight) के साथ स्टील की रस्सियों या बेल्टों का उपयोग होता है। काउंटरवेट के कारण यह कम ऊर्जा में बहुत तेज गति से अधिक ऊँचाई तक जा सकती है, इसलिए यह ऊँची इमारतों के लिए सर्वोत्तम होती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q13",
+      "questionNumber": 13,
+      "questionText": {
+        "en": "What is the primary purpose of the flexural equation in structural analysis?",
+        "hi": "संरचनात्मक विश्लेषण (structural analysis) में बंकन समीकरण (flexural equation) का प्राथमिक उद्देश्य क्या है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "To calculate the maximum bending stress and design beams for bending loads",
+            "hi": "अधिकतम बंकन प्रतिबल की गणना करना और बंकन भार के लिए बीम का डिजाइन तैयार करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "To evaluate the axial load capacity of columns under bending forces",
+            "hi": "बंकन बलों के अंतर्गत स्तंभों की अक्षीय भार क्षमता का मूल्यांकन करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "To calculate the deflection at various points on the beam under load",
+            "hi": "भार के अंतर्गत बीम के विभिन्न बिंदुओं पर विक्षेपण की गणना करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "To determine the shear force and bending moment at a specific section of the beam",
+            "hi": "बीम के एक विशिष्ट खंड पर अपरूपण बल और बंकन आघूर्ण निर्धारित करना"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "The flexural (bending) equation is given by M/I = σ/y = E/R. Its primary purpose is to determine the bending stress (σ) at any distance y from the neutral axis due to a bending moment M, enabling engineers to select safe cross-sections (section modulus Z = I/y) when designing beams.",
+        "hi": "बंकन समीकरण M/I = σ/y = E/R का मुख्य उद्देश्य बंकन आघूर्ण (M) के कारण उदासीन अक्ष से दूरी y पर उत्पन्न होने वाले अधिकतम बंकन प्रतिबल (σ) की गणना करना है, ताकि बंकन भार सहन करने के लिए बीम के सुरक्षित अनुप्रस्थ काट (cross-section) का डिजाइन किया जा सके।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q14",
+      "questionNumber": 14,
+      "questionText": {
+        "en": "Which rock exploration method is most suitable for obtaining continuous undisturbed soil samples from highly resistant strata for detailed geotechnical analysis?",
+        "hi": "विस्तृत भू-तकनीकी विश्लेषण (geotechnical analysis) के लिए अत्यधिक प्रतिरोधी स्तरों से निरंतर अबाधित मृदा नमूने (continuous undisturbed samples) प्राप्त करने के लिए कौन-सी चट्टान अन्वेषण विधि सबसे उपयुक्त है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Rotary drilling with core barrel",
+            "hi": "कोर बैरल के साथ रोटरी ड्रिलिंग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Auger Boring (Continuous Flight Auger)",
+            "hi": "ऑगर बोरिंग (Continuous Flight Auger)"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Wash Boring",
+            "hi": "वाश बोरिंग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Percussion Drilling with a chisel bit",
+            "hi": "छेनी बिट के साथ परकशन ड्रिलिंग"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Rotary drilling fitted with a core barrel (such as a double-tube or triple-tube core barrel with diamond or tungsten carbide bits) cuts through hard rock and highly resistant strata smoothly while preserving the cylindrical core inside the barrel for laboratory testing.",
+        "hi": "कोर बैरल के साथ रोटरी ड्रिलिंग (Rotary drilling with core barrel) कठोर चट्टानों और अत्यधिक प्रतिरोधी स्तरों को काटकर उनके भीतर के बेलनाकार कोर (नमूने) को बिना तोड़े सुरक्षित बाहर निकालती है, जिससे प्रयोगशाला में सटीक भू-तकनीकी परीक्षण किया जा सकता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q15",
+      "questionNumber": 15,
+      "questionText": {
+        "en": "Which of the following is NOT a type of combined footing in shallow foundations?",
+        "hi": "निम्नलिखित में से कौन-सा उथली नींव (shallow foundations) में संयुक्त पाद (combined footing) का एक प्रकार नहीं है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Rectangular",
+            "hi": "आयताकार"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Strap",
+            "hi": "स्ट्रैप"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Trapezoidal",
+            "hi": "समलम्बाकार"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Mat",
+            "hi": "मैट"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "A combined footing supports two or more columns in a single line and is commonly classified into rectangular combined footing, trapezoidal combined footing, and strap (cantilever) footing. A Mat (or Raft) foundation is a separate category of shallow foundation that covers the entire building footprint to support multiple columns and walls in both directions.",
+        "hi": "संयुक्त पाद (combined footing) एक ही पंक्ति में स्थित दो या दो से अधिक स्तंभों को सहारा देता है, जिसके मुख्य प्रकार आयताकार (Rectangular), समलम्बाकार (Trapezoidal) और स्ट्रैप (Strap) फुटिंग हैं। इसके विपरीत, मैट (Mat/Raft) नींव उथली नींव की एक अलग श्रेणी है, जो पूरी इमारत के क्षेत्रफल को कवर करती है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
