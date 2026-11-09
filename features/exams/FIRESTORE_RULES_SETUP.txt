@@ -1,0 +1,98 @@
+RAILWAY MITRA — EXAM FIRESTORE RULES TEMPLATE (NOT A COMPLETE LIVE RULESET)
+
+IMPORTANT: This file is a reference template only. It is NOT a verified copy of the currently deployed Firebase rules and is NOT safe to paste over the live rules as a complete replacement. It shows the exam-related match blocks plus two previously documented paths for context. Before any rules change, export/copy the actual live rules, preserve every existing production match block, then merge only the required exam blocks. No rules have been deployed.
+
+IMPORTANT:
+1. Do NOT replace the live rules with this file. First copy the actual deployed rules from Firebase Console → Firestore Database → Rules.
+2. Merge only the exam match blocks into the actual live rules and preserve every other production collection and user-data path.
+3. Set the owner custom claim admin=true only from a trusted Admin SDK environment. Never set it from browser JavaScript.
+4. Do not publish questions containing answer keys in public catalogue files.
+5. Admin SDK Cloud Functions bypass Firestore rules; secure their callable endpoints with authentication and admin-claim checks.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Existing Duty Diary: user can access only their own records.
+    match /users/{userId}/dutyDiary/{dateId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+
+    // Existing Employee Profile: user can access only their own main profile.
+    match /users/{userId}/employeeProfile/{profileId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId
+        && profileId == 'main';
+    }
+
+    // Exam attempts: candidates can create and read only their own attempts.
+    // No client updates/deletes; preserve submitted records.
+    match /users/{userId}/examAttempts/{attemptId} {
+      allow read: if request.auth != null
+        && request.auth.uid == userId;
+      // Attempts are created and submitted only by trusted Cloud Functions/Admin SDK.
+      allow create: if false;
+      allow update, delete: if false;
+    }
+
+    // Published test metadata can be read by signed-in users.
+    // Admin SDK or an authenticated owner claim may manage it.
+    match /examTestCatalog/{testId} {
+      allow read: if request.auth != null
+        && resource.data.published == true;
+      allow create, update, delete: if request.auth != null
+        && request.auth.token.admin == true;
+    }
+
+    // Question text/options are delivered only by authenticated callable functions.
+    // Deny direct client access to prevent bulk scraping of the question bank.
+    match /examTests/{testId}/questionsPublic/{questionId} {
+      allow read, write: if false;
+    }
+
+    // Answer keys and explanations are private. Prefer Admin SDK only.
+    match /examTests/{testId}/answerKeys/{questionId} {
+      allow read, write: if false;
+    }
+
+    // Candidate subscription entitlements: users can read their own status.
+    // Only trusted backend/Admin SDK may write entitlement documents.
+    match /userEntitlements/{userId} {
+      allow read: if request.auth != null
+        && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    // Study material catalogue: only published items readable by signed-in users.
+    match /studyMaterials/{materialId} {
+      allow read: if request.auth != null
+        && resource.data.published == true;
+      allow write: if request.auth != null
+        && request.auth.token.admin == true;
+    }
+
+    // Admin audit records are never writable from the client.
+    match /adminAuditLogs/{logId} {
+      allow read, write: if false;
+    }
+
+    // Default deny for all other collections is shown here as a template pattern only.
+    // Preserve the live project's existing catch-all/default rules when merging.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+DATA PATHS:
+- Employee profile: users/{uid}/employeeProfile/main
+- Duty diary: users/{uid}/dutyDiary/YYYY-MM-DD
+- Exam attempts: users/{uid}/examAttempts/{attemptId}
+- Published test metadata: examTestCatalog/{testId}
+- Public question content: examTests/{testId}/questionsPublic/{questionId}
+- Private answer key: examTests/{testId}/answerKeys/{questionId}
+- Subscription entitlement: userEntitlements/{uid}
+- Study material metadata: studyMaterials/{materialId}
+
+Trusted Cloud Functions are now included in the feature branch, but they are NOT deployed. They must be deployed and tested before any test is published. Callable functions use the Admin SDK, so candidate clients do not need direct write access to attempt documents or direct read access to question documents.

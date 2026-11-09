@@ -1,0 +1,33 @@
+/* Railway Mitra Exam Preparation - isolated feature styles */
+.exam-entry-section { margin-top: 30px; }
+.exam-entry-card { min-height: 145px; max-width: 560px; padding-right: 54px; }
+.exam-entry-card .exam-entry-arrow { position:absolute; right:18px; top:50%; transform:translateY(-50%); width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:linear-gradient(135deg,#35e8ff,#8b50ff); color:#071326; font-size:22px; font-weight:900; }
+.exam-shell { width:min(1100px,100%); margin:0 auto; padding:22px 16px 42px; color:#f4f8ff; }
+.exam-topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; }
+.exam-back { display:inline-flex; align-items:center; gap:8px; color:#9feeff; font-size:13px; font-weight:700; }
+.exam-brand { color:#9feeff; font-size:11px; letter-spacing:1.4px; font-weight:800; }
+.exam-hero { position:relative; overflow:hidden; padding:25px; border:1px solid #287fa9; border-radius:22px; background:radial-gradient(circle at 90% 0%,#42305f 0,transparent 40%),linear-gradient(135deg,#0a1b36,#102d50 60%,#24163d); box-shadow:0 14px 34px #0005,inset 0 1px #ffffff20; }
+.exam-kicker { color:#69eaff; font-size:10px; font-weight:900; letter-spacing:1.5px; text-transform:uppercase; }
+.exam-hero h1 { margin:10px 0 8px; color:#fff; font-size:clamp(24px,5vw,34px); line-height:1.15; }
+.exam-hero p { max-width:720px; color:#c0d8ef; font-size:13px; line-height:1.65; }
+.exam-section-title { margin:25px 0 13px; color:#6cecff; font-size:17px; }
+.exam-card-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+.exam-card { display:flex; flex-direction:column; gap:9px; min-height:160px; padding:18px; border:1px solid #23618a; border-radius:17px; background:linear-gradient(145deg,#132c4a,#171e3b 75%,#28173e); box-shadow:0 8px 18px #0004,inset 0 1px #ffffff12; color:#fff; text-decoration:none; transition:transform .18s,border-color .18s; }
+.exam-card:hover { transform:translateY(-3px); border-color:#40dff5; }
+.exam-card-icon { display:grid; place-items:center; width:43px; height:43px; border-radius:13px; background:linear-gradient(135deg,#1acde8,#7853ec,#df48c3); font-size:22px; box-shadow:0 0 15px #35e8ff30; }
+.exam-card h2,.exam-card h3 { font-size:16px; color:#fff; }
+.exam-card p { color:#b7cde4; font-size:12px; line-height:1.5; }
+.exam-card-meta { margin-top:auto; display:flex; justify-content:space-between; align-items:center; gap:8px; color:#79e9f5; font-size:11px; font-weight:800; }
+.exam-pill { display:inline-flex; align-items:center; padding:5px 9px; border-radius:999px; border:1px solid #397b9c; color:#9cecf5; background:#14334a; font-size:10px; font-weight:800; }
+.exam-pill.pending { color:#ffd78a; border-color:#80663b; background:#3a2b1a; }
+.exam-notice { margin-top:18px; padding:14px 16px; border:1px solid #345779; border-radius:14px; background:#10243b; color:#bfd4e9; font-size:12px; line-height:1.6; }
+.exam-list { display:grid; gap:11px; margin-top:17px; }
+.exam-list-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 16px; border:1px solid #2a5477; border-radius:14px; background:#10233d; }
+.exam-list-item strong { display:block; color:#fff; font-size:13px; }
+.exam-list-item small { display:block; margin-top:5px; color:#a9c5df; font-size:11px; }
+.exam-empty { padding:25px 18px; text-align:center; border:1px dashed #47718d; border-radius:16px; background:#0c1d33; }
+.exam-empty-icon { font-size:32px; margin-bottom:9px; }
+.exam-empty h3 { color:#e8f7ff; font-size:16px; margin-bottom:7px; }
+.exam-empty p { color:#a9c5df; font-size:12px; line-height:1.6; }
+.exam-admin-note { margin-top:22px; padding:16px; border-radius:14px; background:#201d3c; border:1px solid #6851a0; color:#d7c9ff; font-size:12px; line-height:1.6; }
+@media(max-width:520px){ .exam-shell{padding:15px 12px 30px}.exam-hero{padding:20px 17px}.exam-card{min-height:145px;padding:15px}.exam-topbar{align-items:flex-start} }

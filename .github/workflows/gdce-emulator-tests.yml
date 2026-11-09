@@ -1,0 +1,46 @@
+name: GDCE emulator tests
+
+on:
+  push:
+    branches:
+      - feature/gdce-exam-system
+  pull_request:
+    branches:
+      - modular-development
+    paths:
+      - "features/exams/**"
+      - "functions/**"
+      - "firebase.json"
+      - ".github/workflows/gdce-emulator-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  emulator-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Cloud Functions dependencies
+        run: npm --prefix functions install --no-audit --no-fund
+
+      - name: Check Cloud Functions syntax
+        run: npm --prefix functions run lint
+
+      - name: Run Auth, Firestore and Functions emulator tests
+        run: npx --yes firebase-tools@latest emulators:exec --project railway-mitra --only auth,firestore,functions "npm --prefix functions test"
