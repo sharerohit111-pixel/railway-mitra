@@ -1,0 +1,18 @@
+{
+  "name": "railway-mitra-exam-functions",
+  "private": true,
+  "description": "Trusted backend for Railway Mitra GDCE exams",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "scripts": {
+    "lint": "node --check index.js",
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.3.2"
+  }
+}
