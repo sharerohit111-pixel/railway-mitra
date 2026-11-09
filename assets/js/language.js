@@ -98,7 +98,7 @@
   function addToggle(){
     if(document.getElementById("rmLanguageToggle"))return;
     const b=document.createElement("button");b.id="rmLanguageToggle";b.type="button";
-    b.style.cssText="position:fixed;right:14px;bottom:78px;z-index:99999;padding:10px 15px;border:1px solid #39dff5;border-radius:999px;background:linear-gradient(135deg,#087eae,#7838c8);color:#fff;font-weight:800;font-size:14px;box-shadow:0 4px 16px #0008;cursor:pointer";
+    if(document.body.classList.contains("rm-rules")){b.style.cssText="position:relative;display:block;width:max-content;max-width:100%;margin:0 0 18px auto;right:auto;bottom:auto;z-index:2;padding:9px 14px;border:1px solid #39dff5;border-radius:999px;background:linear-gradient(135deg,#087eae,#7838c8);color:#fff;font-weight:800;font-size:14px;box-shadow:0 4px 16px #0008;cursor:pointer";const target=document.querySelector(".rules-topic-grid");if(target)target.parentNode.insertBefore(b,target);}else{b.style.cssText="position:fixed;right:14px;bottom:78px;z-index:99999;padding:10px 15px;border:1px solid #39dff5;border-radius:999px;background:linear-gradient(135deg,#087eae,#7838c8);color:#fff;font-weight:800;font-size:14px;box-shadow:0 4px 16px #0008;cursor:pointer";}
     b.addEventListener("click",()=>{
       lang=lang==="en"?"mix":"en";
       localStorage.setItem(KEY,lang);
