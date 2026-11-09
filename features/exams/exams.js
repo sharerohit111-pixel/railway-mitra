@@ -71,7 +71,7 @@
         <div class="exam-notice">No question paper is published here yet. When you provide a PDF, we will solve and verify every question with its explanation before publishing the test.</div>`;
       const list=root.querySelector("#examTestList");
       if(items.length){
-        list.innerHTML=items.map(item=>`<div class="exam-list-item"><div><strong>${esc(item.title)}</strong><small>${Number(item.totalQuestions)||0} questions • ${Number(item.durationMinutes)||0} minutes</small></div><span class="exam-pill">${item.access==="free"?"FREE":"PAID"}</span></div>`).join("");
+        list.innerHTML=items.map(item=>`<div class="exam-list-item"><div><strong>${esc(item.title)}</strong><small>${Number(item.totalQuestions)||0} questions • ${Number(item.durationMinutes)||0} minutes</small></div><div style="display:flex;align-items:center;gap:9px"><span class="exam-pill">${item.access==="free"?"FREE":"PAID"}</span><a class="exam-back" href="runner.html?test=${encodeURIComponent(item.testId)}">Start →</a></div></div>`).join("");
       } else {
         list.innerHTML='<div class="exam-empty"><div class="exam-empty-icon">📚</div><h3>No tests published yet</h3><p>This category is ready for unlimited future papers and tests. Your first PDF will be processed and added after answer verification.</p></div>';
       }
