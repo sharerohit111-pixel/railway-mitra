@@ -39,3 +39,6 @@ Persist one attempt per candidate and test. Preserve configured test settings wi
 
 ## Current phase status
 Navigation and catalogue structure only. No real paper or question has been published. Admin controls are intentionally not active until backend authorization and Firestore rules are implemented and tested.
+
+## Mandatory question and answer security boundary
+The public `catalog.json` may contain test metadata only. Never put question text, options, correct answers, explanations or answer keys in this static file or any public GitHub-hosted asset. Those files are downloadable by every visitor. Question delivery must be served from a protected backend. Correct answers must remain server-side and scoring must be performed by a trusted server function after submission. The browser runner is deliberately fail-closed until this backend exists; do not enable a test by adding question objects to the public catalogue.
