@@ -180,7 +180,7 @@ exports.startExam = onCall({ region: REGION }, async request => {
   });
   return {
     attemptId: attemptRef.id,
-    serverNowMs,
+    serverNowMs: Date.now(),
     deadlineAtMs,
     test: {
       testId,
