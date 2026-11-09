@@ -70,7 +70,8 @@
       "id": "rules",
       "name": "Railway Rules",
       "path": "features/rules/index.html",
-      "enabled": false
+      "enabled": true,
+      "description": "Category-wise Railway Rules in Hindi and English"
     },
     {
       "id": "engineering",
