@@ -2,7 +2,7 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 
 initializeApp();
 const db = getFirestore();
@@ -161,6 +161,7 @@ exports.startExam = onCall({ region: REGION }, async request => {
     category: test.category,
     status: "inProgress",
     startedAt: FieldValue.serverTimestamp(),
+    deadlineAt: Timestamp.fromMillis(Date.now() + durationMinutes * 60 * 1000),
     questionIds: questions.map(q => q.questionId),
     testSettings: settings
   });
@@ -202,17 +203,30 @@ exports.submitExam = onCall({ region: REGION }, async request => {
   }
 
   const testId = attempt.testId;
-  const keys = await Promise.all((attempt.questionIds || []).map(async id => {
-    const snap = await db.collection("examTests").doc(testId).collection("answerKeys").doc(id).get();
-    if (!snap.exists) throw new HttpsError("failed-precondition", "An answer key is missing. Contact the exam administrator.");
-    return [id, snap.data()];
-  }));
+  const [keys, publicQuestions] = await Promise.all([
+    Promise.all((attempt.questionIds || []).map(async id => {
+      const snap = await db.collection("examTests").doc(testId).collection("answerKeys").doc(id).get();
+      if (!snap.exists) throw new HttpsError("failed-precondition", "An answer key is missing. Contact the exam administrator.");
+      return [id, snap.data()];
+    })),
+    Promise.all((attempt.questionIds || []).map(async id => {
+      const snap = await db.collection("examTests").doc(testId).collection("questionsPublic").doc(id).get();
+      if (!snap.exists) throw new HttpsError("failed-precondition", "A question is missing. Contact the exam administrator.");
+      return [id, snap.data()];
+    }))
+  ]);
   const keyMap = new Map(keys);
+  const optionMap = new Map(publicQuestions.map(([id, q]) => [id, new Set((q.options || []).map(o => o.key))]));
+  if (Object.entries(submittedAnswers).some(([id, value]) => !optionMap.get(id)?.has(value))) {
+    throw new HttpsError("invalid-argument", "An answer option does not belong to its question.");
+  }
   const settings = attempt.testSettings;
+  const expired = attempt.deadlineAt && Date.now() > attempt.deadlineAt.toMillis() + 5000;
+  const acceptedAnswers = expired ? {} : submittedAnswers;
   let correct = 0, wrong = 0, unattempted = 0;
   const answerReview = [];
   for (const id of attempt.questionIds) {
-    const selectedOption = Object.prototype.hasOwnProperty.call(submittedAnswers, id) ? submittedAnswers[id] : null;
+    const selectedOption = Object.prototype.hasOwnProperty.call(acceptedAnswers, id) ? acceptedAnswers[id] : null;
     const key = keyMap.get(id);
     if (selectedOption === null) unattempted++;
     else if (selectedOption === key.correctOption) correct++;
@@ -236,7 +250,8 @@ exports.submitExam = onCall({ region: REGION }, async request => {
     negativeScore,
     score: Number((positiveScore - negativeScore).toFixed(2)),
     accuracy: Number((correct / total * 100).toFixed(2)),
-    elapsed
+    elapsed,
+    expired: Boolean(expired)
   };
 
   await db.runTransaction(async tx => {
@@ -247,7 +262,7 @@ exports.submitExam = onCall({ region: REGION }, async request => {
     tx.update(attemptRef, {
       status: "submitted",
       submittedAt: FieldValue.serverTimestamp(),
-      answers: submittedAnswers,
+      answers: acceptedAnswers,
       result,
       answerReview
     });
@@ -269,6 +284,9 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   }
   if (!["mock", "previous", "practice"].includes(category)) {
     throw new HttpsError("invalid-argument", "Unsupported test category.");
+  }
+  if (input.published !== true) {
+    throw new HttpsError("failed-precondition", "Only fully verified tests can be published in this version of the admin panel.");
   }
   if (!Array.isArray(input.questions) || input.questions.length < 1 || input.questions.length > MAX_QUESTIONS) {
     throw new HttpsError("invalid-argument", "Question count is outside the allowed range.");
