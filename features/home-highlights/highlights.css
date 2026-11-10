@@ -304,3 +304,52 @@
     font-size: 9px;
   }
 }
+
+
+/* Founder badge: fixed portrait on the LEFT, centered bold name, no portrait movement. */
+.app-header::after {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+  font-weight: 850 !important;
+  letter-spacing: .2px !important;
+  line-height: 1.25 !important;
+  padding: 8px 12px 8px 52px !important;
+  min-height: 48px !important;
+  background-position: 8px center, 50% 50% !important;
+  background-size: 34px 34px, 220% 100% !important;
+  background-repeat: no-repeat, no-repeat !important;
+  animation: rm-founder-badge-glow 3.2s ease-in-out infinite !important;
+  transform: none !important;
+}
+.app-header::after::first-letter { font-weight: 900; }
+@keyframes rm-founder-badge-glow {
+  0%, 100% {
+    border-color: rgba(53, 232, 255, .75);
+    box-shadow: 0 0 7px rgba(53, 232, 255, .18), 0 0 0 1px rgba(53, 232, 255, .08);
+    filter: brightness(1);
+  }
+  50% {
+    border-color: rgba(255, 69, 212, .95);
+    box-shadow: 0 0 13px rgba(53, 232, 255, .32), 0 0 17px rgba(255, 69, 212, .22);
+    filter: brightness(1.12);
+  }
+}
+@media (max-width: 400px) {
+  .app-header::after {
+    min-height: 44px !important;
+    padding: 7px 9px 7px 46px !important;
+    background-position: 7px center, 50% 50% !important;
+    background-size: 31px 31px, 220% 100% !important;
+    font-size: 10px !important;
+    letter-spacing: .1px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-header::after {
+    animation: none !important;
+    filter: none !important;
+  }
+}
