@@ -426,7 +426,7 @@ exports.listExamContent = onCall({ region: REGION }, async request => {
   ]);
   return {
     folders: folders.docs.map(d => ({ id: d.id, name: d.data().name, category: d.data().category || "", isRoot: d.data().isRoot === true })),
-    files: files.docs.map(d => ({ id: d.id, folderId: d.data().folderId, name: d.data().name, size: d.data().size, createdAt: d.data().createdAt && d.data().createdAt.toMillis ? d.data().createdAt.toMillis() : null, storagePath: d.data().storagePath }))
+    files: files.docs.map(d => ({ id: d.id, folderId: d.data().folderId, name: d.data().name, size: d.data().size, price: Number(d.data().price || 0), published: d.data().published === true, createdAt: d.data().createdAt && d.data().createdAt.toMillis ? d.data().createdAt.toMillis() : null, storagePath: d.data().storagePath }))
   };
 });
 exports.createExamContentFolder = onCall({ region: REGION }, async request => {
@@ -482,7 +482,7 @@ exports.registerExamContentFile = onCall({ region: REGION }, async request => {
   const [exists] = await bucket.file(storagePath).exists();
   if (!exists) throw new HttpsError("failed-precondition", "Uploaded PDF was not found in secure storage.");
   const ref = db.collection("examContentFiles").doc(fileId);
-  await ref.create({ folderId, name, nameLower: name.toLocaleLowerCase(), size, contentType: "application/pdf", storagePath, uploadedBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  await ref.create({ folderId, name, nameLower: name.toLocaleLowerCase(), size, price: 0, published: false, contentType: "application/pdf", storagePath, uploadedBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
   return { success: true, id: fileId, name };
 });
 exports.renameExamContentFile = onCall({ region: REGION }, async request => {
