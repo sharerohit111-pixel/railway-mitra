@@ -286,7 +286,7 @@
   min-height: 42px;
   padding: 6px 12px 6px 48px;
   border-radius: 24px;
-  background-image: url("../images/rohit-founder-avatar.svg"), linear-gradient(105deg, #102B50, #342052, #102B50);
+  background-image: url("../../assets/images/rohit-founder-avatar.svg"), linear-gradient(105deg, #102B50, #342052, #102B50);
   background-repeat: no-repeat, no-repeat;
   background-size: 34px 34px, 220% 100%;
   background-position: 6px center, 0% 50%;
