@@ -81,14 +81,13 @@ async function openThread(id) {
     replyForm.append(input,btn);
     replyForm.addEventListener("submit",async event=>{
       event.preventDefault(); btn.disabled=true;
-      try { await call("replyToUserFeedback")({feedbackId:id,message:input.value.trim()}); await openThread(id); await loadFeedbackListOnly(); }
+      try { await call("replyToUserFeedback")({feedbackId:id,message:input.value.trim()}); await loadFeedback(); await openThread(id); }
       catch(error){ alert(readableError(error)); btn.disabled=false; }
     });
     thread.append(replyForm);
     thread.scrollIntoView({behavior:"smooth",block:"nearest"});
   } catch(error) { thread.replaceChildren(el("p","rm-fb-muted",readableError(error))); }
 }
-async function loadFeedbackListOnly() { await loadFeedback(); }
 form.addEventListener("submit",async event=>{
   event.preventDefault();
   const btn=document.getElementById("fbSubmit"); btn.disabled=true;
