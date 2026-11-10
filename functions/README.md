@@ -48,3 +48,22 @@ Region: `asia-south1`.
 ## Paper source metadata
 
 The owner publishing form accepts an optional source label and paper year. These values are stored in `examTestCatalog` and shown in the published test list. Record the official paper/source details accurately; do not label generated practice questions as official previous-year papers.
+
+
+## Candidate store and payment workflow (manual UPI verification)
+
+- Owner configures merchant UPI ID, display name, subscription price and validity in the Finance Admin Panel.
+- Candidates open `features/exams/store.html`, view the subscription and published study PDFs, pay through the configured UPI intent, and submit the UTR/reference.
+- Candidate payment requests are stored as `pending`; only the owner can approve them from Finance Admin.
+- Subscription approval writes `userEntitlements/{uid}`; material approval writes `materialEntitlements/{uid}/items/{fileId}`.
+- Owner publishes/unpublishes study PDFs in Content Manager. New PDFs are private/unpublished by default.
+- `getStudyMaterialDownloadUrl` issues a short-lived signed URL only for free published PDFs or candidates with an active material entitlement.
+- Automatic payment verification is not active. The owner must independently confirm each UPI transaction in the merchant bank/UPI app before approval. Do not approve based on screenshots alone.
+
+## Bilingual GDCE JE Civil paper
+
+- Prepared source data: `features/exams/data/gdce-je-civil-previous-2026.json`.
+- English question and option text is available for all 150 questions, sourced from the matching English CBT.
+- Hindi source text/options are shown where present in the candidate response-sheet-derived bank; where Hindi text was not supplied, the CBT falls back to English. This dataset is not fully Hindi-translated.
+- The owner admin form has a “Load verified 150-question…” button. It fills the publishing form; the owner must review and explicitly publish. The backend keeps answer keys private.
+- Civil Q96 (global Q146) was replaced with a beam calculation; the answer is option 2 from Mmax = PL/4 = 30 kN·m. The response-key option 3 refers to the original earthwork-equipment question, not the replacement.
