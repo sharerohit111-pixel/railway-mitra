@@ -37,13 +37,12 @@
   box-shadow: 0 5px 18px rgba(53,232,255,.12) !important;
 }
 .welcome-section .rm-heroes-tribute img {
-  display: none !important;
-}
-.welcome-section .rm-heroes-tribute svg {
   display: block !important;
   width: 100% !important;
   height: auto !important;
   max-height: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
   border-radius: 0 !important;
 }
 .welcome-section > .profile-btn {
