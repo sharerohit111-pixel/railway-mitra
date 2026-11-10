@@ -563,3 +563,23 @@
   .rm-heroes-tribute { margin:10px auto 16px; }
   .rm-heroes-tribute img { max-height:145px; }
 }
+
+/* Use the exact tribute artwork from the user's approved screenshot. */
+.rm-heroes-tribute img { display:none !important; }
+.rm-heroes-tribute {
+  width:100%;
+  max-width:100%;
+  margin:10px auto 16px;
+  padding:0;
+  overflow:hidden;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+}
+.rm-heroes-tribute svg {
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:0;
+}
+.welcome-section > h2 { text-align:center !important; width:100%; margin-inline:auto !important; }
