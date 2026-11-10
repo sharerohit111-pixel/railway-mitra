@@ -219,3 +219,12 @@ after(async () => {
   await db.collection("materialEntitlements").doc(candidateUid).collection("items").doc(materialFileId).delete().catch(() => {});
   await db.collection("examContentFiles").doc(materialFileId).delete().catch(() => {});
 });
+
+test("candidate attempt records are visible only to the owner", async () => {
+  const denied = await call("adminListExamAttempts", candidateToken, { limit: 100 });
+  assert.notEqual(denied.status, 200);
+  assert.equal(denied.body.error && denied.body.error.status, "PERMISSION_DENIED");
+  const allowed = await call("adminListExamAttempts", adminToken, { limit: 100 });
+  assert.equal(allowed.status, 200);
+  assert.ok(allowed.body.result.attempts.some(x => x.uid === candidateUid && x.testId === freeTestId));
+});
