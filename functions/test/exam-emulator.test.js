@@ -149,3 +149,65 @@ test("non-admin cannot publish; owner admin can publish verified test", async ()
   await db.collection("examTests").doc(testId).collection("questionsPublic").doc("q1").delete();
   await db.collection("examTests").doc(testId).collection("answerKeys").doc("q1").delete();
 });
+
+
+const subscriptionPaymentRef = "upi-sub-" + suffix;
+const materialPaymentRef = "upi-mat-" + suffix;
+const materialFileId = "material-" + suffix;
+test("owner-only finance ledger records and approves subscription and material payments", async () => {
+  const denied = await call("adminGetFinanceSettings", candidateToken, {});
+  assert.notEqual(denied.status, 200);
+  assert.equal(denied.body.error && denied.body.error.status, "PERMISSION_DENIED");
+
+  const defaults = await call("adminGetFinanceSettings", adminToken, {});
+  assert.equal(defaults.status, 200);
+  assert.equal(defaults.body.result.subscriptionPrice, 300);
+  assert.equal(defaults.body.result.subscriptionDays, 30);
+
+  const recorded = await call("adminRecordPayment", adminToken, {
+    uid: candidateUid, amount: 300, reference: subscriptionPaymentRef, type: "subscription"
+  });
+  assert.equal(recorded.status, 200);
+  assert.equal(recorded.body.result.success, true);
+
+  const approved = await call("adminApprovePayment", adminToken, {
+    uid: candidateUid, reference: subscriptionPaymentRef
+  });
+  assert.equal(approved.status, 200);
+  assert.ok(approved.body.result.expiresAt);
+
+  const entitlement = await db.collection("userEntitlements").doc(candidateUid).get();
+  assert.equal(entitlement.data().active, true);
+  assert.ok(entitlement.data().expiresAt.toMillis() > Date.now());
+
+  await db.collection("examContentFiles").doc(materialFileId).set({
+    name: "Emulator Study PDF", price: 50, storagePath: "emulator-only/no-real-file.pdf"
+  });
+  const priced = await call("adminSetMaterialPrice", adminToken, { fileId: materialFileId, price: 75 });
+  assert.equal(priced.status, 200);
+  assert.equal(priced.body.result.price, 75);
+
+  const materialRecorded = await call("adminRecordPayment", adminToken, {
+    uid: candidateUid, amount: 75, reference: materialPaymentRef,
+    type: "study-material", materialId: materialFileId
+  });
+  assert.equal(materialRecorded.status, 200);
+
+  const materialApproved = await call("adminApprovePayment", adminToken, {
+    uid: candidateUid, reference: materialPaymentRef
+  });
+  assert.equal(materialApproved.status, 200);
+  const materialEntitlement = await db.collection("materialEntitlements").doc(candidateUid)
+    .collection("items").doc(materialFileId).get();
+  assert.equal(materialEntitlement.data().active, true);
+});
+
+after(async () => {
+  for (const ref of [subscriptionPaymentRef, materialPaymentRef]) {
+    await db.collection("paymentRecords").doc(ref).delete().catch(() => {});
+  }
+  await db.collection("appSettings").doc("finance").delete().catch(() => {});
+  await db.collection("userEntitlements").doc(candidateUid).delete().catch(() => {});
+  await db.collection("materialEntitlements").doc(candidateUid).collection("items").doc(materialFileId).delete().catch(() => {});
+  await db.collection("examContentFiles").doc(materialFileId).delete().catch(() => {});
+});
