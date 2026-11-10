@@ -164,11 +164,16 @@ test("owner-only finance ledger records and approves subscription and material p
   assert.equal(defaults.body.result.subscriptionPrice, 300);
   assert.equal(defaults.body.result.subscriptionDays, 30);
 
-  const recorded = await call("adminRecordPayment", adminToken, {
-    uid: candidateUid, amount: 300, reference: subscriptionPaymentRef, type: "subscription"
+  const storeSettings = await call("getPublicStoreSettings", candidateToken, {});
+  assert.equal(storeSettings.status, 200);
+  assert.equal(storeSettings.body.result.subscriptionPrice, 300);
+  const recorded = await call("createCandidatePaymentRequest", candidateToken, {
+    reference: subscriptionPaymentRef, type: "subscription"
   });
   assert.equal(recorded.status, 200);
-  assert.equal(recorded.body.result.success, true);
+  assert.equal(recorded.body.result.amount, 300);
+  const myRequests = await call("getMyPaymentRequests", candidateToken, {});
+  assert.ok(myRequests.body.result.payments.some(p => p.reference === subscriptionPaymentRef));
 
   const approved = await call("adminApprovePayment", adminToken, {
     uid: candidateUid, reference: subscriptionPaymentRef
@@ -186,12 +191,15 @@ test("owner-only finance ledger records and approves subscription and material p
   const priced = await call("adminSetMaterialPrice", adminToken, { fileId: materialFileId, price: 75 });
   assert.equal(priced.status, 200);
   assert.equal(priced.body.result.price, 75);
-
-  const materialRecorded = await call("adminRecordPayment", adminToken, {
-    uid: candidateUid, amount: 75, reference: materialPaymentRef,
-    type: "study-material", materialId: materialFileId
+  const published = await call("adminSetMaterialPublication", adminToken, { fileId: materialFileId, published: true });
+  assert.equal(published.status, 200);
+  const materials = await call("listStudyMaterials", candidateToken, {});
+  assert.ok(materials.body.result.materials.some(x => x.id === materialFileId && x.price === 75));
+  const materialRecorded = await call("createCandidatePaymentRequest", candidateToken, {
+    reference: materialPaymentRef, type: "study-material", materialId: materialFileId
   });
   assert.equal(materialRecorded.status, 200);
+  assert.equal(materialRecorded.body.result.amount, 75);
 
   const materialApproved = await call("adminApprovePayment", adminToken, {
     uid: candidateUid, reference: materialPaymentRef
