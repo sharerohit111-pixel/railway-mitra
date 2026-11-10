@@ -1,0 +1,27 @@
+/* FICS — quiet, non-overlapping folder identifier */
+.rm-folder-code-host {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 14px 10px;
+  margin: 0;
+  pointer-events: none;
+}
+.rm-folder-code {
+  display: inline-block;
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid rgba(154, 190, 220, .14);
+  border-radius: 7px;
+  color: rgba(190, 211, 232, .48);
+  background: rgba(112, 145, 180, .045);
+  font: 500 9px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: .09em;
+  white-space: nowrap;
+  user-select: text;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rm-folder-code { transition: none; }
+}
