@@ -12,7 +12,11 @@
     "gdce-je-civil": { name:"GDCE JE Civil Engineering", group:"GDCE JE", icon:"🏗️", freeMock:true },
     "gdce-je-electrical": { name:"GDCE JE Electrical Engineering", group:"GDCE JE", icon:"⚡", freeMock:true },
     "gdce-je-mechanical": { name:"GDCE JE Mechanical Engineering", group:"GDCE JE", icon:"⚙️", freeMock:true },
-    "gdce-train-manager": { name:"GDCE Train Manager", group:"GDCE", icon:"🚆", freeMock:true }
+    "gdce-train-manager": { name:"GDCE Train Manager", group:"GDCE", icon:"🚆", freeMock:true },
+    "ldce-je-civil": { name:"LDCE JE Civil Engineering", group:"LDCE JE", icon:"🏗️", freeMock:true },
+    "ldce-je-electrical": { name:"LDCE JE Electrical Engineering", group:"LDCE JE", icon:"⚡", freeMock:true },
+    "ldce-je-mechanical": { name:"LDCE JE Mechanical Engineering", group:"LDCE JE", icon:"⚙️", freeMock:true },
+    "ldce-other-posts": { name:"LDCE Other Departmental Posts", group:"LDCE", icon:"🚉", freeMock:true }
   };
   const types = {
     mock:{name:"Mock Test",plural:"Mock Tests",icon:"📝",description:"Full-length computer-based examination practice."},
@@ -43,7 +47,7 @@
     if(page==="home"){
       root.innerHTML = header("Exam Preparation","Choose Railway Departmental examinations or explore the separate Other Exams app when it becomes available.","../../index.html") + `
         <h2 class="exam-section-title">A. Railway Departmental Exams</h2>
-        <div class="exam-card-grid">${card("🚆","Railway Departmental Exams","GDCE and LDCE examination preparation, question papers and study resources.","gdce.html","Departmental only")}${card("💳","Subscription & Study Material","Buy all-tests access or separately priced study PDFs using verified UPI payments.","store.html","Candidate Store")}${card("📊","My Test Results","View your submitted tests, scores and accuracy from your online account.","my-results.html","My Results")}</div>
+        <div class="exam-card-grid">${card("🚆","GDCE Departmental Exams","GDCE JE and other GDCE posts: mock tests, previous papers and practice sets.","gdce.html","GDCE")}${card("📘","LDCE Departmental Exams","Separate LDCE streams, mock tests, previous papers and practice sets.","ldce.html","LDCE")}${card("💳","Subscription & Study Material","Buy all-tests access or separately priced study PDFs using verified UPI payments.","store.html","Candidate Store")}${card("📊","My Test Results","View your submitted tests, scores and accuracy from your online account.","my-results.html","My Results")}</div>
         <h2 class="exam-section-title">B. Other Exams</h2>
         <div class="exam-card-grid"><div class="exam-card"><span class="exam-card-icon">🌐</span><h3>Other Exams</h3><p>A separate app for other competitive examinations, mock tests, practice sets and study material.</p><span class="exam-card-meta"><span class="exam-pill pending">Under Progress</span><span>Coming soon</span></span></div></div>
         <div class="exam-notice">Other Exams will open through a separate app link after that app is developed. This section is intentionally shown as Under Progress for now.</div>`;
@@ -62,8 +66,19 @@
         <div class="exam-admin-note">LDCE JE and other LDCE modules will be added separately after their requirements are finalised. This first development phase is for GDCE only.</div>`;
       return;
     }
+    if(page==="ldce"){
+      root.innerHTML = header("LDCE Departmental Exams","LDCE has its own independent streams and separate Mock Tests, Previous Year Papers and Practice Sets. Only owner-published papers appear in candidate lists.","index.html") + `
+        <h2 class="exam-section-title">LDCE JE Streams</h2><div class="exam-card-grid">
+          ${card("🏗️","LDCE JE Civil Engineering","Civil engineering LDCE preparation and papers.","stream.html?stream=ldce-je-civil")}
+          ${card("⚡","LDCE JE Electrical Engineering","Electrical engineering LDCE preparation and papers.","stream.html?stream=ldce-je-electrical")}
+          ${card("⚙️","LDCE JE Mechanical Engineering","Mechanical engineering LDCE preparation and papers.","stream.html?stream=ldce-je-mechanical")}
+        </div><h2 class="exam-section-title">Other LDCE Posts</h2><div class="exam-card-grid">
+          ${card("🚉","Other Departmental Posts","Separate LDCE category for additional posts as approved papers become available.","stream.html?stream=ldce-other-posts")}
+        </div><div class="exam-notice">LDCE papers are kept separate from GDCE. The owner must upload and verify each paper before it becomes visible to candidates.</div>`;
+      return;
+    }
     if(page==="stream"){
-      root.innerHTML = header(esc(stream.name),"Choose the type of preparation you want. Mock Tests, Previous Year Papers and Practice Sets remain separate.","gdce.html") + `
+      root.innerHTML = header(esc(stream.name),"Choose the type of preparation you want. Mock Tests, Previous Year Papers and Practice Sets remain separate.",streamId.startsWith("ldce-")?"ldce.html":"gdce.html") + `
         <h2 class="exam-section-title">Choose Test Category</h2><div class="exam-card-grid">
           ${Object.entries(types).map(([id,t])=>card(t.icon,t.plural,t.description,`tests.html?stream=${encodeURIComponent(streamId)}&type=${id}`,id==="mock"?"First mock test planned as free":"Separate test library")).join("")}
         </div><div class="exam-notice">Every paper will have its own question count, duration, marks per question, negative marking, solution availability and access setting.</div>`;
