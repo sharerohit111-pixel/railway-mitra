@@ -149,3 +149,26 @@ test("non-admin cannot publish; owner admin can publish verified test", async ()
   await db.collection("examTests").doc(testId).collection("questionsPublic").doc("q1").delete();
   await db.collection("examTests").doc(testId).collection("answerKeys").doc("q1").delete();
 });
+
+test("content library is owner-only and supports folder management", async () => {
+  const denied = await call("listExamContent", candidateToken, { parentId: null });
+  assert.notEqual(denied.status, 200);
+  assert.equal(denied.body.error && denied.body.error.status, "PERMISSION_DENIED");
+
+  const listed = await call("listExamContent", adminToken, { parentId: null });
+  assert.equal(listed.status, 200);
+  const roots = listed.body.result.folders;
+  assert.deepEqual(roots.map(x => x.name).sort(), ["GDCE", "LDCE", "STUDY MATERIAL"].sort());
+
+  const root = roots.find(x => x.name === "GDCE");
+  const created = await call("createExamContentFolder", adminToken, { parentId: root.id, name: "Emulator Test Folder" });
+  assert.equal(created.status, 200);
+  const folderId = created.body.result.id;
+
+  const renamed = await call("renameExamContentFolder", adminToken, { folderId, name: "Emulator Renamed Folder" });
+  assert.equal(renamed.status, 200);
+  assert.equal(renamed.body.result.name, "Emulator Renamed Folder");
+
+  const deleted = await call("deleteExamContentFolder", adminToken, { folderId });
+  assert.equal(deleted.status, 200);
+});
