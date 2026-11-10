@@ -2,12 +2,12 @@
   "use strict";
   const header=document.querySelector(".app-header");
   if(!header||document.getElementById("rmGlobalSearch"))return;
-  const rootPrefix=location.pathname.includes("/features/")?"../../":"./";
+  const segments=location.pathname.split("/").filter(Boolean);\n  const featureAt=segments.indexOf("features");\n  const rootPrefix=featureAt>=0?"../".repeat(segments.length-featureAt-1):"./";
   const pages=[
-    ["Salary & Pay","Salary calculator, basic pay, pay level, increment","💰","features/salary/index.html"],
+    ["My Profile","Employee details and profile settings","👤","features/profile/index.html"],\n    ["8th Pay Commission","8th CPC salary and arrear estimate","📈","features/pay-commission-8th/index.html"],
     ["Allowances","DA, HRA, TA, NDA, OTA, KMA","📊","features/allowances/index.html"],
-    ["DA Arrear Calculator","DA arrears and difference calculation","🧮","features/arrears/index.html"],
-    ["Duty Management","Duty records and attendance","🕒","features/duty/index.html"],
+    ["DA Arrear Calculator","DA arrears and difference calculation","🧮","features/allowances/da-arrear/index.html"],
+    ["Duty Roster & Allowance Diary","Daily duty records and monthly allowance ledger","🕒","features/duty-diary/index.html"],
     ["Leave Management","Leave balance and leave calculator","📅","features/leave/index.html"],
     ["NPS & Pension","NPS and retirement planning","🏦","features/retirement/index.html"],
     ["Loan & Finance","Loan EMI and financial tools","💳","features/finance/index.html"],
@@ -26,7 +26,7 @@
   ];
   const wrap=document.createElement("section");wrap.id="rmGlobalSearch";wrap.className="rm-global-search";
   wrap.innerHTML='<div class="rm-search-inner"><label class="rm-search-field"><span>⌕</span><input id="rmSearchInput" type="search" autocomplete="off" placeholder="Search Railway Mitra features, calculators, exams…" aria-label="Search all Railway Mitra features"><span aria-hidden="true">⌘ K</span></label><div id="rmSearchResults" class="rm-search-results" role="listbox"></div><p class="rm-search-hint">Search all available app sections. Private owner files appear only in verified admin sessions.</p></div>';
-  header.appendChild(wrap);
+  if(header){header.appendChild(wrap);}else{wrap.style.position="sticky";wrap.style.top="0";wrap.style.zIndex="150";document.body.insertBefore(wrap,document.body.firstChild);}\n  const style=document.createElement("link");style.rel="stylesheet";style.href=rootPrefix+"assets/css/global-search.css";document.head.appendChild(style);
   const input=wrap.querySelector("#rmSearchInput"),results=wrap.querySelector("#rmSearchResults");
   let owner=false,searchFn=null,storageApi=null,debounce=null;
   function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
