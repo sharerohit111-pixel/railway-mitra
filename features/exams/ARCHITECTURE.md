@@ -1,0 +1,55 @@
+# Railway Mitra — Departmental Exam System
+
+## Scope
+- Railway Departmental Exams is the active product area.
+- First implementation phase: GDCE only.
+- GDCE JE streams: Civil, Electrical, Mechanical.
+- Separate GDCE stream: Train Manager.
+- Each stream owns three independent libraries: Mock Tests, Previous Year Paper Tests, Practice Sets.
+- LDCE is deliberately deferred until its requirements are supplied.
+- Other Exams remains Under Progress and will later link to a separate application.
+
+## Isolation
+All new code lives under `features/exams/`. The home page receives only one entry card and one isolated stylesheet reference. Existing calculators, employee modules, authentication code and service-worker logic are not modified.
+
+## Test configuration
+Each test record must independently store: question count, duration, positive marks per question, negative marks per wrong answer, source paper/year, access mode, price, publication state and solution availability. First mock test per stream is intended to be free. All other tests are paid; the ₹300 subscription unlocks all tests in the app. Study material is separately priced per item by the administrator.
+
+## Question workflow
+1. Preserve the source PDF and its paper metadata.
+2. Extract and solve every question.
+3. Add a verified correct option and explanation to each question.
+4. Flag uncertain questions for owner review; do not publish unverified answers.
+5. Publish only after review approval.
+
+## Data model (Firestore design)
+- `examTestCatalog/{testId}`: public test metadata, stream, category, settings, free/paid access and publication state.
+- `examTests/{testId}/questionsPublic/{questionId}`: question text and options only; no answer key or explanation.
+- `examTests/{testId}/answerKeys/{questionId}`: correct option and explanation; callable backend/Admin SDK only.
+- `users/{uid}/examAttempts/{attemptId}`: candidate-owned attempt, server timestamps, submitted answers, scoring breakdown and post-submission review.
+- `studyMaterials/{materialId}`: title, stream, file reference, description and independent price.
+- `userEntitlements/{uid}`: subscription entitlement and expiry, written only by trusted backend after payment verification.
+- `adminAuditLogs/{logId}`: administrator changes and timestamps.
+
+## Security gates before live data writes
+The current Firestore project was previously observed in production mode with restrictive rules. Do not enable client-side writes until rules are deployed. Admin access must use Firebase Authentication plus a trusted owner role/custom claim. Correct answers should not be sent to the candidate before submission. Payment verification and entitlement changes must run in trusted server code; the AI assistant must have no payment/refund/gateway permissions.
+
+## Candidate attempt records
+Persist one attempt per candidate and test. Preserve configured test settings with the attempt snapshot so later edits to a test do not rewrite historical scoring. Score formula: (correct × positive marks) − (wrong × negative marks). Keep unattempted count, accuracy, time spent and question-wise review data.
+
+## Current phase status
+Navigation and catalogue structure only. No real paper or question has been published. Admin controls are intentionally not active until backend authorization and Firestore rules are implemented and tested.
+
+## Mandatory question and answer security boundary
+The public `catalog.json` may contain test metadata only. Never put question text, options, correct answers, explanations or answer keys in this static file or any public GitHub-hosted asset. Those files are downloadable by every visitor. Question delivery must be served from a protected backend. Correct answers must remain server-side and scoring must be performed by a trusted server function after submission. The browser runner is deliberately fail-closed until this backend exists; do not enable a test by adding question objects to the public catalogue.
+
+
+## Trusted Cloud Functions (implementation added; deployment pending)
+- Firebase Functions v2 callable endpoints run in `asia-south1`.
+- `listPublishedTests` returns published metadata only.
+- `startExam` checks authentication and paid entitlement, creates a user-owned attempt, and returns question text/options without answer keys.
+- `submitExam` validates the attempt owner and submitted question IDs, reads answer keys with Admin SDK, calculates the score on the server, and writes the final result/review to the user's attempt.
+- `adminPublishTest` requires the Firebase custom claim `admin === true`; it writes public question text/options separately from private answer keys and creates an audit record.
+- The callable endpoints use Admin SDK and do not depend on client write permissions. The proposed Firestore rules must deny direct client reads/writes to `questionsPublic`, `answerKeys`, and candidate attempt creation.
+- No payment gateway or subscription purchase is implemented. Paid access is granted only by a trusted backend entitlement record; never by a browser-side flag.
+- The Functions source and Firebase configuration are committed to the feature branch only. They have not been installed, deployed, or tested against production Firebase.
