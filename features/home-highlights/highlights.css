@@ -130,10 +130,10 @@
   }
 }
 
-/* Keep the heading clearly below the Founder ribbon on mobile. */
+/* Compact mobile welcome panel: remove the oversized gap below the Founder ribbon. */
 @media (max-width: 768px) {
   .welcome-section {
-    padding: 100px 20px 27px !important;
+    padding: 28px 20px 27px !important;
   }
   .welcome-section::after {
     top: 18px;
@@ -142,24 +142,39 @@
     position: relative;
     z-index: 2;
     margin: 0 0 9px !important;
-    animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
-    -webkit-animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
   }
 }
 
-/* Explicit blink/glow for the requested welcome heading. */
+/* Vivid Railway Mitra cyan-purple-pink title animation. */
 .welcome-section h2 {
-  animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
-  -webkit-animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
-  will-change: opacity, text-shadow;
+  color: #35E8FF !important;
+  background: linear-gradient(90deg, #35E8FF 0%, #FFFFFF 24%, #FF45D4 52%, #9B5CFF 76%, #35E8FF 100%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 1 !important;
+  animation: rm-welcome-vivid-pulse 2.1s ease-in-out infinite !important;
+  -webkit-animation: rm-welcome-vivid-pulse 2.1s ease-in-out infinite !important;
+  filter: drop-shadow(0 0 5px rgba(53, 232, 255, .65));
+  will-change: background-position, filter;
 }
-@keyframes rm-welcome-title-pulse {
+@keyframes rm-welcome-vivid-pulse {
   0%, 100% {
-    opacity: 1;
-    text-shadow: 0 0 7px rgba(53, 232, 255, .3), 0 0 14px rgba(255, 69, 212, .18);
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 5px rgba(53, 232, 255, .65)) drop-shadow(0 0 9px rgba(155, 92, 255, .35));
   }
   50% {
-    opacity: .48;
-    text-shadow: 0 0 16px rgba(53, 232, 255, .95), 0 0 26px rgba(255, 69, 212, .7);
+    background-position: 100% 50%;
+    filter: drop-shadow(0 0 9px rgba(53, 232, 255, 1)) drop-shadow(0 0 15px rgba(255, 69, 212, .9));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-section h2 {
+    animation: none !important;
+    -webkit-animation: none !important;
+    opacity: 1 !important;
+    background-position: 50% 50%;
   }
 }
