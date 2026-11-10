@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090d16">
+  <title>8th Pay Commission | Railway Mitra</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="./calculator.css">
+
+<script src="../../assets/js/language.js" defer></script>
+</head>
+<body>
+<main class="rm8-page">
+  <a class="rm8-back" href="../../index.html">← Dashboard पर वापस जाएँ</a>
+  <header class="rm8-header">
+    <div class="rm8-icon">📈</div>
+    <div><p>RAILWAY MITRA · PAY TOOLS</p><h1>8th Pay Commission</h1><span>संभावित वेतन एवं एरियर कैलकुलेटर</span></div>
+  </header>
+
+  <section class="rm8-profile" id="profileSummary">
+    <div><small>EMPLOYEE PROFILE</small><strong id="employeeName">प्रोफाइल उपलब्ध नहीं</strong><span id="employeeMeta">पहले Employee Profile में जानकारी सेव करें।</span></div>
+    <a href="../profile/index.html">प्रोफाइल देखें / बदलें</a>
+  </section>
+
+  <section class="rm8-mode-card" id="modeChooser">
+    <h2>आप क्या गणना करना चाहते हैं?</h2>
+    <div class="rm8-mode-options">
+      <button type="button" id="chooseSalaryBtn">मासिक नया वेतन</button>
+      <button type="button" id="chooseArrearBtn">एरियर</button>
+    </div>
+  </section>
+
+  <section class="rm8-card" id="calculatorForm" hidden>
+    <div class="rm8-form-heading">
+      <h2 id="formModeTitle">गणना के विवरण</h2>
+      <button type="button" id="changeModeBtn">← विकल्प बदलें</button>
+    </div>
+    <div class="rm8-grid">
+      <div class="rm8-field">
+        <label for="basicPay">वर्तमान 7th CPC Basic Pay (₹)</label>
+        <input type="number" id="basicPay" min="1" step="1" inputmode="numeric">
+        <small class="field-source" id="basicSource">Employee Profile से भरा जाएगा</small>
+      </div>
+      <div class="rm8-field">
+        <label for="fitmentFactor">अनुमानित Fitment Factor</label>
+        <select id="fitmentFactor">
+          <option value="1.92">1.92x · Conservative</option>
+          <option value="2.15">2.15x · Moderate</option>
+          <option value="2.28" selected>2.28x · Expected</option>
+          <option value="2.57">2.57x · 7th CPC Benchmark</option>
+          <option value="2.86">2.86x · High Projection</option>
+          <option value="3.833">3.833x · Union Demand</option>
+        </select>
+      </div>
+      <div class="rm8-field" data-mode="salary">
+        <label for="quarterAllotted">क्या सरकारी रेलवे क्वार्टर मिला हुआ है?</label>
+        <select id="quarterAllotted">
+          <option value="no" selected>नहीं — HRA मिलेगा</option>
+          <option value="yes">हाँ — HRA नहीं मिलेगा</option>
+        </select>
+        <small class="field-source">क्वार्टर मिलने पर मासिक वेतन में HRA ₹0 माना जाएगा।</small>
+      </div>
+      <div class="rm8-field" id="cityClassField" data-mode="salary">
+        <label for="cityClass">शहर की श्रेणी (मासिक HRA)</label>
+        <select id="cityClass">
+          <option value="24">X-Class · 24%</option>
+          <option value="16" selected>Y-Class · 16%</option>
+          <option value="8">Z-Class · 8%</option>
+        </select>
+        <small class="field-source" id="hraRateNote">चुनी हुई श्रेणी के अनुसार नया HRA अनुमानित होगा।</small>
+      </div>
+      <div class="rm8-field" data-mode="salary">
+        <label for="baseTpta">Base Transport Allowance (₹)</label>
+        <select id="baseTpta">
+          <option value="1350">₹1,350 · Level 1–2 / Other City</option>
+          <option value="1800" selected>₹1,800 · Level 3–8 / Other City</option>
+          <option value="3600">₹3,600 · Level 3–8 / Higher TPTA City</option>
+          <option value="7200">₹7,200 · Level 9+ / Higher City</option>
+        </select>
+        <small class="field-source" id="tptaSource">Profile TPA / Level से मिलान होगा; कृपया जाँचें</small>
+      </div>
+      <div class="rm8-field" data-mode="arrear">
+        <label for="effectiveDate">संभावित प्रभावी तिथि</label>
+        <input type="month" id="effectiveDate" value="2026-01">
+      </div>
+      <div class="rm8-field" data-mode="arrear">
+        <label for="arrearEndDate">एरियर की गणना किस तारीख तक करनी है?</label>
+        <input type="date" id="arrearEndDate" value="2026-11-09">
+        <small class="field-source">डिफ़ॉल्ट आज की तारीख है। चाहें तो अपनी दूसरी तारीख चुनें।</small>
+      </div>
+      <div class="rm8-field">
+        <label for="currentDa">वर्तमान 7th CPC DA (%)</label>
+        <input type="number" id="currentDa" value="60" min="0" max="200" step="0.01">
+      </div>
+    </div>
+    <div class="rm8-actions">
+      <button type="button" id="calculateSalaryBtn">मासिक नया वेतन निकालें</button>
+      <button type="button" id="calculateArrearBtn">केवल एरियर निकालें</button>
+    </div>
+  </section>
+
+  <section class="rm8-result" id="salaryResultBox" hidden aria-live="polite">
+    <div class="rm8-result-head"><small>ESTIMATED NEW MONTHLY NET SALARY</small><strong id="netSalaryDisplay">₹0</strong><span id="salaryJumpDisplay">मासिक शुद्ध बढ़ोतरी: ₹0</span></div>
+    <div class="rm8-result-grid">
+      <div><small>नया Basic Pay</small><strong id="newBasicDisplay">₹0</strong></div>
+      <div><small>नया HRA</small><strong id="newHraDisplay">₹0</strong></div>
+      <div><small>नया Transport Allowance</small><strong id="newTaDisplay">₹0</strong></div>
+      <div><small>नई NPS कटौती (10%)</small><strong id="npsDisplay">-₹0</strong></div>
+    </div>
+    <div class="rm8-breakdown">
+      <div><span>वर्तमान 7th CPC अनुमानित Gross</span><strong id="oldGrossDisplay">₹0</strong></div>
+      <div><span>नया अनुमानित Gross</span><strong id="newGrossDisplay">₹0</strong></div>
+      <div><span>वर्तमान अनुमानित Net</span><strong id="oldNetDisplay">₹0</strong></div>
+      <div><span>नया अनुमानित Net</span><strong id="newNetDisplay">₹0</strong></div>
+    </div>
+    <p class="rm8-disclaimer">मासिक वेतन के इस अनुमान में Basic, DA, HRA और TPTA शामिल हैं तथा NPS घटाया गया है। सरकारी क्वार्टर मिलने पर HRA शून्य है। HRA दरें अनुमानित हैं, आधिकारिक 8th CPC अधिसूचना नहीं।</p>
+  </section>
+
+  <section class="rm8-result" id="arrearResultBox" hidden aria-live="polite">
+    <div class="rm8-result-head"><small>ESTIMATED NET ARREAR</small><strong id="totalArrearDisplay">₹0</strong><span id="arrearStatus">केवल Basic + DA अंतर − NPS; TA/HRA शामिल नहीं</span></div>
+    <div class="rm8-breakdown">
+      <div><span>एरियर के अनुमानित महीने</span><strong id="arrearMonthsDisplay">0 माह</strong></div>
+      <div><span>एरियर की गणना अंतिम तारीख तक</span><strong id="arrearEndDisplay">—</strong></div>
+      <div><span>मासिक Basic + DA अंतर (NPS के बाद)</span><strong id="monthlyArrearDisplay">₹0</strong></div>
+    </div>
+    <p class="rm8-disclaimer">एरियर में केवल नए और पुराने Basic + DA का अंतर लिया गया है, फिर उस अंतर का 10% NPS घटाया गया है। TA और HRA शामिल नहीं हैं। यह अनुमान है, आधिकारिक देय एरियर नहीं।</p>
+  </section>
+  <p class="rm8-note">कैलकुलेटर में Basic Pay, Level और TPA Employee Profile से स्वतः लिए जाते हैं। TPTA को परिणाम निकालने से पहले जाँच लें।</p>
+</main>
+<script src="../../assets/js/employee-data.js"></script>
+<script src="./calculator.js"></script>
+</body>
+</html>
