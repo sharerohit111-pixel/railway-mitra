@@ -8,16 +8,17 @@
   const ADMIN_SEGMENT = /(^|\/)(admin|admin-panel|admin-workspace)(\/|$)/i;
   const clean = (value) => (value || "").replace(/\s+/g, " ").trim();
   // Resolve links against the page currently being indexed, not always the home page.
-  // Restrict search results to this Railway Mitra project path; exclude the old root app.
-  const APP_BASE = new URL("./", document.currentScript?.src || window.location.href);
+  // The module is two folders below the project root on GitHub Pages.
+  const APP_BASE = new URL("../../", document.currentScript.src);
+  const isAdminPath = (pathname) =>
+    pathname.split("/").some(part => /^(admin|admin-panel|admin-workspace)$/i.test(part));
   const safeUrl = (href, baseUrl = window.location.href) => {
     try {
       const url = new URL(href, baseUrl);
       if (url.origin !== APP_BASE.origin) return null;
       if (!url.pathname.startsWith(APP_BASE.pathname)) return null;
-      if (ADMIN_SEGMENT.test(url.pathname)) return null;
-      if (/\\/admin(?:\\.|-|\\/|$)/i.test(url.pathname)) return null;
-      if (!/\\.html?$/i.test(url.pathname) && !url.pathname.endsWith("/")) return null;
+      if (isAdminPath(url.pathname)) return null;
+      if (!/\.html?$/i.test(url.pathname) && !url.pathname.endsWith("/")) return null;
       return url.href;
     } catch (_) { return null; }
   };
@@ -48,7 +49,7 @@
   let timer;
 
   function addRecord(record) {
-    if (!record.url || ADMIN_SEGMENT.test(new URL(record.url).pathname)) return;
+    if (!record.url || isAdminPath(new URL(record.url).pathname)) return;
     const previous = records.get(record.url);
     if (!previous || record.text.length > previous.text.length) records.set(record.url, record);
   }
@@ -80,7 +81,7 @@
       const url = queue.shift();
       if (!url || visited.has(url)) continue;
       visited.add(url);
-      if (ADMIN_SEGMENT.test(new URL(url).pathname)) continue;
+      if (isAdminPath(new URL(url).pathname)) continue;
       count++;
       try {
         const response = await fetch(url, { credentials: "same-origin" });
