@@ -491,6 +491,27 @@ exports.deleteExamContentFile = onCall({ region: REGION }, async request => {
 
 exports.searchExamContent = onCall({ region: REGION }, async request => {
   requireAdmin(request);
+  if (request.data.fileId) {
+    const id = cleanId(request.data.fileId, "fileId", 140);
+    const snap = await db.collection("examContentFiles").doc(id).get();
+    if (!snap.exists) throw new HttpsError("not-found", "PDF not found.");
+    const x = snap.data();
+    return { item: { type: "file", id: snap.id, name: x.name, storagePath: x.storagePath, folderId: x.folderId } };
+  }
+  if (request.data.folderId) {
+    const id = cleanId(request.data.folderId, "folderId", 140);
+    let current = await contentFolderRef(id).get();
+    if (!current.exists) throw new HttpsError("not-found", "Folder not found.");
+    const path = [];
+    let depth = 0;
+    while (current.exists && depth++ < 20) {
+      const x = current.data();
+      path.unshift({ id: current.id, name: x.name });
+      if (!x.parentId) break;
+      current = await contentFolderRef(x.parentId).get();
+    }
+    return { item: { type: "folder", path } };
+  }
   const query = cleanString(request.data.query, "query", 100).toLocaleLowerCase();
   if (query.length < 2) return { folders: [], files: [] };
   const [folderSnap, fileSnap] = await Promise.all([
