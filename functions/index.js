@@ -373,3 +373,286 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   await batch.commit();
   return { success: true, testId, totalQuestions, access, published: input.published === true };
 });
+
+
+// Owner-only PDF and study-content library. All metadata mutations run through
+// callable functions so browser clients never receive broad Firestore write access.
+const CONTENT_ROOTS = [
+  { id: "root_ldce", name: "LDCE", category: "LDCE" },
+  { id: "root_gdce", name: "GDCE", category: "GDCE" },
+  { id: "root_study_material", name: "STUDY MATERIAL", category: "STUDY MATERIAL" }
+];
+const CONTENT_MAX_BYTES = 20 * 1024 * 1024;
+function contentName(value, field = "name") {
+  const name = cleanString(value, field, 100).replace(/[\\\\/]/g, "-");
+  if (name === "." || name === "..") throw new HttpsError("invalid-argument", field + " is invalid.");
+  return name;
+}
+function contentFolderRef(id) {
+  return db.collection("examContentFolders").doc(cleanId(id, "folderId", 140));
+}
+exports.listExamContent = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  for (const root of CONTENT_ROOTS) {
+    const ref = db.collection("examContentFolders").doc(root.id);
+    if (!(await ref.get()).exists) {
+      await ref.create({ name: root.name, nameLower: root.name.toLocaleLowerCase(), category: root.category, parentId: null, isRoot: true, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }).catch(async error => {
+        if (error.code !== 6 && error.code !== "already-exists") throw error;
+      });
+    }
+  }
+  for (const root of CONTENT_ROOTS) {
+    const ref = db.collection("examContentFolders").doc(root.id);
+    const snap = await ref.get();
+    if (snap.exists && !snap.data().nameLower) await ref.update({ nameLower: String(snap.data().name || root.name).toLocaleLowerCase() });
+  }
+  const parentId = request.data.parentId === null || request.data.parentId === undefined || request.data.parentId === "" ? null : cleanId(request.data.parentId, "parentId", 140);
+  if (parentId && !(await contentFolderRef(parentId).get()).exists) throw new HttpsError("not-found", "Folder not found.");
+  const [folders, files] = await Promise.all([
+    db.collection("examContentFolders").where("parentId", "==", parentId).get(),
+    db.collection("examContentFiles").where("folderId", "==", parentId || "__root__").get()
+  ]);
+  return {
+    folders: folders.docs.map(d => ({ id: d.id, name: d.data().name, category: d.data().category || "", isRoot: d.data().isRoot === true })),
+    files: files.docs.map(d => ({ id: d.id, folderId: d.data().folderId, name: d.data().name, size: d.data().size, createdAt: d.data().createdAt && d.data().createdAt.toMillis ? d.data().createdAt.toMillis() : null, storagePath: d.data().storagePath }))
+  };
+});
+exports.createExamContentFolder = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const name = contentName(request.data.name);
+  const parentId = cleanId(request.data.parentId, "parentId", 140);
+  const parent = await contentFolderRef(parentId).get();
+  if (!parent.exists) throw new HttpsError("not-found", "Parent folder not found.");
+  const ref = db.collection("examContentFolders").doc();
+  await ref.set({ name, nameLower: name.toLocaleLowerCase(), category: parent.data().category || parent.data().name, parentId, isRoot: false, createdBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  return { id: ref.id, name };
+});
+exports.renameExamContentFolder = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.folderId, "folderId", 140);
+  const ref = contentFolderRef(id);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Folder not found.");
+  const name = contentName(request.data.name);
+  await ref.update({
+    name,
+    nameLower: name.toLocaleLowerCase(),
+    ...(snap.data().isRoot === true ? { category: name } : {}),
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, name, isRoot: snap.data().isRoot === true };
+});
+exports.deleteExamContentFolder = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.folderId, "folderId", 140);
+  const ref = contentFolderRef(id);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Folder not found.");
+  if (snap.data().isRoot === true) throw new HttpsError("failed-precondition", "Main folders cannot be deleted.");
+  const [children, files] = await Promise.all([
+    db.collection("examContentFolders").where("parentId", "==", id).limit(1).get(),
+    db.collection("examContentFiles").where("folderId", "==", id).limit(1).get()
+  ]);
+  if (!children.empty || !files.empty) throw new HttpsError("failed-precondition", "Folder must be empty before it can be deleted.");
+  await ref.delete();
+  return { success: true };
+});
+exports.registerExamContentFile = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const folderId = cleanId(request.data.folderId, "folderId", 140);
+  if (!(await contentFolderRef(folderId).get()).exists) throw new HttpsError("not-found", "Folder not found.");
+  const fileId = cleanId(request.data.fileId, "fileId", 140);
+  const name = contentName(request.data.name, "fileName");
+  const size = validNumber(request.data.size, "size", 1, CONTENT_MAX_BYTES);
+  if (request.data.contentType !== "application/pdf") throw new HttpsError("invalid-argument", "Only PDF files are allowed.");
+  const storagePath = "exam-content/" + uid + "/" + folderId + "/" + fileId + ".pdf";
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  const [exists] = await bucket.file(storagePath).exists();
+  if (!exists) throw new HttpsError("failed-precondition", "Uploaded PDF was not found in secure storage.");
+  const ref = db.collection("examContentFiles").doc(fileId);
+  await ref.create({ folderId, name, nameLower: name.toLocaleLowerCase(), size, contentType: "application/pdf", storagePath, uploadedBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  return { success: true, id: fileId, name };
+});
+exports.renameExamContentFile = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.fileId, "fileId", 140);
+  const ref = db.collection("examContentFiles").doc(id);
+  if (!(await ref.get()).exists) throw new HttpsError("not-found", "PDF not found.");
+  const name = contentName(request.data.name, "fileName");
+  await ref.update({ name, nameLower: name.toLocaleLowerCase(), updatedAt: FieldValue.serverTimestamp() });
+  return { success: true, name };
+});
+exports.deleteExamContentFile = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.fileId, "fileId", 140);
+  const ref = db.collection("examContentFiles").doc(id);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "PDF not found.");
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  await bucket.file(snap.data().storagePath).delete({ ignoreNotFound: true });
+  await ref.delete();
+  return { success: true };
+});
+
+
+exports.searchExamContent = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  if (request.data.fileId) {
+    const id = cleanId(request.data.fileId, "fileId", 140);
+    const snap = await db.collection("examContentFiles").doc(id).get();
+    if (!snap.exists) throw new HttpsError("not-found", "PDF not found.");
+    const x = snap.data();
+    return { item: { type: "file", id: snap.id, name: x.name, storagePath: x.storagePath, folderId: x.folderId } };
+  }
+  if (request.data.folderId) {
+    const id = cleanId(request.data.folderId, "folderId", 140);
+    let current = await contentFolderRef(id).get();
+    if (!current.exists) throw new HttpsError("not-found", "Folder not found.");
+    const path = [];
+    let depth = 0;
+    while (current.exists && depth++ < 20) {
+      const x = current.data();
+      path.unshift({ id: current.id, name: x.name });
+      if (!x.parentId) break;
+      current = await contentFolderRef(x.parentId).get();
+    }
+    return { item: { type: "folder", path } };
+  }
+  const query = cleanString(request.data.query, "query", 100).toLocaleLowerCase();
+  if (query.length < 2) return { folders: [], files: [] };
+  const [folderSnap, fileSnap] = await Promise.all([
+    db.collection("examContentFolders").where("nameLower", ">=", query).where("nameLower", "<=", query + String.fromCharCode(63743)).limit(30).get(),
+    db.collection("examContentFiles").where("nameLower", ">=", query).where("nameLower", "<=", query + String.fromCharCode(63743)).limit(30).get()
+  ]);
+  const folders = folderSnap.docs
+    .map(d => ({ id: d.id, name: d.data().name, parentId: d.data().parentId || null, category: d.data().category || "" }));
+  const files = fileSnap.docs
+    .filter(d => String(d.data().name || "").toLocaleLowerCase().includes(query))
+    .slice(0, 30)
+    .map(d => ({ id: d.id, name: d.data().name, folderId: d.data().folderId, storagePath: d.data().storagePath }));
+  return { folders, files };
+});
+
+
+// Owner-only finance settings and manually verified UPI payment ledger.
+// No client can grant entitlements; only these callable functions can do so.
+exports.adminGetFinanceSettings = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const snap = await db.collection("appSettings").doc("finance").get();
+  const data = snap.exists ? snap.data() : {};
+  return { subscriptionPrice: Number.isFinite(data.subscriptionPrice) ? data.subscriptionPrice : 300,
+    subscriptionDays: Number.isFinite(data.subscriptionDays) ? data.subscriptionDays : 30 };
+});
+
+exports.adminSaveFinanceSettings = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const subscriptionPrice = validNumber(request.data.subscriptionPrice, "subscriptionPrice", 1, 100000);
+  const subscriptionDays = validNumber(request.data.subscriptionDays, "subscriptionDays", 1, 3650);
+  await db.collection("appSettings").doc("finance").set({
+    subscriptionPrice, subscriptionDays, updatedBy: uid, updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "update_finance_settings", subscriptionPrice, subscriptionDays,
+    actorUid: uid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, subscriptionPrice, subscriptionDays };
+});
+
+exports.adminSetMaterialPrice = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const fileId = cleanId(request.data.fileId, "fileId", 140);
+  const price = validNumber(request.data.price, "price", 0, 100000);
+  const ref = db.collection("examContentFiles").doc(fileId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Study material PDF not found.");
+  await ref.update({ price, updatedAt: FieldValue.serverTimestamp(), priceUpdatedBy: uid });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "set_study_material_price", fileId, price, actorUid: uid,
+    createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, fileId, price };
+});
+
+exports.adminRecordPayment = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const candidateUid = cleanString(request.data.uid, "candidateUid", 128);
+  const reference = cleanString(request.data.reference, "reference", 100).replace(/\\s/g, "");
+  const amount = validNumber(request.data.amount, "amount", 1, 1000000);
+  const type = cleanString(request.data.type || "subscription", "type", 30);
+  if (!["subscription", "study-material"].includes(type)) {
+    throw new HttpsError("invalid-argument", "Unsupported payment type.");
+  }
+  const materialId = type === "study-material" ? cleanId(request.data.materialId, "materialId", 140) : null;
+  if (type === "study-material") {
+    const materialSnap = await db.collection("examContentFiles").doc(materialId).get();
+    if (!materialSnap.exists) throw new HttpsError("not-found", "Study material PDF not found.");
+    if (Number(materialSnap.data().price || 0) !== amount) throw new HttpsError("failed-precondition", "Payment amount does not match the current PDF price.");
+  } else {
+    const settingsSnap = await db.collection("appSettings").doc("finance").get();
+    const expected = settingsSnap.exists && Number.isFinite(settingsSnap.data().subscriptionPrice) ? settingsSnap.data().subscriptionPrice : 300;
+    if (amount !== expected) throw new HttpsError("failed-precondition", "Payment amount does not match the current subscription price.");
+  }
+  const ref = db.collection("paymentRecords").doc(reference);
+  await ref.create({
+    uid: candidateUid, amount, reference, type, materialId, status: "pending",
+    recordedBy: uid, createdAt: FieldValue.serverTimestamp()
+  }).catch(error => {
+    if (error.code === 6 || error.code === "already-exists") {
+      throw new HttpsError("already-exists", "This UPI reference has already been recorded.");
+    }
+    throw error;
+  });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "record_payment_pending", paymentReference: reference, candidateUid,
+    actorUid: uid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, paymentId: reference };
+});
+
+exports.adminListPayments = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const limit = Math.min(100, Math.max(1, Number(request.data.limit) || 50));
+  const snap = await db.collection("paymentRecords").orderBy("createdAt", "desc").limit(limit).get();
+  return { payments: snap.docs.map(d => {
+    const x = d.data();
+    return { id: d.id, uid: x.uid, amount: x.amount, reference: x.reference,
+      type: x.type, status: x.status, createdAt: x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : null };
+  }) };
+});
+
+exports.adminApprovePayment = onCall({ region: REGION }, async request => {
+  const adminUid = requireAdmin(request);
+  const candidateUid = cleanString(request.data.uid, "candidateUid", 128);
+  const reference = cleanString(request.data.reference, "reference", 100).replace(/\\s/g, "");
+  const paymentRef = db.collection("paymentRecords").doc(reference);
+  const result = await db.runTransaction(async tx => {
+    const paymentSnap = await tx.get(paymentRef);
+    if (!paymentSnap.exists) throw new HttpsError("not-found", "Pending payment record not found.");
+    const payment = paymentSnap.data();
+    if (payment.uid !== candidateUid) throw new HttpsError("permission-denied", "Candidate UID does not match this payment.");
+    if (payment.status !== "pending") throw new HttpsError("failed-precondition", "This payment is not pending.");
+    let expiresAt = null;
+    if (payment.type === "subscription") {
+      const settingsSnap = await tx.get(db.collection("appSettings").doc("finance"));
+      const settings = settingsSnap.exists ? settingsSnap.data() : {};
+      const days = Number.isFinite(settings.subscriptionDays) ? settings.subscriptionDays : 30;
+      const entitlementRef = db.collection("userEntitlements").doc(candidateUid);
+      const entitlementSnap = await tx.get(entitlementRef);
+      const previous = entitlementSnap.exists && entitlementSnap.data().expiresAt instanceof Timestamp
+        ? entitlementSnap.data().expiresAt.toMillis() : 0;
+      const start = Math.max(Date.now(), previous);
+      expiresAt = Timestamp.fromMillis(start + days * 86400000);
+      tx.set(entitlementRef, { active: true, expiresAt, plan: "all-tests", updatedAt: FieldValue.serverTimestamp(), updatedBy: adminUid }, { merge: true });
+    } else if (payment.type === "study-material" && payment.materialId) {
+      tx.set(db.collection("materialEntitlements").doc(candidateUid).collection("items").doc(payment.materialId),
+        { active: true, paymentReference: reference, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    }
+    tx.update(paymentRef, { status: "approved", approvedBy: adminUid, approvedAt: FieldValue.serverTimestamp() });
+    return { expiresAt: expiresAt ? expiresAt.toDate().toISOString() : null };
+  });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "approve_payment", paymentReference: reference, candidateUid,
+    actorUid: adminUid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, expiresAt: result.expiresAt };
+});
