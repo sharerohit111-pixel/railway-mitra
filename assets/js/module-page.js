@@ -1,5 +1,17 @@
 /* Shared landing-page controller for non-calculator Railway Mitra modules. */
 "use strict";
+
+// Load the isolated Folder Identification Code System on every shared module page.
+(function loadFolderIdentificationCodes(){
+ const css=document.createElement("link");
+ css.rel="stylesheet";
+ css.href="../../features/folder-codes/folder-codes.css";
+ document.head.appendChild(css);
+ const script=document.createElement("script");
+ script.src="../../features/folder-codes/folder-codes.js";
+ script.defer=true;
+ document.head.appendChild(script);
+})();
 document.addEventListener("DOMContentLoaded",async()=>{
  const page=document.body.dataset.moduleId;
  const content=document.getElementById("moduleContent");
