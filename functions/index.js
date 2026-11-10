@@ -758,3 +758,22 @@ exports.getPublicStoreSettings = onCall({ region: REGION }, async request => {
     merchantName: typeof x.merchantName === "string" ? x.merchantName : "Railway Mitra"
   };
 });
+
+exports.adminListExamAttempts = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const limit = Math.min(200, Math.max(1, Number(request.data.limit) || 100));
+  const snap = await db.collectionGroup("examAttempts").orderBy("submittedAt", "desc").limit(limit).get();
+  return { attempts: snap.docs.map(d => {
+    const x = d.data();
+    return {
+      attemptId: d.id, uid: x.candidateUid || d.ref.parent.parent.id,
+      testId: x.testId || "", status: x.status || "",
+      submittedAt: x.submittedAt && x.submittedAt.toMillis ? x.submittedAt.toMillis() : null,
+      score: x.result && x.result.score !== undefined ? x.result.score : null,
+      correct: x.result && x.result.correct !== undefined ? x.result.correct : null,
+      wrong: x.result && x.result.wrong !== undefined ? x.result.wrong : null,
+      unattempted: x.result && x.result.unattempted !== undefined ? x.result.unattempted : null,
+      accuracy: x.result && x.result.accuracy !== undefined ? x.result.accuracy : null
+    };
+  }) };
+});
