@@ -1,6 +1,5 @@
 /* Railway Mitra — Bottom Navigation (isolated module)
-   This first pass creates the visual shell only.
-   Help & Support and Feedback destinations will be connected separately. */
+   Help & Support is connected. Feedback remains a reserved slot for its own module. */
 
 (function () {
   "use strict";
@@ -28,7 +27,8 @@
       {
         className: "",
         label: "Help & Support",
-        title: "Help & Support — coming in a later step",
+        title: "Open Help & Support",
+        href: "features/help-support/index.html",
         paths: '<path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="7" rx="2"/><rect x="17" y="12" width="4" height="7" rx="2"/><path d="M17 19a5 5 0 0 1-5 3h-1"/>',
         reserved: true
       },
@@ -56,7 +56,7 @@
     ];
 
     items.forEach(function (item) {
-      const control = document.createElement(item.home ? "a" : "button");
+      const control = document.createElement(item.home || item.href ? "a" : "button");
       control.className = "rm-bottom-nav__item " + item.className;
       control.title = item.title;
       control.setAttribute("aria-label", item.title);
@@ -64,6 +64,8 @@
       if (item.home) {
         control.href = "./";
         control.setAttribute("aria-current", "page");
+      } else if (item.href) {
+        control.href = item.href;
       } else {
         control.type = "button";
         control.disabled = true;
