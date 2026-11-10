@@ -49,7 +49,7 @@
         <h2 class="exam-section-title">A. Railway Departmental Exams</h2>
         <div class="exam-card-grid">${card("🚆","GDCE Departmental Exams","GDCE JE and other GDCE posts: mock tests, previous papers and practice sets.","gdce.html","GDCE")}${card("📘","LDCE Departmental Exams","Separate LDCE streams, mock tests, previous papers and practice sets.","ldce.html","LDCE")}${card("💳","Subscription & Study Material","Buy all-tests access or separately priced study PDFs using verified UPI payments.","store.html","Candidate Store")}${card("📊","My Test Results","View your submitted tests, scores and accuracy from your online account.","my-results.html","My Results")}</div>
         <h2 class="exam-section-title">B. Other Exams</h2>
-        <div class="exam-card-grid"><div class="exam-card"><span class="exam-card-icon">🌐</span><h3>Other Exams</h3><p>A separate app for other competitive examinations, mock tests, practice sets and study material.</p><span class="exam-card-meta"><span class="exam-pill pending">Under Progress</span><span>Coming soon</span></span></div></div>
+        <div class="exam-card-grid"><a class="exam-card" href="../../other-exams/index.html"><span class="exam-card-icon">🌐</span><h3>Other Exams App</h3><p>Open the separate competitive-exam app for UPSC, SSC, Banking, State, Defence and Teaching categories.</p><span class="exam-card-meta"><span class="exam-pill pending">Content Under Preparation</span><span>Open App →</span></span></a></div>
         <div class="exam-notice">Other Exams will open through a separate app link after that app is developed. This section is intentionally shown as Under Progress for now.</div>`;
       return;
     }
