@@ -57,7 +57,7 @@
     const headings = [...doc.querySelectorAll("h1,h2,h3,h4")].map(n => clean(n.textContent)).filter(Boolean);
     const bodyText = clean(doc.body?.innerText || doc.body?.textContent).slice(0, 12000);
     addRecord({ url, title, headings, text: clean([title, ...headings, bodyText].join(" ")) });
-    const links = [...doc.querySelectorAll("a[href]")].map(a => safeUrl(a.getAttribute("href"))).filter(Boolean);
+    const links = [...doc.querySelectorAll("a[href]")].map(a => safeUrl(a.getAttribute("href"), url)).filter(Boolean);
     return links;
   }
 
