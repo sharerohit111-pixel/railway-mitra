@@ -5,7 +5,7 @@
    Version: 1.0.0
    ========================================= */
 
-const CACHE_NAME = "railway-mitra-v1";
+const CACHE_NAME = "railway-mitra-v2";
 
 /* INSTALL */
 self.addEventListener("install", (event) => {
