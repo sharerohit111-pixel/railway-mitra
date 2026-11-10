@@ -553,15 +553,20 @@ exports.adminGetFinanceSettings = onCall({ region: REGION }, async request => {
   const snap = await db.collection("appSettings").doc("finance").get();
   const data = snap.exists ? snap.data() : {};
   return { subscriptionPrice: Number.isFinite(data.subscriptionPrice) ? data.subscriptionPrice : 300,
-    subscriptionDays: Number.isFinite(data.subscriptionDays) ? data.subscriptionDays : 30 };
+    subscriptionDays: Number.isFinite(data.subscriptionDays) ? data.subscriptionDays : 30,
+    merchantUpiId: typeof data.merchantUpiId === "string" ? data.merchantUpiId : "",
+    merchantName: typeof data.merchantName === "string" ? data.merchantName : "Railway Mitra" };
 });
 
 exports.adminSaveFinanceSettings = onCall({ region: REGION }, async request => {
   const uid = requireAdmin(request);
   const subscriptionPrice = validNumber(request.data.subscriptionPrice, "subscriptionPrice", 1, 100000);
   const subscriptionDays = validNumber(request.data.subscriptionDays, "subscriptionDays", 1, 3650);
+  const merchantUpiId = typeof request.data.merchantUpiId === "string" ? request.data.merchantUpiId.trim() : "";
+  const merchantName = typeof request.data.merchantName === "string" ? cleanString(request.data.merchantName, "merchantName", 80) : "Railway Mitra";
+  if (merchantUpiId && !/^[A-Za-z0-9._-]{2,100}@[A-Za-z0-9.-]{2,64}$/.test(merchantUpiId)) throw new HttpsError("invalid-argument", "Merchant UPI ID format is invalid.");
   await db.collection("appSettings").doc("finance").set({
-    subscriptionPrice, subscriptionDays, updatedBy: uid, updatedAt: FieldValue.serverTimestamp()
+    subscriptionPrice, subscriptionDays, merchantUpiId, merchantName, updatedBy: uid, updatedAt: FieldValue.serverTimestamp()
   }, { merge: true });
   await db.collection("adminAuditLogs").doc().set({
     action: "update_finance_settings", subscriptionPrice, subscriptionDays,
@@ -669,4 +674,75 @@ exports.adminApprovePayment = onCall({ region: REGION }, async request => {
     actorUid: adminUid, createdAt: FieldValue.serverTimestamp()
   });
   return { success: true, expiresAt: result.expiresAt };
+});
+
+
+// Candidate-facing subscription and published study-material storefront.
+exports.listStudyMaterials = onCall({ region: REGION }, async request => {
+  requireUser(request);
+  const snap = await db.collection("examContentFiles").where("published", "==", true).get();
+  return { materials: snap.docs.map(d => ({ id: d.id, name: d.data().name, price: Number(d.data().price || 0), size: d.data().size || 0 })) };
+});
+
+exports.createCandidatePaymentRequest = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const reference = cleanString(request.data.reference, "UPI reference", 100).replace(/\s/g, "");
+  if (!/^[A-Za-z0-9_-]{6,100}$/.test(reference)) throw new HttpsError("invalid-argument", "UPI reference must contain 6–100 letters, numbers, hyphens or underscores.");
+  const type = cleanString(request.data.type, "payment type", 30);
+  if (!["subscription", "study-material"].includes(type)) throw new HttpsError("invalid-argument", "Unsupported payment type.");
+  let amount, materialId = null;
+  if (type === "subscription") {
+    const settings = await db.collection("appSettings").doc("finance").get();
+    amount = settings.exists && Number.isFinite(settings.data().subscriptionPrice) ? settings.data().subscriptionPrice : 300;
+  } else {
+    materialId = cleanId(request.data.materialId, "materialId", 140);
+    const material = await db.collection("examContentFiles").doc(materialId).get();
+    if (!material.exists || material.data().published !== true) throw new HttpsError("not-found", "Published study material not found.");
+    amount = Number(material.data().price || 0);
+    if (!(amount > 0)) throw new HttpsError("failed-precondition", "This material is free; use its download option.");
+  }
+  const paymentRef = db.collection("paymentRecords").doc(reference);
+  await paymentRef.create({
+    uid, amount, reference, type, materialId, status: "pending",
+    submittedByCandidate: true, createdAt: FieldValue.serverTimestamp()
+  }).catch(error => {
+    if (error.code === 6 || error.code === "already-exists") throw new HttpsError("already-exists", "This UPI reference has already been submitted.");
+    throw error;
+  });
+  return { success: true, paymentId: reference, amount, status: "pending" };
+});
+
+exports.getMyPaymentRequests = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const snap = await db.collection("paymentRecords").where("uid", "==", uid).limit(50).get();
+  return { payments: snap.docs.map(d => ({ id: d.id, amount: d.data().amount, type: d.data().type,
+    status: d.data().status, reference: d.data().reference, createdAt: d.data().createdAt && d.data().createdAt.toMillis ? d.data().createdAt.toMillis() : null })) };
+});
+
+exports.getStudyMaterialDownloadUrl = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const fileId = cleanId(request.data.fileId, "fileId", 140);
+  const snap = await db.collection("examContentFiles").doc(fileId).get();
+  if (!snap.exists || snap.data().published !== true) throw new HttpsError("not-found", "Published study material not found.");
+  const item = snap.data();
+  if (Number(item.price || 0) > 0) {
+    const entitlement = await db.collection("materialEntitlements").doc(uid).collection("items").doc(fileId).get();
+    if (!entitlement.exists || entitlement.data().active !== true) throw new HttpsError("permission-denied", "Purchase this study material before downloading.");
+  }
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  const [url] = await bucket.file(item.storagePath).getSignedUrl({ action: "read", expires: Date.now() + 5 * 60 * 1000 });
+  return { url, expiresInSeconds: 300 };
+});
+
+exports.adminSetMaterialPublication = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const fileId = cleanId(request.data.fileId, "fileId", 140);
+  const published = request.data.published === true;
+  const ref = db.collection("examContentFiles").doc(fileId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Study material PDF not found.");
+  await ref.update({ published, updatedAt: FieldValue.serverTimestamp(), publicationUpdatedBy: uid });
+  await db.collection("adminAuditLogs").doc().set({ action: "set_study_material_publication",
+    fileId, published, actorUid: uid, createdAt: FieldValue.serverTimestamp() });
+  return { success: true, fileId, published };
 });
