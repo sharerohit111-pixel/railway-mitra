@@ -531,84 +531,35 @@
 }
 
 
-/* Railway Heroes tribute: replaces the generic welcome subtitle with a warm salute. */
-.rm-heroes-tribute {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 14px 0 18px;
-  padding: 12px 10px;
-  border-top: 1px solid rgba(255, 199, 91, .32);
-  border-bottom: 1px solid rgba(53, 232, 255, .24);
-  background: linear-gradient(90deg, rgba(255, 174, 65, .06), rgba(53, 232, 255, .07), rgba(255, 174, 65, .06));
-  border-radius: 14px;
-  text-align: center;
-}
-.rm-tribute-icon,
-.rm-tribute-train {
-  flex: 0 0 auto;
-  font-size: 27px;
-  line-height: 1;
-  filter: drop-shadow(0 0 7px rgba(255, 191, 82, .4));
-}
-.rm-tribute-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-}
-.rm-tribute-title {
-  color: #FFD27A;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(15px, 4.1vw, 19px);
-  font-weight: 700;
-  font-style: italic;
-  letter-spacing: .15px;
-  line-height: 1.2;
-  text-shadow: 0 0 9px rgba(255, 190, 83, .28);
-}
-.rm-tribute-subtitle {
-  color: #F3F7FF;
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(12px, 3.4vw, 15px);
-  font-weight: 600;
-  letter-spacing: .1px;
-  line-height: 1.2;
-}
-@media (max-width: 380px) {
-  .rm-heroes-tribute {
-    gap: 7px;
-    padding: 10px 6px;
-    margin: 12px 0 16px;
-  }
-  .rm-tribute-icon, .rm-tribute-train { font-size: 23px; }
-  .rm-tribute-title { font-size: 14px; }
-  .rm-tribute-subtitle { font-size: 11px; }
-}
 
-
-/* Center both the Welcome heading and the Railway Heroes tribute lines. */
-.welcome-section h2 {
-  width: 100%;
-  text-align: center !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+/* Railway heroes artwork and centered welcome heading — isolated home component. */
+.welcome-section > h2 {
+  display:block;
+  width:100%;
+  text-align:center !important;
+  margin-inline:auto !important;
 }
 .rm-heroes-tribute {
-  justify-content: center !important;
-  text-align: center !important;
+  display:block;
+  width:100%;
+  margin:12px auto 18px;
+  padding:0;
+  border:0;
+  border-radius:14px;
+  overflow:hidden;
+  background:transparent;
+  box-shadow:0 5px 18px rgba(53,232,255,.12);
 }
-.rm-tribute-copy {
-  align-items: center !important;
-  text-align: center !important;
+.rm-heroes-tribute img {
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:170px;
+  object-fit:cover;
+  object-position:center;
+  border-radius:14px;
 }
-.rm-tribute-title,
-.rm-tribute-subtitle {
-  display: block;
-  width: 100%;
-  text-align: center !important;
+@media (max-width:480px) {
+  .rm-heroes-tribute { margin:10px auto 16px; }
+  .rm-heroes-tribute img { max-height:145px; }
 }
