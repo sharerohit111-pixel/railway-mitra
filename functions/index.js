@@ -428,10 +428,13 @@ exports.renameExamContentFolder = onCall({ region: REGION }, async request => {
   const ref = contentFolderRef(id);
   const snap = await ref.get();
   if (!snap.exists) throw new HttpsError("not-found", "Folder not found.");
-  if (snap.data().isRoot === true) throw new HttpsError("failed-precondition", "Main folders cannot be renamed.");
   const name = contentName(request.data.name);
-  await ref.update({ name, updatedAt: FieldValue.serverTimestamp() });
-  return { success: true, name };
+  await ref.update({
+    name,
+    ...(snap.data().isRoot === true ? { category: name } : {}),
+    updatedAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, name, isRoot: snap.data().isRoot === true };
 });
 exports.deleteExamContentFolder = onCall({ region: REGION }, async request => {
   requireAdmin(request);
@@ -483,4 +486,24 @@ exports.deleteExamContentFile = onCall({ region: REGION }, async request => {
   await bucket.file(snap.data().storagePath).delete({ ignoreNotFound: true });
   await ref.delete();
   return { success: true };
+});
+
+
+exports.searchExamContent = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const query = cleanString(request.data.query, "query", 100).toLocaleLowerCase();
+  if (query.length < 2) return { folders: [], files: [] };
+  const [folderSnap, fileSnap] = await Promise.all([
+    db.collection("examContentFolders").limit(500).get(),
+    db.collection("examContentFiles").limit(500).get()
+  ]);
+  const folders = folderSnap.docs
+    .filter(d => String(d.data().name || "").toLocaleLowerCase().includes(query))
+    .slice(0, 30)
+    .map(d => ({ id: d.id, name: d.data().name, parentId: d.data().parentId || null, category: d.data().category || "" }));
+  const files = fileSnap.docs
+    .filter(d => String(d.data().name || "").toLocaleLowerCase().includes(query))
+    .slice(0, 30)
+    .map(d => ({ id: d.id, name: d.data().name, folderId: d.data().folderId, storagePath: d.data().storagePath }));
+  return { folders, files };
 });
