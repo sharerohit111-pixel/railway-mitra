@@ -181,8 +181,8 @@
 
 
 /* Pin the Founder credit to the top edge so it never covers the welcome heading. */
-.welcome-section::after {
-  top: 3px !important;
+ .welcome-section::after {
+  top: -43px !important;
   right: 10px !important;
   padding: 5px 9px !important;
   font-size: 10px !important;
@@ -191,10 +191,31 @@
 }
 @media (max-width: 768px) {
   .welcome-section::after {
-    top: 3px !important;
+    top: -38px !important;
     right: 9px !important;
     padding: 5px 8px !important;
     font-size: 9px !important;
     line-height: 1.1 !important;
+  }
+}
+
+
+/* Final cascade override: Founder badge sits in the gap above the welcome panel. */
+.welcome-section {
+  overflow: visible !important;
+  padding-top: 34px !important;
+}
+.welcome-section::after {
+  top: -43px !important;
+  right: 16px !important;
+  z-index: 20 !important;
+}
+@media (max-width: 400px) {
+  .welcome-section {
+    padding-top: 27px !important;
+  }
+  .welcome-section::after {
+    top: -38px !important;
+    right: 10px !important;
   }
 }
