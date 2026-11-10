@@ -33,8 +33,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: functions/package-lock.json
 
       - name: Set up Java 21 for Firebase emulators
         uses: actions/setup-java@v4
@@ -43,7 +41,7 @@ jobs:
           java-version: "21"
 
       - name: Install Functions dependencies
-        run: npm --prefix functions ci --no-audit --no-fund
+        run: npm --prefix functions install --no-audit --no-fund
 
       - name: Check Functions syntax
         run: npm --prefix functions run lint
