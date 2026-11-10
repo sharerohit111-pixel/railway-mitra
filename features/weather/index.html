@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326">
+<meta name="description" content="Official IMD weather links and weather service access information in Railway Mitra.">
+<title>IMD Weather | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="weather.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand"><div class="brand-icon">🌦️</div><div><h1>IMD Weather</h1><p>Official Weather Services · Railway Mitra</p></div></div>
+  <a class="weather-home" href="../../">Home</a>
+</header>
+<main class="weather-wrap">
+  <section class="weather-hero">
+    <span class="weather-eyebrow">INDIA METEOROLOGICAL DEPARTMENT</span>
+    <h2>Weather updates.<br><span>From official sources.</span></h2>
+    <p>Open official IMD forecasts, district warnings and rainfall information from one place.</p>
+    <div class="weather-status"><span class="status-dot"></span><div><strong>Official links available</strong><small>Live data inside Railway Mitra is not enabled yet.</small></div></div>
+  </section>
+
+  <section class="weather-panel">
+    <div class="weather-section-title"><span class="weather-eyebrow">WEATHER SERVICES</span><h2>Choose a service</h2></div>
+    <div class="weather-services">
+      <a class="weather-service" href="https://mausam.imd.gov.in/" target="_blank" rel="noopener">
+        <span class="service-icon">🌧️</span><span><strong>IMD Mausam</strong><small>Official weather information, forecasts and warnings</small></span><b>↗</b>
+      </a>
+      <a class="weather-service" href="https://city.imd.gov.in/" target="_blank" rel="noopener">
+        <span class="service-icon">🌡️</span><span><strong>City Forecast</strong><small>City-wise weather forecast for the coming days</small></span><b>↗</b>
+      </a>
+      <a class="weather-service" href="https://mausam.imd.gov.in/responsive/districtWiseWarningGIS.php" target="_blank" rel="noopener">
+        <span class="service-icon">⚠️</span><span><strong>District Weather Warnings</strong><small>Official district-wise warning map</small></span><b>↗</b>
+      </a>
+      <a class="weather-service" href="https://mausam.imd.gov.in/responsive/districtWiseNowcastGIS.php" target="_blank" rel="noopener">
+        <span class="service-icon">⛈️</span><span><strong>District Nowcast</strong><small>Short-range weather alerts and nowcast information</small></span><b>↗</b>
+      </a>
+      <a class="weather-service" href="https://mausam.imd.gov.in/responsive/rainfallinformation.php" target="_blank" rel="noopener">
+        <span class="service-icon">💧</span><span><strong>Rainfall Information</strong><small>Official rainfall observations and reports</small></span><b>↗</b>
+      </a>
+    </div>
+  </section>
+
+  <section class="weather-panel access-panel">
+    <span class="weather-eyebrow">LIVE IN-APP INTEGRATION</span>
+    <h2>API access verification pending</h2>
+    <p>IMD publishes an API catalogue for current weather, city forecasts and district warnings. The official API portal provides account registration and login. Railway Mitra will connect to live API data only after the account is approved and the API authentication, commercial-use, attribution, rate-limit and redistribution conditions are confirmed.</p>
+    <a class="weather-primary-link" href="https://api.imd.gov.in/public/" target="_blank" rel="noopener">Open IMD API Portal ↗</a>
+    <a class="weather-secondary-link" href="https://api.imd.gov.in/public/api_reference.html" target="_blank" rel="noopener">View official API catalogue</a>
+    <p class="weather-note"><strong>Important:</strong> No unofficial scraping, private endpoint use or unauthorised API calls are made by this module. Weather information is not a substitute for official railway safety instructions or operational alerts.</p>
+  </section>
+
+  <footer class="weather-footer">
+    <p><strong>Data source:</strong> India Meteorological Department (IMD), Ministry of Earth Sciences, Government of India.</p>
+    <p>Railway Mitra is an independent application and is not affiliated with or endorsed by IMD or the Government of India.</p>
+  </footer>
+</main>
+</body>
+</html>
