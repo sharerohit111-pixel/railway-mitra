@@ -276,3 +276,33 @@
     animation: none !important;
   }
 }
+
+
+/* Compact cropped portrait beside the Founder credit. */
+.app-header::after {
+  content: "Rohit Kumar  |  Founder & Developer";
+  bottom: -18px;
+  right: 14px;
+  min-height: 42px;
+  padding: 6px 12px 6px 48px;
+  border-radius: 24px;
+  background-image: url("../images/rohit-founder-avatar.svg"), linear-gradient(105deg, #102B50, #342052, #102B50);
+  background-repeat: no-repeat, no-repeat;
+  background-size: 34px 34px, 220% 100%;
+  background-position: 6px center, 0% 50%;
+  border: 1px solid rgba(53, 232, 255, .85);
+  box-shadow: 0 0 0 2px rgba(53, 232, 255, .12), 0 3px 13px rgba(53, 232, 255, .22);
+  border-radius: 24px;
+  animation: rm-owner-credit-sheen 5s ease-in-out infinite;
+}
+@media (max-width: 400px) {
+  .app-header::after {
+    right: 9px;
+    bottom: -17px;
+    min-height: 38px;
+    padding: 5px 9px 5px 42px;
+    background-size: 30px 30px, 220% 100%;
+    background-position: 5px center, 0% 50%;
+    font-size: 9px;
+  }
+}
