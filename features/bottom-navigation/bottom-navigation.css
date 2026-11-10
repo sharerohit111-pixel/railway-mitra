@@ -1,0 +1,136 @@
+/* Railway Mitra — isolated bottom navigation shell
+   Five slots: reserved, Help & Support, Home, reserved, Feedback.
+   Functional destinations will be connected in later feature modules. */
+
+:root {
+  --rm-bottom-nav-bg: rgba(7, 18, 39, .96);
+  --rm-bottom-nav-cyan: #35e8ff;
+  --rm-bottom-nav-pink: #ff45d4;
+  --rm-bottom-nav-purple: #8d55ff;
+}
+
+.rm-bottom-nav {
+  position: fixed;
+  z-index: 900;
+  left: max(10px, env(safe-area-inset-left));
+  right: max(10px, env(safe-area-inset-right));
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  width: min(820px, calc(100% - 20px));
+  min-height: 78px;
+  margin-inline: auto;
+  padding: 8px 7px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: end;
+  gap: 3px;
+  border: 1px solid rgba(53, 232, 255, .72);
+  border-radius: 25px;
+  background: linear-gradient(115deg, rgba(8, 24, 50, .98), rgba(25, 20, 57, .97));
+  box-shadow: 0 0 14px rgba(53, 232, 255, .28),
+              0 0 24px rgba(255, 69, 212, .16),
+              inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.rm-bottom-nav__item {
+  min-width: 0;
+  min-height: 58px;
+  padding: 4px 1px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 15px;
+  color: #f4f7ff;
+  background: transparent;
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rm-bottom-nav__icon {
+  width: 31px;
+  height: 31px;
+  display: block;
+  color: var(--rm-bottom-nav-cyan);
+  filter: drop-shadow(0 0 5px rgba(53, 232, 255, .45));
+}
+
+.rm-bottom-nav__label {
+  display: block;
+  max-width: 100%;
+  font-size: clamp(9px, 2.7vw, 11px);
+  line-height: 1.12;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.rm-bottom-nav__item--feedback .rm-bottom-nav__icon {
+  color: var(--rm-bottom-nav-pink);
+  filter: drop-shadow(0 0 5px rgba(255, 69, 212, .48));
+}
+
+.rm-bottom-nav__item--home {
+  position: relative;
+  z-index: 1;
+  min-height: 88px;
+  margin-top: -27px;
+  padding: 9px 4px 7px;
+  border: 2px solid var(--rm-bottom-nav-cyan);
+  border-radius: 50%;
+  aspect-ratio: 1;
+  justify-self: center;
+  width: min(88px, 100%);
+  background: radial-gradient(circle at 30% 20%, #16c9ff, #6048ef 62%, #a52de1);
+  box-shadow: 0 0 12px rgba(53,232,255,.75),
+              0 0 24px rgba(141,85,255,.48),
+              inset 0 1px 5px rgba(255,255,255,.5);
+}
+
+.rm-bottom-nav__item--home .rm-bottom-nav__icon {
+  width: 34px;
+  height: 34px;
+  color: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+
+.rm-bottom-nav__item--reserved {
+  opacity: .78;
+}
+
+.rm-bottom-nav__item:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.rm-bottom-nav__item--home:focus-visible {
+  outline-offset: 4px;
+}
+
+@media (max-width: 360px) {
+  .rm-bottom-nav {
+    left: 6px;
+    right: 6px;
+    width: calc(100% - 12px);
+    padding-inline: 4px;
+    gap: 1px;
+  }
+  .rm-bottom-nav__icon { width: 28px; height: 28px; }
+  .rm-bottom-nav__item--home { min-height: 78px; width: 78px; }
+  .rm-bottom-nav__label { font-size: 9px; }
+}
+
+@media (min-width: 900px) {
+  .rm-bottom-nav {
+    bottom: 14px;
+  }
+}
+
+/* Keep page content clear of the fixed navigation. */
+body.rm-has-bottom-nav {
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+}
