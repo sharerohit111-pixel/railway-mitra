@@ -532,3 +532,121 @@ exports.searchExamContent = onCall({ region: REGION }, async request => {
     .map(d => ({ id: d.id, name: d.data().name, folderId: d.data().folderId, storagePath: d.data().storagePath }));
   return { folders, files };
 });
+
+
+// Owner-only finance settings and manually verified UPI payment ledger.
+// No client can grant entitlements; only these callable functions can do so.
+exports.adminGetFinanceSettings = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const snap = await db.collection("appSettings").doc("finance").get();
+  const data = snap.exists ? snap.data() : {};
+  return { subscriptionPrice: Number.isFinite(data.subscriptionPrice) ? data.subscriptionPrice : 300,
+    subscriptionDays: Number.isFinite(data.subscriptionDays) ? data.subscriptionDays : 30 };
+});
+
+exports.adminSaveFinanceSettings = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const subscriptionPrice = validNumber(request.data.subscriptionPrice, "subscriptionPrice", 1, 100000);
+  const subscriptionDays = validNumber(request.data.subscriptionDays, "subscriptionDays", 1, 3650);
+  await db.collection("appSettings").doc("finance").set({
+    subscriptionPrice, subscriptionDays, updatedBy: uid, updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "update_finance_settings", subscriptionPrice, subscriptionDays,
+    actorUid: uid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, subscriptionPrice, subscriptionDays };
+});
+
+exports.adminSetMaterialPrice = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const fileId = cleanId(request.data.fileId, "fileId", 140);
+  const price = validNumber(request.data.price, "price", 0, 100000);
+  const ref = db.collection("examContentFiles").doc(fileId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Study material PDF not found.");
+  await ref.update({ price, updatedAt: FieldValue.serverTimestamp(), priceUpdatedBy: uid });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "set_study_material_price", fileId, price, actorUid: uid,
+    createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, fileId, price };
+});
+
+exports.adminRecordPayment = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const candidateUid = cleanString(request.data.uid, "candidateUid", 128);
+  const reference = cleanString(request.data.reference, "reference", 100).replace(/\\s/g, "");
+  const amount = validNumber(request.data.amount, "amount", 1, 1000000);
+  const type = cleanString(request.data.type || "subscription", "type", 30);
+  if (!["subscription", "study-material"].includes(type)) {
+    throw new HttpsError("invalid-argument", "Unsupported payment type.");
+  }
+  const materialId = type === "study-material" ? cleanId(request.data.materialId, "materialId", 140) : null;
+  if (type === "study-material" && !(await db.collection("examContentFiles").doc(materialId).get()).exists) {
+    throw new HttpsError("not-found", "Study material PDF not found.");
+  }
+  const ref = db.collection("paymentRecords").doc(reference);
+  await ref.create({
+    uid: candidateUid, amount, reference, type, materialId, status: "pending",
+    recordedBy: uid, createdAt: FieldValue.serverTimestamp()
+  }).catch(error => {
+    if (error.code === 6 || error.code === "already-exists") {
+      throw new HttpsError("already-exists", "This UPI reference has already been recorded.");
+    }
+    throw error;
+  });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "record_payment_pending", paymentReference: reference, candidateUid,
+    actorUid: uid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, paymentId: reference };
+});
+
+exports.adminListPayments = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const limit = Math.min(100, Math.max(1, Number(request.data.limit) || 50));
+  const snap = await db.collection("paymentRecords").orderBy("createdAt", "desc").limit(limit).get();
+  return { payments: snap.docs.map(d => {
+    const x = d.data();
+    return { id: d.id, uid: x.uid, amount: x.amount, reference: x.reference,
+      type: x.type, status: x.status, createdAt: x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : null };
+  }) };
+});
+
+exports.adminApprovePayment = onCall({ region: REGION }, async request => {
+  const adminUid = requireAdmin(request);
+  const candidateUid = cleanString(request.data.uid, "candidateUid", 128);
+  const reference = cleanString(request.data.reference, "reference", 100).replace(/\\s/g, "");
+  const paymentRef = db.collection("paymentRecords").doc(reference);
+  const result = await db.runTransaction(async tx => {
+    const paymentSnap = await tx.get(paymentRef);
+    if (!paymentSnap.exists) throw new HttpsError("not-found", "Pending payment record not found.");
+    const payment = paymentSnap.data();
+    if (payment.uid !== candidateUid) throw new HttpsError("permission-denied", "Candidate UID does not match this payment.");
+    if (payment.status !== "pending") throw new HttpsError("failed-precondition", "This payment is not pending.");
+    let expiresAt = null;
+    if (payment.type === "subscription") {
+      const settingsSnap = await tx.get(db.collection("appSettings").doc("finance"));
+      const settings = settingsSnap.exists ? settingsSnap.data() : {};
+      const days = Number.isFinite(settings.subscriptionDays) ? settings.subscriptionDays : 30;
+      const entitlementRef = db.collection("userEntitlements").doc(candidateUid);
+      const entitlementSnap = await tx.get(entitlementRef);
+      const previous = entitlementSnap.exists && entitlementSnap.data().expiresAt instanceof Timestamp
+        ? entitlementSnap.data().expiresAt.toMillis() : 0;
+      const start = Math.max(Date.now(), previous);
+      expiresAt = Timestamp.fromMillis(start + days * 86400000);
+      tx.set(entitlementRef, { active: true, expiresAt, plan: "all-tests", updatedAt: FieldValue.serverTimestamp(), updatedBy: adminUid }, { merge: true });
+    } else if (payment.type === "study-material" && payment.materialId) {
+      tx.set(db.collection("materialEntitlements").doc(candidateUid).collection("items").doc(payment.materialId),
+        { active: true, paymentReference: reference, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    }
+    tx.update(paymentRef, { status: "approved", approvedBy: adminUid, approvedAt: FieldValue.serverTimestamp() });
+    return { expiresAt: expiresAt ? expiresAt.toDate().toISOString() : null };
+  });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "approve_payment", paymentReference: reference, candidateUid,
+    actorUid: adminUid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, expiresAt: result.expiresAt };
+});
