@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326"><meta name="description" content="Share your Railway Mitra experience, report a problem or suggest an improvement.">
+<title>Feedback for Us | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="./feedback.css?v=1">
+</head><body class="rm-feedback-page">
+<header class="rm-fb-header"><a href="../../index.html" class="rm-fb-brand"><span>🚆</span><b>Railway Mitra</b></a><a href="../../index.html" class="rm-fb-home">⌂ Home</a></header>
+<main class="rm-fb-shell">
+<section class="rm-fb-hero"><span class="rm-fb-kicker">YOUR VOICE MAKES US BETTER</span><h1>Feedback for Us</h1><p>Tell us what you like, what needs improvement, or if something is not working. Your feedback reaches the Railway Mitra team.</p></section>
+<section id="fbAuthGate" class="rm-fb-panel" hidden><h2>Sign in to send feedback</h2><p>Sign in so you can track your feedback and continue the conversation when we reply.</p><a class="rm-fb-primary" href="../auth/login.html">Sign in to Railway Mitra</a></section>
+<div id="fbApp" hidden>
+<section class="rm-fb-panel">
+<div class="rm-fb-heading"><span>✦</span><div><h2>Share your experience</h2><p>We read every suggestion and problem report.</p></div></div>
+<form id="feedbackForm" class="rm-fb-form">
+<label for="fbCategory">What would you like to share?</label>
+<select id="fbCategory" required><option value="App Experience">App Experience</option><option value="Report a Problem">Report a Problem</option><option value="Server / Technical Problem">Server / Technical Problem</option><option value="Suggest an Improvement">Suggest an Improvement</option><option value="Other">Other</option></select>
+<label>How is your overall experience?</label>
+<div class="rm-fb-rating" role="radiogroup" aria-label="Rating from one to five stars">
+<label><input type="radio" name="fbRating" value="1" ><span aria-hidden="true">★</span><small>1</small></label><label><input type="radio" name="fbRating" value="2" ><span aria-hidden="true">★</span><small>2</small></label><label><input type="radio" name="fbRating" value="3" ><span aria-hidden="true">★</span><small>3</small></label><label><input type="radio" name="fbRating" value="4" ><span aria-hidden="true">★</span><small>4</small></label><label><input type="radio" name="fbRating" value="5" checked><span aria-hidden="true">★</span><small>5</small></label>
+</div>
+<label for="fbSubject">Subject</label><input id="fbSubject" maxlength="120" placeholder="e.g. App is loading slowly" required>
+<label for="fbDetails">Your feedback or problem details</label><textarea id="fbDetails" rows="5" maxlength="1800" placeholder="Please tell us what happened, what you liked, or what you would like us to improve..." required></textarea>
+<div class="rm-fb-hint"><span>🔒</span> Your feedback is visible to the Railway Mitra owner and to you.</div>
+<button class="rm-fb-primary" id="fbSubmit" type="submit">Send Feedback <span>→</span></button>
+<p id="fbMessage" class="rm-fb-message" role="status"></p>
+</form></section>
+<section class="rm-fb-panel rm-fb-history"><div class="rm-fb-heading"><span>▤</span><div><h2>My Feedback & Replies</h2><p>View your submissions and reply to the Railway Mitra team.</p></div><button id="fbRefresh" class="rm-fb-refresh" type="button">↻</button></div>
+<div id="fbList" class="rm-fb-list"><p class="rm-fb-muted">Loading your feedback...</p></div>
+<div id="fbThread" class="rm-fb-thread" hidden></div>
+</section>
+</div>
+<p class="rm-fb-footer">Railway Mitra · Your Railway Digital Companion</p>
+</main>
+<script type="module" src="./feedback.js?v=1"></script>
+</body></html>
