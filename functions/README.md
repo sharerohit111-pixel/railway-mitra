@@ -71,3 +71,20 @@ The owner publishing form accepts an optional source label and paper year. These
 ## Storage rules deployment safety
 
 `storage.rules` currently contains only the new exam-content path. It is not a complete copy of the live project's Storage rules. Before deploying Storage rules, export the actual deployed rules from Firebase Console, preserve every existing path, merge only the `exam-content/{uid}/{folderId}/{fileName}` match block, review the result, and only then run `firebase deploy --only storage`. Deploying the current file as a full replacement could break other app features. Do not deploy it as-is.
+
+## Additional owner and candidate callables
+
+Owner-only content administration:
+- `listExamContent`, `createExamContentFolder`, `renameExamContentFolder`, `deleteExamContentFolder`
+- `registerExamContentFile`, `renameExamContentFile`, `deleteExamContentFile`, `searchExamContent`
+- `adminSetMaterialPrice`, `adminSetMaterialPublication`
+- `adminListExamAttempts`: most recent submitted candidate attempts and score summaries.
+
+Owner-only finance administration:
+- `adminGetFinanceSettings`, `adminSaveFinanceSettings`
+- `adminRecordPayment`, `adminListPayments`, `adminApprovePayment`
+
+Candidate store:
+- `getPublicStoreSettings`, `listStudyMaterials`
+- `createCandidatePaymentRequest`, `getMyPaymentRequests`
+- `getStudyMaterialDownloadUrl`: returns a five-minute signed URL only after publication and required entitlement checks.
