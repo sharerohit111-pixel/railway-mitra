@@ -7,13 +7,17 @@
 
   const ADMIN_SEGMENT = /(^|\/)(admin|admin-panel|admin-workspace)(\/|$)/i;
   const clean = (value) => (value || "").replace(/\s+/g, " ").trim();
-  const safeUrl = (href) => {
+  // Resolve links against the page currently being indexed, not always the home page.
+  // Restrict search results to this Railway Mitra project path; exclude the old root app.
+  const APP_BASE = new URL("./", document.currentScript?.src || window.location.href);
+  const safeUrl = (href, baseUrl = window.location.href) => {
     try {
-      const url = new URL(href, window.location.href);
-      if (url.origin !== window.location.origin) return null;
+      const url = new URL(href, baseUrl);
+      if (url.origin !== APP_BASE.origin) return null;
+      if (!url.pathname.startsWith(APP_BASE.pathname)) return null;
       if (ADMIN_SEGMENT.test(url.pathname)) return null;
-      if (/\/admin(?:\.|-|\/|$)/i.test(url.pathname)) return null;
-      if (!/\.html?$/i.test(url.pathname) && !url.pathname.endsWith("/")) return null;
+      if (/\\/admin(?:\\.|-|\\/|$)/i.test(url.pathname)) return null;
+      if (!/\\.html?$/i.test(url.pathname) && !url.pathname.endsWith("/")) return null;
       return url.href;
     } catch (_) { return null; }
   };
