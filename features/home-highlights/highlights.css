@@ -178,3 +178,23 @@
     background-position: 50% 50%;
   }
 }
+
+
+/* Pin the Founder credit to the top edge so it never covers the welcome heading. */
+.welcome-section::after {
+  top: 3px !important;
+  right: 10px !important;
+  padding: 5px 9px !important;
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  z-index: 5 !important;
+}
+@media (max-width: 768px) {
+  .welcome-section::after {
+    top: 3px !important;
+    right: 9px !important;
+    padding: 5px 8px !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+}
