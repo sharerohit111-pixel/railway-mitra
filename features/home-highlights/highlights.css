@@ -353,3 +353,87 @@
     filter: none !important;
   }
 }
+
+
+/* Compact founder identity ribbon directly below header, without changing header height. */
+.app-header::after {
+  content: none !important;
+  display: none !important;
+}
+.app-header {
+  position: sticky !important;
+  overflow: visible !important;
+  z-index: 150 !important;
+}
+.rm-founder-credit {
+  position: absolute;
+  top: calc(100% + 2px);
+  right: 14px;
+  z-index: 160;
+  width: min(330px, calc(100vw - 32px));
+  height: 34px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 3px 10px 3px 5px;
+  border: 1.5px solid rgba(53, 232, 255, .9);
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(105deg, rgba(13, 35, 67, .98), rgba(44, 25, 76, .98), rgba(13, 35, 67, .98));
+  box-shadow: 0 0 8px rgba(53, 232, 255, .18);
+  animation: rm-founder-ribbon-glow 3.4s ease-in-out infinite;
+}
+.rm-founder-credit img {
+  display: block;
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  min-width: 27px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1.5px solid #35e8ff;
+  margin: 0;
+  transform: none !important;
+  animation: none !important;
+}
+.rm-founder-credit span {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.1;
+  font-weight: 850;
+  letter-spacing: .15px;
+  white-space: nowrap;
+}
+@keyframes rm-founder-ribbon-glow {
+  0%, 100% {
+    border-color: rgba(53, 232, 255, .78);
+    box-shadow: 0 0 6px rgba(53, 232, 255, .16);
+  }
+  50% {
+    border-color: rgba(255, 69, 212, .9);
+    box-shadow: 0 0 10px rgba(53, 232, 255, .22), 0 0 12px rgba(255, 69, 212, .16);
+  }
+}
+@media (max-width: 400px) {
+  .rm-founder-credit {
+    right: 10px;
+    width: min(330px, calc(100vw - 24px));
+    height: 33px;
+  }
+  .rm-founder-credit img {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+    min-width: 26px;
+  }
+  .rm-founder-credit span {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rm-founder-credit { animation: none !important; }
+}
