@@ -7,12 +7,14 @@
 <div id="adminSections" hidden>
 <h2 class="exam-section-title">A. Exam Management Panel</h2><div class="exam-card-grid">
 <a class="exam-card" href="admin.html"><span class="exam-card-icon">📝</span><h3>Exam Panel</h3><p>Create, validate and publish verified GDCE tests and question papers.</p><span class="exam-card-meta">Open Exam Panel →</span></a>
-<a class="exam-card" href="content-library.html"><span class="exam-card-icon">📚</span><h3>PDF & Test Content</h3><p>LDCE, GDCE and Study Material folders, subfolders, PDF uploads and naming.</p><span class="exam-card-meta">Open Content Manager →</span></a>
+<a class="exam-card" href="content-library.html?folder=root_ldce"><span class="exam-card-icon">📘</span><h3>LDCE Content Manager</h3><p>Separate LDCE folders, subfolders, previous papers and PDF uploads.</p><span class="exam-card-meta">Manage LDCE →</span></a>
+<a class="exam-card" href="content-library.html?folder=root_gdce"><span class="exam-card-icon">🚆</span><h3>GDCE Content Manager</h3><p>Separate GDCE folders, JE streams, Train Manager papers and PDFs.</p><span class="exam-card-meta">Manage GDCE →</span></a>
+<a class="exam-card" href="content-library.html?folder=root_study_material"><span class="exam-card-icon">📚</span><h3>Study Material Library</h3><p>Separate study PDFs and individual material pricing.</p><span class="exam-card-meta">Manage Study Material →</span></a>
 </div>
 <h2 class="exam-section-title">B. Financial Management Panel</h2><div class="exam-card-grid">
 <a class="exam-card finance-card" href="financial-admin.html"><span class="exam-card-icon">💳</span><h3>Price & Subscription Control</h3><p>Course prices, subscription plans, payment records, renewals and access controls.</p><span class="exam-card-meta">Open Financial Panel →</span></a>
 </div>
-<div class="exam-notice">These controls are owner-only. Content uploads and payment operations will remain disabled until their secure Storage, database and backend rules are completed.</div>
+<div class="exam-notice">Owner-only controls. Folder and PDF operations use protected Firebase Storage and callable backend functions. Finance controls use owner-verified payment records; automatic gateway checkout is not active until merchant credentials and webhooks are configured.</div>
 </div></main><script type="module" src="./admin-workspace.js"></script>
 <script src="../../assets/js/global-search.js" defer></script>
 </body></html>
