@@ -1,0 +1,39 @@
+RAILWAY MITRA — FIRESTORE SECURITY RULES
+
+As Railway Mitra adds account-synced modules, merge these rules into the Firestore Rules editor and Publish.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Daily Duty Diary: each signed-in user can access only their own records.
+    match /users/{userId}/dutyDiary/{dateId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+
+    // Employee Profile: each signed-in user can access only their own profile.
+    match /users/{userId}/employeeProfile/{profileId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId
+        && profileId == 'main';
+    }
+
+    // Default deny for every other collection until a feature has its own rule.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+IMPORTANT:
+- Replace the existing rules with this complete version only if the existing rules are exactly the previous Railway Mitra rules that allow the user's own dutyDiary path and deny all other paths.
+- If other production rules already exist for other app features, preserve and merge them instead of overwriting.
+- Publish the rules after editing.
+- Never use public rules such as allow read, write: if true.
+
+EMPLOYEE PROFILE CLOUD PATH:
+users/{signedInUserUid}/employeeProfile/main
+
+DUTY DIARY CLOUD PATH:
+users/{signedInUserUid}/dutyDiary/YYYY-MM-DD
