@@ -49,7 +49,8 @@
       {
         className: "rm-bottom-nav__item--feedback",
         label: "Feedback",
-        title: "Feedback — coming in a later step",
+        title: "Open Feedback for Us",
+        href: "features/feedback/index.html",
         paths: '<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-7.5A8.5 8.5 0 1 1 21 11.5Z"/><path d="m12 7 1.1 2.2 2.4.3-1.8 1.7.4 2.4-2.1-1.1-2.1 1.1.4-2.4-1.8-1.7 2.4-.3Z"/>',
         reserved: true
       }
