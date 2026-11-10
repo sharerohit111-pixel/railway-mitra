@@ -75,7 +75,15 @@ function normalizeQuestion(q, index) {
       questionId,
       questionNumber: validNumber(q.questionNumber ?? index + 1, "questionNumber", 1, MAX_QUESTIONS),
       questionText,
+      questionTextEn: typeof q.questionTextEn === "string" ? q.questionTextEn.slice(0, 8000) : questionText,
+      questionTextHi: typeof q.questionTextHi === "string" ? q.questionTextHi.slice(0, 8000) : null,
       options,
+      optionsEn: Array.isArray(q.optionsEn) && q.optionsEn.length === options.length
+        ? q.optionsEn.map((o, i) => ({ key: options[i].key, text: cleanString(o.text, "English option text", 2000) }))
+        : options,
+      optionsHi: Array.isArray(q.optionsHi) && q.optionsHi.length === options.length
+        ? q.optionsHi.map((o, i) => ({ key: options[i].key, text: typeof o.text === "string" && o.text.trim() ? o.text.slice(0, 2000) : null }))
+        : null,
       subject: typeof q.subject === "string" ? q.subject.slice(0, 120) : "",
       topic: typeof q.topic === "string" ? q.topic.slice(0, 120) : ""
     },
