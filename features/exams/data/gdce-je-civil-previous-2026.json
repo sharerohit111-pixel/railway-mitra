@@ -1,0 +1,4366 @@
+{
+  "testId": "gdce-je-civil-previous-2026",
+  "title": "GDCE JE Civil 2026",
+  "streamId": "gdce-je-civil",
+  "streamTitle": "GDCE JE Civil Engineering",
+  "category": "previous",
+  "sourceLabel": "North Western Railway JE Civil and Allied Engineering — Candidate Answer Key (27/08/2026)",
+  "sourceYear": 2026,
+  "durationMinutes": 120,
+  "positiveMarksPerQuestion": 1,
+  "negativeMarksPerWrongAnswer": 0.3333333333,
+  "totalQuestions": 150,
+  "questions": [
+    {
+      "questionId": "q001",
+      "questionNumber": 1,
+      "questionText": "Crop rotation and use of organic fertilizers help in reducing soil pollution on agricultural land. This is because these practices _____.",
+      "options": [
+        {
+          "key": "1",
+          "text": "Revitalize soil and reduce chemical accumulation"
+        },
+        {
+          "key": "2",
+          "text": "Increase chemical accumulation"
+        },
+        {
+          "key": "3",
+          "text": "Promote soil salinity"
+        },
+        {
+          "key": "4",
+          "text": "Decrease organic matter"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q002",
+      "questionNumber": 2,
+      "questionText": "Which of the following statements is INCORRECT for mass number?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Protium and deuterium have same the mass number."
+        },
+        {
+          "key": "2",
+          "text": "Isobars have same mass number."
+        },
+        {
+          "key": "3",
+          "text": "The number of nucleons is same as mass number."
+        },
+        {
+          "key": "4",
+          "text": "Mass number is equal to the sum of number of neutrons and number of protons."
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q003",
+      "questionNumber": 3,
+      "questionText": "निम्नलिखित में से कौन-सा एक सिस्टम सॉफ्टवेयर है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "ऑपरेटिंग सिस्टम"
+        },
+        {
+          "key": "2",
+          "text": "गूगल क्रोम"
+        },
+        {
+          "key": "3",
+          "text": "MS एक्सेल"
+        },
+        {
+          "key": "4",
+          "text": "एडोब फोटोशॉप"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q004",
+      "questionNumber": 4,
+      "questionText": "कं प्यूटिंग परिवेश (computing environment) में नेटवर्क सुरक्षा की मुख्य भूमिका क्या है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "सॉफ्टवेयर एरर को डिटेक्ट करना और बग को फिक्स करना"
+        },
+        {
+          "key": "2",
+          "text": "रिसोर्सेज को ऑप्टिमाइज़ करके कं प्यूटर को तेज बनाना"
+        },
+        {
+          "key": "3",
+          "text": "रिपोर्टिंग उद्देश्यों के लिए उपयोगकर्ता गतिविधि को लॉग करना"
+        },
+        {
+          "key": "4",
+          "text": "नेटवर्कों में अनधिकृ त एक्सेस को ब्लॉक करना और डेटा ट्रांसमिशन को सुरक्षित करना"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q005",
+      "questionNumber": 5,
+      "questionText": "एक औद्योगिक इकाई ग्रीनहाउस गैस उत्सर्जन को सीमित करने के लिए रणनीतियों का मूल्यांकन कर रही है। उत्सर्जन को प्रभावी ढंग से कम करने और जलवायु परिवर्तन प्रभाव को कम करने के लिए कौन-सा उपागम सबसे अच्छा रहेगा?",
+      "options": [
+        {
+          "key": "1",
+          "text": "नवीकरणीय ऊर्जा स्रोतों पर स्विच करना और दक्षता में सुधार करना"
+        },
+        {
+          "key": "2",
+          "text": "औद्योगिक उपस्करों का नियमित रखरखाव"
+        },
+        {
+          "key": "3",
+          "text": "इकाई के आसपास हरित पट्टी क्षेत्र में वृद्धि करना"
+        },
+        {
+          "key": "4",
+          "text": "एग्जॉस्ट पर वायु निस्यंदन तंत्र स्थापित करना"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q006",
+      "questionNumber": 6,
+      "questionText": "A 2 kg body accelerates at 3 m/s². The force acting on it is:",
+      "options": [
+        {
+          "key": "1",
+          "text": "2 N"
+        },
+        {
+          "key": "2",
+          "text": "6 N"
+        },
+        {
+          "key": "3",
+          "text": "3 N"
+        },
+        {
+          "key": "4",
+          "text": "5 N"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q007",
+      "questionNumber": 7,
+      "questionText": "निम्नलिखित में से कौन-सी धातु, सबसे कम अभिक्रियाशील है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "मैग्नीशियम (Magnesium)"
+        },
+        {
+          "key": "2",
+          "text": "सोना (Gold)"
+        },
+        {
+          "key": "3",
+          "text": "जस्ता (Zinc)"
+        },
+        {
+          "key": "4",
+          "text": "सोडियम (Sodium)"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q008",
+      "questionNumber": 8,
+      "questionText": "भारत सरकार द्वारा कें द्रीय बजट 2026–27 में निम्नलिखित में से किस स्कीम की घोषणा की गई थी?",
+      "options": [
+        {
+          "key": "1",
+          "text": "अग्निपथ स्कीम"
+        },
+        {
+          "key": "2",
+          "text": "PM विश्वकर्मा स्कीम"
+        },
+        {
+          "key": "3",
+          "text": "इंडिया सेमीकं डक्टर मिशन 2.0"
+        },
+        {
+          "key": "4",
+          "text": "PM SHRI स्कू ल"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q009",
+      "questionNumber": 9,
+      "questionText": "औसत वेग के संबंध में निम्नलिखित में से कौन-सा कथन सही नहीं है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "यह सदैव औसत चाल के समान होता है।"
+        },
+        {
+          "key": "2",
+          "text": "इसे m/s में मापा जाता है।"
+        },
+        {
+          "key": "3",
+          "text": "यह कु ल विस्थापन को कु ल समय से विभाजित करने पर प्राप्त मान होता है।"
+        },
+        {
+          "key": "4",
+          "text": "यह गति की दिशा पर निर्भर करता है।"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q010",
+      "questionNumber": 10,
+      "questionText": "बाल गंगाधर तिलक ने भारतीयों में राष्ट्रवादी भावनाएँ जागृत करने के लिए कौन-सा लोकप्रिय नारा दिया?",
+      "options": [
+        {
+          "key": "1",
+          "text": "स्वराज मेरा जन्मसिद्ध अधिकार है"
+        },
+        {
+          "key": "2",
+          "text": "इंकलाब ज़िंदाबाद"
+        },
+        {
+          "key": "3",
+          "text": "भारत छोड़ो"
+        },
+        {
+          "key": "4",
+          "text": "वंदे मातरम"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q011",
+      "questionNumber": 11,
+      "questionText": "Which of the following has straight-chain hydrocarbons?",
+      "options": [
+        {
+          "key": "1",
+          "text": "2-Methylpropane"
+        },
+        {
+          "key": "2",
+          "text": "Butane"
+        },
+        {
+          "key": "3",
+          "text": "Isobutane"
+        },
+        {
+          "key": "4",
+          "text": "3-Methylpentane"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q012",
+      "questionNumber": 12,
+      "questionText": "भारतीय संसद की लोक लेखा समिति (PAC) का मुख्य कार्य क्या है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "सरकारी योजनाओं का मूल्यांकन करना"
+        },
+        {
+          "key": "2",
+          "text": "स्पीकर के निर्वाचन में सहायता करना"
+        },
+        {
+          "key": "3",
+          "text": "कें द्रीय बजट की संस्तुति करना"
+        },
+        {
+          "key": "4",
+          "text": "CAG की लेखापरीक्षा रिपोर्टों की समीक्षा करना"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q013",
+      "questionNumber": 13,
+      "questionText": "लखवार बहुउद्देशीय परियोजना किस राज्य से संबंधित है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "उत्तर प्रदेश"
+        },
+        {
+          "key": "2",
+          "text": "उत्तराखंड"
+        },
+        {
+          "key": "3",
+          "text": "राजस्थान"
+        },
+        {
+          "key": "4",
+          "text": "मध्य प्रदेश"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q014",
+      "questionNumber": 14,
+      "questionText": "जुलाई 2026 में, बिहार के मुख्यमंत्री सम्राट चौधरी ने किस शहर में बिहार हेली-टूरिज्म (Bihar Heli-Tourism) और एयर-टूरिज्म सर्विस स्कीम (Air-Tourism Service Scheme) की शुरुआत की?",
+      "options": [
+        {
+          "key": "1",
+          "text": "गया"
+        },
+        {
+          "key": "2",
+          "text": "राजगीर"
+        },
+        {
+          "key": "3",
+          "text": "पटना"
+        },
+        {
+          "key": "4",
+          "text": "भागलपुर"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q015",
+      "questionNumber": 15,
+      "questionText": "विजयनगर साम्राज्य की वास्तुकला हिंदू और इस्लामी तत्वों को समाविष्ट करने के लिए प्रसिद्ध है। निम्नलिखित में से कौन-सा विकल्प इस वास्तुशिल्प संश्लेषण को सर्वोत्तम रूप से दर्शाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "के वल ग्रेनाइट के स्तंभ और नक्काशीदार पत्थर के हॉल का उपयोग"
+        },
+        {
+          "key": "2",
+          "text": "सभी विदेशी वास्तुशिल्प और सजावटी तत्वों से बचना"
+        },
+        {
+          "key": "3",
+          "text": "धर्मनिरपेक्ष इमारतों के बिना के वल मंदिर परिसरों का निर्माण"
+        },
+        {
+          "key": "4",
+          "text": "गुंबदों और मेहराबों वाली पारंपरिक द्रविड़ संरचनाएं"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q016",
+      "questionNumber": 16,
+      "questionText": "एमएस पॉवरप्वाइंट में कौन-सा टैब, किसी स्लाइड में आरेख (diagrams), चित्र (illustrations) और ग्राफिकल कं टेंट जैसे दृश्यात्मक अवयवों को शामिल करने हेतु टूल प्रदान करता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Review"
+        },
+        {
+          "key": "2",
+          "text": "Insert"
+        },
+        {
+          "key": "3",
+          "text": "Home"
+        },
+        {
+          "key": "4",
+          "text": "Design"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q017",
+      "questionNumber": 17,
+      "questionText": "एमएस एक्सेल में, टेक्स्ट सीरीज (जैसे, \"A\", \"B\", \"C\") कै से बनाते हैं?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Home टैब से Fill कमांड का उपयोग करके"
+        },
+        {
+          "key": "2",
+          "text": "टेक्स्ट सीरीज बनाने के लिए Insert टैब का उपयोग करके"
+        },
+        {
+          "key": "3",
+          "text": "प्रत्येक सेल में टेक्स्ट को मैन्युअल रूप से टाइप करके"
+        },
+        {
+          "key": "4",
+          "text": "पहले सेल में \"A\" टाइप करके , फिर Ctrl दबाकर फिल हैंडल को ड्रैग करके"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q018",
+      "questionNumber": 18,
+      "questionText": "निम्नलिखित में से किस मौसम/ऋतु के दौरान किसानों को प्राकृ तिक आपदाओं जैसे सूखा, बाढ़, ओलावृष्टि, चक्रवात, पीड़कों और बीमारियों के कारण होने वाली फसल हानि से बचाने के लिए राष्ट्रीय कृ षि बीमा योजना शुरू की गई थी?",
+      "options": [
+        {
+          "key": "1",
+          "text": "रबी 2005-2006"
+        },
+        {
+          "key": "2",
+          "text": "ख़रीफ़ 1998-1999"
+        },
+        {
+          "key": "3",
+          "text": "ख़रीफ़ 2001-2002"
+        },
+        {
+          "key": "4",
+          "text": "रबी 1999-2000"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q019",
+      "questionNumber": 19,
+      "questionText": "जब लोहे के बुरादे को सल्फर पाउडर के साथ मिलाया जाता है और मिश्रण को गर्म किया जाता है, तो आयरन सल्फाइड नामक एक काला पदार्थ बनता है। परिवर्तनों का सबसे सटीक वर्णन इनमें से किस कथन में मिलता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "लोहा सल्फर में घुल जाता है और एक विलयन बनाता है।"
+        },
+        {
+          "key": "2",
+          "text": "पदार्थों को मिश्रित करने मात्र से ही भौतिक परिवर्तन होता है।"
+        },
+        {
+          "key": "3",
+          "text": "एक उत्‍क्रमणीय भौतिक परिवर्तन होता है।"
+        },
+        {
+          "key": "4",
+          "text": "रासायनिक परिवर्तन के परिणामस्वरूप एक नया पदार्थ बनता है।"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q020",
+      "questionNumber": 20,
+      "questionText": "के रल और कर्नाटक राज्य के साथ सीमा साझा करने वाला, तमिलनाडु का मुदुमलाई राष्ट्रीय उद्यान भारत के किस बायोस्फीयर रिजर्व का हिस्सा है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "अगस्त्यमलाई बायोस्फीयर रिजर्व"
+        },
+        {
+          "key": "2",
+          "text": "नीलगिरि बायोस्फीयर रिजर्व"
+        },
+        {
+          "key": "3",
+          "text": "नोकरेक बायोस्फीयर रिजर्व"
+        },
+        {
+          "key": "4",
+          "text": "कं चनजंगा बायोस्फीयर रिजर्व"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q021",
+      "questionNumber": 21,
+      "questionText": "निम्नलिखित में से कौन-सा डिफ़ॉल्ट TCP पोर्ट युग्म सुरक्षित संचार के लिए सही है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "FTP - 8080, HTTPS - 110"
+        },
+        {
+          "key": "2",
+          "text": "IMAP - 22, HTTP - 25"
+        },
+        {
+          "key": "3",
+          "text": "HTTP - 80, HTTPS - 443"
+        },
+        {
+          "key": "4",
+          "text": "SMTP - 21, POP3 - 23"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q022",
+      "questionNumber": 22,
+      "questionText": "कें द्रीय बजट 2026-27 में घोषित 'भारत-VISTAAR' (Bharat-VISTAAR) स्कीम निम्नलिखित में से किस कें द्रीय मंत्रालय से संबंधित है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "पर्यावरण, वन और जलवायु परिवर्तन मंत्रालय"
+        },
+        {
+          "key": "2",
+          "text": "शिक्षा मंत्रालय"
+        },
+        {
+          "key": "3",
+          "text": "आवास और शहरी मामलों का मंत्रालय"
+        },
+        {
+          "key": "4",
+          "text": "कृ षि और किसान कल्याण मंत्रालय"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q023",
+      "questionNumber": 23,
+      "questionText": "द वियना कन्वेंशन फॉर द प्रोटेक्शन ऑफ द ओजोन लेयर (1985) {The Vienna Convention for the Protection of the Ozone Layer (1985)} ने किस आगामी अंतरराष्ट्रीय संधि का मार्ग प्रशस्त किया?",
+      "options": [
+        {
+          "key": "1",
+          "text": "पेरिस एग्रीमेंट (Paris Agreement)"
+        },
+        {
+          "key": "2",
+          "text": "बेसल कन्वेंशन (Basel Convention)"
+        },
+        {
+          "key": "3",
+          "text": "मॉन्ट्रियल प्रोटोकॉल (Montreal Protocol)"
+        },
+        {
+          "key": "4",
+          "text": "क्योटो प्रोटोकॉल (Kyoto Protocol)"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q024",
+      "questionNumber": 24,
+      "questionText": "वास्को डी गामा निम्नलिखित में से किस वर्ष दूसरी बार मालाबार तट पर कालीकट में उतरा था?",
+      "options": [
+        {
+          "key": "1",
+          "text": "1511"
+        },
+        {
+          "key": "2",
+          "text": "1509"
+        },
+        {
+          "key": "3",
+          "text": "1505"
+        },
+        {
+          "key": "4",
+          "text": "1502"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q025",
+      "questionNumber": 25,
+      "questionText": "प्लास्टर ऑफ पेरिस का रासायनिक सूत्र क्या है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "CaSO₄"
+        },
+        {
+          "key": "2",
+          "text": "CaCO₃"
+        },
+        {
+          "key": "3",
+          "text": "CaSO₄·2H₂O"
+        },
+        {
+          "key": "4",
+          "text": "CaSO₄·½H₂O"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q026",
+      "questionNumber": 26,
+      "questionText": "किसी आवासीय क्षेत्र के निकट एक नया अपशिष्ट-ऊर्जा संयंत्र (waste-to-energy plant ) प्रस्तावित है। इस सुविधा से संबंधित प्राथमिक पर्यावरणीय चिंता क्या होगी?",
+      "options": [
+        {
+          "key": "1",
+          "text": "अपशिष्ट परिवहन के कारण यातायात संकु लता"
+        },
+        {
+          "key": "2",
+          "text": "भूजल को प्रभावित करने वाला लीचेट उत्पादन"
+        },
+        {
+          "key": "3",
+          "text": "मशीनरी से उत्पन्न अत्यधिक ध्वनि प्रदूषण"
+        },
+        {
+          "key": "4",
+          "text": "भस्मीकरण के दौरान विषाक्त गैसों का उत्सर्जन"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q027",
+      "questionNumber": 27,
+      "questionText": "एक पिंड एक सरल रेखा में परिवर्तनशील चाल से गतिमान है। 10 s में इसका विस्थापन 50 m है। औसत वेग कितना होगा?",
+      "options": [
+        {
+          "key": "1",
+          "text": "25 m/s"
+        },
+        {
+          "key": "2",
+          "text": "50 m/s"
+        },
+        {
+          "key": "3",
+          "text": "5 m/s"
+        },
+        {
+          "key": "4",
+          "text": "10 m/s"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q028",
+      "questionNumber": 28,
+      "questionText": "एक कपड़ा कारखाना, अनुपचारित डाई-युक्त जल को पास की जलधारा में निस्सरित करता है। इस क्रिया का सबसे प्रत्यक्ष पर्यावरणीय परिणाम क्या होगा?",
+      "options": [
+        {
+          "key": "1",
+          "text": "बड़े जलीय पौधों की तीव्र वृद्धि"
+        },
+        {
+          "key": "2",
+          "text": "जलीय जीवन विविधता में कमी"
+        },
+        {
+          "key": "3",
+          "text": "जल के तापमान में वृद्धि"
+        },
+        {
+          "key": "4",
+          "text": "जल लवणता में वृद्धि"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q029",
+      "questionNumber": 29,
+      "questionText": "निम्नलिखित में से कौन-सा, सामाजिक-आर्थिक निर्देशक सिद्धांत है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "समान काम के लिए समान वेतन"
+        },
+        {
+          "key": "2",
+          "text": "शक्तियों का पृथक्करण"
+        },
+        {
+          "key": "3",
+          "text": "न्यायपालिका की स्वतंत्रता"
+        },
+        {
+          "key": "4",
+          "text": "अंतर्राष्ट्रीय शांति को बढ़ावा देना"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q030",
+      "questionNumber": 30,
+      "questionText": "पास की एक झील में प्रायः शैवाल प्रस्फु टन (algal bloom) होता रहता है। इसके लिए आसपास के क्षेत्र की कौन-सी गतिविधि उत्तरदायी है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "झील में अनुपचारित वाहित मल का निस्सरण करना"
+        },
+        {
+          "key": "2",
+          "text": "बाढ़ नियंत्रण के लिए बालू के थैलों का उपयोग करना"
+        },
+        {
+          "key": "3",
+          "text": "झील के चारों ओर पत्थर के गमन पथ बनाना"
+        },
+        {
+          "key": "4",
+          "text": "झील तट पर स्थानीय पेड़ लगाना"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q031",
+      "questionNumber": 31,
+      "questionText": "कै श मेमोरी (Cache Memory) के बारे में निम्नलिखित में से कौन सा कथन गलत है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "कै श मेमोरी त्वरित पुनर्प्राप्ति के लिए अक्सर एक्सेस किए जाने वाले डेटा को संग्रहीत करती है।"
+        },
+        {
+          "key": "2",
+          "text": "कै श मेमोरी CPU के निकट या अंदर स्थित होती है।"
+        },
+        {
+          "key": "3",
+          "text": "कै श मेमोरी सेकें डरी स्टोरेज का एक रूप है।"
+        },
+        {
+          "key": "4",
+          "text": "कै श मेमोरी मुख्य मेमोरी से तेज़ होती है।"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q032",
+      "questionNumber": 32,
+      "questionText": "कीबोर्ड पर इन्सर्ट (Ins) कुं जी का क्या प्रयोग है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "यह कं टेंट पेस्ट करता है।"
+        },
+        {
+          "key": "2",
+          "text": "यह इन्सर्ट और ओवरराइट मोड के बीच स्विच करता है।"
+        },
+        {
+          "key": "3",
+          "text": "यह इन्सर्ट किए गए टेक्स्ट को डिलीट करता है।"
+        },
+        {
+          "key": "4",
+          "text": "यह स्क्रीन को रिफ्रे श करता है"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q033",
+      "questionNumber": 33,
+      "questionText": "भारत में संपत्ति के अधिकार के संबंध में निम्नलिखित में से कौन-सा कथन सही है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "यह अनुच्छेद 31 (अब हटा दिया गया) के अंतर्गत एक मौलिक अधिकार है।"
+        },
+        {
+          "key": "2",
+          "text": "बयालीसवें संशोधन (1976) द्वारा इसे पूरी तरह समाप्त कर दिया गया।"
+        },
+        {
+          "key": "3",
+          "text": "यह अब मौलिक अधिकार नहीं रहा।"
+        },
+        {
+          "key": "4",
+          "text": "यह संविधान के अनुच्छेद 32 के अंतर्गत एक मौलिक अधिकार है।"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q034",
+      "questionNumber": 34,
+      "questionText": "किसी शहर में उसके मुख्य औद्योगिक क्षेत्र के किनारे एक हरित पट्टी लगाकर शहरी वायु प्रदूषण को कम करने की योजना बनाई जा रही है। वायु गुणवत्ता में सुधार करने के लिए हरित पट्टी में किस तंत्र का उपयोग किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "पवन चाल में वृद्धि के माध्यम से प्रदूषकों का तनूकरण"
+        },
+        {
+          "key": "2",
+          "text": "प्रदूषकों को साफ करने के लिए वर्षा में वृद्धि"
+        },
+        {
+          "key": "3",
+          "text": "स्रोत पर औद्योगिक उत्सर्जन में कमी"
+        },
+        {
+          "key": "4",
+          "text": "पौधों के पत्तों द्वारा गैसीय प्रदूषकों का अवशोषण"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q035",
+      "questionNumber": 35,
+      "questionText": "MS वर्ड में, किसी लिस्ट से बुलेट रिमूव करने के लिए, आपको क्या करना चाहिए?",
+      "options": [
+        {
+          "key": "1",
+          "text": "बैकस्पेस प्रेस करें"
+        },
+        {
+          "key": "2",
+          "text": "बुलेट बटन पर पुनः क्लिक करें"
+        },
+        {
+          "key": "3",
+          "text": "टेक्स्ट हाइलाइट करके कट करें"
+        },
+        {
+          "key": "4",
+          "text": "प्रत्येक बुलेट को मैन्युअल रूप से डिलीट करें"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q036",
+      "questionNumber": 36,
+      "questionText": "निम्नलिखित में से कौन-सी ऑपरेटिंग सिस्टम अवधारणा सबसे अधिक प्रत्यक्ष रूप से यह सुनिश्चित करने में शामिल है कि एकाधिक प्रक्रियाएं डेटा करप्ट किए के बिना एक साथ फ़ाइलों को एक्सैस और मॉडिफाई कर सकती हैं?",
+      "options": [
+        {
+          "key": "1",
+          "text": "वर्चुअल मेमोरी मैनेजमेंट (Virtual memory management)"
+        },
+        {
+          "key": "2",
+          "text": "शेड्यूलिंग एल्गोरिदम (Scheduling algorithms)"
+        },
+        {
+          "key": "3",
+          "text": "पेजिंग (Paging)"
+        },
+        {
+          "key": "4",
+          "text": "फ़ाइल लॉकिंग मेकै निज़्म्स (File locking mechanisms)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q037",
+      "questionNumber": 37,
+      "questionText": "__________ होने पर तारे अधिक स्पष्ट रूप से टिमटिमाते हुए दिखते हैं।",
+      "options": [
+        {
+          "key": "1",
+          "text": "तारों के उनके शिरोबिन्दु पर होने पर"
+        },
+        {
+          "key": "2",
+          "text": "आसमान बादलों से घिरा होने पर"
+        },
+        {
+          "key": "3",
+          "text": "चांद के चमकीले होने पर"
+        },
+        {
+          "key": "4",
+          "text": "तारों के क्षितिज के पास होने पर"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q038",
+      "questionNumber": 38,
+      "questionText": "1920 के असहयोग आंदोलन में निम्नलिखित में से किस एक को छोड़कर शेष सभी शामिल थे?",
+      "options": [
+        {
+          "key": "1",
+          "text": "अधिकारियों पर हिंसक हमले"
+        },
+        {
+          "key": "2",
+          "text": "स्कू लों और कॉलेजों को बंद करना"
+        },
+        {
+          "key": "3",
+          "text": "कर देने से इनकार"
+        },
+        {
+          "key": "4",
+          "text": "ब्रिटिश अदालतों का बहिष्कार"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q039",
+      "questionNumber": 39,
+      "questionText": "थॉमसन ने अपने परमाणु मॉडल का वर्णन करने के लिए निम्नलिखित में से किस सादृश्य (analogy) का उपयोग किया?",
+      "options": [
+        {
+          "key": "1",
+          "text": "क्रिसमस पुडिंग (Christmas pudding)"
+        },
+        {
+          "key": "2",
+          "text": "ग्रह प्रणाली (Planetary system)"
+        },
+        {
+          "key": "3",
+          "text": "परमाणु कोर-शेल (Nuclear core-shell)"
+        },
+        {
+          "key": "4",
+          "text": "सौर परिवार (Solar system)"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q040",
+      "questionNumber": 40,
+      "questionText": "निम्नलिखित कं प्यूटर सिक्योरिटी शब्दों को उनकी सही परिभाषाओं के साथ सुमेलित कीजिए। शब्द परिभाषा 1. एन्क्रिप्शन A. अनधिकृ त नेटवर्क एक्सेस को अवरुद्ध करता है 2. फ़ायरवॉल B. यूजर आइडेंटिटी को वैलिडेट करता है 3. एंटीवायरस C. डेटा को अपठनीय कोड में परिवर्तित करता है 4. ऑथेंटिके शन D. मैलवेयर का पता लगाता है और उसे रिमूव करता है",
+      "options": [
+        {
+          "key": "1",
+          "text": "1-C, 2-A, 3-D, 4-B"
+        },
+        {
+          "key": "2",
+          "text": "1-C, 2-A, 3-B, 4-D"
+        },
+        {
+          "key": "3",
+          "text": "1-D, 2-C, 3-A, 4-B"
+        },
+        {
+          "key": "4",
+          "text": "1-A, 2-B, 3-D, 4-C"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q041",
+      "questionNumber": 41,
+      "questionText": "प्रतिरोधकों के समान्तर कनेक्‍शन के बारे में कौन-सा कथन सत्य है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "कु ल धारा, अलग-अलग प्रतिरोधकों से प्रवाहित धाराओं का योग होती है।"
+        },
+        {
+          "key": "2",
+          "text": "कु ल धारा किसी भी शाखा से प्रवाहित धारा के समान होती है।"
+        },
+        {
+          "key": "3",
+          "text": "अधिक प्रतिरोधकों को जोड़ने पर कु ल प्रतिरोध बढ़ जाता है।"
+        },
+        {
+          "key": "4",
+          "text": "प्रत्येक प्रतिरोधक समान धारा वहन करता है चाहे प्रतिरोध कु छ भी हो।"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q042",
+      "questionNumber": 42,
+      "questionText": "बोर (Bohr's) के परमाणु मॉडल के अनुसार, इलेक्ट्रॉन नाभिक के चारों ओर ___________ परिक्रमण करते हैं।",
+      "options": [
+        {
+          "key": "1",
+          "text": "सरल रेखाओं में"
+        },
+        {
+          "key": "2",
+          "text": "विविक्त कक्षाओं में"
+        },
+        {
+          "key": "3",
+          "text": "दीर्घवृत्ताकार पथ पर"
+        },
+        {
+          "key": "4",
+          "text": "यादृच्छिक पथ पर"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q043",
+      "questionNumber": 43,
+      "questionText": "Which of the following is a heterogeneous mixture?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Salt solution"
+        },
+        {
+          "key": "2",
+          "text": "Air"
+        },
+        {
+          "key": "3",
+          "text": "Sand and water"
+        },
+        {
+          "key": "4",
+          "text": "Sugar solution"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q044",
+      "questionNumber": 44,
+      "questionText": "निम्नलिखित में से कौन-से कथन सही हैं? कथन I: ओपन पिट डिजाइन ट्रांसफर स्टेशन में, कू ड़ा एकत्र करने वाले वाहन अपशिष्ट को एक विवृत गर्त में डालते हैं, जहां से अपशिष्ट सामग्री को यांत्रिक रूप से या मैन्युअल रूप से बड़े विवृत गर्तों में स्थानांतरित किया जाता है। कथन II: डायरेक्ट ट्रांसफर स्टेशन में, छोटे वाहनों से निकलने वाले अपशिष्ट को सीधे बड़े वाहनों में स्थानांतरित किया जाता है।",
+      "options": [
+        {
+          "key": "1",
+          "text": "के वल कथन II सही है"
+        },
+        {
+          "key": "2",
+          "text": "कथन I और II दोनों सही हैं"
+        },
+        {
+          "key": "3",
+          "text": "न तो कथन I और न ही कथन II सही है"
+        },
+        {
+          "key": "4",
+          "text": "के वल कथन I सही है"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q045",
+      "questionNumber": 45,
+      "questionText": "जून 2026 में प्रकाशित पुस्तक 'द सेकं ड ऑर्बिट (The Second Orbit)' किसने लिखी?",
+      "options": [
+        {
+          "key": "1",
+          "text": "अनिल जोशी"
+        },
+        {
+          "key": "2",
+          "text": "प्रिया शर्मा"
+        },
+        {
+          "key": "3",
+          "text": "रोहित कु मार"
+        },
+        {
+          "key": "4",
+          "text": "शुभांशु शुक्ला"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q046",
+      "questionNumber": 46,
+      "questionText": "निम्न कथन में रिक्त स्थान की पूर्ति कीजिए। अव्यवस्थित कचरा भराव क्षेत्रों में दुर्गंधयुक्त गैसों का उत्पादन मुख्य रूप से _________ के कारण होता है।",
+      "options": [
+        {
+          "key": "1",
+          "text": "ऑक्सीकरण अभिक्रियाएं"
+        },
+        {
+          "key": "2",
+          "text": "अवायवीय अपघटन"
+        },
+        {
+          "key": "3",
+          "text": "वायवीय अपघटन"
+        },
+        {
+          "key": "4",
+          "text": "प्रकाश संश्लेषण"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q047",
+      "questionNumber": 47,
+      "questionText": "__________, वह वायु प्रदूषक है, जो रक्त में हीमोग्लोबिन से जुड़कर ऑक्सीजन की आपूर्ति को बाधित करता है।",
+      "options": [
+        {
+          "key": "1",
+          "text": "नाइट्रोजन डाइऑक्साइड"
+        },
+        {
+          "key": "2",
+          "text": "सल्फर डाइऑक्साइड"
+        },
+        {
+          "key": "3",
+          "text": "कार्बन मोनोऑक्साइड"
+        },
+        {
+          "key": "4",
+          "text": "ओजोन"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q048",
+      "questionNumber": 48,
+      "questionText": "A real and inverted image is formed at a distance of 30 cm from a concave mirror when the object is placed 40 cm from the mirror. What will be the magnification produced by the mirror?",
+      "options": [
+        {
+          "key": "1",
+          "text": "+ 3/4"
+        },
+        {
+          "key": "2",
+          "text": "- 4/3"
+        },
+        {
+          "key": "3",
+          "text": "+ 4/3"
+        },
+        {
+          "key": "4",
+          "text": "- 3/4"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q049",
+      "questionNumber": 49,
+      "questionText": "Why are ultrasounds preferred for cleaning objects with complex shapes?",
+      "options": [
+        {
+          "key": "1",
+          "text": "They have very high speed in liquids"
+        },
+        {
+          "key": "2",
+          "text": "Their high frequency dislodges dirt particles"
+        },
+        {
+          "key": "3",
+          "text": "They increase temperature of solution"
+        },
+        {
+          "key": "4",
+          "text": "They produce magnetic effect"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q050",
+      "questionNumber": 50,
+      "questionText": "संक्रामक जैव चिकित्सा अपशिष्ट के सुरक्षित निपटान के लिए सामान्यतः किस विधि का उपयोग किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "कं पोस्टन (Composting)"
+        },
+        {
+          "key": "2",
+          "text": "भूमि भराव (Landfilling)"
+        },
+        {
+          "key": "3",
+          "text": "पुनर्चक्रण (Recycling)"
+        },
+        {
+          "key": "4",
+          "text": "भस्मीकरण (Incineration)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Common",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q051",
+      "questionNumber": 51,
+      "questionText": "Which surveying activity is best performed using a Total Station?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Estimating concrete mix maps"
+        },
+        {
+          "key": "2",
+          "text": "Plotting topographic maps"
+        },
+        {
+          "key": "3",
+          "text": "Testing asphalt properties"
+        },
+        {
+          "key": "4",
+          "text": "Borehole logging maps"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q052",
+      "questionNumber": 52,
+      "questionText": "Which of the following plastics is used in fiber-reinforced composites for bridges and structural applications?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Acrylic"
+        },
+        {
+          "key": "2",
+          "text": "Acrylonitrile Butadiene Styrene"
+        },
+        {
+          "key": "3",
+          "text": "Epoxy resin"
+        },
+        {
+          "key": "4",
+          "text": "Nylon"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q053",
+      "questionNumber": 53,
+      "questionText": "Cadastral surveying is mainly conducted for ____.",
+      "options": [
+        {
+          "key": "1",
+          "text": "Designing dams and canals"
+        },
+        {
+          "key": "2",
+          "text": "Surveying mountains"
+        },
+        {
+          "key": "3",
+          "text": "Preparing contour maps"
+        },
+        {
+          "key": "4",
+          "text": "Fixing property boundaries and land ownership"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q054",
+      "questionNumber": 54,
+      "questionText": "According to the Mohr-Coulomb failure criterion, which of the following conditions must be met for a soil element to be considered at the point of shear failure?",
+      "options": [
+        {
+          "key": "1",
+          "text": "The shear stress τ on the plane of maximum obliquity equals the normal stress σ on that plane."
+        },
+        {
+          "key": "2",
+          "text": "The Mohr circle representing the state of stress becomes tangent to the failure envelope."
+        },
+        {
+          "key": "3",
+          "text": "The major principal stress σ1​reaches its peak value."
+        },
+        {
+          "key": "4",
+          "text": "The effective stress σ′ on the failure plane reaches zero, leading to a quick condition."
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q055",
+      "questionNumber": 55,
+      "questionText": "रेल विसर्पण (rail creep) का प्राथमिक कारण क्या है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "गतिशील लोड के अंतर्गत रेल की तरंग गति"
+        },
+        {
+          "key": "2",
+          "text": "अत्यधिक बैलास्ट उपधान (ballast cushion)"
+        },
+        {
+          "key": "3",
+          "text": "तापमान भिन्नता"
+        },
+        {
+          "key": "4",
+          "text": "के वल दोषपूर्ण बंधक"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q056",
+      "questionNumber": 56,
+      "questionText": "Which of the following is the best method to correct for local attraction in a traverse?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Use magnetic declination tables"
+        },
+        {
+          "key": "2",
+          "text": "Use a prismatic compass only"
+        },
+        {
+          "key": "3",
+          "text": "Avoid metal objects during survey"
+        },
+        {
+          "key": "4",
+          "text": "Apply correction based on included angles"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q057",
+      "questionNumber": 57,
+      "questionText": "प्लाईवुड या ब्लॉक बोर्ड (block board) का उपयोग करके एक समान मोटाई के निम्नलिखित में से किस प्रकार के दरवाजे बनाए जाते हैं?",
+      "options": [
+        {
+          "key": "1",
+          "text": "कोलैप्सिबल दरवाजे (Collapsible Doors)"
+        },
+        {
+          "key": "2",
+          "text": "फ़्रे मयुक्त और पैनल्ड दरवाजे (Framed and Panelled Doors)"
+        },
+        {
+          "key": "3",
+          "text": "रोलिंग शटर (Rolling Shutters)"
+        },
+        {
+          "key": "4",
+          "text": "फ्लश दरवाजे (Flush doors)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q058",
+      "questionNumber": 58,
+      "questionText": "The shape of a bending moment diagram under UDL is:",
+      "options": [
+        {
+          "key": "1",
+          "text": "linear"
+        },
+        {
+          "key": "2",
+          "text": "triangular"
+        },
+        {
+          "key": "3",
+          "text": "parabolic"
+        },
+        {
+          "key": "4",
+          "text": "constant"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q059",
+      "questionNumber": 59,
+      "questionText": "For a short column, which of the following is true regarding the value of PE (crippling load obtained by Euler's formula) compared to the value of PR (crippling load obtained by Rankine’s formula)?",
+      "options": [
+        {
+          "key": "1",
+          "text": "PE is very high, and the Rankine formula gives a value close to PE."
+        },
+        {
+          "key": "2",
+          "text": "PE is very small, and PR is close to the ultimate crushing load."
+        },
+        {
+          "key": "3",
+          "text": "PE is very high, and PR is close to the ultimate crushing load."
+        },
+        {
+          "key": "4",
+          "text": "PE is quite small, and Rankine's formula provides a very different value compared to PE."
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q060",
+      "questionNumber": 60,
+      "questionText": "Which factor ensures future expansion of the bridge while selecting the site?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Selecting suitable type of bearings for superstructure"
+        },
+        {
+          "key": "2",
+          "text": "Choosing appropriate colour of parapets and railings"
+        },
+        {
+          "key": "3",
+          "text": "Providing sufficient clearance for navigation and traffic"
+        },
+        {
+          "key": "4",
+          "text": "Deciding adequate number of handrails for pedestrians"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q061",
+      "questionNumber": 61,
+      "questionText": "The working principle of a vibratory roller is based on:",
+      "options": [
+        {
+          "key": "1",
+          "text": "Generation of air suction inside the drum during rolling action"
+        },
+        {
+          "key": "2",
+          "text": "Hydraulic pressure applied directly on the drum surface"
+        },
+        {
+          "key": "3",
+          "text": "Conversion of static load into centrifugal force by rotating weights"
+        },
+        {
+          "key": "4",
+          "text": "Pneumatic compression produced by tyres mounted on axle"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q062",
+      "questionNumber": 62,
+      "questionText": "Which type of elevator is best suited for high-rise buildings?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Hydraulic elevator"
+        },
+        {
+          "key": "2",
+          "text": "Pneumatic elevator"
+        },
+        {
+          "key": "3",
+          "text": "Belt elevator"
+        },
+        {
+          "key": "4",
+          "text": "Traction elevator"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q063",
+      "questionNumber": 63,
+      "questionText": "What is the primary purpose of the flexural equation in structural analysis?",
+      "options": [
+        {
+          "key": "1",
+          "text": "To calculate the maximum bending stress and design beams for bending loads"
+        },
+        {
+          "key": "2",
+          "text": "To evaluate the axial load capacity of columns under bending forces"
+        },
+        {
+          "key": "3",
+          "text": "To calculate the deflection at various points on the beam under load"
+        },
+        {
+          "key": "4",
+          "text": "To determine the shear force and bending moment at a specific section of the beam"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q064",
+      "questionNumber": 64,
+      "questionText": "Which rock exploration method is most suitable for obtaining continuous undisturbed soil samples from highly resistant strata for detailed geotechnical analysis?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Rotary drilling with core barrel"
+        },
+        {
+          "key": "2",
+          "text": "Auger Boring (Continuous Flight Auger)"
+        },
+        {
+          "key": "3",
+          "text": "Wash Boring"
+        },
+        {
+          "key": "4",
+          "text": "Percussion Drilling with a chisel bit"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q065",
+      "questionNumber": 65,
+      "questionText": "Which of the following is NOT a type of combined footing in shallow foundations?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Rectangular"
+        },
+        {
+          "key": "2",
+          "text": "Strap"
+        },
+        {
+          "key": "3",
+          "text": "Trapezoidal"
+        },
+        {
+          "key": "4",
+          "text": "Mat"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q066",
+      "questionNumber": 66,
+      "questionText": "Which of the following is NOT an intersection type on highways?",
+      "options": [
+        {
+          "key": "1",
+          "text": "At-grade"
+        },
+        {
+          "key": "2",
+          "text": "Grade-separated"
+        },
+        {
+          "key": "3",
+          "text": "Rotary"
+        },
+        {
+          "key": "4",
+          "text": "Highway bypass without crossings"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q067",
+      "questionNumber": 67,
+      "questionText": "In which brick bond are the bricks not placed at an angle?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Herringbone bond"
+        },
+        {
+          "key": "2",
+          "text": "Zigzag bond"
+        },
+        {
+          "key": "3",
+          "text": "English cross bond"
+        },
+        {
+          "key": "4",
+          "text": "Diagonal bond"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q068",
+      "questionNumber": 68,
+      "questionText": "A tension member with bolted connections is most likely to fail:",
+      "options": [
+        {
+          "key": "1",
+          "text": "by the net cross-section rupture"
+        },
+        {
+          "key": "2",
+          "text": "at lateral supports"
+        },
+        {
+          "key": "3",
+          "text": "by the gross cross-section twisting"
+        },
+        {
+          "key": "4",
+          "text": "by mid-span due to bending"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q069",
+      "questionNumber": 69,
+      "questionText": "Identify the type of door symbol, shown below, used in a building drawing as per IS 962 (1989).",
+      "options": [
+        {
+          "key": "1",
+          "text": "Double-leaf sliding door unit"
+        },
+        {
+          "key": "2",
+          "text": "Double-leaf double-swing door"
+        },
+        {
+          "key": "3",
+          "text": "Single-leaf single-swing door"
+        },
+        {
+          "key": "4",
+          "text": "Single-leaf pivoted door unit"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q070",
+      "questionNumber": 70,
+      "questionText": "Which of the following is a key step in the manufacturing process of fly ash bricks?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Moulding with clay slurry"
+        },
+        {
+          "key": "2",
+          "text": "Firing in a blast furnace"
+        },
+        {
+          "key": "3",
+          "text": "Curing with acid solution"
+        },
+        {
+          "key": "4",
+          "text": "Mixing fly ash, lime and gypsum"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q071",
+      "questionNumber": 71,
+      "questionText": "Units of measurement for a drawing in AutoCAD can be set up using the command:",
+      "options": [
+        {
+          "key": "1",
+          "text": "Limits"
+        },
+        {
+          "key": "2",
+          "text": "Grid"
+        },
+        {
+          "key": "3",
+          "text": "Scale"
+        },
+        {
+          "key": "4",
+          "text": "Units"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q072",
+      "questionNumber": 72,
+      "questionText": "500 m2 प्लिंथ क्षेत्रफल और 4 m ऊं चाई वाले एक भवन की सन्निकट लागत की गणना कीजिए, यह मानते हुए कि प्रति घन सामग्री दर ₹3,000 है।",
+      "options": [
+        {
+          "key": "1",
+          "text": "₹1,20,000"
+        },
+        {
+          "key": "2",
+          "text": "₹6,00,000"
+        },
+        {
+          "key": "3",
+          "text": "₹12,00,000"
+        },
+        {
+          "key": "4",
+          "text": "₹60,00,000"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q073",
+      "questionNumber": 73,
+      "questionText": "पायलट टनल या एक्सप्लोरेट्री हेडिंग (exploratory headings) का निर्माण किस लिए किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "टनल के पूर्ण खंड के लिए स्थायी अस्तर स्थापित करने के लिए"
+        },
+        {
+          "key": "2",
+          "text": "उत्खनन के दौरान TBM की प्रचालन चाल को कम करने के लिए"
+        },
+        {
+          "key": "3",
+          "text": "बड़ी ट्रेनों या यातायात के लिए टनल के व्यास को बढ़ाने के लिए"
+        },
+        {
+          "key": "4",
+          "text": "पूर्ण टनल उत्खनन शुरू करने से पहले अधस्तल स्थितियों की पुष्टि करने के लिए"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q074",
+      "questionNumber": 74,
+      "questionText": "In an RCC cantilever beam subjected to various point loads and UDL directed downwards, the flexural tension reinforcement is provided ______.",
+      "options": [
+        {
+          "key": "1",
+          "text": "at the center of the cross-section"
+        },
+        {
+          "key": "2",
+          "text": "at both the top and the bottom beam section"
+        },
+        {
+          "key": "3",
+          "text": "above the neutral axis of the beam section"
+        },
+        {
+          "key": "4",
+          "text": "below the neutral axis of the beam section"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q075",
+      "questionNumber": 75,
+      "questionText": "Which of the following is a function of the strap in Strap Footing?",
+      "options": [
+        {
+          "key": "1",
+          "text": "To connect the wall with column footing"
+        },
+        {
+          "key": "2",
+          "text": "To transfer column loads to soil below both footings equally"
+        },
+        {
+          "key": "3",
+          "text": "To support the load of the wall above it"
+        },
+        {
+          "key": "4",
+          "text": "To transfer the structural load of columns to the soil directly"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q076",
+      "questionNumber": 76,
+      "questionText": "In a float-type rain gauge, the rainfall is measured by:",
+      "options": [
+        {
+          "key": "1",
+          "text": "Weight of water"
+        },
+        {
+          "key": "2",
+          "text": "The number of bucket tips"
+        },
+        {
+          "key": "3",
+          "text": "Manual measurement"
+        },
+        {
+          "key": "4",
+          "text": "Rise in water level inside a float chamber"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q077",
+      "questionNumber": 77,
+      "questionText": "Which of the following statements regarding fineness modulus is correct as per Indian Standards?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Fineness modulus is used for grading zone classification in IS 383"
+        },
+        {
+          "key": "2",
+          "text": "Fineness modulus replaces grading requirements in IS 383"
+        },
+        {
+          "key": "3",
+          "text": "IS 383 mandates fineness modulus limits for fine aggregates"
+        },
+        {
+          "key": "4",
+          "text": "Fineness modulus is an indicative index derived from sieve analysis"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q078",
+      "questionNumber": 78,
+      "questionText": "एक वृत्ताकार स्टील कॉलम का व्यास 200 mm और प्रभावी लंबाई 4 m है। इसका कृ शता अनुपात (slenderness ratio) ज्ञात कीजिए।",
+      "options": [
+        {
+          "key": "1",
+          "text": "40"
+        },
+        {
+          "key": "2",
+          "text": "80"
+        },
+        {
+          "key": "3",
+          "text": "100"
+        },
+        {
+          "key": "4",
+          "text": "60"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q079",
+      "questionNumber": 79,
+      "questionText": "For a roadside obstruction located on a curve, the object marking should be:",
+      "options": [
+        {
+          "key": "1",
+          "text": "Illuminated with a flashing lamp"
+        },
+        {
+          "key": "2",
+          "text": "Vertical and retro-reflective"
+        },
+        {
+          "key": "3",
+          "text": "Painted in dull colors without reflectivity"
+        },
+        {
+          "key": "4",
+          "text": "Horizontal with warning stripes"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q080",
+      "questionNumber": 80,
+      "questionText": "Which of the following is the main moving component in a reciprocating pump?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Suction pipe"
+        },
+        {
+          "key": "2",
+          "text": "Delivery pipe"
+        },
+        {
+          "key": "3",
+          "text": "Piston"
+        },
+        {
+          "key": "4",
+          "text": "Cylinder"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q081",
+      "questionNumber": 81,
+      "questionText": "For a cantilever beam with UDL, the shear force diagram is:",
+      "options": [
+        {
+          "key": "1",
+          "text": "Linearly varying and zero at free end"
+        },
+        {
+          "key": "2",
+          "text": "Parabolic and zero at free end"
+        },
+        {
+          "key": "3",
+          "text": "Parabolic and zero at fixed end"
+        },
+        {
+          "key": "4",
+          "text": "Constant from free end to fixed end"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q082",
+      "questionNumber": 82,
+      "questionText": "Which of the following is the first and most critical step in the painting process?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Cleaning the brushes"
+        },
+        {
+          "key": "2",
+          "text": "Applying the topcoat"
+        },
+        {
+          "key": "3",
+          "text": "Choosing the paint colour"
+        },
+        {
+          "key": "4",
+          "text": "Surface preparation"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q083",
+      "questionNumber": 83,
+      "questionText": "A simply supported Warren truss of 10 m span carries a UDL of 10 kN/m on its top chord. The reactions at supports (assume pin and roller supports) at left and right are ________ respectively.",
+      "options": [
+        {
+          "key": "1",
+          "text": "40 kN and 10 kN"
+        },
+        {
+          "key": "2",
+          "text": "50 kN and 50 kN"
+        },
+        {
+          "key": "3",
+          "text": "25 kN and 25 kN"
+        },
+        {
+          "key": "4",
+          "text": "30 kN and 20 kN"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q084",
+      "questionNumber": 84,
+      "questionText": "महीन कणों वाली ससंजक मृदाओं के लिए कौन-सी जल निकासी विधि उपयुक्त होती है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "गभीर कू प प्रणाली (Deep well system)"
+        },
+        {
+          "key": "2",
+          "text": "विद्युत-परासरण विधि (Electro-Osmosis method)"
+        },
+        {
+          "key": "3",
+          "text": "उथली कू प प्रणाली (Shallow well system)"
+        },
+        {
+          "key": "4",
+          "text": "कू प बिंदु प्रणाली (Well point system)"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q085",
+      "questionNumber": 85,
+      "questionText": "निम्नलिखित में से किस सिद्धांत में अपशिष्ट पदार्थों को नए उत्पादों में रूपांतरित करना शामिल है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "पुनः उपयोग (reuse)"
+        },
+        {
+          "key": "2",
+          "text": "पुनर्चक्रण (recycle)"
+        },
+        {
+          "key": "3",
+          "text": "कम उपयोग (reduce)"
+        },
+        {
+          "key": "4",
+          "text": "पुनः प्राप्ति (recover)"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q086",
+      "questionNumber": 86,
+      "questionText": "लॉन्चिंग गर्डर (launching girder) एक विशेष प्रयोजन वाला ____________ होता है, जिसका उपयोग पुल निर्माण में किया जाता है, विशेष रूप से उन खंडीय पुलों के निर्माण में, जो राजमार्ग और उच्च-चाल रेल पुल निर्माण परियोजनाओं में पूर्व-निर्मित बॉक्स गर्डर (precast box girder) पुल खंडों या पूर्व-निर्मित गर्डरों का उपयोग करते हैं।",
+      "options": [
+        {
+          "key": "1",
+          "text": "टॉवर क्रे न (tower crane)"
+        },
+        {
+          "key": "2",
+          "text": "ओवरहेड क्रे न (overhead crane)"
+        },
+        {
+          "key": "3",
+          "text": "क्रॉलर क्रे न (crawler crane)"
+        },
+        {
+          "key": "4",
+          "text": "मोबाइल गैन्ट्री क्रे न (mobile gantry crane)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q087",
+      "questionNumber": 87,
+      "questionText": "In a California Bearing Ratio (CBR) test, the recorded penetration resistance of a soil sample is 325 kg at 2.5 mm penetration and 723.5 kg at 5 mm penetration. Based on standard CBR test procedures, what is the design CBR value for this soil? (Round off to the nearest whole number).",
+      "options": [
+        {
+          "key": "1",
+          "text": "15%"
+        },
+        {
+          "key": "2",
+          "text": "35%"
+        },
+        {
+          "key": "3",
+          "text": "25%"
+        },
+        {
+          "key": "4",
+          "text": "45%"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q088",
+      "questionNumber": 88,
+      "questionText": "The arrow head in a force representation indicates:",
+      "options": [
+        {
+          "key": "1",
+          "text": "the magnitude of the force"
+        },
+        {
+          "key": "2",
+          "text": "the starting point of the force"
+        },
+        {
+          "key": "3",
+          "text": "the direction in which the force acts"
+        },
+        {
+          "key": "4",
+          "text": "the type of force applied"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q089",
+      "questionNumber": 89,
+      "questionText": "In planning a residence, the principle of orientation is adopted to ensure:",
+      "options": [
+        {
+          "key": "1",
+          "text": "beautiful aesthetic appearance of the residence"
+        },
+        {
+          "key": "2",
+          "text": "rooms are oriented to achieve the required privacy"
+        },
+        {
+          "key": "3",
+          "text": "natural elements are used effectively in the design"
+        },
+        {
+          "key": "4",
+          "text": "proper sanitation and hygiene in the residence"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q090",
+      "questionNumber": 90,
+      "questionText": "Identify the correct statements from the following. A: Densification of soil is a type of mechanical stabilisation. B: Addition of calcium chloride can facilitate soil compaction. C: Heating of soil is not a method of soil stabilisation.",
+      "options": [
+        {
+          "key": "1",
+          "text": "B and C only"
+        },
+        {
+          "key": "2",
+          "text": "C only"
+        },
+        {
+          "key": "3",
+          "text": "A and B only"
+        },
+        {
+          "key": "4",
+          "text": "A only"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q091",
+      "questionNumber": 91,
+      "questionText": "निम्नलिखित में से किस उपाय के उपयोग से सल्फे ट के हमले (sulphate attack) के परिणामस्वरूप होने वाली दरारों को नहीं रोका जा सकता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "निर्माण कार्यों में समृद्ध सीमेंट मोर्टार या कं क्रीट का उपयोग"
+        },
+        {
+          "key": "2",
+          "text": "विलेय लवणों के उच्च प्रतिशत वाली ईंटों का उपयोग"
+        },
+        {
+          "key": "3",
+          "text": "निर्माण कार्यों में सल्फे ट प्रतिरोधी सीमेंट का उपयोग"
+        },
+        {
+          "key": "4",
+          "text": "शुष्क परिस्थितियों को बनाए रखने के लिए आर्द्ररोधी का प्रावधान"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q092",
+      "questionNumber": 92,
+      "questionText": "निम्नलिखित कथनों पर विचार करें और सही विकल्प चुनें। कथन 1: 85 dB से अधिक रव स्तर के लंबे समय तक संपर्क में रहने से स्थायी श्रवण हानि हो सकती है। कथन 2: अस्थायी प्रभाव सीमा स्थानांतरण (TTS) तेज रव के अल्पकालिक संपर्क के कारण होने वाली स्थायी क्षति है।",
+      "options": [
+        {
+          "key": "1",
+          "text": "कथन 1 सत्य है, लेकिन कथन 2 असत्य है।"
+        },
+        {
+          "key": "2",
+          "text": "दोनों कथन सत्य हैं, तथा कथन 2 कथन 1 को सही ढंग से स्पष्ट करता है।"
+        },
+        {
+          "key": "3",
+          "text": "दोनों कथन सत्य हैं, लेकिन कथन 2 कथन 1 को स्पष्ट नहीं करता है।"
+        },
+        {
+          "key": "4",
+          "text": "कथन 1 असत्य है, लेकिन कथन 2 सत्य है।"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q093",
+      "questionNumber": 93,
+      "questionText": "In a penetration macadam type bituminous surfacing, what is the correct sequence of construction?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Placing fine aggregates before bitumen application"
+        },
+        {
+          "key": "2",
+          "text": "Premixing bitumen with aggregates, followed by compaction"
+        },
+        {
+          "key": "3",
+          "text": "Laying coarse aggregates, followed by bitumen application and spreading screenings"
+        },
+        {
+          "key": "4",
+          "text": "Applying bitumen first, then placing and compacting aggregates"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q094",
+      "questionNumber": 94,
+      "questionText": "Which type of masonry junction is commonly used when future extension of a wall is anticipated?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Quoining junction"
+        },
+        {
+          "key": "2",
+          "text": "Cross-junction"
+        },
+        {
+          "key": "3",
+          "text": "Dado junction"
+        },
+        {
+          "key": "4",
+          "text": "Toothed junction"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q095",
+      "questionNumber": 95,
+      "questionText": "5 kg वजन वाले मोटे एग्रीगेट का एक नमूना 24 घंटे के लिए पानी में पूरी तरह से डूबोया जाता है। पृष्‍ठ सुखने के बाद, इसका वजन 5.08 kg पाया जाता है। यदि नमूने को ओवन में सुखाने पर वजन 5 kg हो जाता है, तो एग्रीगेट का जल अवशोषण प्रतिशत कितना है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "2.5%"
+        },
+        {
+          "key": "2",
+          "text": "3%"
+        },
+        {
+          "key": "3",
+          "text": "1.6%"
+        },
+        {
+          "key": "4",
+          "text": "4%"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q096",
+      "questionNumber": 96,
+      "questionText": "A simply supported beam of span 6 m carries a point load of 20 kN at its mid-span. What is the maximum bending moment developed in the beam?\nप्रश्न (हिंदी): 6 m पाट (span) वाली एक शुद्धालंबित बीम (simply supported beam) के मध्य-पाट पर 20 kN का बिंदु भार (point load) लगाया है। बीम में उत्पन्न होने वाला अधिकतम बंकन आघूर्ण (maximum bending moment) कितना है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "15 kN·m"
+        },
+        {
+          "key": "2",
+          "text": "30 kN·m"
+        },
+        {
+          "key": "3",
+          "text": "60 kN·m"
+        },
+        {
+          "key": "4",
+          "text": "120 kN·m"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "For a simply supported beam with a central point load, Mmax = W×L/4 = 20×6/4 = 30 kN·m.\nहिंदी: मध्य में बिंदु भार वाली शुद्धालंबित बीम के लिए अधिकतम बंकन आघूर्ण Mmax = W×L/4 = 20×6/4 = 30 kN·m।",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q097",
+      "questionNumber": 97,
+      "questionText": "वह शब्द क्या है, जिसको ड्रॉइंग क्षेत्र में बिंदुओं की स्थिति निर्धारित करने के लिए एक आयताकार मापन प्रणाली (rectangle system of measurement) के रूप में वर्णित किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "निरपेक्ष निर्देशांक (Absolute coordinates)"
+        },
+        {
+          "key": "2",
+          "text": "पॉप्लर निर्देशांक (Poplar coordinates)"
+        },
+        {
+          "key": "3",
+          "text": "कार्तीय निर्देशांक (Cartesian coordinates)"
+        },
+        {
+          "key": "4",
+          "text": "सापेक्ष निर्देशांक (Relative coordinates)"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q098",
+      "questionNumber": 98,
+      "questionText": "Read the two statements given below and select the most appropriate option: Assertion (A): Coursed rubble masonry always gives the same finish quality as ashlar masonry. Reason (R): In coursed rubble masonry, stones are roughly dressed and laid in leveled courses.",
+      "options": [
+        {
+          "key": "1",
+          "text": "Both A and R are true, but R does not explain A"
+        },
+        {
+          "key": "2",
+          "text": "A is true, R is false"
+        },
+        {
+          "key": "3",
+          "text": "A is false, R is true"
+        },
+        {
+          "key": "4",
+          "text": "Both A and R are true, and R explains A"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q099",
+      "questionNumber": 99,
+      "questionText": "निम्नलिखित में से कौन-सा, ऑटोडेस्क (Autodesk) के नवीनतम 3ds Max संस्करण में डिफ़ॉल्ट रेंडरिंग इंजन है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "स्कै नलाइन रेंडरर (Scanline Renderer)"
+        },
+        {
+          "key": "2",
+          "text": "वी-रे (V-Ray)"
+        },
+        {
+          "key": "3",
+          "text": "अर्नोल्ड (Arnold)"
+        },
+        {
+          "key": "4",
+          "text": "मेंटल रे (Mental Ray)"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q100",
+      "questionNumber": 100,
+      "questionText": "प्रकाष्‍ठ फर्श (timber flooring) में प्रयुक्त फर्श परिसज्जा को क्या कहा जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "बोर्डिंग (Boarding)"
+        },
+        {
+          "key": "2",
+          "text": "लैपिंग (Lapping)"
+        },
+        {
+          "key": "3",
+          "text": "टाइलिंग (Tiling)"
+        },
+        {
+          "key": "4",
+          "text": "ब्रिजिंग (Bridging)"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q101",
+      "questionNumber": 101,
+      "questionText": "गैर-संरचनात्मक दरारों के संदर्भ में निम्नलिखित में से कौन-सा कथन सत्य है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "ये किसी भवन की संरचनात्मक स्थायित्व के लिए खतरा हैं।"
+        },
+        {
+          "key": "2",
+          "text": "नींव, स्लैब आदि में व्यापक दरारें पड़ जाती हैं।"
+        },
+        {
+          "key": "3",
+          "text": "ये भवन निर्माण सामग्री पर वायुमंडलीय परिवर्तन के कारण होती हैं।"
+        },
+        {
+          "key": "4",
+          "text": "इनकी मरम्मत और इनका परिशोधन करना सामान्यतः बहुत कठिन होता है।"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q102",
+      "questionNumber": 102,
+      "questionText": "As per Indian Standard : 2470, septic tank should have a minimum liquid capacity of __________.",
+      "options": [
+        {
+          "key": "1",
+          "text": "100 litres"
+        },
+        {
+          "key": "2",
+          "text": "1000 litres"
+        },
+        {
+          "key": "3",
+          "text": "10 litres"
+        },
+        {
+          "key": "4",
+          "text": "1 litre"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q103",
+      "questionNumber": 103,
+      "questionText": "Select the INCORRECT factor affecting the durability of concrete.",
+      "options": [
+        {
+          "key": "1",
+          "text": "Quantity of reinforcement"
+        },
+        {
+          "key": "2",
+          "text": "Water cement ratio"
+        },
+        {
+          "key": "3",
+          "text": "Weather exposure conditions"
+        },
+        {
+          "key": "4",
+          "text": "Use of super plastisisers"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q104",
+      "questionNumber": 104,
+      "questionText": "The resultant of a non-concurrent coplanar force system can be replaced by:",
+      "options": [
+        {
+          "key": "1",
+          "text": "A single force"
+        },
+        {
+          "key": "2",
+          "text": "A single moment"
+        },
+        {
+          "key": "3",
+          "text": "A couple only"
+        },
+        {
+          "key": "4",
+          "text": "A force and a couple"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q105",
+      "questionNumber": 105,
+      "questionText": "A solid, circular shaft is subjected to a pure twisting moment (torque) T. Which primary type of strain is developed on an elemental volume located on the outer surface of the shaft?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Volumetric strain"
+        },
+        {
+          "key": "2",
+          "text": "Longitudinal strain"
+        },
+        {
+          "key": "3",
+          "text": "Shear strain"
+        },
+        {
+          "key": "4",
+          "text": "Compressive strain"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q106",
+      "questionNumber": 106,
+      "questionText": "सतही ड्रेसिंग (surface-dressing) और अत्यंत ठं डे मौसम में पक्के मार्ग (paving) के निर्माण जैसे छिड़काव अनुप्रयोगों में, पुरानी 80/100 वेधन श्रेणी (penetration grade) के स्थान पर व्यापक रूप से बिटुमेन की किस श्रेणी का उपयोग किया जाता है और साथ ही जिसका उपयोग बिटुमेन इमल्शन और संशोधित बिटुमेन उत्पादों के निर्माण के लिए भी किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "VG-30 बिटुमेन"
+        },
+        {
+          "key": "2",
+          "text": "VG-20 बिटुमेन"
+        },
+        {
+          "key": "3",
+          "text": "VG-10 बिटुमेन"
+        },
+        {
+          "key": "4",
+          "text": "VG-40 बिटुमेन"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q107",
+      "questionNumber": 107,
+      "questionText": "Which of the following is the correct pair related to the application and classification of bricks?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Second-class bricks – Paving of roads"
+        },
+        {
+          "key": "2",
+          "text": "Third-class bricks – External exposed walls"
+        },
+        {
+          "key": "3",
+          "text": "Fourth-class bricks – Decorative facing works"
+        },
+        {
+          "key": "4",
+          "text": "First-class bricks – Load-bearing walls"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q108",
+      "questionNumber": 108,
+      "questionText": "किस प्रकार की नहर संरेखण के लिए सामान्यतः न्यूनतम क्रॉस ड्रेनेज (cross drainage) कार्यों की आवश्यकता होती है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "पार्श्व ढाल नहर (Side slope canal)"
+        },
+        {
+          "key": "2",
+          "text": "रीज नहर (Ridge canal)"
+        },
+        {
+          "key": "3",
+          "text": "जलप्लावन नहर (Inundation canal)"
+        },
+        {
+          "key": "4",
+          "text": "समोच्च नहर (Contour canal)"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q109",
+      "questionNumber": 109,
+      "questionText": "Which plane table method is used when the instrument is set up at a point whose location is not previously known on the map?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Intersection"
+        },
+        {
+          "key": "2",
+          "text": "Radiation"
+        },
+        {
+          "key": "3",
+          "text": "Traversing"
+        },
+        {
+          "key": "4",
+          "text": "Resection"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q110",
+      "questionNumber": 110,
+      "questionText": "मरम्मत और जलरोधी प्रयोजन हेतु, _______ का उपयोग दरारें, अंतराल, कै विटी (cavitie) आदि को भरने के लिए किया जाता है।",
+      "options": [
+        {
+          "key": "1",
+          "text": "टैम्पन (Tamping)"
+        },
+        {
+          "key": "2",
+          "text": "कु टाई (Ramming)"
+        },
+        {
+          "key": "3",
+          "text": "क्योरिंग (Curing)"
+        },
+        {
+          "key": "4",
+          "text": "ग्राउटिंग (Grouting)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q111",
+      "questionNumber": 111,
+      "questionText": "निम्नलिखित कथनों को पढ़ें और सही विकल्प चुनें। कथन 1: दृढ़ पिंड एक आदर्श पदार्थ है जो प्रयुक्त भार के अंतर्गत किसी विरूपण से नहीं गुजरता है। कथन 2: वास्तव में, सभी पदार्थ सभी भारण स्थितियों के तहत दृढ़ पिंडों के रूप में व्यवहार करते हैं।",
+      "options": [
+        {
+          "key": "1",
+          "text": "के वल कथन 2 सही है।"
+        },
+        {
+          "key": "2",
+          "text": "दोनों कथन सही हैं।"
+        },
+        {
+          "key": "3",
+          "text": "दोनों कथन गलत हैं।"
+        },
+        {
+          "key": "4",
+          "text": "के वल कथन 1 सही है।"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q112",
+      "questionNumber": 112,
+      "questionText": "The coefficient of permeability for a soil is 0.80 mm/s at a void ratio of 0.5. Find the permeability of the same soil at the same temperature, but with a void ratio of 0.25.",
+      "options": [
+        {
+          "key": "1",
+          "text": "0.2 mm/s"
+        },
+        {
+          "key": "2",
+          "text": "1.6 mm/s"
+        },
+        {
+          "key": "3",
+          "text": "0.12 mm/s"
+        },
+        {
+          "key": "4",
+          "text": "0.4 mm/s"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q113",
+      "questionNumber": 113,
+      "questionText": "नहरों द्वारा वहन किए जाने वाली गाद (Silt) में मुख्य रूप से क्या होता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "जल द्वारा वहन किए जाने वाले सूक्ष्म मृदा कण (soil particle)"
+        },
+        {
+          "key": "2",
+          "text": "रासायनिक अशुद्धियाँ"
+        },
+        {
+          "key": "3",
+          "text": "जल में कार्बनिक पदार्थ"
+        },
+        {
+          "key": "4",
+          "text": "बड़े गोलाश्म (boulders)"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q114",
+      "questionNumber": 114,
+      "questionText": "समान लंबाई और द्रव्यमान की दो छड़ें, जिनमें से एक छड़ x-अक्ष (क्षैतिज) के अनुदिश और दूसरी छड़ y-अक्ष (ऊर्ध्वाधर) के अनुदिश स्थित है, एक-दूसरे को मध्य लंबाई पर क्रॉस करती हैं। तल के लंबवत z-अक्ष के परितः उत्पन्न जड़त्व आघूर्ण ___________।",
+      "options": [
+        {
+          "key": "1",
+          "text": "उस छड़ से अधिक होगा जो y-अक्ष के अनुदिश स्थित है"
+        },
+        {
+          "key": "2",
+          "text": "दोनों छड़ों के समान होगा"
+        },
+        {
+          "key": "3",
+          "text": "शून्य होगा"
+        },
+        {
+          "key": "4",
+          "text": "उस छड़ से अधिक होगा जो x-अक्ष के अनुदिश स्थित है"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q115",
+      "questionNumber": 115,
+      "questionText": "Which of the following properties of bitumen is most critical in determining its performance at high pavement temperatures?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Penetration"
+        },
+        {
+          "key": "2",
+          "text": "Softening point"
+        },
+        {
+          "key": "3",
+          "text": "Flash point"
+        },
+        {
+          "key": "4",
+          "text": "Ductility"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q116",
+      "questionNumber": 116,
+      "questionText": "In IS 456:2000, the limiting moment of resistance of a rectangular singly reinforced section is based on ____.",
+      "options": [
+        {
+          "key": "1",
+          "text": "percentage of binding wires used"
+        },
+        {
+          "key": "2",
+          "text": "ultimate tensile strain in concrete"
+        },
+        {
+          "key": "3",
+          "text": "compression steel yield strength"
+        },
+        {
+          "key": "4",
+          "text": "limiting depth of Neutral axis"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q117",
+      "questionNumber": 117,
+      "questionText": "यदि IS 456:2000 के अनुसार 28 दिनों में कं क्रीट क्यूब का सामर्थ्य आवश्यक मान से कम हो जाता है, तो अगला कदम क्या होता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "क्रोड परीक्षण या रिबाउंड हैमर परीक्षण किया जाता है"
+        },
+        {
+          "key": "2",
+          "text": "संरचना को अस्वीकृ त कर दिया जाता है"
+        },
+        {
+          "key": "3",
+          "text": "अतिरिक्त तराई की जाती है"
+        },
+        {
+          "key": "4",
+          "text": "संरचना को ध्वस्त कर दिया जाता है"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q118",
+      "questionNumber": 118,
+      "questionText": "बिल्डिंग सेक्शन ड्राइंग (building section drawing) निम्नलिखित में से कौन-सी जानकारी नहीं देती है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "संरचना के लिए प्रयुक्त नींव"
+        },
+        {
+          "key": "2",
+          "text": "संरचना की ऊं चाई"
+        },
+        {
+          "key": "3",
+          "text": "कमरों की लंबाई और चौड़ाई"
+        },
+        {
+          "key": "4",
+          "text": "संरचना के लिए प्रयुक्त सामग्री का प्रकार"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q119",
+      "questionNumber": 119,
+      "questionText": "निम्नलिखित में से कौन-सा, बायोगैस का एक मुख्य दहनशील घटक है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "कार्बन डाइऑक्साइड"
+        },
+        {
+          "key": "2",
+          "text": "ब्यूटेन"
+        },
+        {
+          "key": "3",
+          "text": "हाइड्रोजन सल्फाइड"
+        },
+        {
+          "key": "4",
+          "text": "मेथेन"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q120",
+      "questionNumber": 120,
+      "questionText": "In a Queen Post Truss Roof, which of the following statements is FALSE?",
+      "options": [
+        {
+          "key": "1",
+          "text": "It has a straining beam and straining sill."
+        },
+        {
+          "key": "2",
+          "text": "It has two tension members."
+        },
+        {
+          "key": "3",
+          "text": "It is suitable for spans of 8 to 12 m."
+        },
+        {
+          "key": "4",
+          "text": "It has one central vertical post."
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q121",
+      "questionNumber": 121,
+      "questionText": "एपोक्सी इंजेक्शन विधि (Epoxy injection method) का उपयोग निम्नलिखित में से किस प्रकार की दरारों की प्रभावी मरम्मत के लिए किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "डॉर्मेंट दरारें (Dormant cracks)"
+        },
+        {
+          "key": "2",
+          "text": "सक्रिय दरारें (Active cracks)"
+        },
+        {
+          "key": "3",
+          "text": "चल दरारें (Moving cracks)"
+        },
+        {
+          "key": "4",
+          "text": "प्रसारी दरारें (Expanding cracks)"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q122",
+      "questionNumber": 122,
+      "questionText": "Identify the INCORRECT statement about the principles of triangulation.",
+      "options": [
+        {
+          "key": "1",
+          "text": "The stations at which astronomical observations are made are called geodetic stations."
+        },
+        {
+          "key": "2",
+          "text": "The line whose length is known is called base line."
+        },
+        {
+          "key": "3",
+          "text": "To control the accumulation of errors in triangulation, subsidiary bases are selected."
+        },
+        {
+          "key": "4",
+          "text": "The system of interconnected triangles is called the triangulation system."
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q123",
+      "questionNumber": 123,
+      "questionText": "रेलवे ट्रैक निर्माण में, नई पटरियां बिछाने के लिए किस विधि का उपयोग सबसे अधिक किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "टेलीस्कोपिक विधि (Telescopic Method)"
+        },
+        {
+          "key": "2",
+          "text": "ट्रेंचलेस विधि (Trenchless Method)"
+        },
+        {
+          "key": "3",
+          "text": "कट-एंड-कवर विधि (Cut-and-Cover Method)"
+        },
+        {
+          "key": "4",
+          "text": "इंक्रीमेंटल लॉन्चिंग (Incremental Launching)"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q124",
+      "questionNumber": 124,
+      "questionText": "In the method of sections as applicable to analysis of plane trusses, the number of unknown member forces that can be determined in one section will not exceed:",
+      "options": [
+        {
+          "key": "1",
+          "text": "3"
+        },
+        {
+          "key": "2",
+          "text": "4"
+        },
+        {
+          "key": "3",
+          "text": "6"
+        },
+        {
+          "key": "4",
+          "text": "2"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q125",
+      "questionNumber": 125,
+      "questionText": "What contributes to the pollution of surface water bodies?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Natural springs"
+        },
+        {
+          "key": "2",
+          "text": "Community waste"
+        },
+        {
+          "key": "3",
+          "text": "Rainwater harvesting"
+        },
+        {
+          "key": "4",
+          "text": "Underground aquifers"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q126",
+      "questionNumber": 126,
+      "questionText": "The moment distribution method used in structural analysis is best described as:",
+      "options": [
+        {
+          "key": "1",
+          "text": "An iterative stiffness-based method for indeterminate beams and frames"
+        },
+        {
+          "key": "2",
+          "text": "An energy-based method for determinate beams and frames"
+        },
+        {
+          "key": "3",
+          "text": "A matrix-based method for simply supported beam systems"
+        },
+        {
+          "key": "4",
+          "text": "A force-based method for pin-jointed truss systems"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q127",
+      "questionNumber": 127,
+      "questionText": "For a singly reinforced RCC beam under flexure, when the Ast provided​> Ast that is required for a balanced section, the beam is expected to fail by:",
+      "options": [
+        {
+          "key": "1",
+          "text": "Torsional instability"
+        },
+        {
+          "key": "2",
+          "text": "Shear cracking followed by collapse"
+        },
+        {
+          "key": "3",
+          "text": "Brittle crushing of concrete in compression"
+        },
+        {
+          "key": "4",
+          "text": "Ductile yielding of steel in tension"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q128",
+      "questionNumber": 128,
+      "questionText": "एक आयताकार पटल की चौड़ाई 200 mm तथा ऊँ चाई 300 mm है। मानक सूत्र का उपयोग करके इसके के न्द्रक x-अक्ष (चौड़ाई के समांतर) के सापेक्ष जड़त्व आघूर्ण को mm4 में ज्ञात कीजिए।",
+      "options": [
+        {
+          "key": "1",
+          "text": ""
+        },
+        {
+          "key": "2",
+          "text": ""
+        },
+        {
+          "key": "3",
+          "text": ""
+        },
+        {
+          "key": "4",
+          "text": ""
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q129",
+      "questionNumber": 129,
+      "questionText": "Which of the following sections is most suitable for long compression members to prevent local buckling?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Solid rectangular section"
+        },
+        {
+          "key": "2",
+          "text": "Flat plate section"
+        },
+        {
+          "key": "3",
+          "text": "Solid circular section"
+        },
+        {
+          "key": "4",
+          "text": "Built-up I-section with batten or lacing"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q130",
+      "questionNumber": 130,
+      "questionText": "In an FBD, how is tension in a string represented?",
+      "options": [
+        {
+          "key": "1",
+          "text": "By an arrow pointing towards the object along the direction of the string"
+        },
+        {
+          "key": "2",
+          "text": "By an arrow pointing perpendicular to the string"
+        },
+        {
+          "key": "3",
+          "text": "By an arrow pointing away from the object along the direction of the string"
+        },
+        {
+          "key": "4",
+          "text": "By an arrow pointing downward"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q131",
+      "questionNumber": 131,
+      "questionText": "Which type of plastering is best suited for providing thermal insulation in rural houses?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Gypsum plastering"
+        },
+        {
+          "key": "2",
+          "text": "Mud plastering"
+        },
+        {
+          "key": "3",
+          "text": "Cement plastering"
+        },
+        {
+          "key": "4",
+          "text": "Stucco plastering"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q132",
+      "questionNumber": 132,
+      "questionText": "निम्न प्रकार के डंप ट्रकों (Dump trucks) को उनके विवरण के अनुसार मिलान कीजिए: डंप ट्रक विवरण 1. ट्रक ट्रेलर (Truck trailer ) A. ऐसा ट्रक ट्रेलर जिसका संपूर्ण स्वयं का भार और लो 2. अर्ध-ट्रेलर (Semi-trailer) B. ऐसा ट्रक ट्रेलर जो ट्रैक्टर पर लोड कम करने के लि इसमें ≥ 1 धुरी (axle), पाँचवीं पहिया, ड्रॉबार और आ 3. पूर्ण ट्रेलर (Full trailer) C. ≥ 1 धुरी वाला ऐसा ट्रक ट्रेलर; जिसका अग्र भाग औ 4. लोड डिवाइडिंग डॉली (Load dividing dolly) D. ऐसा वाहन (सहायक गतिदायी शक्ति सहित या रहि",
+      "options": [
+        {
+          "key": "1",
+          "text": "1-A,2-B,3-C,4-D"
+        },
+        {
+          "key": "2",
+          "text": "1-C,2-D,3-A,4-B"
+        },
+        {
+          "key": "3",
+          "text": "1-D,2-C,3-A,4-B"
+        },
+        {
+          "key": "4",
+          "text": "1-B,2-C.3-D,4-A"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q133",
+      "questionNumber": 133,
+      "questionText": "A group of piles are connected by an RCC element known as _____.",
+      "options": [
+        {
+          "key": "1",
+          "text": "strap beam"
+        },
+        {
+          "key": "2",
+          "text": "raft"
+        },
+        {
+          "key": "3",
+          "text": "pile cap"
+        },
+        {
+          "key": "4",
+          "text": "plinth beam"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q134",
+      "questionNumber": 134,
+      "questionText": "पंप विश्लेषण में, चूषण शीर्ष (suction head) और वितरण शीर्ष (delivery head) का योग क्या कहलाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "दाबदर्शी शीर्ष (Manometric head)"
+        },
+        {
+          "key": "2",
+          "text": "दाब शीर्ष (Pressure head)"
+        },
+        {
+          "key": "3",
+          "text": "घर्षण शीर्ष (Frictional head)"
+        },
+        {
+          "key": "4",
+          "text": "स्थिर शीर्ष (Static head)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q135",
+      "questionNumber": 135,
+      "questionText": "संरचनात्मक अनुप्रयोगों में, उच्च निष्पादन कं क्रीट का उपयोग करने से संभावित हानि क्या होती है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "समुद्री वातावरण में रासायनिक अभिक्रियाओं के प्रति सुग्राहिता में वृद्धि"
+        },
+        {
+          "key": "2",
+          "text": "प्रबलन के साथ निम्‍न आबंध सामर्थ्य"
+        },
+        {
+          "key": "3",
+          "text": "उच्च संदृढ़ता के कारण उचित संहनन प्राप्त करने में कठिनाई होती है"
+        },
+        {
+          "key": "4",
+          "text": "परंपरागत कं क्रीट की तुलना में निम्‍न सामर्थ्‍य"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q136",
+      "questionNumber": 136,
+      "questionText": "Identify the INCORRECT statement about standard measurement books.",
+      "options": [
+        {
+          "key": "1",
+          "text": "All standard measurement books are reviewed in a year."
+        },
+        {
+          "key": "2",
+          "text": "It is helpful in preparing repair estimates."
+        },
+        {
+          "key": "3",
+          "text": "It is preserved for 10 years only."
+        },
+        {
+          "key": "4",
+          "text": "It is numbered alphabetically."
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q137",
+      "questionNumber": 137,
+      "questionText": "For cohesive clayey soils in subgrade, the most effective method of stabilization is:",
+      "options": [
+        {
+          "key": "1",
+          "text": "Cement stabilization"
+        },
+        {
+          "key": "2",
+          "text": "Mechanical stabilization"
+        },
+        {
+          "key": "3",
+          "text": "Lime stabilization"
+        },
+        {
+          "key": "4",
+          "text": "Bituminous stabilization"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q138",
+      "questionNumber": 138,
+      "questionText": "Which of the following kerb marking schemes is INCORRECTLY matched?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Black and White – Visibility enhancement"
+        },
+        {
+          "key": "2",
+          "text": "Yellow and Black – Parking restrictions"
+        },
+        {
+          "key": "3",
+          "text": "Green and White – Indicates national highways"
+        },
+        {
+          "key": "4",
+          "text": "Red and White – Special no-parking zones"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q139",
+      "questionNumber": 139,
+      "questionText": "If orientation of the plane table is lost during the survey, which method is most suitable to reorient it?",
+      "options": [
+        {
+          "key": "1",
+          "text": "By estimation"
+        },
+        {
+          "key": "2",
+          "text": "Back sighting method"
+        },
+        {
+          "key": "3",
+          "text": "By re-plotting the entire survey"
+        },
+        {
+          "key": "4",
+          "text": "By ignoring the orientation error"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q140",
+      "questionNumber": 140,
+      "questionText": "In a vertical single column manometer, the orientation of the column is kept:",
+      "options": [
+        {
+          "key": "1",
+          "text": "inclined at a certain angle"
+        },
+        {
+          "key": "2",
+          "text": "horizontal"
+        },
+        {
+          "key": "3",
+          "text": "exactly vertical to improve sensitivity"
+        },
+        {
+          "key": "4",
+          "text": "bent in a loop"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q141",
+      "questionNumber": 141,
+      "questionText": "हाइड्रोलिक हैंड पंप वाले 30 mm व्यास और 30 m गहरे एक ट्यूबवेल में आवश्यक प्लास्टिक स्ट्रेनर (plastic strainer) की लागत ज्ञात कीजिए। 200 cm लंबाई वाले मध्यम स्लॉट साइज वाले एक स्ट्रेनर को भूतल (ground level) से 20 m नीचे ट्यूबवेल की जलधारी लेयर में लगाया जाता है और 300 cm लंबाई वाले उच्च स्लॉट साइज वाले एक अन्य स्ट्रेनर को 30 m पर ट्यूबवेल की जलधारी लेयर (water bearing layer) में लगाया जाता है। मान लीजिए कि दोनों स्लॉट साइज वाले स्ट्रेनरों के लिए स्ट्रेनर की दर ₹350/मीटर है।",
+      "options": [
+        {
+          "key": "1",
+          "text": "₹1,600/-"
+        },
+        {
+          "key": "2",
+          "text": "₹1,750/-"
+        },
+        {
+          "key": "3",
+          "text": "₹1,900/-"
+        },
+        {
+          "key": "4",
+          "text": "₹600/-"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q142",
+      "questionNumber": 142,
+      "questionText": "RCC बीम में, अपरूपण (shear) को रोकने के लिए किस प्रकार का सुदृढ़ीकरण प्रदान किया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "संपीडन बार (Compression bars)"
+        },
+        {
+          "key": "2",
+          "text": "अनुदैर्घ्‍य बार (Longitudinal bars)"
+        },
+        {
+          "key": "3",
+          "text": "पार्श्विक बंधन (Lateral ties)"
+        },
+        {
+          "key": "4",
+          "text": "रकाब (Stirrups)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q143",
+      "questionNumber": 143,
+      "questionText": "'Reinforced concrete walls cantilevering vertically from the base designed to resist lateral forces' applies to which of the following terms?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Shear wall"
+        },
+        {
+          "key": "2",
+          "text": "Panel wall"
+        },
+        {
+          "key": "3",
+          "text": "Load bearing wall"
+        },
+        {
+          "key": "4",
+          "text": "Partition wall"
+        }
+      ],
+      "correctOption": "1",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q144",
+      "questionNumber": 144,
+      "questionText": "Which of the following is a key difference between short columns and long columns?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Short columns fail due to buckling, while long columns fail due to crushing."
+        },
+        {
+          "key": "2",
+          "text": "Long columns experience pure axial compression, while short columns experience lateral deflection."
+        },
+        {
+          "key": "3",
+          "text": "Long columns have a higher slenderness ratio compared to short columns."
+        },
+        {
+          "key": "4",
+          "text": "Short columns are only used in steel structures, while long columns are used in concrete structures."
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q145",
+      "questionNumber": 145,
+      "questionText": "निम्नलिखित में से कौन-सा युग्म दरवाज़े की फिटिंग के संबंध में सुमेलित है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "हिंज (Hinges) - दरवाज़े को लॉक करने के लिए उपयोग किया जाता है"
+        },
+        {
+          "key": "2",
+          "text": "डोर स्टॉपर (Door Stopper) - दरवाज़े को एक एंगल पर रखने के लिए उपयोग किया जाता है"
+        },
+        {
+          "key": "3",
+          "text": "एल्ड्रोप (Aldrop) - स्लाइडिंग दरवाज़ों के लिए उपयोग किया जाता है"
+        },
+        {
+          "key": "4",
+          "text": "टावर बोल्ट (Tower Bolt) - दरवाज़ा स्वतः खुलने के लिए उपयोग किया जाता है"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q146",
+      "questionNumber": 146,
+      "questionText": "A simply supported beam of span 6 m carries a point load of 20 kN at its mid-span. What is the maximum bending moment developed in the beam?\nप्रश्न (हिंदी): 6 m स्पैन वाली एक शुंखला समर्थित बीम के मध्य-स्पैन पर 20 kN का बिंदु भार लगाया गया है। बीम में उत्पन्न होने वाला अधिकतम बंकन आघूर्ण कितना है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "15 kN · m"
+        },
+        {
+          "key": "2",
+          "text": "30 kN · m"
+        },
+        {
+          "key": "3",
+          "text": "60 kN · m"
+        },
+        {
+          "key": "4",
+          "text": "120 kN · m"
+        }
+      ],
+      "correctOption": "2",
+      "explanation": "For a simply supported beam with a central point load, Mmax = W × L / 4 = 20 × 6 / 4 = 30 kN·m.\nहिंदी: मध्य में बिंदु भार वाली शुंखला समर्थित बीम के लिए अधिकतम बंकन आघूर्ण W × L / 4 = 30 kN·m है।",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q147",
+      "questionNumber": 147,
+      "questionText": "CAD में किसी ऑब्जेक्ट के उस भाग को हटाने के लिए किस कमांड का उपयोग किया जाता है जो बाउंड्री से आगे तक विस्तृत होता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "रोटेट (Rotate)"
+        },
+        {
+          "key": "2",
+          "text": "एक्सटेंड (Extend)"
+        },
+        {
+          "key": "3",
+          "text": "ट्रिम (Trim)"
+        },
+        {
+          "key": "4",
+          "text": "कॉपी (Copy)"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q148",
+      "questionNumber": 148,
+      "questionText": "What is an agreement enforced by law between two parties called?",
+      "options": [
+        {
+          "key": "1",
+          "text": "Settlement"
+        },
+        {
+          "key": "2",
+          "text": "Tender"
+        },
+        {
+          "key": "3",
+          "text": "Contract"
+        },
+        {
+          "key": "4",
+          "text": "Contractor"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q149",
+      "questionNumber": 149,
+      "questionText": "निम्नलिखित में से कौन-सी प्रकाष्ठ संशोषण (timber seasoning) की एक प्राकृ तिक विधि है, जहाँ काष्ठ को हवा के संपर्क में रखकर सुखाया जाता है?",
+      "options": [
+        {
+          "key": "1",
+          "text": "भट्ठा संशोषण (Kiln seasoning)"
+        },
+        {
+          "key": "2",
+          "text": "जल संशोषण (Water seasoning)"
+        },
+        {
+          "key": "3",
+          "text": "रासायनिक संशोषण (Chemical seasoning)"
+        },
+        {
+          "key": "4",
+          "text": "वायु संशोषण (Air seasoning)"
+        }
+      ],
+      "correctOption": "4",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "q150",
+      "questionNumber": 150,
+      "questionText": "चौड़ाई (b) और गहराई (d) वाले आयताकार चैनल परिच्छेद के लिए हाइड्रोलिक त्रिज्या (m) ज्ञात कीजिए।",
+      "options": [
+        {
+          "key": "1",
+          "text": "m = (b+2d)/(b*d)"
+        },
+        {
+          "key": "2",
+          "text": "m = d/(b+2d)"
+        },
+        {
+          "key": "3",
+          "text": "m = (b*d)/(b+2d)"
+        },
+        {
+          "key": "4",
+          "text": "m = b/(b+2d)"
+        }
+      ],
+      "correctOption": "3",
+      "explanation": "",
+      "subject": "JE Civil and Allied Engineering",
+      "topic": "",
+      "sourcePaperId": "NWR-JE-CIVIL-2026",
+      "verificationStatus": "verified"
+    }
+  ],
+  "notes": "150 questions: JE Common Q1–Q50 and JE Civil & Allied Engineering Q1–Q100 (global Q51–Q150). Candidate response-sheet answers cross-checked against the supplied serial-wise key. Civil Q96 (global Q146) has a source-key discrepancy: the response sheet marks option 3, but the stated simply supported beam calculation Mmax = PL/4 = 30 kN·m makes option 2 correct; the question bank retains option 2 and its worked explanation. Civil Q86–Q87 (global Q136–Q137) are checked as options 3 and 3. This is a candidate response-sheet-derived paper, not represented as an officially released question paper."
+}
