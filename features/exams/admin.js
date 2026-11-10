@@ -6,7 +6,7 @@ const publish=httpsCallable(getFunctions(app,"asia-south1"),"adminPublishTest");
 const importButton=document.getElementById("loadCivil2026");
 const importStatus=document.getElementById("importStatus");
 importButton.addEventListener("click",async()=>{
- importButton.disabled=true;importStatus.textContent="Loading prepared paper…";
+ importButton.disabled=true;importStatus.classList.remove("error");importStatus.textContent="Loading prepared paper…";
  try{
   const response=await fetch("./data/gdce-je-civil-previous-2026.json",{cache:"no-store"});
   if(!response.ok)throw new Error("Prepared question bank could not be loaded ("+response.status+").");
@@ -21,7 +21,7 @@ importButton.addEventListener("click",async()=>{
   fields.sourceYear.value=paper.sourceYear;
   fields.durationMinutes.value=paper.durationMinutes;
   fields.positiveMarksPerQuestion.value=paper.positiveMarksPerQuestion;
-  fields.negativeMarksPerQuestion.value=paper.negativeMarksPerQuestion;
+  fields.negativeMarksPerWrongAnswer.value=paper.negativeMarksPerWrongAnswer;
   fields.questions.value=JSON.stringify(paper.questions,null,2);
   importStatus.textContent="Loaded "+paper.questions.length+" questions. Review the source note and then select Validate & Publish Test.";
  }catch(error){importStatus.textContent=error.message||"Could not load the prepared paper.";importStatus.classList.add("error");}
