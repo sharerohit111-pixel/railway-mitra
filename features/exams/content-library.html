@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>PDF & Test Content | Railway Mitra</title><link rel="stylesheet" href="../../assets/css/main.css"><link rel="stylesheet" href="./exams.css"><link rel="stylesheet" href="./admin-workspace.css"><link rel="stylesheet" href="./content-library.css"></head>
+<body><header class="app-header"><div class="brand"><div class="brand-icon">📚</div><div><h1>PDF & Test Content</h1><p>Owner Content Manager</p></div></div></header>
+<main class="exam-shell"><div class="exam-topbar"><a class="exam-back" href="admin-workspace.html">← Admin Workspace</a><span class="exam-brand">OWNER ONLY</span></div>
+<section class="exam-hero"><div class="exam-kicker">Exam Management</div><h1>Content Library</h1><p>Create folders and subfolders, upload PDF papers and study resources, and organise your departmental content.</p></section>
+<section id="adminGate" class="exam-empty"><div class="exam-empty-icon">🔐</div><h3>Verifying owner access…</h3><p>Please wait.</p></section>
+<section id="protectedPanel" class="content-manager" hidden>
+<div class="content-toolbar"><div><h2 id="currentFolderTitle">Main Folders</h2><p id="folderDescription">Choose a main folder to manage its contents.</p></div><div class="content-actions"><button id="newFolderBtn" class="cbt-btn secondary" type="button" disabled>＋ New Folder</button><button id="uploadPdfBtn" class="cbt-btn primary" type="button" disabled>↑ Upload PDF</button><input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden></div></div>
+<nav id="folderBreadcrumbs" class="folder-breadcrumbs" aria-label="Folder path"></nav><p id="contentStatus" class="content-status" role="status" aria-live="polite"></p>
+<div id="contentItems" class="content-items"><div class="exam-empty"><h3>Loading folders…</h3></div></div>
+<div class="content-note">PDF limit: 20 MB per file. Only PDF files are accepted. Files and folder records are stored online in Firebase. The library is private to the verified owner account.</div>
+</section></main><script type="module" src="./content-library.js"></script>
+<script src="../../assets/js/global-search.js" defer></script>
+</body></html>
