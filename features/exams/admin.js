@@ -3,7 +3,31 @@ import {onAuthStateChanged} from "https://www.gstatic.com/firebasejs/13.2.0/fire
 import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 const gate=document.getElementById("adminGate"),form=document.getElementById("publishForm"),status=document.getElementById("adminStatus");
 const publish=httpsCallable(getFunctions(app,"asia-south1"),"adminPublishTest");
-onAuthStateChanged(auth,async user=>{
+const importButton=document.getElementById("loadCivil2026");
+const importStatus=document.getElementById("importStatus");
+importButton.addEventListener("click",async()=>{
+ importButton.disabled=true;importStatus.textContent="Loading prepared paper…";
+ try{
+  const response=await fetch("./data/gdce-je-civil-previous-2026.json",{cache:"no-store"});
+  if(!response.ok)throw new Error("Prepared question bank could not be loaded ("+response.status+").");
+  const paper=await response.json();
+  if(!Array.isArray(paper.questions)||paper.questions.length!==150)throw new Error("The prepared paper must contain exactly 150 questions.");
+  const fields=form.elements;
+  fields.testId.value=paper.testId;
+  fields.title.value=paper.title;
+  fields.streamId.value=paper.streamId;
+  fields.category.value=paper.category;
+  fields.sourceLabel.value=paper.sourceLabel;
+  fields.sourceYear.value=paper.sourceYear;
+  fields.durationMinutes.value=paper.durationMinutes;
+  fields.positiveMarksPerQuestion.value=paper.positiveMarksPerQuestion;
+  fields.negativeMarksPerQuestion.value=paper.negativeMarksPerQuestion;
+  fields.questions.value=JSON.stringify(paper.questions,null,2);
+  importStatus.textContent="Loaded "+paper.questions.length+" questions. Review the source note and then select Validate & Publish Test.";
+ }catch(error){importStatus.textContent=error.message||"Could not load the prepared paper.";importStatus.classList.add("error");}
+ finally{importButton.disabled=false;}
+});
+\nonAuthStateChanged(auth,async user=>{
  if(!user){gate.innerHTML='<div class="exam-empty-icon">🔑</div><h3>Sign in required</h3><p>Sign in to Railway Mitra first. Only the owner account with a trusted admin claim can use this panel.</p>';return;}
  try{const token=await user.getIdTokenResult(true);if(token.claims.admin!==true)throw new Error("This account does not have the owner admin role.");gate.innerHTML='<div class="exam-empty-icon">✅</div><h3>Owner access verified</h3><p>Publishing actions are protected again by the Firebase callable backend.</p>';form.hidden=false;}
  catch(error){gate.innerHTML='<div class="exam-empty-icon">⛔</div><h3>Access denied</h3><p>'+String(error.message||"Owner permission required.").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'</p>';}
