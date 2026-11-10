@@ -148,4 +148,117 @@ test("non-admin cannot publish; owner admin can publish verified test", async ()
   await db.collection("examTestCatalog").doc(testId).delete();
   await db.collection("examTests").doc(testId).collection("questionsPublic").doc("q1").delete();
   await db.collection("examTests").doc(testId).collection("answerKeys").doc("q1").delete();
+
+  const ldceTestId = "ldce-first-mock-" + suffix;
+  const ldceInput = { ...testInput, testId: ldceTestId, title: "LDCE first mock emulator test", streamId: "ldce-je-civil", streamTitle: "LDCE JE Civil Engineering", category: "mock" };
+  const ldcePublished = await call("adminPublishTest", adminToken, { test: ldceInput });
+  assert.equal(ldcePublished.status, 200);
+  assert.equal(ldcePublished.body.result.access, "free");
+  await db.collection("examTestCatalog").doc(ldceTestId).delete();
+  await db.collection("examTests").doc(ldceTestId).collection("questionsPublic").doc("q1").delete();
+  await db.collection("examTests").doc(ldceTestId).collection("answerKeys").doc("q1").delete();
+});
+
+
+const subscriptionPaymentRef = "upi-sub-" + suffix;
+const materialPaymentRef = "upi-mat-" + suffix;
+const materialFileId = "material-" + suffix;
+test("owner-only finance ledger records and approves subscription and material payments", async () => {
+  const denied = await call("adminGetFinanceSettings", candidateToken, {});
+  assert.notEqual(denied.status, 200);
+  assert.equal(denied.body.error && denied.body.error.status, "PERMISSION_DENIED");
+
+  const defaults = await call("adminGetFinanceSettings", adminToken, {});
+  assert.equal(defaults.status, 200);
+  assert.equal(defaults.body.result.subscriptionPrice, 300);
+  assert.equal(defaults.body.result.subscriptionDays, 30);
+
+  const storeSettings = await call("getPublicStoreSettings", candidateToken, {});
+  assert.equal(storeSettings.status, 200);
+  assert.equal(storeSettings.body.result.subscriptionPrice, 300);
+  const recorded = await call("createCandidatePaymentRequest", candidateToken, {
+    reference: subscriptionPaymentRef, type: "subscription"
+  });
+  assert.equal(recorded.status, 200);
+  assert.equal(recorded.body.result.amount, 300);
+  const myRequests = await call("getMyPaymentRequests", candidateToken, {});
+  assert.ok(myRequests.body.result.payments.some(p => p.reference === subscriptionPaymentRef));
+
+  const approved = await call("adminApprovePayment", adminToken, {
+    uid: candidateUid, reference: subscriptionPaymentRef
+  });
+  assert.equal(approved.status, 200);
+  assert.ok(approved.body.result.expiresAt);
+
+  const entitlement = await db.collection("userEntitlements").doc(candidateUid).get();
+  assert.equal(entitlement.data().active, true);
+  assert.ok(entitlement.data().expiresAt.toMillis() > Date.now());
+
+  await db.collection("examContentFiles").doc(materialFileId).set({
+    name: "Emulator Study PDF", price: 50, storagePath: "emulator-only/no-real-file.pdf"
+  });
+  const priced = await call("adminSetMaterialPrice", adminToken, { fileId: materialFileId, price: 75 });
+  assert.equal(priced.status, 200);
+  assert.equal(priced.body.result.price, 75);
+  const published = await call("adminSetMaterialPublication", adminToken, { fileId: materialFileId, published: true });
+  assert.equal(published.status, 200);
+  const materials = await call("listStudyMaterials", candidateToken, {});
+  assert.ok(materials.body.result.materials.some(x => x.id === materialFileId && x.price === 75));
+  const materialRecorded = await call("createCandidatePaymentRequest", candidateToken, {
+    reference: materialPaymentRef, type: "study-material", materialId: materialFileId
+  });
+  assert.equal(materialRecorded.status, 200);
+  assert.equal(materialRecorded.body.result.amount, 75);
+
+  const materialApproved = await call("adminApprovePayment", adminToken, {
+    uid: candidateUid, reference: materialPaymentRef
+  });
+  assert.equal(materialApproved.status, 200);
+  const materialEntitlement = await db.collection("materialEntitlements").doc(candidateUid)
+    .collection("items").doc(materialFileId).get();
+  assert.equal(materialEntitlement.data().active, true);
+});
+
+after(async () => {
+  for (const ref of [subscriptionPaymentRef, materialPaymentRef]) {
+    await db.collection("paymentRecords").doc(ref).delete().catch(() => {});
+  }
+  await db.collection("appSettings").doc("finance").delete().catch(() => {});
+  await db.collection("userEntitlements").doc(candidateUid).delete().catch(() => {});
+  await db.collection("materialEntitlements").doc(candidateUid).collection("items").doc(materialFileId).delete().catch(() => {});
+  await db.collection("examContentFiles").doc(materialFileId).delete().catch(() => {});
+});
+
+test("owner can recursively delete a folder tree while protected root folders remain", async () => {
+  const roots = await call("listExamContent", adminToken, { parentId: null });
+  assert.equal(roots.status, 200);
+  const parent = await call("createExamContentFolder", adminToken, { name: "Delete tree " + suffix, parentId: "root_ldce" });
+  assert.equal(parent.status, 200);
+  const child = await call("createExamContentFolder", adminToken, { name: "Nested " + suffix, parentId: parent.body.result.id });
+  assert.equal(child.status, 200);
+  const denied = await call("deleteExamContentFolder", candidateToken, { folderId: parent.body.result.id });
+  assert.notEqual(denied.status, 200);
+  assert.equal(denied.body.error && denied.body.error.status, "PERMISSION_DENIED");
+  const deleted = await call("deleteExamContentFolder", adminToken, { folderId: parent.body.result.id });
+  assert.equal(deleted.status, 200);
+  assert.equal(deleted.body.result.deletedFolders, 2);
+  const missing = await call("searchExamContent", adminToken, { folderId: child.body.result.id });
+  assert.notEqual(missing.status, 200);
+  const rootDelete = await call("deleteExamContentFolder", adminToken, { folderId: "root_ldce" });
+  assert.notEqual(rootDelete.status, 200);
+  assert.equal(rootDelete.body.error && rootDelete.body.error.status, "FAILED_PRECONDITION");
+});
+
+test("candidate can view only their own exam history", async () => {
+  const mine = await call("getMyExamAttempts", candidateToken, {});
+  assert.equal(mine.status, 200);
+  assert.ok(mine.body.result.attempts.some(x => x.testId === freeTestId));
+});
+test("candidate attempt records are visible only to the owner", async () => {
+  const denied = await call("adminListExamAttempts", candidateToken, { limit: 100 });
+  assert.notEqual(denied.status, 200);
+  assert.equal(denied.body.error && denied.body.error.status, "PERMISSION_DENIED");
+  const allowed = await call("adminListExamAttempts", adminToken, { limit: 100 });
+  assert.equal(allowed.status, 200);
+  assert.ok(allowed.body.result.attempts.some(x => x.uid === candidateUid && x.testId === freeTestId));
 });

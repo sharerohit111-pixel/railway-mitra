@@ -1,0 +1,18 @@
+// IMPORTANT: This file currently contains ONLY the Railway Mitra exam-content rule.
+// Before deploying Storage rules, export the actual live Firebase Storage rules and
+// merge this match block into them. Deploying this file as-is would replace any
+// existing Storage rules for other app features.
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /exam-content/{uid}/{folderId}/{fileName} {
+      allow read: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid
+        && (request.resource == null || (
+          request.resource.size > 0
+          && request.resource.size <= 20 * 1024 * 1024
+          && request.resource.contentType == 'application/pdf'
+        ));
+    }
+  }
+}
