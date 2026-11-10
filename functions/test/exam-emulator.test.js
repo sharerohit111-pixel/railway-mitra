@@ -116,6 +116,9 @@ test("candidate sees metadata and starts free test without answer keys", async (
   assert.equal(repeated.status, 200);
   assert.equal(repeated.body.result.alreadySubmitted, true);
   assert.equal(repeated.body.result.result.correct, 1);
+  const secondStart = await call("startExam", candidateToken, { testId: freeTestId });
+  assert.notEqual(secondStart.status, 200);
+  assert.equal(secondStart.body.error && secondStart.body.error.status, "RESOURCE_EXHAUSTED");
 });
 test("paid test is denied without trusted entitlement", async () => {
   const result = await call("startExam", candidateToken, { testId: paidTestId });
