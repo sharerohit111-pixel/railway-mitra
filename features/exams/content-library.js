@@ -22,6 +22,7 @@ async function uploadPdf(file){if(!file)return;if(file.type!=="application/pdf"&
 newFolderBtn.addEventListener("click",createFolder);uploadBtn.addEventListener("click",()=>pdfInput.click());pdfInput.addEventListener("change",async()=>{const file=pdfInput.files&&pdfInput.files[0];pdfInput.value="";await uploadPdf(file);});
 requireOwner(async ()=>{
  panel.hidden=false;
+ await api.list({parentId:null});
  const params=new URLSearchParams(location.search);
  const folderId=params.get("folder"),fileId=params.get("file");
  if(folderId||fileId){
