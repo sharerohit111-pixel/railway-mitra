@@ -455,20 +455,45 @@ exports.renameExamContentFolder = onCall({ region: REGION }, async request => {
   });
   return { success: true, name, isRoot: snap.data().isRoot === true };
 });
-exports.deleteExamContentFolder = onCall({ region: REGION }, async request => {
-  requireAdmin(request);
+exports.deleteExamContentFolder = onCall({ region: REGION, timeoutSeconds: 120 }, async request => {
+  const adminUid = requireAdmin(request);
   const id = cleanId(request.data.folderId, "folderId", 140);
-  const ref = contentFolderRef(id);
-  const snap = await ref.get();
-  if (!snap.exists) throw new HttpsError("not-found", "Folder not found.");
-  if (snap.data().isRoot === true) throw new HttpsError("failed-precondition", "Main folders cannot be deleted.");
-  const [children, files] = await Promise.all([
-    db.collection("examContentFolders").where("parentId", "==", id).limit(1).get(),
-    db.collection("examContentFiles").where("folderId", "==", id).limit(1).get()
-  ]);
-  if (!children.empty || !files.empty) throw new HttpsError("failed-precondition", "Folder must be empty before it can be deleted.");
-  await ref.delete();
-  return { success: true };
+  const rootRef = contentFolderRef(id);
+  const rootSnap = await rootRef.get();
+  if (!rootSnap.exists) throw new HttpsError("not-found", "Folder not found.");
+  if (rootSnap.data().isRoot === true) throw new HttpsError("failed-precondition", "Main LDCE, GDCE and Study Material folders cannot be deleted.");
+
+  // Delete the selected subfolder and its complete descendant tree, including PDFs.
+  const folderIds = [id];
+  const seen = new Set(folderIds);
+  for (let cursor = 0; cursor < folderIds.length; cursor++) {
+    if (cursor >= 500) throw new HttpsError("resource-exhausted", "Folder tree is too large to delete in one operation.");
+    const children = await db.collection("examContentFolders").where("parentId", "==", folderIds[cursor]).get();
+    for (const child of children.docs) {
+      if (!seen.has(child.id)) { seen.add(child.id); folderIds.push(child.id); }
+    }
+  }
+  const fileDocs = [];
+  for (const folderId of folderIds) {
+    const files = await db.collection("examContentFiles").where("folderId", "==", folderId).get();
+    fileDocs.push(...files.docs);
+  }
+  if (fileDocs.length > 5000) throw new HttpsError("resource-exhausted", "Folder contains too many PDFs to delete safely in one operation.");
+
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  await Promise.all(fileDocs.map(doc => bucket.file(doc.data().storagePath).delete({ ignoreNotFound: true })));
+  const refs = [...fileDocs.map(doc => doc.ref), ...folderIds.map(folderId => contentFolderRef(folderId))];
+  for (let i = 0; i < refs.length; i += 450) {
+    const batch = db.batch();
+    refs.slice(i, i + 450).forEach(ref => batch.delete(ref));
+    await batch.commit();
+  }
+  await db.collection("adminAuditLogs").doc().set({
+    action: "delete_exam_content_folder_tree", folderId: id,
+    deletedFolderCount: folderIds.length, deletedPdfCount: fileDocs.length,
+    actorUid: adminUid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, deletedFolders: folderIds.length, deletedPdfs: fileDocs.length };
 });
 exports.registerExamContentFile = onCall({ region: REGION }, async request => {
   const uid = requireAdmin(request);
