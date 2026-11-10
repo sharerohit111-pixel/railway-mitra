@@ -777,3 +777,21 @@ exports.adminListExamAttempts = onCall({ region: REGION }, async request => {
     };
   }) };
 });
+
+exports.getMyExamAttempts = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const snap = await db.collection("users").doc(uid).collection("examAttempts")
+    .orderBy("submittedAt", "desc").limit(100).get();
+  return { attempts: snap.docs.map(d => {
+    const x = d.data();
+    return {
+      attemptId: d.id, testId: x.testId || "", status: x.status || "",
+      submittedAt: x.submittedAt && x.submittedAt.toMillis ? x.submittedAt.toMillis() : null,
+      score: x.result && x.result.score !== undefined ? x.result.score : null,
+      correct: x.result && x.result.correct !== undefined ? x.result.correct : null,
+      wrong: x.result && x.result.wrong !== undefined ? x.result.wrong : null,
+      unattempted: x.result && x.result.unattempted !== undefined ? x.result.unattempted : null,
+      accuracy: x.result && x.result.accuracy !== undefined ? x.result.accuracy : null
+    };
+  }) };
+});
