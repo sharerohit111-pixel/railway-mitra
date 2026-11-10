@@ -401,6 +401,11 @@ exports.listExamContent = onCall({ region: REGION }, async request => {
       });
     }
   }
+  for (const root of CONTENT_ROOTS) {
+    const ref = db.collection("examContentFolders").doc(root.id);
+    const snap = await ref.get();
+    if (snap.exists && !snap.data().nameLower) await ref.update({ nameLower: String(snap.data().name || root.name).toLocaleLowerCase() });
+  }
   const parentId = request.data.parentId === null || request.data.parentId === undefined || request.data.parentId === "" ? null : cleanId(request.data.parentId, "parentId", 140);
   if (parentId && !(await contentFolderRef(parentId).get()).exists) throw new HttpsError("not-found", "Folder not found.");
   const [folders, files] = await Promise.all([
