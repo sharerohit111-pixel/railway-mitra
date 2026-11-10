@@ -148,6 +148,15 @@ test("non-admin cannot publish; owner admin can publish verified test", async ()
   await db.collection("examTestCatalog").doc(testId).delete();
   await db.collection("examTests").doc(testId).collection("questionsPublic").doc("q1").delete();
   await db.collection("examTests").doc(testId).collection("answerKeys").doc("q1").delete();
+
+  const ldceTestId = "ldce-first-mock-" + suffix;
+  const ldceInput = { ...testInput, testId: ldceTestId, title: "LDCE first mock emulator test", streamId: "ldce-je-civil", streamTitle: "LDCE JE Civil Engineering", category: "mock" };
+  const ldcePublished = await call("adminPublishTest", adminToken, { test: ldceInput });
+  assert.equal(ldcePublished.status, 200);
+  assert.equal(ldcePublished.body.result.access, "free");
+  await db.collection("examTestCatalog").doc(ldceTestId).delete();
+  await db.collection("examTests").doc(ldceTestId).collection("questionsPublic").doc("q1").delete();
+  await db.collection("examTests").doc(ldceTestId).collection("answerKeys").doc("q1").delete();
 });
 
 
