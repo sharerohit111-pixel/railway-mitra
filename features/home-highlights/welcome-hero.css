@@ -1,0 +1,83 @@
+/* Isolated Welcome Hero styling.
+   Does not target or modify the live EXAMS / TOOLS highlight lanes. */
+.welcome-section {
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 22px 20px 20px !important;
+  margin: 28px 0 30px !important;
+  border: 1.5px solid rgba(53,232,255,.95) !important;
+  border-radius: 27px !important;
+  color: #f7faff !important;
+  background:
+    radial-gradient(ellipse at 10% 92%, rgba(255,145,35,.13), transparent 34%),
+    radial-gradient(ellipse at 92% 10%, rgba(255,69,212,.16), transparent 38%),
+    linear-gradient(135deg,#06152d 0%,#0b2140 48%,#24143c 100%) !important;
+  box-shadow: 0 0 22px rgba(53,232,255,.25),
+              0 0 34px rgba(255,69,212,.12),
+              inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+.welcome-section > h2 {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 auto 10px !important;
+  text-align: center !important;
+  font-size: clamp(25px,5.5vw,38px) !important;
+  line-height: 1.12 !important;
+}
+.welcome-section .rm-heroes-tribute {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 10px auto 17px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: 0 5px 18px rgba(53,232,255,.12) !important;
+}
+.welcome-section .rm-heroes-tribute img {
+  display: none !important;
+}
+.welcome-section .rm-heroes-tribute svg {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+}
+.welcome-section > .profile-btn {
+  display: block !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  padding: 13px 25px !important;
+  border: 1.5px solid #70f5ff !important;
+  border-radius: 17px !important;
+  color: #fff !important;
+  background: linear-gradient(105deg,#00bfeF 0%,#7650ff 52%,#e83dbd 100%) !important;
+  box-shadow: 0 0 16px rgba(53,232,255,.32),
+              inset 0 1px 0 rgba(255,255,255,.3) !important;
+  text-align: center !important;
+  font-size: clamp(14px,3.6vw,20px) !important;
+  font-weight: 850 !important;
+}
+/* The highlights container and its children are intentionally untouched. */
+@media (max-width: 480px) {
+  .welcome-section {
+    padding: 18px 14px 16px !important;
+    margin-top: 26px !important;
+    margin-bottom: 24px !important;
+    border-radius: 23px !important;
+  }
+  .welcome-section > h2 {
+    font-size: 25px !important;
+    margin-bottom: 8px !important;
+  }
+  .welcome-section .rm-heroes-tribute {
+    margin: 8px auto 14px !important;
+  }
+  .welcome-section > .profile-btn {
+    padding: 11px 18px !important;
+  }
+}
