@@ -27,7 +27,8 @@ importButton.addEventListener("click",async()=>{
  }catch(error){importStatus.textContent=error.message||"Could not load the prepared paper.";importStatus.classList.add("error");}
  finally{importButton.disabled=false;}
 });
-\nonAuthStateChanged(auth,async user=>{
+
+onAuthStateChanged(auth,async user=>{
  if(!user){gate.innerHTML='<div class="exam-empty-icon">🔑</div><h3>Sign in required</h3><p>Sign in to Railway Mitra first. Only the owner account with a trusted admin claim can use this panel.</p>';return;}
  try{const token=await user.getIdTokenResult(true);if(token.claims.admin!==true)throw new Error("This account does not have the owner admin role.");gate.innerHTML='<div class="exam-empty-icon">✅</div><h3>Owner access verified</h3><p>Publishing actions are protected again by the Firebase callable backend.</p>';form.hidden=false;}
  catch(error){gate.innerHTML='<div class="exam-empty-icon">⛔</div><h3>Access denied</h3><p>'+String(error.message||"Owner permission required.").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'</p>';}
