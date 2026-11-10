@@ -178,3 +178,24 @@
     background-position: 50% 50%;
   }
 }
+
+
+/* Keep the Founder ribbon compact and fully above the animated heading. */
+.welcome-section::after {
+  top: 10px !important;
+  right: 12px !important;
+  padding: 7px 10px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  border-radius: 12px !important;
+  z-index: 3;
+}
+@media (max-width: 768px) {
+  .welcome-section::after {
+    top: 9px !important;
+    right: 10px !important;
+    padding: 7px 9px !important;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+  }
+}
