@@ -1,0 +1,227 @@
+{
+  "batch": "031-035",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q31",
+      "questionNumber": 31,
+      "questionText": {
+        "en": "Which of the following statements about Cache Memory is incorrect?",
+        "hi": "कैश मेमोरी (Cache Memory) के बारे में निम्नलिखित में से कौन सा कथन गलत है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Cache memory stores frequently accessed data for quick retrieval.",
+            "hi": "कैश मेमोरी त्वरित पुनर्प्राप्ति के लिए अक्सर एक्सेस किए जाने वाले डेटा को संग्रहीत करती है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Cache memory is located near or inside the CPU.",
+            "hi": "कैश मेमोरी CPU के निकट या अंदर स्थित होती है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Cache memory is a form of secondary storage.",
+            "hi": "कैश मेमोरी सेकेंडरी स्टोरेज का एक रूप है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Cache memory is faster than main memory.",
+            "hi": "कैश मेमोरी मुख्य मेमोरी से तेज होती है।"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Cache memory is a high-speed, volatile primary/internal memory built directly into or very close to the CPU to speed up data access. It is not secondary storage (like HDDs or SSDs, which are non-volatile and much slower).",
+        "hi": "कैश मेमोरी (Cache memory) एक अत्यधिक तेज और अस्थायी (volatile) प्राथमिक/आंतरिक मेमोरी है, जो डेटा एक्सेस को तेज बनाने के लिए CPU के अंदर या बहुत पास स्थित होती है। यह सेकेंडरी स्टोरेज (जैसे हार्ड डिस्क या SSD) का रूप नहीं है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q32",
+      "questionNumber": 32,
+      "questionText": {
+        "en": "What is the use of the Insert (Ins) key on a keyboard?",
+        "hi": "कीबोर्ड की इन्सर्ट (Ins) कुंजी का क्या उपयोग है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "It pastes content.",
+            "hi": "यह कंटेंट पेस्ट करता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "It switches between Insert and Overwrite modes.",
+            "hi": "यह इन्सर्ट और ओवरराइट मोड के बीच स्विच करता है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "It deletes inserted text.",
+            "hi": "यह इन्सर्ट किए गए टेक्स्ट को डिलीट करता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "It refreshes the screen.",
+            "hi": "यह स्क्रीन को रिफ्रेश करता है।"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "The Insert (Ins) key toggles between two text-entry modes: Insert mode (where new characters push existing text to the right) and Overwrite/Overtype mode (where new characters replace existing text at the cursor).",
+        "hi": "कीबोर्ड की Insert (Ins) कुंजी का उपयोग टाइपिंग के दो मोड—इन्सर्ट मोड (जहाँ नया टेक्स्ट पुराने टेक्स्ट को आगे खिसकाता है) और ओवरराइट मोड (जहाँ नया टेक्स्ट पुराने अक्षरों की जगह लेता है)—के बीच बदलने (स्विच करने) के लिए किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q33",
+      "questionNumber": 33,
+      "questionText": {
+        "en": "Which of the following statements is correct regarding the Right to Property in India?",
+        "hi": "भारत में संपत्ति के अधिकार के संबंध में निम्नलिखित में से कौन-सा कथन सही है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "It is a Fundamental Right under Article 31 (now repealed).",
+            "hi": "यह अनुच्छेद 31 (अब रद्द किया गया) के अंतर्गत एक मौलिक अधिकार है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "It was completely abolished by the 42nd Amendment (1976).",
+            "hi": "बयालीसवें संशोधन (1976) द्वारा इसे पूरी तरह समाप्त कर दिया गया।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "It is no longer a Fundamental Right.",
+            "hi": "यह अब मौलिक अधिकार नहीं है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "It is a Fundamental Right under Article 32 of the Constitution.",
+            "hi": "यह संविधान के अनुच्छेद 32 के अंतर्गत एक मौलिक अधिकार है।"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Originally, the Right to Property was a Fundamental Right under Articles 19(1)(f) and 31. However, the 44th Constitutional Amendment Act of 1978 removed it from the list of Fundamental Rights and made it a legal/constitutional right under Article 300A.",
+        "hi": "मूल संविधान में संपत्ति का अधिकार अनुच्छेद 19(1)(f) और अनुच्छेद 31 के तहत एक मौलिक अधिकार था। लेकिन 44वें संविधान संशोधन अधिनियम, 1978 द्वारा इसे मौलिक अधिकारों की सूची से हटाकर अनुच्छेद 300A के तहत एक कानूनी/संवैधानिक अधिकार बना दिया गया।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q34",
+      "questionNumber": 34,
+      "questionText": {
+        "en": "A city plans to reduce urban air pollution by planting a green belt along the edge of its main industrial zone. Which mechanism is used in a green belt to improve air quality?",
+        "hi": "किसी शहर ने उसके मुख्य औद्योगिक क्षेत्र के किनारे एक हरित पट्टी लगाकर शहरी वायु प्रदूषण को कम करने की योजना बनाई है। वायु गुणवत्ता में सुधार करने के लिए हरित पट्टी में किस तंत्र का उपयोग किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Dilution of pollutants through increased wind speed",
+            "hi": "पवन चाल में वृद्धि के माध्यम से प्रदूषकों का तनुकरण"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Increasing rainfall to wash away pollutants",
+            "hi": "प्रदूषकों को साफ करने के लिए वर्षा में वृद्धि"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Reduction of industrial emissions at the source",
+            "hi": "स्रोत पर औद्योगिक उत्सर्जन में कमी"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Absorption of gaseous pollutants by plant leaves",
+            "hi": "पौधों के पत्तों द्वारा गैसीय प्रदूषकों का अवशोषण"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "A green belt acts as a natural bio-filter around industrial areas. Trees and shrubs absorb harmful gaseous pollutants (such as CO₂, SO₂, and NOₓ) through their leaf stomata and trap particulate matter (dust) on the leaf surfaces.",
+        "hi": "औद्योगिक क्षेत्रों के आसपास लगाई गई हरित पट्टी (green belt) एक प्राकृतिक फिल्टर के रूप में कार्य करती है। पेड़-पौधे अपनी पत्तियों के रंध्रों (stomata) के माध्यम से हानिकारक गैसीय प्रदूषकों (जैसे CO₂, SO₂ और NOₓ) को अवशोषित करते हैं और धूल के कणों को रोकते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q35",
+      "questionNumber": 35,
+      "questionText": {
+        "en": "In MS Word, to remove bullets from a list, what should you do?",
+        "hi": "MS वर्ड में, किसी लिस्ट से बुलेट्स हटाने के लिए, आपको क्या करना चाहिए?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Press Backspace",
+            "hi": "बैकस्पेस प्रेस करें"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Click the Bullets button again",
+            "hi": "बुलेट्स बटन पर पुनः क्लिक करें"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Highlight and cut the text",
+            "hi": "टेक्स्ट हाइलाइट करके कट करें"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Delete each bullet manually",
+            "hi": "प्रत्येक बुलेट को मैन्युअल रूप से डिलीट करें"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "The Bullets button in the Paragraph group of the Home tab works as a toggle switch. Selecting the bulleted list and clicking the Bullets button again cleanly removes all bullets and restores normal paragraph formatting.",
+        "hi": "MS वर्ड के Home टैब के Paragraph समूह में स्थित Bullets बटन एक टॉगल (ऑन/ऑफ) बटन की तरह काम करता है। बुलेट वाली लिस्ट को सेलेक्ट करके बुलेट्स बटन पर दोबारा क्लिक करने से सभी बुलेट हट जाते हैं और टेक्स्ट सामान्य पैराग्राफ में बदल जाता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

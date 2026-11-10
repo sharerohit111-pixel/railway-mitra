@@ -1,0 +1,227 @@
+{
+  "batch": "006-010",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q6",
+      "questionNumber": 6,
+      "questionText": {
+        "en": "A 2 kg body accelerates at 3 m/s². The force acting on it is:",
+        "hi": "2 kg द्रव्यमान का एक पिंड 3 m/s² के त्वरण से गति करता है। उस पर लगने वाला बल कितना है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "2 N",
+            "hi": "2 न्यूटन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "6 N",
+            "hi": "6 न्यूटन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "3 N",
+            "hi": "3 न्यूटन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "5 N",
+            "hi": "5 न्यूटन"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "hi": "न्यूटन के गति के दूसरे नियम के अनुसार, बल (F) = द्रव्यमान (m) × त्वरण (a) होता है। यहाँ m = 2 kg और a = 3 m/s² दिया गया है। इसलिए F = 2 × 3 = 6 N होगा।",
+        "en": "According to Newton’s second law of motion, force (F) = mass (m) × acceleration (a). Here, m = 2 kg and a = 3 m/s². Therefore, F = 2 × 3 = 6 N."
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q7",
+      "questionNumber": 7,
+      "questionText": {
+        "en": "Which of the following metals is the least reactive?",
+        "hi": "निम्नलिखित में से कौन-सी धातु सबसे कम अभिक्रियाशील है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Magnesium",
+            "hi": "मैग्नीशियम"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Gold",
+            "hi": "सोना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Zinc",
+            "hi": "जस्ता"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Sodium",
+            "hi": "सोडियम"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "hi": "धातुओं की सक्रियता श्रेणी (Reactivity Series) में सोना (Gold) सबसे नीचे आता है, जिसका अर्थ है कि यह सबसे कम अभिक्रियाशील (least reactive) धातु है। यह हवा, पानी या सामान्य अम्लों के साथ आसानी से अभिक्रिया नहीं करता है।",
+        "en": "In the metal reactivity series, gold is placed near the bottom, meaning it is among the least reactive metals. It does not readily react with air, water, or ordinary acids."
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q8",
+      "questionNumber": 8,
+      "questionText": {
+        "en": "Which of the following schemes was announced in the Union Budget 2026–27 by the Government of India?",
+        "hi": "भारत सरकार द्वारा केंद्रीय बजट 2026–27 में निम्नलिखित में से किस स्कीम की घोषणा की गई थी?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Agneepath Scheme",
+            "hi": "अग्निपथ स्कीम"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "PM Vishwakarma Scheme",
+            "hi": "पीएम विश्वकर्मा स्कीम"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "India Semiconductor Mission 2.0",
+            "hi": "इंडिया सेमीकंडक्टर मिशन 2.0"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "PM SHRI Schools",
+            "hi": "पीएम श्री स्कूल"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "hi": "केंद्रीय बजट 2026–27 में भारत को इलेक्ट्रॉनिक्स और चिप निर्माण का वैश्विक केंद्र बनाने के उद्देश्य से इंडिया सेमीकंडक्टर मिशन 2.0 (India Semiconductor Mission 2.0) की घोषणा की गई थी। अन्य योजनाएँ पहले से चल रही थीं।",
+        "en": "The Union Budget 2026–27 announced India Semiconductor Mission 2.0 with the aim of making India a global hub for electronics and semiconductor manufacturing. The other schemes were already in operation."
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q9",
+      "questionNumber": 9,
+      "questionText": {
+        "en": "Which of the following statements about average velocity is NOT correct?",
+        "hi": "औसत वेग के संबंध में निम्नलिखित में से कौन-सा कथन सही नहीं है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "It is always equal to average speed.",
+            "hi": "यह सदैव औसत चाल के समान होता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "It is measured in m/s.",
+            "hi": "इसे m/s में मापा जाता है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "It is obtained by dividing total displacement by total time.",
+            "hi": "यह कुल विस्थापन को कुल समय से विभाजित करने पर प्राप्त मान होता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "It depends on the direction of motion.",
+            "hi": "यह गति की दिशा पर निर्भर करता है।"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "hi": "औसत वेग (Average Velocity) कुल विस्थापन और कुल समय का अनुपात होता है, जबकि औसत चाल (Average Speed) कुल दूरी और कुल समय का अनुपात होती है। विस्थापन और दूरी हमेशा बराबर नहीं होते (जैसे वृत्ताकार पथ पर वापस लौटने पर विस्थापन शून्य हो सकता है), इसलिए औसत वेग और औसत चाल सदैव समान नहीं होते।",
+        "en": "Average velocity is the ratio of total displacement to total time, whereas average speed is the ratio of total distance to total time. Distance and displacement are not always equal (for example, displacement can be zero after returning to the starting point on a circular path). Therefore, average velocity and average speed are not always equal."
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q10",
+      "questionNumber": 10,
+      "questionText": {
+        "en": "Which popular slogan did Bal Gangadhar Tilak give to awaken nationalist feelings among Indians?",
+        "hi": "बाल गंगाधर तिलक ने भारतीयों में राष्ट्रवादी भावनाएँ जागृत करने के लिए कौन-सा लोकप्रिय नारा दिया?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Swaraj is my birthright",
+            "hi": "स्वराज मेरा जन्मसिद्ध अधिकार है"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Inquilab Zindabad",
+            "hi": "इंकलाब ज़िंदाबाद"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Quit India",
+            "hi": "भारत छोड़ो"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Vande Mataram",
+            "hi": "वंदे मातरम्"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "hi": "लोकमान्य बाल गंगाधर तिलक ने भारतीय स्वतंत्रता संग्राम के दौरान स्वशासन की माँग को बुलंद करते हुए “स्वराज मेरा जन्मसिद्ध अधिकार है और मैं इसे लेकर रहूँगा” का प्रसिद्ध नारा दिया था।",
+        "en": "During the Indian freedom movement, Lokmanya Bal Gangadhar Tilak popularized the slogan, “Swaraj is my birthright and I shall have it,” to raise the demand for self-rule."
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

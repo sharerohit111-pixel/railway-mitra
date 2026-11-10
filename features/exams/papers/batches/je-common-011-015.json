@@ -1,0 +1,227 @@
+{
+  "batch": "011-015",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q11",
+      "questionNumber": 11,
+      "questionText": {
+        "en": "Which of the following has straight-chain hydrocarbons?",
+        "hi": "निम्नलिखित में से किसमें सीधी-श्रृंखला वाले हाइड्रोकार्बन (straight-chain hydrocarbons) होते हैं?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "2-Methylpropane",
+            "hi": "2-मेथिलप्रोपेन"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Butane",
+            "hi": "ब्यूटेन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Isobutane",
+            "hi": "आइसोब्यूटेन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "3-Methylpentane",
+            "hi": "3-मेथिलपेंटेन"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Butane (C₄H₁₀) is an unbranched, straight-chain alkane where four carbon atoms are connected in a single continuous line. The other options (2-methylpropane, isobutane, and 3-methylpentane) are branched-chain hydrocarbons.",
+        "hi": "ब्यूटेन (C₄H₁₀) एक शाखारहित, सीधी-श्रृंखला वाला एल्केन है जिसमें चारों कार्बन परमाणु एक ही सीधी रेखा में जुड़े होते हैं। अन्य विकल्प (2-मेथिलप्रोपेन, आइसोब्यूटेन और 3-मेथिलपेंटेन) शाखित-श्रृंखला वाले हाइड्रोकार्बन हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q12",
+      "questionNumber": 12,
+      "questionText": {
+        "en": "What is the main function of the Public Accounts Committee (PAC) of the Indian Parliament?",
+        "hi": "भारतीय संसद की लोक लेखा समिति (PAC) का मुख्य कार्य क्या है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Evaluating government schemes",
+            "hi": "सरकारी योजनाओं का मूल्यांकन करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Assisting in the election of the Speaker",
+            "hi": "स्पीकर के निर्वाचन में सहायता करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Recommending the Union Budget",
+            "hi": "केंद्रीय बजट की संस्तुति करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Examining the audit reports of the CAG",
+            "hi": "CAG की लेखापरीक्षा रिपोर्टों की समीक्षा करना"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "The Public Accounts Committee (PAC) examines the annual audit reports of the Comptroller and Auditor General (CAG) of India, which are laid before Parliament by the President. It ensures that public money is spent in accordance with Parliament's decision.",
+        "hi": "लोक लेखा समिति (PAC) भारत के नियंत्रक एवं महालेखापरीक्षक (CAG) की वार्षिक लेखापरीक्षा रिपोर्टों की जाँच करती है, जिन्हें राष्ट्रपति द्वारा संसद के समक्ष रखा जाता है। यह सुनिश्चित करती है कि सार्वजनिक धन संसद की मंजूरी के अनुसार ही खर्च किया गया है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q13",
+      "questionNumber": 13,
+      "questionText": {
+        "en": "Lakhwar Multipurpose Project is related to which state?",
+        "hi": "लखवाड़ बहुउद्देशीय परियोजना किस राज्य से संबंधित है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Uttar Pradesh",
+            "hi": "उत्तर प्रदेश"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Uttarakhand",
+            "hi": "उत्तराखंड"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Rajasthan",
+            "hi": "राजस्थान"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Madhya Pradesh",
+            "hi": "मध्य प्रदेश"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "The Lakhwar Multipurpose Project is constructed on the Yamuna River near Lohari village in the Dehradun district of Uttarakhand. It provides irrigation water and hydroelectricity to six basin states.",
+        "hi": "लखवाड़ बहुउद्देशीय परियोजना उत्तराखंड के देहरादून जिले में लोहारी गाँव के पास यमुना नदी पर बनाई गई है। यह छह राज्यों को सिंचाई के लिए जल और जलविद्युत प्रदान करती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q14",
+      "questionNumber": 14,
+      "questionText": {
+        "en": "In July 2026, in which city did Bihar Deputy Chief Minister Samrat Choudhary launch the Bihar Heli-Tourism and Air-Tourism Service Scheme?",
+        "hi": "जुलाई 2026 में, बिहार के उपमुख्यमंत्री सम्राट चौधरी ने किस शहर में बिहार हेली-टूरिज्म और एयर-टूरिज्म सर्विस स्कीम की शुरुआत की?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Gaya",
+            "hi": "गया"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Rajgir",
+            "hi": "राजगीर"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Patna",
+            "hi": "पटना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Bhagalpur",
+            "hi": "भागलपुर"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "In July 2026, the Bihar Heli-Tourism and Air-Tourism Service Scheme was officially inaugurated in Patna to boost religious and eco-tourism connectivity across major tourist destinations in Bihar.",
+        "hi": "जुलाई 2026 में बिहार के प्रमुख पर्यटन स्थलों के बीच धार्मिक और इको-टूरिज्म कनेक्टिविटी को बढ़ावा देने के लिए पटना में बिहार हेली-टूरिज्म और एयर-टूरिज्म सर्विस स्कीम का शुभारंभ किया गया।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q15",
+      "questionNumber": 15,
+      "questionText": {
+        "en": "The architecture of the Vijayanagara Empire is famous for incorporating Hindu and Islamic elements. Which of the following options best represents this architectural synthesis?",
+        "hi": "विजयनगर साम्राज्य की वास्तुकला हिंदू और इस्लामी तत्वों को सम्मिलित करने के लिए प्रसिद्ध है। निम्नलिखित में से कौन-सा विकल्प इस वास्तुशिल्प संश्लेषण को सर्वोत्तम रूप से दर्शाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Use of only granite pillars and carved stone halls",
+            "hi": "केवल ग्रेनाइट के स्तंभ और नक्काशीदार पत्थर के हॉल का उपयोग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Avoidance of all foreign architectural and decorative elements",
+            "hi": "सभी विदेशी वास्तुशिल्प और सजावटी तत्वों से बचना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Construction of only temple complexes without secular buildings",
+            "hi": "धर्मनिरपेक्ष इमारतों के बिना केवल मंदिर परिसरों का निर्माण"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Traditional Dravidian structures with domes and arches",
+            "hi": "गुंबदों और मेहराबों वाली पारंपरिक द्रविड़ संरचनाएँ"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Vijayanagara architecture blended indigenous Dravidian temple styles with Indo-Islamic features like domes and pointed arches (borrowed from the Bahmani Sultanate). Secular buildings like the Lotus Mahal and Elephant Stables at Hampi are prime examples of this synthesis.",
+        "hi": "विजयनगर वास्तुकला में पारंपरिक द्रविड़ मंदिर शैली के साथ बहमनी सल्तनत से प्रेरित इंडो-इस्लामिक तत्वों जैसे गुंबदों और मेहराबों (domes and arches) का सुंदर समन्वय देखने को मिलता है। हम्पी में स्थित लोटस महल और हाथी अस्तबल इस मिश्रित शैली के प्रमुख उदाहरण हैं।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

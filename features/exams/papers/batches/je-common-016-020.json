@@ -1,0 +1,227 @@
+{
+  "batch": "016-020",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q16",
+      "questionNumber": 16,
+      "questionText": {
+        "en": "Which tab in MS PowerPoint provides tools to insert visual elements like diagrams, illustrations, and graphical content into a slide?",
+        "hi": "एमएस पावरपॉइंट में कौन-सा टैब, किसी स्लाइड में आरेख (diagrams), चित्र (illustrations) और ग्राफिकल कंटेंट जैसे दृश्यात्मक अवयवों को शामिल करने हेतु टूल प्रदान करता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Review",
+            "hi": "रिव्यू"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Insert",
+            "hi": "इन्सर्ट"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Home",
+            "hi": "होम"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Design",
+            "hi": "डिज़ाइन"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "In MS PowerPoint, the Insert tab contains all the tools needed to add visual and graphical elements—such as pictures, shapes, SmartArt diagrams, charts, and icons—into a presentation slide.",
+        "hi": "एमएस पावरपॉइंट में Insert टैब के अंतर्गत किसी भी स्लाइड में चित्र (Pictures), आकृतियाँ (Shapes), स्मार्टआर्ट डायग्राम (SmartArt diagrams), चार्ट और आइकन जैसे दृश्यात्मक एवं ग्राफिकल अवयव जोड़ने के सभी टूल उपलब्ध होते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q17",
+      "questionNumber": 17,
+      "questionText": {
+        "en": "How do you create a text series (such as “A”, “B”, “C”) in MS Excel?",
+        "hi": "एमएस एक्सेल में, टेक्स्ट सीरीज़ (जैसे, “A”, “B”, “C”) कैसे बनाते हैं?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "By using the Fill command from the Home tab",
+            "hi": "Home टैब से Fill कमांड का उपयोग करके"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "By using the Insert tab to create a text series",
+            "hi": "टेक्स्ट सीरीज़ बनाने के लिए Insert टैब का उपयोग करके"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "By typing the text manually into each cell",
+            "hi": "प्रत्येक सेल में टेक्स्ट को मैन्युअल रूप से टाइप करके"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "By typing “A” in the first cell, then holding Ctrl and dragging the fill handle",
+            "hi": "पहले सेल में “A” टाइप करके, फिर Ctrl दबाकर फिल हैंडल को ड्रैग करके"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Unlike numbers, dates, or days of the week, MS Excel does not have a built-in AutoFill list for standalone alphabetical letters (“A”, “B”, “C”). Therefore, unless a custom list is created beforehand, single-letter text series must be entered manually into each cell.",
+        "hi": "संख्याओं, तारीखों या सप्ताह के दिनों के विपरीत, एमएस एक्सेल में सामान्य अक्षरों (“A”, “B”, “C”) की श्रृंखला अपने आप भरने (AutoFill) की अंतर्निहित सुविधा नहीं होती है। इसलिए, बिना कस्टम लिस्ट बनाए ऐसी टेक्स्ट सीरीज़ को प्रत्येक सेल में मैन्युअल रूप से टाइप करना पड़ता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q18",
+      "questionNumber": 18,
+      "questionText": {
+        "en": "During which of the following seasons was the National Agricultural Insurance Scheme (NAIS) introduced to protect farmers against crop losses caused by natural calamities such as drought, flood, hailstorm, cyclone, pests, and diseases?",
+        "hi": "निम्नलिखित में से किस मौसम/ऋतु के दौरान किसानों को प्राकृतिक आपदाओं जैसे सूखा, बाढ़, ओलावृष्टि, चक्रवात, कीटों और बीमारियों के कारण होने वाली फसल हानि से बचाने के लिए राष्ट्रीय कृषि बीमा योजना शुरू की गई थी?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Rabi 2005–2006",
+            "hi": "रबी 2005–2006"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Kharif 1998–1999",
+            "hi": "खरीफ 1998–1999"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Kharif 2001–2002",
+            "hi": "खरीफ 2001–2002"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Rabi 1999–2000",
+            "hi": "रबी 1999–2000"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "The Government of India introduced the National Agricultural Insurance Scheme (NAIS) starting from the Rabi 1999–2000 season, replacing the earlier Comprehensive Crop Insurance Scheme (CCIS) to provide broader financial protection against crop failure.",
+        "hi": "भारत सरकार ने पुरानी व्यापक फसल बीमा योजना (CCIS) के स्थान पर रबी 1999–2000 मौसम से राष्ट्रीय कृषि बीमा योजना (NAIS) की शुरुआत की थी, ताकि प्राकृतिक आपदाओं और रोगों से होने वाली फसल हानि से किसानों को सुरक्षा दी जा सके।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q19",
+      "questionNumber": 19,
+      "questionText": {
+        "en": "When iron filings are mixed with sulfur powder and the mixture is heated, a black substance called iron sulfide is formed. Which of the following statements best describes the change?",
+        "hi": "जब लोहे के बुरादे को सल्फर पाउडर के साथ मिलाया जाता है और मिश्रण को गर्म किया जाता है, तो आयरन सल्फाइड नामक एक काला पदार्थ बनता है। परिवर्तन का सबसे सटीक वर्णन इनमें से किस कथन में मिलता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Iron dissolves in sulfur and forms a solution.",
+            "hi": "लोहा सल्फर में घुल जाता है और एक विलयन बनाता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Simply mixing the substances causes a physical change.",
+            "hi": "पदार्थों को मिश्रित करने मात्र से ही भौतिक परिवर्तन होता है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "A reversible physical change takes place.",
+            "hi": "एक उत्क्रमणीय भौतिक परिवर्तन होता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "A new substance is formed as a result of a chemical change.",
+            "hi": "रासायनिक परिवर्तन के परिणामस्वरूप एक नया पदार्थ बनता है।"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Heating iron and sulfur triggers a chemical reaction (Fe + S → FeS), forming iron sulfide, a completely new compound with different properties from iron and sulfur. Because a new substance is formed and the process is not easily reversible, it is a chemical change.",
+        "hi": "लोहे और सल्फर के मिश्रण को गर्म करने पर उनकी बीच रासायनिक अभिक्रिया (Fe + S → FeS) होती है, जिससे आयरन सल्फाइड नामक एक बिल्कुल नया यौगिक बनता है जिसके गुण मूल तत्वों से भिन्न होते हैं। चूँकि इसमें एक नया पदार्थ बनता है, इसलिए यह एक रासायनिक परिवर्तन है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q20",
+      "questionNumber": 20,
+      "questionText": {
+        "en": "Mudumalai National Park of Tamil Nadu, which shares its border with the states of Kerala and Karnataka, is a part of which Biosphere Reserve of India?",
+        "hi": "केरल और कर्नाटक राज्य के साथ सीमा साझा करने वाला, तमिलनाडु का मुदुमलाई राष्ट्रीय उद्यान भारत के किस बायोस्फीयर रिजर्व का हिस्सा है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Agasthyamalai Biosphere Reserve",
+            "hi": "अगस्त्यमलाई बायोस्फीयर रिजर्व"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Nilgiri Biosphere Reserve",
+            "hi": "नीलगिरि बायोस्फीयर रिजर्व"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Nokrek Biosphere Reserve",
+            "hi": "नोकरेक बायोस्फीयर रिजर्व"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Khangchendzonga Biosphere Reserve",
+            "hi": "कंचनजंगा बायोस्फीयर रिजर्व"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Mudumalai National Park is situated in the Nilgiri Hills of Tamil Nadu at the tri-junction of Tamil Nadu, Kerala, and Karnataka, and forms an integral part of the Nilgiri Biosphere Reserve (India’s first biosphere reserve, established in 1986).",
+        "hi": "तमिलनाडु की नीलगिरि पहाड़ियों में केरल और कर्नाटक की सीमा पर स्थित मुदुमलाई राष्ट्रीय उद्यान, नीलगिरि बायोस्फीयर रिजर्व (भारत का पहला बायोस्फीयर रिजर्व, जिसकी स्थापना 1986 में हुई थी) का एक अभिन्न हिस्सा है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

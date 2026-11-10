@@ -1,0 +1,277 @@
+{
+  "batch": "081-085",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q81",
+      "questionNumber": 81,
+      "questionText": {
+        "en": "Which type of plastering is best suited for providing thermal insulation in rural houses?",
+        "hi": "ग्रामीण घरों में ऊष्मीय रोधन (thermal insulation) प्रदान करने के लिए किस प्रकार का प्लास्टर सबसे उपयुक्त है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Gypsum plastering",
+            "hi": "जिप्सम प्लास्टरिंग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Mud plastering",
+            "hi": "मिट्टी का प्लास्टर"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Cement plastering",
+            "hi": "सीमेंट प्लास्टरिंग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Stucco plastering",
+            "hi": "स्टुको प्लास्टरिंग"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Mud plastering (often mixed with chopped straw/bhusa and cow dung) has low thermal conductivity and high thermal mass, making it ideal for thermal insulation in rural houses—keeping interiors cool in summer and warm in winter economically.",
+        "hi": "मिट्टी के प्लास्टर (Mud plastering) में प्रायः भूसा और गोबर मिलाया जाता है। इसकी ऊष्मीय चालकता बहुत कम होती है, जिससे यह ग्रामीण घरों में ऊष्मीय रोधन (thermal insulation) के लिए सर्वोत्तम है और घर को गर्मियों में ठंडा तथा सर्दियों में गर्म रखता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q82",
+      "questionNumber": 82,
+      "questionText": {
+        "en": "Match the following types of dump trucks with their descriptions.",
+        "hi": "डंप ट्रक के निम्नलिखित प्रकारों का उनके विवरण से मिलान कीजिए।"
+      },
+      "matching": {
+        "left": [
+          {
+            "id": "1",
+            "text": {
+              "en": "Truck trailer",
+              "hi": "ट्रक ट्रेलर"
+            }
+          },
+          {
+            "id": "2",
+            "text": {
+              "en": "Semi-trailer",
+              "hi": "अर्ध-ट्रेलर"
+            }
+          },
+          {
+            "id": "3",
+            "text": {
+              "en": "Full trailer",
+              "hi": "पूर्ण ट्रेलर"
+            }
+          },
+          {
+            "id": "4",
+            "text": {
+              "en": "Load dividing dolly",
+              "hi": "लोड डिवाइडिंग डॉली"
+            }
+          }
+        ],
+        "right": [
+          {
+            "id": "A",
+            "text": {
+              "en": "A truck trailer whose entire own weight and payload rest on its own wheels.",
+              "hi": "ऐसा ट्रक ट्रेलर जिसका संपूर्ण स्वयं का भार और पेलोड अपने स्वयं के पहियों पर रहता है।"
+            }
+          },
+          {
+            "id": "B",
+            "text": {
+              "en": "A truck trailer used to reduce the load on the tractor; it has one or more axles, fifth wheel, drawbar, etc.",
+              "hi": "ऐसा ट्रक ट्रेलर जो ट्रैक्टर पर भार कम करने के लिए उपयोग किया जाता है; इसमें एक या अधिक धुरी, पाँचवाँ पहिया, ड्रॉबार आदि होते हैं।"
+            }
+          },
+          {
+            "id": "C",
+            "text": {
+              "en": "A truck trailer with one or more axles, whose front part rests on the tractor.",
+              "hi": "ऐसा ट्रक ट्रेलर जिसमें एक या अधिक धुरियाँ होती हैं और जिसका अगला भाग ट्रैक्टर पर टिका होता है।"
+            }
+          },
+          {
+            "id": "D",
+            "text": {
+              "en": "A vehicle, with or without auxiliary motive power, designed to be drawn by a motor vehicle.",
+              "hi": "ऐसा वाहन, सहायक गतिदायी शक्ति सहित या रहित, जिसे किसी मोटर वाहन द्वारा खींचा जाता है।"
+            }
+          }
+        ]
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": "1-A, 2-B, 3-C, 4-D"
+        },
+        {
+          "key": "B",
+          "text": "1-C, 2-D, 3-A, 4-B"
+        },
+        {
+          "key": "C",
+          "text": "1-D, 2-C, 3-A, 4-B"
+        },
+        {
+          "key": "D",
+          "text": "1-B, 2-C, 3-D, 4-A"
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Truck trailer (1-D): Any non-self-propelled vehicle (with or without auxiliary power) designed to be towed by a motor vehicle. Semi-trailer (2-C): Has one or more axles at the rear, while its front portion rests on and transfers weight to the towing tractor via a fifth wheel. Full trailer (3-A): Supported entirely by its own front and rear axles/wheels, transferring no vertical load to the towing vehicle. Load dividing dolly (4-B): An auxiliary axle assembly with a fifth wheel and drawbar placed between a tractor and semi-trailer to distribute axle loads.",
+        "hi": "ट्रक ट्रेलर (1-D): ऐसा वाहन जिसे किसी अन्य मोटर वाहन द्वारा खींचा जाता है। अर्ध-ट्रेलर (2-C): इसमें एक या अधिक धुरियाँ पीछे होती हैं, जबकि अगला हिस्सा पाँचवें पहिए के माध्यम से खींचने वाले ट्रैक्टर पर टिकता और भार स्थानांतरित करता है। पूर्ण ट्रेलर (3-A): इसका पूरा भार अपने आगे और पीछे के पहियों/धुरियों पर रहता है। लोड डिवाइडिंग डॉली (4-B): ट्रैक्टर और अर्ध-ट्रेलर के बीच धुरी-भार बाँटने के लिए लगाई जाने वाली सहायक धुरी इकाई।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q83",
+      "questionNumber": 83,
+      "questionText": {
+        "en": "A group of piles are connected by an RCC element known as ____.",
+        "hi": "पाइलों के एक समूह (group of piles) को एक RCC अवयव द्वारा जोड़ा जाता है जिसे ____ कहा जाता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Strap beam",
+            "hi": "स्ट्रैप बीम"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Raft",
+            "hi": "राफ्ट"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Pile cap",
+            "hi": "पाइल कैप"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Plinth beam",
+            "hi": "प्लिंथ बीम"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "A pile cap is a thick reinforced concrete (RCC) block cast over the heads of a group of piles. Its function is to tie the piles together so they act as a single structural unit and uniformly distribute the column or wall load among all piles in the group.",
+        "hi": "पाइल कैप (Pile cap) पाइलों के एक समूह के ऊपरी सिरों पर डाला जाने वाला एक मोटा प्रबलित कंक्रीट (RCC) ब्लॉक है, जो सभी पाइलों को एक साथ बाँधता है और स्तंभ के भार को सभी पाइलों पर समान रूप से वितरित करता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q84",
+      "questionNumber": 84,
+      "questionText": {
+        "en": "In pump analysis, what is the sum of suction head and delivery head called?",
+        "hi": "पंप विश्लेषण में, चूषण शीर्ष (suction head) और वितरण शीर्ष (delivery head) का योग क्या कहलाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Manometric head",
+            "hi": "दाबमापी शीर्ष"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Pressure head",
+            "hi": "दाब शीर्ष"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Frictional head",
+            "hi": "घर्षण शीर्ष"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Static head",
+            "hi": "स्थिर शीर्ष"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "In centrifugal pump analysis, the Static Head (Hs) is the total vertical height through which liquid is lifted, equal to the sum of the suction head (hs) and the delivery head (hd): Hs = hs + hd.",
+        "hi": "पंप विश्लेषण में, स्थिर शीर्ष (Static head, Hs) वह कुल ऊर्ध्वाधर ऊँचाई है जिस तक द्रव को उठाया जाता है। यह चूषण शीर्ष (hs) तथा वितरण शीर्ष (hd) के योग के बराबर होता है: Hs = hs + hd।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q85",
+      "questionNumber": 85,
+      "questionText": {
+        "en": "In structural applications, what is a potential disadvantage of using high-performance concrete (HPC)?",
+        "hi": "संरचनात्मक अनुप्रयोगों में, उच्च निष्पादन कंक्रीट (High-Performance Concrete) का उपयोग करने से संभावित हानि क्या होती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Increased susceptibility to chemical reactions in marine environments",
+            "hi": "समुद्री वातावरण में रासायनिक अभिक्रियाओं के प्रति संवेदनशीलता में वृद्धि"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Low bond strength with reinforcement",
+            "hi": "प्रबलन के साथ निम्न आबद्ध सामर्थ्य"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Difficulty in achieving proper compaction due to high cohesiveness",
+            "hi": "उच्च संसंजन के कारण उचित संघनन प्राप्त करने में कठिनाई"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Lower strength compared to conventional concrete",
+            "hi": "परंपरागत कंक्रीट की तुलना में निम्न सामर्थ्य"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "High-Performance Concrete (HPC) uses a very low water-cement ratio along with mineral admixtures (like silica fume) and superplasticizers. This makes the fresh concrete mix sticky and highly cohesive, which can create difficulty in placing, finishing, and achieving proper compaction without thorough vibration.",
+        "hi": "उच्च निष्पादन कंक्रीट (HPC) में अत्यंत कम जल-सीमेंट अनुपात और सिलिका फ्यूम जैसे सूक्ष्म मिश्रणों के कारण कंक्रीट मिश्रण काफी चिपचिपा और उच्च संसंजन (cohesiveness) वाला हो जाता है, जिससे उचित संघनन (compaction) और फिनिशिंग प्राप्त करने में कठिनाई होती है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

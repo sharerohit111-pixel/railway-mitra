@@ -1,0 +1,227 @@
+{
+  "batch": "006-010",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q6",
+      "questionNumber": 6,
+      "questionText": {
+        "en": "Which of the following is the best method to correct for local attraction in a traverse?",
+        "hi": "ट्रैवर्स (traverse) में स्थानीय आकर्षण (local attraction) को ठीक करने के लिए निम्नलिखित में से कौन-सी विधि सबसे अच्छी है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Use magnetic declination tables",
+            "hi": "चुंबकीय दिक्पात तालिकाओं का उपयोग करें"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Use a prismatic compass only",
+            "hi": "केवल प्रिज्मीय कंपास का उपयोग करें"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Avoid metal objects during survey",
+            "hi": "सर्वेक्षण के दौरान धातु की वस्तुओं से बचें"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Apply correction based on included angles",
+            "hi": "अंतर्गत कोणों के आधार पर संशोधन लागू करें"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Local attraction affects both the fore bearing and back bearing taken from an affected station equally, which means the included angles calculated at each station remain unaffected by local attraction. Therefore, the best method is to compute all included angles, apply angular closing error corrections, and then recalculate the true bearings starting from an unaffected line.",
+        "hi": "स्थानीय आकर्षण (local attraction) किसी प्रभावित स्टेशन से लिए गए अग्र दिक्मान (fore bearing) और पश्च दिक्मान (back bearing) दोनों को समान रूप से प्रभावित करता है, जिससे स्टेशनों पर बनने वाले अंतर्गत कोण (included angles) अप्रभावित रहते हैं। इसलिए, अंतर्गत कोणों की गणना करके और बंद त्रुटि को सुधारकर सही दिक्मान निकालना सबसे सटीक विधि है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q7",
+      "questionNumber": 7,
+      "questionText": {
+        "en": "Which of the following types of doors of uniform thickness are made using plywood or block board?",
+        "hi": "प्लाईवुड या ब्लॉक बोर्ड का उपयोग करके एकसमान मोटाई के निम्नलिखित में से किस प्रकार के दरवाजे बनाए जाते हैं?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Collapsible Doors",
+            "hi": "कोलैप्सिबल दरवाजे"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Framed and Panelled Doors",
+            "hi": "फ्रेमयुक्त और पैनल दरवाजे"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Rolling Shutters",
+            "hi": "रोलिंग शटर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Flush doors",
+            "hi": "फ्लश दरवाजे"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Flush doors feature a completely flat, smooth, and uniform surface on both faces, constructed by gluing plywood or MDF face veneers over a solid timber core, laminated core, or block board.",
+        "hi": "फ्लश दरवाजे (Flush doors) दोनों तरफ से पूरी तरह समतल, चिकने और एक समान मोटाई के होते हैं। इन्हें ठोस लकड़ी के कोर के दोनों ओर प्लाईवुड या MDF की पतली परतें चिपकाकर बनाया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q8",
+      "questionNumber": 8,
+      "questionText": {
+        "en": "The shape of a bending moment diagram under UDL is:",
+        "hi": "समवितरित भार (UDL) के अंतर्गत बंकन आघूर्ण आरेख (bending moment diagram) का आकार होता है:"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "linear",
+            "hi": "रेखिक"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "triangular",
+            "hi": "त्रिभुजाकार"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "parabolic",
+            "hi": "परवलयाकार"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "constant",
+            "hi": "स्थिर"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "For a beam carrying a Uniformly Distributed Load (UDL) of intensity w, the shear force varies linearly (V ∝ x), and since bending moment is the integral of shear force (M = ∫V dx), the bending moment varies as a second-degree curve (M ∝ x²), forming a parabolic shape.",
+        "hi": "समवितरित भार (UDL) के अंतर्गत किसी बीम में अपरूपण बल (Shear Force) रेखिक रूप से बदलता है (V ∝ x)। चूँकि बंकन आघूर्ण अपरूपण बल का समाकलन होता है (M ∝ x²), इसलिए बंकन आघूर्ण आरेख का आकार परवलयाकार (parabolic) होता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q9",
+      "questionNumber": 9,
+      "questionText": {
+        "en": "For a short column, which of the following is true regarding the value of P_E (crippling load obtained by Euler's formula) compared to the value of P_R (crippling load obtained by Rankine's formula)?",
+        "hi": "एक छोटे स्तंभ (short column) के लिए, यूलर सूत्र द्वारा प्राप्त क्रिपलिंग लोड P_E की तुलना में रैंकिन सूत्र द्वारा प्राप्त क्रिपलिंग लोड P_R के मान के संबंध में निम्नलिखित में से कौन-सा सही है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "P_E is very high, and the Rankine formula gives a value close to P_E.",
+            "hi": "P_E बहुत अधिक है, और रैंकिन सूत्र P_E के करीब मान देता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "P_E is very small, and P_R is close to the ultimate crushing load.",
+            "hi": "P_E बहुत छोटा है, और P_R चरम क्रशिंग लोड के करीब है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "P_E is very high, and P_R is close to the ultimate crushing load.",
+            "hi": "P_E बहुत अधिक है, और P_R चरम क्रशिंग लोड के करीब है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "P_E is quite small, and Rankine's formula provides a very different value compared to P_E.",
+            "hi": "P_E काफी छोटा है, और रैंकिन का सूत्र P_E की तुलना में बहुत भिन्न मान प्रदान करता है।"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Euler's buckling load is P_E = π²EI/L_e². For a short column, the effective length L_e is very small, making P_E extremely high (tending toward infinity). In Rankine's formula, 1/P_R = 1/P_C + 1/P_E; since 1/P_E becomes negligible, P_R approaches the ultimate crushing load (P_C).",
+        "hi": "यूलर के सूत्र P_E = π²EI/L_e² के अनुसार, एक छोटे स्तंभ (short column) की प्रभावी लंबाई L_e बहुत कम होने के कारण P_E का मान बहुत अधिक होता है। रैंकिन के सूत्र 1/P_R = 1/P_C + 1/P_E में 1/P_E नगण्य हो जाता है, जिससे P_R का मान चरम क्रशिंग लोड (P_C) के करीब प्राप्त होता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q10",
+      "questionNumber": 10,
+      "questionText": {
+        "en": "Which factor ensures future expansion of the bridge while selecting the site?",
+        "hi": "स्थल का चयन करते समय कौन-सा कारक पुल के भविष्य के विस्तार को सुनिश्चित करता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Selecting suitable type of bearings for superstructure",
+            "hi": "अधिरचना के लिए उपयुक्त प्रकार के बियरिंग का चयन करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Choosing appropriate colour of parapets and railings",
+            "hi": "मुंडेर और रेलिंग के उपयुक्त रंग का चयन करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Providing sufficient clearance for navigation and traffic",
+            "hi": "नौवहन और यातायात के लिए पर्याप्त निकासी प्रदान करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Deciding adequate number of handrails for pedestrians",
+            "hi": "पैदल यात्रियों के लिए पर्याप्त संख्या में हैंडरेल तय करना"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "During bridge site selection and planning, providing sufficient vertical and horizontal clearance for navigation and future traffic growth ensures that the bridge remains functional and allows for widening or increased traffic capacity in the future without obstruction.",
+        "hi": "पुल के स्थल चयन और नियोजन के दौरान नौवहन (navigation) और भविष्य में बढ़ने वाले यातायात के लिए पर्याप्त ऊर्ध्वाधर और क्षैतिज निकासी (clearance) प्रदान करना यह सुनिश्चित करता है कि भविष्य में बिना किसी बाधा के पुल का विस्तार किया जा सके।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

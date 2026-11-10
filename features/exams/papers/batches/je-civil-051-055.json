@@ -1,0 +1,227 @@
+{
+  "batch": "051-055",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q51",
+      "questionNumber": 51,
+      "questionText": {
+        "en": "Which of the following statements is true regarding non-structural cracks?",
+        "hi": "गैर-संरचनात्मक दरारों के संदर्भ में निम्नलिखित में से कौन-सा कथन सत्य है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "They are a threat to the structural stability of a building.",
+            "hi": "वे किसी भवन की संरचनात्मक स्थिरता के लिए खतरा हैं।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Extensive cracks appear in foundations, slabs, etc.",
+            "hi": "नींव, स्लैब आदि में व्यापक दरारें पड़ जाती हैं।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "They occur due to atmospheric changes on building materials.",
+            "hi": "वे भवन निर्माण सामग्री पर वायुमंडलीय परिवर्तन के कारण होती हैं।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Their repair and rectification are generally very difficult.",
+            "hi": "उनकी मरम्मत और उनका परिशोधन करना सामान्यतः बहुत कठिन होता है।"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Non-structural cracks (such as shrinkage cracks, thermal movement cracks, or plaster cracks) are mainly caused by internally induced stresses due to atmospheric/moisture/temperature changes in building materials. They generally affect only the appearance and are easy to repair, posing no immediate threat to the structural stability of the building.",
+        "hi": "गैर-संरचनात्मक दरारें (Non-structural cracks) मुख्य रूप से भवन निर्माण सामग्री पर वायुमंडलीय परिवर्तन (तापमान और नमी में बदलाव) के कारण होने वाले आंतरिक तनाव से उत्पन्न होती हैं। ये केवल बाहरी दिखावट को प्रभावित करती हैं, इनकी मरम्मत आसान होती है और इनसे भवन की संरचनात्मक स्थिरता को कोई खतरा नहीं होता।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q52",
+      "questionNumber": 52,
+      "questionText": {
+        "en": "As per Indian Standard: 2470, a septic tank should have a minimum liquid capacity of __________.",
+        "hi": "भारतीय मानक: 2470 (IS : 2470) के अनुसार, सेप्टिक टैंक की न्यूनतम तरल क्षमता __________ होनी चाहिए।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "100 litres",
+            "hi": "100 लीटर"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "1000 litres",
+            "hi": "1000 लीटर"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "10 litres",
+            "hi": "10 लीटर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "1 litre",
+            "hi": "1 लीटर"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "According to IS 2470 (Part 1) (Code of Practice for Installation of Septic Tanks), a septic tank must have a minimum liquid capacity of 1000 litres (or 1 m³) with a minimum internal width of 750 mm and minimum liquid depth of 1000 mm to ensure adequate retention time for sewage digestion.",
+        "hi": "IS 2470 (Part 1) के अनुसार, किसी भी सेप्टिक टैंक की न्यूनतम तरल क्षमता 1000 लीटर (1 m³) होनी चाहिए (जिसमें न्यूनतम चौड़ाई 750 mm और तरल गहराई 1000 mm रखी जाती है), ताकि मल के पाचन के लिए पर्याप्त समय मिल सके।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q53",
+      "questionNumber": 53,
+      "questionText": {
+        "en": "Select the INCORRECT factor affecting the durability of concrete.",
+        "hi": "कंक्रीट के टिकाऊपन (durability) को प्रभावित करने वाले गलत (INCORRECT) कारक का चयन कीजिए।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Quantity of reinforcement",
+            "hi": "प्रबलन की मात्रा"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Water cement ratio",
+            "hi": "जल-सीमेंट अनुपात"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Weather exposure conditions",
+            "hi": "मौसम के संपर्क की स्थिति"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Use of super plasticisers",
+            "hi": "सुपर प्लास्टिसाइजर का उपयोग"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Concrete durability (its resistance to weathering, chemical attack, and abrasion) depends directly on permeability, water-cement ratio, weather exposure conditions, cement content, compaction, and use of admixtures/superplasticizers (which reduce water demand and improve density). The quantity of steel reinforcement determines structural load capacity, not the inherent durability of the concrete matrix itself.",
+        "hi": "कंक्रीट का टिकाऊपन (durability) मुख्य रूप से जल-सीमेंट अनुपात, मौसम के संपर्क की स्थिति, संघनन (compaction) और सुपर प्लास्टिसाइजर के उपयोग पर निर्भर करता है। प्रबलन (स्टील) की मात्रा संरचना की भार-वहन क्षमता तय करती है, न कि कंक्रीट के टिकाऊपन को।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q54",
+      "questionNumber": 54,
+      "questionText": {
+        "en": "The resultant of a non-concurrent coplanar force system can be replaced by:",
+        "hi": "एक असंगामी समतलीय बल प्रणाली (non-concurrent coplanar force system) के परिणामी को किसके द्वारा प्रतिस्थापित किया जा सकता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "A single force",
+            "hi": "एक एकल बल"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "A single moment",
+            "hi": "एक एकल आघूर्ण"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "A couple only",
+            "hi": "केवल एक बल-युग्म"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "A force and a couple",
+            "hi": "एक बल और एक बल-युग्म"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "In a non-concurrent coplanar force system, the lines of action of the forces lie in the same plane but do not intersect at a single point. Therefore, when reduced to any arbitrary reference point in that plane, the entire system is statically equivalent to a single resultant force (R) and a resultant couple/moment (M).",
+        "hi": "असंगामी समतलीय बल प्रणाली (non-concurrent coplanar force system) में बल एक ही तल में कार्य करते हैं लेकिन एक बिंदु पर नहीं मिलते। अतः किसी भी संदर्भ बिंदु पर इस पूरी प्रणाली को एक एकल बल और एक बल-युग्म (A force and a couple) द्वारा प्रतिस्थापित किया जा सकता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q55",
+      "questionNumber": 55,
+      "questionText": {
+        "en": "A solid, circular shaft is subjected to a pure twisting moment (torque) T. Which primary type of strain is developed on an elemental volume located on the outer surface of the shaft?",
+        "hi": "एक ठोस, वृत्ताकार शाफ्ट शुद्ध मरोड़ आघूर्ण (torque) T के अधीन है। शाफ्ट की बाहरी सतह पर स्थित एक सूक्ष्म आयतन तत्व पर किस प्राथमिक प्रकार की विकृति (strain) विकसित होती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Volumetric strain",
+            "hi": "आयतनिक विकृति"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Longitudinal strain",
+            "hi": "अनुदैर्ध्य विकृति"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Shear strain",
+            "hi": "अपकर्षण विकृति"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Compressive strain",
+            "hi": "संपीडन विकृति"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "When a circular shaft is subjected to pure torsion (T), adjacent cross-sections rotate relative to one another without changing the shaft's length or diameter. This angular distortion causes pure shear stress and shear strain (γ = Rθ/L), which reaches its maximum value at the outer surface (r = R).",
+        "hi": "जब किसी ठोस वृत्ताकार शाफ्ट पर शुद्ध मरोड़ आघूर्ण (T) लगाया जाता है, तो उसके अनुप्रस्थ-काट एक-दूसरे के सापेक्ष घूमते हैं जिससे शाफ्ट की लंबाई या व्यास नहीं बदलता। इस कोणीय विकृति के परिणामस्वरूप मुख्य रूप से अपकर्षण विकृति (Shear strain, γ = Rθ/L) उत्पन्न होती है, जो बाहरी सतह पर अधिकतम होती है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

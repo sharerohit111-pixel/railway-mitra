@@ -1,0 +1,239 @@
+{
+  "batchId": "gdce-je-common-q1-q5",
+  "source": "User-provided solution screenshots plus uploaded NWR answer-key PDF for exact question and option wording",
+  "section": "JE Common",
+  "status": "reviewed-batch-not-published",
+  "languagePolicy": "Hindi and English",
+  "questions": [
+    {
+      "questionId": "gdce-je-common-q1",
+      "sectionId": "je-common",
+      "questionNumber": 1,
+      "questionText": {
+        "en": "Crop rotation and use of organic fertilizers help in reducing soil pollution on agricultural land. This is because these practices _____.",
+        "hi": "फसल चक्र और जैविक उर्वरकों का उपयोग कृषि भूमि पर मृदा प्रदूषण को कम करने में मदद करता है। ऐसा इसलिए है क्योंकि ये तरीके _____।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Revitalize soil and reduce chemical accumulation",
+            "hi": "मिट्टी को पुनर्जीवित करते हैं और रसायनों के जमाव को कम करते हैं"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Increase chemical accumulation",
+            "hi": "रसायनों के जमाव को बढ़ाते हैं"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Promote soil salinity",
+            "hi": "मिट्टी की लवणता को बढ़ावा देते हैं"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Decrease organic matter",
+            "hi": "जैविक पदार्थ को कम करते हैं"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "hi": "फसल चक्र से मिट्टी के पोषक तत्व प्राकृतिक रूप से संतुलित रहते हैं। जैविक उर्वरकों के उपयोग से रासायनिक खादों पर निर्भरता कम होती है, जिससे मिट्टी में हानिकारक रसायनों का जमाव रुकता है और मिट्टी की उर्वरता बनी रहती है।",
+        "en": "Crop rotation helps maintain a natural balance of soil nutrients. Using organic fertilizers reduces dependence on chemical fertilizers, preventing the accumulation of harmful chemicals in the soil and helping preserve soil fertility."
+      },
+      "diagram": null,
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "gdce-je-common-q2",
+      "sectionId": "je-common",
+      "questionNumber": 2,
+      "questionText": {
+        "en": "Which of the following statements is INCORRECT for mass number?",
+        "hi": "द्रव्यमान संख्या (Mass Number) के संबंध में निम्नलिखित में से कौन-सा कथन गलत है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Protium and deuterium have same the mass number.",
+            "hi": "प्रोटियम और ड्यूटीरियम की द्रव्यमान संख्या समान होती है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Isobars have same mass number.",
+            "hi": "समभारिकों (Isobars) की द्रव्यमान संख्या समान होती है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "The number of nucleons is same as mass number.",
+            "hi": "न्यूक्लिऑन की संख्या द्रव्यमान संख्या के समान होती है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Mass number is equal to the sum of number of neutrons and number of protons.",
+            "hi": "द्रव्यमान संख्या, न्यूट्रॉनों और प्रोटॉनों की संख्या के योग के बराबर होती है।"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "hi": "द्रव्यमान संख्या किसी परमाणु के नाभिक में मौजूद प्रोटॉन और न्यूट्रॉन की कुल संख्या का योग होती है। प्रोटियम (¹H) में 1 प्रोटॉन और 0 न्यूट्रॉन होते हैं, इसलिए इसकी द्रव्यमान संख्या 1 होती है। ड्यूटीरियम (²H) में 1 प्रोटॉन और 1 न्यूट्रॉन होता है, जिससे इसकी द्रव्यमान संख्या 2 होती है। अतः दोनों की द्रव्यमान संख्या समान नहीं होती; इसलिए पहला कथन गलत है।",
+        "en": "The mass number is the total number of protons and neutrons in an atom's nucleus. Protium (¹H) has 1 proton and 0 neutrons, so its mass number is 1. Deuterium (²H) has 1 proton and 1 neutron, so its mass number is 2. Therefore, their mass numbers are not the same, making statement 1 incorrect."
+      },
+      "diagram": null,
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "gdce-je-common-q3",
+      "sectionId": "je-common",
+      "questionNumber": 3,
+      "questionText": {
+        "en": "Which of the following is a system software?",
+        "hi": "निम्नलिखित में से कौन-सा एक सिस्टम सॉफ्टवेयर है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Operating System",
+            "hi": "ऑपरेटिंग सिस्टम"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Google Chrome",
+            "hi": "गूगल क्रोम"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "MS Excel",
+            "hi": "MS एक्सेल"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Adobe Photoshop",
+            "hi": "एडोब फोटोशॉप"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "hi": "ऑपरेटिंग सिस्टम (जैसे Windows, Linux, Android) एक सिस्टम सॉफ्टवेयर है, जो कंप्यूटर के हार्डवेयर को नियंत्रित करता है और अन्य सॉफ्टवेयर को चलाने के लिए मंच प्रदान करता है। अन्य विकल्प (गूगल क्रोम, MS एक्सेल, एडोब फोटोशॉप) विशेष कार्यों के लिए बनाए गए एप्लिकेशन सॉफ्टवेयर हैं।",
+        "en": "An operating system (such as Windows, Linux, or Android) is system software. It controls the computer hardware and provides a platform for running other software. The other options (Google Chrome, MS Excel, and Adobe Photoshop) are application software designed for specific tasks."
+      },
+      "diagram": null,
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "gdce-je-common-q4",
+      "sectionId": "je-common",
+      "questionNumber": 4,
+      "questionText": {
+        "en": "What is the primary role of network security in a computing environment?",
+        "hi": "कंप्यूटिंग परिवेश (Computing Environment) में नेटवर्क सुरक्षा की मुख्य भूमिका क्या है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Detecting software errors and fixing bugs",
+            "hi": "सॉफ्टवेयर की त्रुटियों का पता लगाना और बग ठीक करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Optimizing resources to make computers faster",
+            "hi": "कंप्यूटर को तेज़ बनाने के लिए संसाधनों का अनुकूलन करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Logging user activity for reporting purposes",
+            "hi": "रिपोर्टिंग के उद्देश्य से उपयोगकर्ता की गतिविधियों का लॉग रखना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Blocking unauthorized access to networks and securing data transmission",
+            "hi": "नेटवर्कों में अनधिकृत पहुँच को रोकना और डेटा ट्रांसमिशन को सुरक्षित करना"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "hi": "नेटवर्क सुरक्षा (Network Security) का मुख्य कार्य बाहरी खतरों और अनधिकृत उपयोगकर्ताओं को नेटवर्क में प्रवेश करने से रोकना है। इसके साथ ही यह सुनिश्चित किया जाता है कि एक डिवाइस से दूसरे डिवाइस तक भेजा जाने वाला डेटा सुरक्षित (Encrypted) रहे।",
+        "en": "The primary function of network security is to prevent external threats and unauthorized users from accessing a network. It also helps ensure that data sent from one device to another remains secure through encryption."
+      },
+      "diagram": null,
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "gdce-je-common-q5",
+      "sectionId": "je-common",
+      "questionNumber": 5,
+      "questionText": {
+        "en": "An industrial unit is evaluating strategies to limit greenhouse gas emissions. Which approach would be best to effectively reduce emissions and mitigate climate change impacts?",
+        "hi": "एक औद्योगिक इकाई ग्रीनहाउस गैस उत्सर्जन को सीमित करने के लिए रणनीतियों का मूल्यांकन कर रही है। उत्सर्जन को प्रभावी ढंग से कम करने और जलवायु परिवर्तन के प्रभाव को कम करने के लिए कौन-सा उपागम सबसे अच्छा रहेगा?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Switching to renewable energy sources and improving efficiency",
+            "hi": "नवीकरणीय ऊर्जा स्रोतों पर स्विच करना और दक्षता में सुधार करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Regular maintenance of industrial equipment",
+            "hi": "औद्योगिक उपकरणों का नियमित रखरखाव"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Increasing green belt areas around the unit",
+            "hi": "इकाई के आसपास हरित पट्टी क्षेत्र में वृद्धि करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Installing air filtration systems on exhausts",
+            "hi": "एग्जॉस्ट पर वायु निस्यंदन तंत्र स्थापित करना"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "hi": "उद्योगों में ग्रीनहाउस गैस उत्सर्जन का मुख्य कारण कोयला और डीजल जैसे जीवाश्म ईंधन का दहन है। सौर या पवन ऊर्जा जैसे नवीकरणीय ऊर्जा स्रोतों को अपनाने और मशीनों की ऊर्जा दक्षता (Energy Efficiency) बढ़ाने से कार्बन उत्सर्जन में सबसे प्रभावी कमी आती है।",
+        "en": "A major cause of industrial greenhouse gas emissions is the burning of fossil fuels such as coal and diesel. Switching to renewable energy sources such as solar or wind power and improving the energy efficiency of machinery are highly effective ways to reduce carbon emissions."
+      },
+      "diagram": null,
+      "verificationStatus": "verified"
+    }
+  ]
+}

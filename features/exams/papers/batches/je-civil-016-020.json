@@ -1,0 +1,228 @@
+{
+  "batch": "016-020",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q16",
+      "questionNumber": 16,
+      "questionText": {
+        "en": "Which of the following is NOT an intersection type on highways?",
+        "hi": "निम्नलिखित में से कौन-सा राजमार्गों (highways) पर चौराहे/इंटरसेक्शन (intersection) का एक प्रकार नहीं है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "At-grade",
+            "hi": "समतल (एट-ग्रेड)"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Grade-separated",
+            "hi": "ग्रेड-सेपरेटेड"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Rotary",
+            "hi": "रोटरी"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Highway bypass without crossings",
+            "hi": "बिना क्रॉसिंग वाला हाईवे बाईपास"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Highway intersections are broadly classified into at-grade intersections (including rotary, channelized, and unchannelized junctions) and grade-separated intersections (flyovers, interchanges). A highway bypass without crossings is a continuous road alignment designed to route traffic around a congested town, not an intersection.",
+        "hi": "राजमार्गों पर इंटरसेक्शन मुख्य रूप से एट-ग्रेड (At-grade) और ग्रेड-सेपरेटेड (Grade-separated) होते हैं। बिना क्रॉसिंग वाला हाईवे बाईपास यातायात को शहर से बाहर निकालने का एक मार्ग है, न कि कोई इंटरसेक्शन।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q17",
+      "questionNumber": 17,
+      "questionText": {
+        "en": "In which brick bond are the bricks not placed at an angle?",
+        "hi": "किस ईंट बंध (brick bond) में ईंटों को किसी कोण पर नहीं रखा जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Herringbone bond",
+            "hi": "हेरिंगबोन बॉन्ड"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Zigzag bond",
+            "hi": "जिगजैग बॉन्ड"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "English cross bond",
+            "hi": "इंग्लिश क्रॉस बॉन्ड"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Diagonal bond",
+            "hi": "डायगोनल बॉन्ड"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "In English cross bond, bricks are laid horizontally in alternating courses of headers and stretchers (parallel/perpendicular to the wall face) without any angular inclination. In contrast, herringbone, zigzag, and diagonal bonds are raking bonds where bricks are placed at an angle (typically 45°).",
+        "hi": "इंग्लिश क्रॉस बॉन्ड में ईंटों को दीवार की लंबाई के समानांतर और लंबवत (सीधी रेखा में) हेडर और स्ट्रेचर की वैकल्पिक परतों में जोड़ा जाता है, किसी कोण पर नहीं। इसके विपरीत, हेरिंगबोन, जिगजैग और डायगोनल बॉन्ड में ईंटों को 45° के कोण पर रखा जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q18",
+      "questionNumber": 18,
+      "questionText": {
+        "en": "A tension member with bolted connections is most likely to fail:",
+        "hi": "बोल्टेड कनेक्शन (bolted connections) वाला एक तनन अवयव (tension member) सबसे अधिक किस प्रकार विफल होने की संभावना रखता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "by the net cross-section rupture",
+            "hi": "शुद्ध अनुप्रस्थ-काट विखंडन द्वारा (net cross-section rupture)"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "at lateral supports",
+            "hi": "पार्श्व आलंबों पर"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "by the gross cross-section twisting",
+            "hi": "सकल अनुप्रस्थ-काट मरोड़ द्वारा"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "by mid-span due to bending",
+            "hi": "बंकन के कारण मध्य-विस्तार पर"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Drilling bolt holes in a steel tension member reduces its effective cross-sectional area at the connection. Because of this reduced area and stress concentration around the bolt holes, a bolted tension member is most critical and likely to fail by rupture of the net cross-section (as per IS 800:2007).",
+        "hi": "बोल्टेड कनेक्शन वाले तनन अवयव (tension member) में बोल्ट के छेद करने के कारण जोड़ के स्थान पर प्रभावी अनुप्रस्थ-काट क्षेत्रफल (effective area) कम हो जाता है। क्षेत्रफल कम होने और प्रतिबल संकेंद्रण के कारण सदस्य के शुद्ध अनुप्रस्थ-काट के टूटने (net cross-section rupture) से विफल होने की सबसे अधिक संभावना होती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q19",
+      "questionNumber": 19,
+      "questionText": {
+        "en": "Identify the type of door symbol, shown below, used in a building drawing as per IS 962 (1989).",
+        "hi": "IS 962 (1989) के अनुसार भवन आरेखण (building drawing) में प्रयुक्त नीचे दिखाए गए दरवाजे के प्रतीक के प्रकार की पहचान कीजिए।"
+      },
+      "diagramDescription": "Source image shows two door leaves hinged on opposite jambs, with swing arcs extending on both sides of the wall opening.",
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Double-leaf sliding door unit",
+            "hi": "डबल-लीफ स्लाइडिंग डोर यूनिट"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Double-leaf double-swing door",
+            "hi": "डबल-लीफ डबल-स्विंग डोर"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Single-leaf single-swing door",
+            "hi": "सिंगल-लीफ सिंगल-स्विंग डोर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Single-leaf pivoted door unit",
+            "hi": "सिंगल-लीफ पिवोटेड डोर यूनिट"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "As per IS 962:1989 (Code of Practice for Architectural and Building Drawings), the symbol shows two door leaves hinged on opposite jambs, with swing arcs extending on both sides of the wall opening. This represents a double-leaf double-swing door (capable of swinging both inward and outward).",
+        "hi": "IS 962:1989 (भवन आरेखण मानक) के अनुसार, इस प्रतीक में दीवार के दोनों किनारों पर दो पल्ले (leaves) लगे हैं और दोनों ओर खुलने की दिशा (arcs) दिखाई गई है। यह डबल-लीफ डबल-स्विंग डोर (Double-leaf double-swing door) को दर्शाता है, जो अंदर और बाहर दोनों तरफ खुल सकता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q20",
+      "questionNumber": 20,
+      "questionText": {
+        "en": "Which of the following is a key step in the manufacturing process of fly ash bricks?",
+        "hi": "फ्लाई ऐश ईंटों (fly ash bricks) की निर्माण प्रक्रिया में निम्नलिखित में से कौन-सा एक प्रमुख चरण है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Moulding with clay slurry",
+            "hi": "मिट्टी के घोल के साथ ढलाई करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Firing in a blast furnace",
+            "hi": "ब्लास्ट फर्नेस में पकाना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Curing with acid solution",
+            "hi": "अम्लीय घोल के साथ तराई करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Mixing fly ash, lime and gypsum",
+            "hi": "फ्लाई ऐश, चूना और जिप्सम को मिलाना"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Fly ash bricks are manufactured by thoroughly mixing fly ash, lime (or cement), gypsum, and sand/stone dust with water, pressing the mixture into moulds using hydraulic/vibratory presses, and then curing with water or steam (autoclaving)—without any kiln firing.",
+        "hi": "फ्लाई ऐश ईंटों के निर्माण का मुख्य चरण फ्लाई ऐश, चूना (या सीमेंट), जिप्सम और रेत/स्टोन डस्ट को पानी के साथ अच्छी तरह मिलाना है। इसके बाद इस मिश्रण को सांचों में दबाकर ढाला जाता है और बिना भट्ठे में पकाए पानी या भाप से इसकी तराई (curing) की जाती है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

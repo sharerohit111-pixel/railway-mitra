@@ -1,0 +1,227 @@
+{
+  "batch": "001-005",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q1",
+      "questionNumber": 1,
+      "questionText": {
+        "en": "Which surveying activity is best performed using a Total Station?",
+        "hi": "टोटल स्टेशन (Total Station) का उपयोग करके कौन-सी सर्वेक्षण गतिविधि सबसे अच्छी तरह की जाती है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Estimating concrete mix maps",
+            "hi": "कंक्रीट मिश्रण मानचित्रों का आकलन करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Plotting topographic maps",
+            "hi": "स्थलाकृतिक मानचित्र तैयार करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Testing asphalt properties",
+            "hi": "डामर के गुणों का परीक्षण करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Borehole logging maps",
+            "hi": "बोरहोल लॉगिंग मानचित्र"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "A Total Station combines an electronic theodolite with an Electronic Distance Meter (EDM) to accurately measure horizontal angles, vertical angles, and slope distances. This 3D coordinate data is directly used for plotting topographic maps, contour mapping, and layout surveys.",
+        "hi": "टोटल स्टेशन (Total Station) एक इलेक्ट्रॉनिक थियोडोलाइट और इलेक्ट्रॉनिक डिस्टेंस मीटर (EDM) का संयोजन है, जो क्षैतिज कोण, ऊर्ध्वाधर कोण और ढाल दूरी को सटीक रूप से मापता है। इस 3D डेटा का उपयोग मुख्य रूप से स्थलाकृतिक मानचित्र (topographic maps) और कंटूर मैप तैयार करने के लिए किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q2",
+      "questionNumber": 2,
+      "questionText": {
+        "en": "Which of the following plastics is used in fiber-reinforced composites for bridges and structural applications?",
+        "hi": "पुलों और संरचनात्मक अनुप्रयोगों के लिए फाइबर-प्रबलित कंपोजिट (fiber-reinforced composites) में निम्नलिखित में से किस प्लास्टिक का उपयोग किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Acrylic",
+            "hi": "ऐक्रेलिक"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Acrylonitrile Butadiene Styrene",
+            "hi": "एक्रिलोनाइट्राइल ब्यूटाडाइीन स्टाइरीन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Epoxy resin",
+            "hi": "एपॉक्सी रेजिन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Nylon",
+            "hi": "नायलॉन"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Epoxy resin is a high-strength thermosetting polymer widely used as the matrix material in Fiber-Reinforced Polymer (FRP) composites for bridges and structural retrofitting due to its superior mechanical strength, chemical resistance, low shrinkage, and strong adhesion to carbon or glass fibers.",
+        "hi": "एपॉक्सी रेजिन (Epoxy resin) एक उच्च-शक्ति वाला थर्मोसेटिंग पॉलिमर है, जिसका उपयोग पुलों और संरचनात्मक रेट्रोफिटिंग में फाइबर-प्रबलित पॉलिमर (FRP) कंपोजिट बनाने के लिए किया जाता है। इसकी यांत्रिक शक्ति, रासायनिक प्रतिरोध और कार्बन या ग्लास फाइबर के साथ मजबूत पकड़ इसे संरचनात्मक कार्यों के लिए उपयुक्त बनाती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q3",
+      "questionNumber": 3,
+      "questionText": {
+        "en": "Cadastral surveying is mainly conducted for ______.",
+        "hi": "भू-संपत्ति सर्वेक्षण (Cadastral surveying) मुख्य रूप से ____ के लिए किया जाता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Designing dams and canals",
+            "hi": "बांधों और नहरों का डिजाइन तैयार करना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Surveying mountains",
+            "hi": "पहाड़ों का सर्वेक्षण करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Preparing contour maps",
+            "hi": "समोच्च मानचित्र तैयार करना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Fixing property boundaries and land ownership",
+            "hi": "संपत्ति की सीमाओं और भूमि स्वामित्व को तय करना"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Cadastral surveying deals with establishing and recording legal property lines, land parcel boundaries, and land ownership records for revenue, taxation, and legal transfer of real estate.",
+        "hi": "भू-संपत्ति सर्वेक्षण (Cadastral surveying) मुख्य रूप से खेतों, भूखंडों और संपत्ति की कानूनी सीमाओं का निर्धारण करने तथा भूमि के स्वामित्व का रिकॉर्ड तैयार करने के लिए किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q4",
+      "questionNumber": 4,
+      "questionText": {
+        "en": "According to the Mohr-Coulomb failure criterion, which of the following conditions must be met for a soil element to be considered at the point of shear failure?",
+        "hi": "मोहर-कूलम्ब विफलता मानदंड (Mohr-Coulomb failure criterion) के अनुसार, किसी मृदा तत्व को अपरूपण विफलता (shear failure) के लिए उस बिंदु पर होने के लिए निम्नलिखित में से कौन-सी शर्त पूरी होनी चाहिए?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "The shear stress τ on the plane of maximum obliquity equals the normal stress σ on that plane.",
+            "hi": "अधिकतम विक्षेपकता के तल पर अपरूपण प्रतिबल τ, उस तल पर अभिलंब प्रतिबल σ के बराबर होता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "The Mohr circle representing the state of stress becomes tangent to the failure envelope.",
+            "hi": "प्रतिबल की स्थिति को दर्शाने वाला मोहर वृत्त विफलता आवरण को स्पर्शरेखीय हो जाता है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "The major principal stress σ₁ reaches its peak value.",
+            "hi": "प्रमुख मुख्य प्रतिबल σ₁ अपने चरम मान पर पहुँच जाता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "The effective stress σ′ on the failure plane reaches zero, leading to a quick condition.",
+            "hi": "विफलता तल पर प्रभावी प्रतिबल σ′ शून्य हो जाता है, जिससे क्विक स्थिति उत्पन्न होती है।"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "According to the Mohr-Coulomb failure theory (τf = c + σ tanφ), shear failure occurs along a plane when the applied shear stress reaches the shear strength of the soil. Graphically, this critical state is reached when the Mohr's circle of stress touches (becomes tangent to) the Mohr-Coulomb failure envelope.",
+        "hi": "मोहर-कूलम्ब विफलता सिद्धांत (τf = c + σ tanφ) के अनुसार, मिट्टी में अपरूपण विफलता (shear failure) तब होती है जब प्रतिबल की स्थिति दर्शाने वाला मोहर वृत्त (Mohr circle) विफलता आवरण (failure envelope) को स्पर्श (tangent) करता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q5",
+      "questionNumber": 5,
+      "questionText": {
+        "en": "What is the primary cause of rail creep?",
+        "hi": "रेल विसर्पण (rail creep) का प्राथमिक कारण क्या है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Wave motion of the rail under moving loads",
+            "hi": "गतिशील लोड के अंतर्गत रेल की तरंग गति"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Excessive ballast cushion",
+            "hi": "अत्यधिक बैलास्ट उपधान"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Temperature variation",
+            "hi": "तापमान भिन्नता"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Defective fastenings only",
+            "hi": "केवल दोषपूर्ण बंधक"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Rail creep is the longitudinal movement of rails in a track. According to the Wave Action Theory, the primary cause of creep is the wave motion set up in the rail due to moving wheel loads of trains, which depresses the rail under the wheels and pushes it forward as the wheels move.",
+        "hi": "रेल की पटरियों का अपनी जगह से लंबाई की दिशा में आगे खिसकना रेल विसर्पण (rail creep) कहलाता है। रेल गति सिद्धांत (Wave Action Theory) के अनुसार, इसका प्राथमिक कारण चलती हुई ट्रेन के"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "batch": "021-025",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q21",
+      "questionNumber": 21,
+      "questionText": {
+        "en": "Which of the following default TCP port pairs is correct for secure communication?",
+        "hi": "निम्नलिखित में से कौन-सा डिफ़ॉल्ट TCP पोर्ट युग्म सुरक्षित संचार के लिए सही है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "FTP - 8080, HTTPS - 110",
+            "hi": "FTP - 8080, HTTPS - 110"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "IMAP - 22, HTTP - 25",
+            "hi": "IMAP - 22, HTTP - 25"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "HTTP - 80, HTTPS - 443",
+            "hi": "HTTP - 80, HTTPS - 443"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "SMTP - 21, POP3 - 23",
+            "hi": "SMTP - 21, POP3 - 23"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Standard web communication uses TCP Port 80 for HTTP (unencrypted) and TCP Port 443 for HTTPS (encrypted/secure communication via TLS/SSL). Other standard ports are FTP (21), SSH (22), Telnet (23), SMTP (25), POP3 (110), and IMAP (143).",
+        "hi": "मानक वेब संचार के लिए HTTP (सामान्य संचार) हेतु TCP पोर्ट 80 और HTTPS (TLS/SSL के माध्यम से सुरक्षित/एन्क्रिप्टेड संचार) हेतु TCP पोर्ट 443 का उपयोग किया जाता है। अन्य प्रमुख पोर्ट FTP (21), SSH (22), Telnet (23), SMTP (25), POP3 (110) और IMAP (143) हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q22",
+      "questionNumber": 22,
+      "questionText": {
+        "en": "The “Bharat-VISTAAR” scheme announced in the Union Budget 2026–27 is related to which of the following Union Ministries?",
+        "hi": "केंद्रीय बजट 2026–27 में घोषित “भारत-VISTAAR” स्कीम निम्नलिखित में से किस केंद्रीय मंत्रालय से संबंधित है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Ministry of Environment, Forest and Climate Change",
+            "hi": "पर्यावरण, वन और जलवायु परिवर्तन मंत्रालय"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Ministry of Education",
+            "hi": "शिक्षा मंत्रालय"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Ministry of Housing and Urban Affairs",
+            "hi": "आवास और शहरी मामलों का मंत्रालय"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Ministry of Agriculture and Farmers Welfare",
+            "hi": "कृषि और किसान कल्याण मंत्रालय"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Announced in the Union Budget 2026–27, Bharat-VISTAAR (Virtually Integrated System to Access Agricultural Resources) is an AI-driven digital initiative under the Ministry of Agriculture and Farmers Welfare aimed at providing farmers with customized advisory services, weather alerts, and market access.",
+        "hi": "केंद्रीय बजट 2026–27 में घोषित 'भारत-VISTAAR' (Virtually Integrated System to Access Agricultural Resources) कृषि और किसान कल्याण मंत्रालय के अधीन एक AI-आधारित डिजिटल पहल है, जिसका उद्देश्य किसानों को खेती से जुड़ी सटीक सलाह, मौसम की जानकारी और बाजार तक पहुँच प्रदान करना है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q23",
+      "questionNumber": 23,
+      "questionText": {
+        "en": "The Vienna Convention for the Protection of the Ozone Layer (1985) paved the way for which subsequent international treaty?",
+        "hi": "वियना कन्वेंशन फॉर द प्रोटेक्शन ऑफ ओजोन लेयर (1985) ने किस आगामी अंतरराष्ट्रीय संधि का मार्ग प्रशस्त किया?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Paris Agreement",
+            "hi": "पेरिस एग्रीमेंट"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Basel Convention",
+            "hi": "बेसल कन्वेंशन"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Montreal Protocol",
+            "hi": "मॉन्ट्रियल प्रोटोकॉल"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Kyoto Protocol",
+            "hi": "क्योटो प्रोटोकॉल"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "The Vienna Convention (1985) established the global framework for protecting the stratospheric ozone layer, which directly led to the adoption of the Montreal Protocol (1987)—a binding treaty designed to phase out the production and consumption of ozone-depleting substances (ODS) like CFCs.",
+        "hi": "वियना कन्वेंशन (1985) ने समताप मंडल की ओजोन परत की रक्षा के लिए अंतरराष्ट्रीय सहयोग की नींव रखी, जिसके परिणामस्वरूप 1987 में मॉन्ट्रियल प्रोटोकॉल अस्तित्व में आया। इस संधि का मुख्य उद्देश्य ओजोन परत को नुकसान पहुँचाने वाले पदार्थों (जैसे CFCs) के उत्पादन और उपयोग को चरणबद्ध तरीके से समाप्त करना है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q24",
+      "questionNumber": 24,
+      "questionText": {
+        "en": "In which of the following years did Vasco da Gama land at Calicut on the Malabar Coast for the second time?",
+        "hi": "वास्को डी गामा निम्नलिखित में से किस वर्ष दूसरी बार मालाबार तट पर कालीकट में उतरा था?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "1511",
+            "hi": "1511"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "1509",
+            "hi": "1509"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "1505",
+            "hi": "1505"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "1502",
+            "hi": "1502"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "After his first historic voyage to India in 1498, Portuguese explorer Vasco da Gama returned to Calicut on the Malabar Coast for the second time in 1502, leading a heavily armed fleet to enforce Portuguese trade monopoly.",
+        "hi": "1498 में भारत की अपनी पहली ऐतिहासिक यात्रा के बाद, पुर्तगाली नाविक वास्को डी गामा वर्ष 1502 में दूसरी बार मालाबार तट स्थित कालीकट आया था, ताकि वह हिंद महासागर में पुर्तगाली व्यापारिक एकाधिकार स्थापित कर सके।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q25",
+      "questionNumber": 25,
+      "questionText": {
+        "en": "What is the chemical formula of Plaster of Paris?",
+        "hi": "प्लास्टर ऑफ पेरिस का रासायनिक सूत्र क्या है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "CaSO₄",
+            "hi": "CaSO₄"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "CaCO₃",
+            "hi": "CaCO₃"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "CaSO₄ · 2H₂O",
+            "hi": "CaSO₄ · 2H₂O"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "CaSO₄ · ½H₂O",
+            "hi": "CaSO₄ · ½H₂O"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Plaster of Paris (POP) is chemically calcium sulfate hemihydrate (CaSO₄ · ½H₂O). It is prepared by heating gypsum (CaSO₄ · 2H₂O) at about 373 K (100°C), causing it to lose three-fourths of its water of crystallization.",
+        "hi": "प्लास्टर ऑफ पेरिस (POP) का रासायनिक नाम कैल्शियम सल्फेट हेमीहाइड्रेट है और इसका सूत्र CaSO₄ · ½H₂O होता है। इसे जिप्सम (CaSO₄ · 2H₂O) को लगभग 373 K (100°C) पर गर्म करके प्राप्त किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

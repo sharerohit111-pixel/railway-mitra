@@ -1,0 +1,171 @@
+{
+  "batch": "072-075",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q72",
+      "questionNumber": 72,
+      "questionText": {
+        "en": "Identify the INCORRECT statement about the principles of triangulation.",
+        "hi": "त्रिकोणीयन (triangulation) के सिद्धांतों के बारे में गलत (INCORRECT) कथन की पहचान कीजिए।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "The stations at which astronomical observations are made are called geodetic stations.",
+            "hi": "जिन स्टेशनों पर खगोलीय प्रेक्षण किए जाते हैं उन्हें जियोडेटिक स्टेशन कहा जाता है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "The line whose length is known is called base line.",
+            "hi": "जिस रेखा की लंबाई ज्ञात होती है उसे आधार रेखा कहा जाता है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "To control the accumulation of errors in triangulation, subsidiary bases are selected.",
+            "hi": "त्रिकोणीयन में त्रुटियों के संचय को नियंत्रित करने के लिए सहायक आधार चुने जाते हैं।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "The system of interconnected triangles is called the triangulation system.",
+            "hi": "आपस में जुड़े त्रिभुजों की प्रणाली को त्रिकोणीयन प्रणाली कहा जाता है।"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "In geodetic triangulation surveying, the stations at which astronomical observations for azimuth and longitude are made to control angular error accumulation are called Laplace stations, not geodetic stations. Hence, Statement 1 is incorrect, while all other statements about base lines, check/subsidiary bases, and triangulation networks are true.",
+        "hi": "जियोडेटिक त्रिकोणीयन सर्वेक्षण में, जिन स्टेशनों पर दिगंश (azimuth) और देशांतर के लिए खगोलीय प्रेक्षण किए जाते हैं, उन्हें लाप्लास स्टेशन (Laplace stations) कहा जाता है, न कि जियोडेटिक स्टेशन। इसलिए कथन 1 गलत है, जबकि शेष सभी कथन सही हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q73",
+      "questionNumber": 73,
+      "questionText": {
+        "en": "Which method is most commonly used for laying new tracks in railway track construction?",
+        "hi": "रेलवे ट्रैक निर्माण में, नई पटरियाँ बिछाने के लिए किस विधि का उपयोग सबसे अधिक किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Telescopic Method",
+            "hi": "टेलीस्कोपिक विधि"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Trenchless Method",
+            "hi": "ट्रेंचलेस विधि"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Cut-and-Cover Method",
+            "hi": "कट-एंड-कवर विधि"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Incremental Launching",
+            "hi": "इंक्रीमेंटल लॉन्चिंग"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "In India and most railway projects, the Telescopic Method is the most widely used technique for plate-laying (track laying). In this method, rails, sleepers, and fastenings are unloaded at a central depot, transported over the already laid track to the railhead by material trains, and extended forward step-by-step like a telescope.",
+        "hi": "रेलवे ट्रैक निर्माण (प्लेट-लेइंग) में नई पटरियाँ बिछाने के लिए टेलीस्कोपिक विधि (Telescopic Method) का सर्वाधिक उपयोग किया जाता है। इस विधि में पटरियों और स्लीपरों को एक डिपो पर एकत्र कर पहले से बिछी हुई पटरी के माध्यम से आगे सिरे (railhead) तक ले जाया जाता है और क्रमबद्ध तरीके से आगे बढ़ते हुए बिछाया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q74",
+      "questionNumber": 74,
+      "questionText": {
+        "en": "In the method of sections as applicable to analysis of plane trusses, the number of unknown member forces that can be determined in one section will not exceed:",
+        "hi": "समतल ट्रस (plane trusses) के विश्लेषण में लागू खंड विधि (method of sections) में, एक खंड (section) में निर्धारित किए जा सकने वाले अज्ञात सदस्य बलों की संख्या इससे अधिक नहीं हो सकती:"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": "3"
+        },
+        {
+          "key": "B",
+          "text": "4"
+        },
+        {
+          "key": "C",
+          "text": "6"
+        },
+        {
+          "key": "D",
+          "text": "2"
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "When a plane truss is cut into two parts by an imaginary section, each part is in static equilibrium under a coplanar non-concurrent force system. Since there are only three independent equations of static equilibrium (ΣFₓ = 0, ΣFᵧ = 0, and ΣM = 0), a section should generally not cut more than 3 members with unknown forces.",
+        "hi": "समतल ट्रस (plane truss) के विश्लेषण के लिए खंड विधि (method of sections) में हमारे पास स्थैतिक संतुलन के केवल तीन स्वतंत्र समीकरण (ΣFₓ = 0, ΣFᵧ = 0 तथा ΣM = 0) उपलब्ध होते हैं। इसलिए, एक बार में काटे गए खंड से अधिकतम 3 अज्ञात सदस्य बलों की ही गणना की जा सकती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q75",
+      "questionNumber": 75,
+      "questionText": {
+        "en": "What contributes to the pollution of surface water bodies?",
+        "hi": "सतही जल निकायों (surface water bodies) के प्रदूषण में क्या योगदान देता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Natural springs",
+            "hi": "प्राकृतिक झरने"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Community waste",
+            "hi": "सामुदायिक अपशिष्ट"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Rainwater harvesting",
+            "hi": "वर्षा जल संचयन"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Underground aquifers",
+            "hi": "भूमिगत जलभृत"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "Community waste (including domestic sewage, household garbage, plastics, and municipal wastewater discharged into rivers, lakes, and ponds) introduces organic pollutants, pathogens, and excess nutrients that directly contaminate surface water bodies.",
+        "hi": "सामुदायिक अपशिष्ट (Community waste)—जिसमें घरेलू बहित मल (sewage), कचरा और प्लास्टिक शामिल हैं—जब नदियों, झीलों और तालाबों में छोड़ा जाता है, तो यह कार्बनिक प्रदूषकों और रोगाणुओं को बढ़ाकर सतही जल निकायों के प्रदूषण का प्रमुख कारण बनता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+{
+  "batch": "036-040",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-common",
+  "questions": [
+    {
+      "questionId": "je-common-q36",
+      "questionNumber": 36,
+      "questionText": {
+        "en": "Which of the following operating system concepts is most directly involved in ensuring that multiple processes can access and modify files concurrently without corrupting data?",
+        "hi": "निम्नलिखित में से कौन-सी ऑपरेटिंग सिस्टम अवधारणा सबसे अधिक प्रत्यक्ष रूप से यह सुनिश्चित करने में शामिल है कि एकाधिक प्रक्रियाएँ डेटा करप्ट किए बिना एक साथ फ़ाइलों को एक्सेस और संशोधित कर सकती हैं?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Virtual memory management",
+            "hi": "वर्चुअल मेमोरी मैनेजमेंट"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Scheduling algorithms",
+            "hi": "शेड्यूलिंग एल्गोरिदम"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Paging",
+            "hi": "पेजिंग"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "File locking mechanisms",
+            "hi": "फाइल लॉकिंग मैकेनिज्म"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "File locking mechanisms restrict simultaneous access to a file by multiple processes (such as shared read locks and exclusive write locks). This prevents race conditions and ensures data is not overwritten or corrupted during concurrent operations.",
+        "hi": "फाइल लॉकिंग मैकेनिज्म (File locking mechanisms) एक ही समय में कई प्रक्रियाओं (processes) द्वारा किसी फाइल को एक्सेस या संशोधित करने की प्रक्रिया को नियंत्रित करते हैं। यह एक साथ होने वाले बदलावों के कारण डेटा को ओवरराइट या करप्ट होने से बचाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q37",
+      "questionNumber": 37,
+      "questionText": {
+        "en": "Stars appear to twinkle more distinctly when ________.",
+        "hi": "________ होने पर तारे अधिक स्पष्ट रूप से टिमटिमाते हुए दिखते हैं।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "The stars are at their zenith",
+            "hi": "तारे उनके शिखरबिंदु पर होने पर"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "The sky is overcast with clouds",
+            "hi": "आसमान बादलों से घिरा होने पर"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "The moon is bright",
+            "hi": "चाँद के चमकीले होने पर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "The stars are near the horizon",
+            "hi": "तारे क्षितिज के पास होने पर"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "Twinkling of stars is caused by the atmospheric refraction of starlight. When a star is near the horizon, its light has to travel through a much thicker and denser layer of Earth's atmosphere compared to when it is overhead (zenith), resulting in greater refraction and more pronounced twinkling.",
+        "hi": "तारों का टिमटिमाना तारों के प्रकाश के वायुमंडलीय अपवर्तन (atmospheric refraction) के कारण होता है। जब तारे क्षितिज (horizon) के पास होते हैं, तो उनके प्रकाश को पृथ्वी के वायुमंडल की अधिक मोटी और सघन परत से होकर गुजरना पड़ता है, जिससे अपवर्तन अधिक होता है और वे अधिक स्पष्ट रूप से टिमटिमाते दिखते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q38",
+      "questionNumber": 38,
+      "questionText": {
+        "en": "The Non-Cooperation Movement of 1920 included all of the following EXCEPT:",
+        "hi": "1920 के असहयोग आंदोलन में निम्नलिखित में से किसको छोड़कर शेष सभी शामिल थे?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Violent attacks on officials",
+            "hi": "अधिकारियों पर हिंसक हमले"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Closing of schools and colleges",
+            "hi": "स्कूलों और कॉलेजों को बंद करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Refusal to pay taxes",
+            "hi": "कर देने से इनकार"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Boycott of British courts",
+            "hi": "ब्रिटिश अदालतों का बहिष्कार"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Launched by Mahatma Gandhi in 1920, the Non-Cooperation Movement was strictly based on the principle of non-violence (Ahimsa). It involved boycotting British educational institutions, law courts, foreign goods, and refusing to pay taxes, while violent attacks were strictly prohibited. Gandhi called off the movement after the Chauri Chaura incident in 1922.",
+        "hi": "महात्मा गांधी द्वारा 1920 में शुरू किया गया असहयोग आंदोलन पूरी तरह से अहिंसा के सिद्धांत पर आधारित था। इसमें ब्रिटिश स्कूलों, कॉलेजों और अदालतों का बहिष्कार तथा कर न देना शामिल था, जबकि अधिकारियों पर हिंसक हमले करना निषिद्ध था। 1922 में चौरी-चौरा की हिंसक घटना के बाद गांधीजी ने यह आंदोलन वापस ले लिया।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q39",
+      "questionNumber": 39,
+      "questionText": {
+        "en": "Which of the following analogies did Thomson use to describe his atomic model?",
+        "hi": "थॉमसन ने अपने परमाणु मॉडल का वर्णन करने के लिए निम्नलिखित में से किस सादृश्य (analogy) का उपयोग किया?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Christmas pudding",
+            "hi": "क्रिसमस पुडिंग"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Planetary system",
+            "hi": "ग्रह प्रणाली"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Nuclear core-shell",
+            "hi": "परमाणु कोर-शेल"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Solar system",
+            "hi": "सौर परिवार"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "J. J. Thomson proposed the Plum Pudding Model (also compared to a Christmas pudding or a watermelon) in 1904. In this model, an atom is envisioned as a positively charged sphere (the pudding) with negatively charged electrons embedded inside it like raisins or plums.",
+        "hi": "जे. जे. थॉमसन ने 1904 में परमाणु की संरचना समझाने के लिए प्लम पुडिंग मॉडल प्रस्तुत किया, जिसकी तुलना उन्होंने क्रिसमस पुडिंग (या तरबूज) से भी की। इस मॉडल के अनुसार, परमाणु एक धनावेशित गोला (पुडिंग) है जिसमें ऋणावेशित इलेक्ट्रॉन मेवे (सूखे मेवे/बीजों) की तरह फैले होते हैं।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-common-q40",
+      "questionNumber": 40,
+      "questionText": {
+        "en": "Match the following computer security terms with their correct definitions.",
+        "hi": "निम्नलिखित कंप्यूटर सुरक्षा शब्दों का उनके सही अर्थों से मिलान कीजिए।"
+      },
+      "matching": {
+        "terms": [
+          {
+            "id": "1",
+            "en": "Encryption",
+            "hi": "एन्क्रिप्शन"
+          },
+          {
+            "id": "2",
+            "en": "Firewall",
+            "hi": "फायरवॉल"
+          },
+          {
+            "id": "3",
+            "en": "Antivirus",
+            "hi": "एंटीवायरस"
+          },
+          {
+            "id": "4",
+            "en": "Authentication",
+            "hi": "ऑथेंटिकेशन"
+          }
+        ],
+        "definitions": [
+          {
+            "id": "A",
+            "en": "Blocks unauthorized network access",
+            "hi": "अनधिकृत नेटवर्क एक्सेस को अवरुद्ध करता है"
+          },
+          {
+            "id": "B",
+            "en": "Validates user identity",
+            "hi": "यूजर आइडेंटिटी को वैलिडेट करता है"
+          },
+          {
+            "id": "C",
+            "en": "Converts data into unreadable code",
+            "hi": "डेटा को अपठनीय कोड में परिवर्तित करता है"
+          },
+          {
+            "id": "D",
+            "en": "Detects and removes malware",
+            "hi": "मैलवेयर का पता लगाता है और उसे रिमूव करता है"
+          }
+        ]
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "1-C, 2-A, 3-D, 4-B",
+            "hi": "1-C, 2-A, 3-D, 4-B"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "1-C, 2-A, 3-B, 4-D",
+            "hi": "1-C, 2-A, 3-B, 4-D"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "1-D, 2-C, 3-A, 4-B",
+            "hi": "1-D, 2-C, 3-A, 4-B"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "1-A, 2-B, 3-D, 4-C",
+            "hi": "1-A, 2-B, 3-D, 4-C"
+          }
+        }
+      ],
+      "correctOption": "A",
+      "solution": {
+        "en": "Encryption (1-C) scrambles readable data (plaintext) into unreadable code (ciphertext) to protect confidentiality. Firewall (2-A) acts as a security barrier that monitors and blocks unauthorized network traffic. Antivirus (3-D) scans for, detects, and removes malicious software (malware) from a system. Authentication (4-B) verifies the identity of a user or device before granting access.",
+        "hi": "एन्क्रिप्शन (1-C): डेटा को गोपनीय रखने के लिए पठनीय डेटा (plaintext) को अपठनीय कोड (ciphertext) में बदलता है। फायरवॉल (2-A): नेटवर्क ट्रैफिक की निगरानी करता है और अनधिकृत एक्सेस को रोकता है। एंटीवायरस (3-D): कंप्यूटर सिस्टम में मैलवेयर/वायरस का पता लगाता है और उसे हटाता है। ऑथेंटिकेशन (4-B): एक्सेस देने से पहले उपयोगकर्ता की पहचान (जैसे पासवर्ड या बायोमेट्रिक्स द्वारा) सत्यापित करता है।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}

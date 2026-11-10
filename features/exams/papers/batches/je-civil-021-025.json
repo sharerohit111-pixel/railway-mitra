@@ -1,0 +1,227 @@
+{
+  "batch": "021-025",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q21",
+      "questionNumber": 21,
+      "questionText": {
+        "en": "Units of measurement for a drawing in AutoCAD can be set up using the command:",
+        "hi": "AutoCAD में किसी ड्राइंग के लिए माप की इकाइयाँ (Units of measurement) किस कमांड का उपयोग करके सेट की जा सकती हैं?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Limits",
+            "hi": "लिमिट्स"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Grid",
+            "hi": "ग्रिड"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Scale",
+            "hi": "स्केल"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Units",
+            "hi": "यूनिट्स"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "In AutoCAD, typing the UNITS command (or shortcut UN) opens the Drawing Units dialog box, allowing the user to configure the length type (e.g., Architectural, Decimal, Engineering), angle format, and insertion scale (e.g., millimeters, meters, inches).",
+        "hi": "AutoCAD में UNITS कमांड (या शॉर्टकट UN) का उपयोग करके Drawing Units डायलॉग बॉक्स खोला जाता है, जिससे ड्राइंग में लंबाई का प्रकार (जैसे दशमलव, आर्किटेक्चरल), कोण और माप की इकाई (जैसे मिलीमीटर, मीटर, इंच) सेट की जाती है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q22",
+      "questionNumber": 22,
+      "questionText": {
+        "en": "Calculate the approximate cost of a building having a plinth area of 500 m² and a height of 4 m, assuming the cubic content rate is ₹3,000 per cubic meter.",
+        "hi": "500 m² प्लिंथ क्षेत्रफल और 4 m ऊँचाई वाले एक भवन की सन्निकट लागत की गणना कीजिए, यह मानते हुए कि घन दर ₹3,000 प्रति घन मीटर है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "₹1,20,000",
+            "hi": "₹1,20,000"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "₹6,00,000",
+            "hi": "₹6,00,000"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "₹12,00,000",
+            "hi": "₹12,00,000"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "₹60,00,000",
+            "hi": "₹60,00,000"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "According to the cubic rate estimate method: Cubical Content (Volume) = Plinth Area × Height = 500 m² × 4 m = 2000 m³. Approximate Cost = Volume × Cubic Rate = 2000 × ₹3,000 = ₹60,00,000.",
+        "hi": "घन दर प्राक्कलन विधि के अनुसार: भवन का आयतन = प्लिंथ क्षेत्रफल × ऊँचाई = 500 m² × 4 m = 2000 m³। सन्निकट लागत = आयतन × प्रति घन दर = 2000 × ₹3,000 = ₹60,00,000।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q23",
+      "questionNumber": 23,
+      "questionText": {
+        "en": "Why are pilot tunnels or exploratory headings constructed?",
+        "hi": "पायलट टनल या एक्सप्लोरेटरी हेडिंग (exploratory headings) का निर्माण किस लिए किया जाता है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "To install permanent lining for the full section of the tunnel",
+            "hi": "टनल के पूर्ण खंड के लिए स्थायी अस्तर स्थापित करने के लिए"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "To reduce the operating speed of the TBM during excavation",
+            "hi": "उत्खनन के दौरान TBM की प्रचालन चाल को कम करने के लिए"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "To increase the diameter of the tunnel for larger trains or traffic",
+            "hi": "बड़ी ट्रेनों या यातायात के लिए टनल का व्यास बढ़ाने के लिए"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "To confirm subsurface conditions before commencing full tunnel excavation",
+            "hi": "पूर्ण टनल उत्खनन शुरू करने से पहले अधस्तल स्थितियों की पुष्टि करने के लिए"
+          }
+        }
+      ],
+      "correctOption": "D",
+      "solution": {
+        "en": "A pilot tunnel (or exploratory heading) is a small-diameter tunnel driven ahead of the main excavation. Its primary purpose is to investigate and confirm geological and subsurface conditions (rock types, fault zones, groundwater seepage) and assist in drainage and ventilation before full-face tunnelling begins.",
+        "hi": "पायलट टनल (या एक्सप्लोरेटरी हेडिंग) मुख्य सुरंग की खुदाई से पहले बनाई जाने वाली एक छोटे व्यास की सुरंग होती है। इसका मुख्य उद्देश्य पूर्ण सुरंग उत्खनन शुरू करने से पहले जमीन के नीचे की भूवैज्ञानिक स्थितियों (चट्टानों की प्रकृति, भ्रंश क्षेत्र और भूजल रिसाव) की पुष्टि करना होता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q24",
+      "questionNumber": 24,
+      "questionText": {
+        "en": "In an RCC cantilever beam subjected to various point loads and UDL directed downwards, the flexural tension reinforcement is provided _____.",
+        "hi": "नीचे की ओर निर्देशित विभिन्न बिंदु भारों (point loads) और समवितरित भार (UDL) के अधीन एक RCC कैंटिलीवर बीम में, बंकन तनन प्रबलन (flexural tension reinforcement) _____ प्रदान किया जाता है।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "at the center of the cross-section",
+            "hi": "अनुप्रस्थ-काट के केंद्र में"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "at both the top and the bottom beam section",
+            "hi": "बीम खंड के ऊपर और नीचे दोनों तरफ"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "above the neutral axis of the beam section",
+            "hi": "बीम खंड के उदासीन अक्ष के ऊपर"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "below the neutral axis of the beam section",
+            "hi": "बीम खंड के उदासीन अक्ष के नीचे"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "When a cantilever beam carries downward loads, it bends downward (hogging bending moment), developing tensile stress in the top fibers (above the neutral axis) and compressive stress in the bottom fibers. Since concrete is weak in tension, main longitudinal steel reinforcement is placed above the neutral axis near the top face.",
+        "hi": "जब किसी कैंटिलीवर बीम पर नीचे की ओर भार लगता है, तो वह नीचे की ओर झुकती है (hogging bending moment), जिससे उदासीन अक्ष के ऊपर के भाग में तनन प्रतिबल (tensile stress) और नीचे के भाग में संपीड़न प्रतिबल उत्पन्न होता है। चूँकि कंक्रीट तनन में कमजोर होती है, इसलिए मुख्य तनन प्रबलन (steel reinforcement) बीम खंड के उदासीन अक्ष के ऊपर प्रदान किया जाता है।"
+      },
+      "verificationStatus": "verified"
+    },
+    {
+      "questionId": "je-civil-q25",
+      "questionNumber": 25,
+      "questionText": {
+        "en": "Which of the following is a function of the strap in Strap Footing?",
+        "hi": "स्ट्रैप फुटिंग (Strap Footing) में स्ट्रैप का निम्नलिखित में से कौन-सा कार्य है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "To connect the wall with column footing",
+            "hi": "दीवार को स्तंभ पाद से जोड़ना"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "To transfer column loads to soil below both footings equally",
+            "hi": "दोनों पादों के नीचे की मिट्टी में स्तंभ भार को समान रूप से स्थानांतरित करना"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "To support the load of the wall above it",
+            "hi": "इसके ऊपर स्थित दीवार के भार को सहारा देना"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "To transfer the structural load of columns to the soil directly",
+            "hi": "स्तंभों के संरचनात्मक भार को सीधे मिट्टी में स्थानांतरित करना"
+          }
+        }
+      ],
+      "correctOption": "B",
+      "solution": {
+        "en": "In a strap footing (cantilever footing), a rigid concrete strap beam connects an eccentrically loaded exterior column footing to an interior column footing. The strap resists the overturning moment and distributes the column loads so that uniform soil bearing pressure is achieved beneath both footings without the strap itself bearing on the soil.",
+        "hi": "स्ट्रैप फुटिंग में एक दृढ़ कंक्रीट बीम (strap beam) बाहरी उत्केंद्रित स्तंभ पाद को आंतरिक स्तंभ पाद से जोड़ती है। यह स्ट्रैप उत्क्रमण आघूर्ण का प्रतिरोध करती है और दोनों पादों के नीचे की मिट्टी में स्तंभ के भार को समान रूप से स्थानांतरित करती है, ताकि मिट्टी पर दबाव एकसमान रहे।"
+      },
+      "verificationStatus": "verified"
+    }
+  ]
+}
