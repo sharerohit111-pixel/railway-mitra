@@ -437,3 +437,51 @@
 @media (prefers-reduced-motion: reduce) {
   .rm-founder-credit { animation: none !important; }
 }
+
+
+/* Final alignment: portrait at the left-center mark, full name in the right-hand area. */
+.rm-founder-credit {
+  width: min(480px, calc(100vw - 24px)) !important;
+  height: 42px !important;
+  right: 12px !important;
+  top: calc(100% + 2px) !important;
+  padding: 4px 10px 4px 0 !important;
+  justify-content: flex-end !important;
+  gap: 0 !important;
+}
+.rm-founder-credit img {
+  position: absolute !important;
+  left: clamp(72px, 25vw, 112px) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 31px !important;
+  height: 31px !important;
+  min-width: 31px !important;
+  flex: 0 0 31px !important;
+}
+.rm-founder-credit span {
+  display: block !important;
+  flex: 0 0 58% !important;
+  margin-left: auto !important;
+  text-align: center !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: .15px !important;
+}
+@media (max-width: 400px) {
+  .rm-founder-credit {
+    width: calc(100vw - 24px) !important;
+    height: 40px !important;
+    right: 12px !important;
+  }
+  .rm-founder-credit img {
+    left: 25vw !important;
+    width: 29px !important;
+    height: 29px !important;
+    min-width: 29px !important;
+  }
+  .rm-founder-credit span {
+    flex-basis: 58% !important;
+    font-size: 10px !important;
+  }
+}

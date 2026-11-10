@@ -39,3 +39,19 @@
 .rm-search-result span, .rm-search-empty { color: #c7d6ee; font-size: 13px; }
 .rm-search-empty { padding: 16px; margin: 0; }
 .rm-search-result:active { background: rgba(45,150,220,.2); }
+
+
+/* Keep the search field fully below the Founder ribbon and slightly more compact. */
+.rm-global-search {
+  margin-top: 48px !important;
+}
+.rm-search-wrap {
+  min-height: 46px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+.rm-search-input {
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+.rm-search-icon { font-size: 26px !important; }
