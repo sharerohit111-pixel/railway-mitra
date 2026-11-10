@@ -67,3 +67,7 @@ The owner publishing form accepts an optional source label and paper year. These
 - Hindi source text/options are shown where present in the candidate response-sheet-derived bank; where Hindi text was not supplied, the CBT falls back to English. This dataset is not fully Hindi-translated.
 - The owner admin form has a “Load verified 150-question…” button. It fills the publishing form; the owner must review and explicitly publish. The backend keeps answer keys private.
 - Civil Q96 (global Q146) was replaced with a beam calculation; the answer is option 2 from Mmax = PL/4 = 30 kN·m. The response-key option 3 refers to the original earthwork-equipment question, not the replacement.
+
+## Storage rules deployment safety
+
+`storage.rules` currently contains only the new exam-content path. It is not a complete copy of the live project's Storage rules. Before deploying Storage rules, export the actual deployed rules from Firebase Console, preserve every existing path, merge only the `exam-content/{uid}/{folderId}/{fileName}` match block, review the result, and only then run `firebase deploy --only storage`. Deploying the current file as a full replacement could break other app features. Do not deploy it as-is.
