@@ -1,0 +1,113 @@
+/* Railway Mitra Home Highlights — isolated component styles only. */
+.rm-home-highlights {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 9px;
+  width: 100%;
+  margin-top: 22px;
+  padding: 11px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(53, 232, 255, .38);
+  border-radius: 15px;
+  background: rgba(4, 12, 31, .48);
+  box-shadow: inset 0 0 16px rgba(53, 232, 255, .07);
+}
+.rm-home-highlights__lane {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.rm-home-highlights__label {
+  color: #63eaff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .45px;
+  white-space: nowrap;
+  text-shadow: 0 0 9px rgba(53, 232, 255, .5);
+}
+.rm-home-highlights__lane--tools .rm-home-highlights__label {
+  color: #f18aff;
+  text-shadow: 0 0 9px rgba(255, 69, 212, .45);
+}
+.rm-home-highlights__viewport {
+  min-width: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+.rm-home-highlights__track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 0;
+  will-change: transform;
+  animation: rm-home-exams-scroll 38s linear infinite;
+}
+.rm-home-highlights__lane--tools .rm-home-highlights__track {
+  animation-name: rm-home-tools-scroll;
+  animation-duration: 43s;
+}
+.rm-home-highlights__group {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  padding-right: 10px;
+}
+.rm-home-highlights__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #eaf8ff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.rm-home-highlights__item::before {
+  content: "✦";
+  color: #35e8ff;
+  font-size: 10px;
+  text-shadow: 0 0 8px #35e8ff;
+}
+.rm-home-highlights__lane--tools .rm-home-highlights__item::before {
+  color: #ff65df;
+  text-shadow: 0 0 8px #ff45d4;
+}
+.rm-home-highlights__item:nth-child(3n) {
+  animation: rm-home-chip-glow 2.8s ease-in-out infinite;
+}
+.rm-home-highlights__lane:hover .rm-home-highlights__track,
+.rm-home-highlights__lane:focus-within .rm-home-highlights__track {
+  animation-play-state: paused;
+}
+@keyframes rm-home-exams-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes rm-home-tools-scroll {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+@keyframes rm-home-chip-glow {
+  0%, 100% { opacity: 1; text-shadow: 0 0 0 transparent; }
+  50% { opacity: .72; text-shadow: 0 0 9px currentColor; }
+}
+@media (max-width: 480px) {
+  .rm-home-highlights { gap: 8px; padding: 10px 8px; }
+  .rm-home-highlights__lane { grid-template-columns: 62px minmax(0, 1fr); gap: 5px; }
+  .rm-home-highlights__label { font-size: 9px; letter-spacing: 0; }
+  .rm-home-highlights__item { font-size: 10px; }
+  .rm-home-highlights__track { animation-duration: 34s; }
+  .rm-home-highlights__lane--tools .rm-home-highlights__track { animation-duration: 39s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rm-home-highlights__track,
+  .rm-home-highlights__item:nth-child(3n) {
+    animation: none !important;
+  }
+  .rm-home-highlights__viewport { overflow-x: auto; }
+}
