@@ -133,7 +133,11 @@
 /* On phones, keep the welcome title close beneath the founder ribbon. */
 @media (max-width: 768px) {
   .welcome-section {
-    padding-top: 35px !important;
+    padding: 34px 20px 27px !important;
+  }
+  .welcome-section h2 {
+    margin-top: 0 !important;
+    margin-bottom: 9px !important;
   }
 }
 
