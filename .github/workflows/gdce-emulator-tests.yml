@@ -4,13 +4,18 @@ on:
   push:
     branches:
       - feature/gdce-exam-system
+      - feature/separate-admin-panels-content-library
   pull_request:
     branches:
+      - feature/gdce-exam-system
       - modular-development
     paths:
       - "features/exams/**"
+      - "assets/js/global-search.js"
+      - "assets/css/global-search.css"
       - "functions/**"
       - "firebase.json"
+      - "storage.rules"
       - ".github/workflows/gdce-emulator-tests.yml"
   workflow_dispatch:
 
