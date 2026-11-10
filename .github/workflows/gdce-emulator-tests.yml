@@ -5,8 +5,10 @@ on:
     branches:
       - feature/gdce-exam-system
       - feature/separate-admin-panels-content-library
+      - feature/owner-admin-main-integration
   pull_request:
     branches:
+      - main
       - feature/gdce-exam-system
       - modular-development
     paths:
