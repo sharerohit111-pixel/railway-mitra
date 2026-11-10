@@ -821,3 +821,167 @@ exports.getMyExamAttempts = onCall({ region: REGION }, async request => {
     };
   }) };
 });
+
+
+// -----------------------------------------------------------------------------
+// User Feedback & two-way owner conversation
+// All Firestore reads/writes go through callable functions so client users cannot
+// read another user's feedback or access the owner inbox.
+// -----------------------------------------------------------------------------
+const FEEDBACK_CATEGORIES = [
+  "App Experience",
+  "Report a Problem",
+  "Server / Technical Problem",
+  "Suggest an Improvement",
+  "Other"
+];
+
+function feedbackTimestamp(value) {
+  return value && typeof value.toMillis === "function" ? value.toMillis() : null;
+}
+
+function feedbackSummary(id, x) {
+  return {
+    id,
+    category: x.category || "Other",
+    rating: Number(x.rating || 0),
+    subject: x.subject || "",
+    details: x.details || "",
+    status: x.status || "open",
+    createdAt: feedbackTimestamp(x.createdAt),
+    updatedAt: feedbackTimestamp(x.updatedAt),
+    lastMessageAt: feedbackTimestamp(x.lastMessageAt),
+    displayName: x.displayName || "Railway Mitra user",
+    userEmail: x.userEmail || ""
+  };
+}
+
+exports.submitUserFeedback = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const category = cleanString(request.data.category, "Feedback category", 50);
+  if (!FEEDBACK_CATEGORIES.includes(category)) {
+    throw new HttpsError("invalid-argument", "Choose a valid feedback category.");
+  }
+  const rating = validNumber(request.data.rating, "Rating", 1, 5);
+  if (!Number.isInteger(rating)) throw new HttpsError("invalid-argument", "Rating must be a whole number from 1 to 5.");
+  const subject = cleanString(request.data.subject, "Subject", 120);
+  const details = cleanString(request.data.details, "Feedback message", 1800);
+  const profile = request.auth.token || {};
+  const displayName = typeof profile.name === "string" ? profile.name.slice(0, 100) : "Railway Mitra user";
+  const userEmail = typeof profile.email === "string" ? profile.email.slice(0, 160) : "";
+  const ref = db.collection("userFeedback").doc();
+  const batch = db.batch();
+  batch.set(ref, {
+    uid, displayName, userEmail, category, rating, subject, details,
+    status: "open", createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(), lastMessageAt: FieldValue.serverTimestamp(),
+    unreadForAdmin: true, unreadForUser: false
+  });
+  batch.set(ref.collection("messages").doc(), {
+    senderUid: uid, senderRole: "user", senderName: displayName,
+    message: details, createdAt: FieldValue.serverTimestamp()
+  });
+  await batch.commit();
+  return { success: true, feedback: feedbackSummary(ref.id, {
+    category, rating, subject, details, status: "open", displayName, userEmail
+  }) };
+});
+
+exports.listMyUserFeedback = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const snap = await db.collection("userFeedback").where("uid", "==", uid).limit(50).get();
+  const feedback = snap.docs.map(d => feedbackSummary(d.id, d.data()));
+  feedback.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return { feedback };
+});
+
+exports.getUserFeedbackThread = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const isAdmin = request.auth.token.admin === true;
+  const feedbackId = cleanId(request.data.feedbackId, "feedbackId", 140);
+  const ref = db.collection("userFeedback").doc(feedbackId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Feedback was not found.");
+  const item = snap.data();
+  if (!isAdmin && item.uid !== uid) throw new HttpsError("permission-denied", "You cannot view this feedback conversation.");
+  if (isAdmin) await ref.update({ unreadForAdmin: false });
+  else await ref.update({ unreadForUser: false });
+  const messagesSnap = await ref.collection("messages").orderBy("createdAt", "asc").limit(100).get();
+  return {
+    feedback: feedbackSummary(ref.id, item),
+    messages: messagesSnap.docs.map(d => {
+      const x = d.data();
+      return {
+        id: d.id, senderRole: x.senderRole || "user",
+        senderName: x.senderName || (x.senderRole === "admin" ? "Railway Mitra Support" : "User"),
+        message: x.message || "", createdAt: feedbackTimestamp(x.createdAt)
+      };
+    })
+  };
+});
+
+exports.replyToUserFeedback = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const isAdmin = request.auth.token.admin === true;
+  const feedbackId = cleanId(request.data.feedbackId, "feedbackId", 140);
+  const message = cleanString(request.data.message, "Reply", 1800);
+  const ref = db.collection("userFeedback").doc(feedbackId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Feedback was not found.");
+  const item = snap.data();
+  if (!isAdmin && item.uid !== uid) throw new HttpsError("permission-denied", "You cannot reply to this feedback.");
+  const senderName = isAdmin
+    ? "Railway Mitra Support"
+    : (typeof request.auth.token.name === "string" ? request.auth.token.name.slice(0, 100) : "Railway Mitra user");
+  const batch = db.batch();
+  const messageRef = ref.collection("messages").doc();
+  batch.set(messageRef, {
+    senderUid: uid, senderRole: isAdmin ? "admin" : "user",
+    senderName, message, createdAt: FieldValue.serverTimestamp()
+  });
+  const update = {
+    updatedAt: FieldValue.serverTimestamp(),
+    lastMessageAt: FieldValue.serverTimestamp(),
+    unreadForAdmin: !isAdmin,
+    unreadForUser: isAdmin
+  };
+  if (isAdmin && item.status !== "resolved") update.status = "replied";
+  if (item.status === "resolved" && !isAdmin) update.status = "open";
+  batch.update(ref, update);
+  await batch.commit();
+  return { success: true };
+});
+
+exports.adminListUserFeedback = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const limit = Math.min(100, Math.max(1, Number(request.data.limit) || 75));
+  const status = typeof request.data.status === "string" ? request.data.status : "all";
+  if (!["all", "open", "replied", "resolved"].includes(status)) {
+    throw new HttpsError("invalid-argument", "Unknown feedback status.");
+  }
+  const snap = await db.collection("userFeedback").orderBy("createdAt", "desc").limit(100).get();
+  let feedback = snap.docs.map(d => feedbackSummary(d.id, d.data()));
+  if (status !== "all") feedback = feedback.filter(x => x.status === status);
+  return { feedback: feedback.slice(0, limit) };
+});
+
+exports.adminSetUserFeedbackStatus = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const feedbackId = cleanId(request.data.feedbackId, "feedbackId", 140);
+  const status = cleanString(request.data.status, "Status", 20);
+  if (!["open", "replied", "resolved"].includes(status)) {
+    throw new HttpsError("invalid-argument", "Choose open, replied or resolved.");
+  }
+  const ref = db.collection("userFeedback").doc(feedbackId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Feedback was not found.");
+  await ref.update({
+    status, updatedAt: FieldValue.serverTimestamp(),
+    unreadForAdmin: false, statusUpdatedBy: uid
+  });
+  await db.collection("adminAuditLogs").doc().set({
+    action: "set_user_feedback_status", feedbackId, status,
+    actorUid: uid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, feedbackId, status };
+});
