@@ -1,6 +1,6 @@
 # Railway Mitra Exam Cloud Functions
 
-This is the trusted backend source for the GDCE exam feature. It is not deployed by committing code to GitHub.
+This is the trusted backend source for the Railway Mitra GDCE and LDCE exam features. It is not deployed by committing code to GitHub.
 
 ## Deploy only after reviewing Firebase project and billing
 
@@ -38,7 +38,7 @@ Region: `asia-south1`.
 
 ## Access policy
 
-- First mock test in each GDCE stream is forced free.
+- First mock test in each supported GDCE and LDCE stream is forced free.
 - Every subsequent mock test, previous-year paper and practice set requires the ₹300 all-tests subscription. Tests are not individually priced; study material remains separately priced per item.
 - Paid access requires a trusted `userEntitlements/{uid}` record with `active: true` and an optional future `expiresAt` timestamp.
 - No payment gateway or browser-side entitlement editor is included.
@@ -59,6 +59,12 @@ The owner publishing form accepts an optional source label and paper year. These
 - Owner publishes/unpublishes study PDFs in Content Manager. New PDFs are private/unpublished by default.
 - `getStudyMaterialDownloadUrl` issues a short-lived signed URL only for free published PDFs or candidates with an active material entitlement.
 - Automatic payment verification is not active. The owner must independently confirm each UPI transaction in the merchant bank/UPI app before approval. Do not approve based on screenshots alone.
+
+## LDCE stream support
+
+- Candidate navigation and owner publishing support separate stream IDs: `ldce-je-civil`, `ldce-je-electrical`, `ldce-je-mechanical`, and `ldce-other-posts`.
+- LDCE tests use the same secure CBT engine, private answer-key separation, scoring, candidate history, subscription rules and owner publishing workflow as GDCE.
+- LDCE question papers are not preloaded. The owner must upload and verify LDCE question banks before candidates see any tests. The prepared 150-question paper in this repository is GDCE JE Civil only.
 
 ## Bilingual GDCE JE Civil paper
 
