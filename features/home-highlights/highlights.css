@@ -130,20 +130,36 @@
   }
 }
 
-/* On phones, keep the welcome title close beneath the founder ribbon. */
+/* Keep the heading clearly below the Founder ribbon on mobile. */
 @media (max-width: 768px) {
   .welcome-section {
-    padding: 34px 20px 27px !important;
+    padding: 100px 20px 27px !important;
+  }
+  .welcome-section::after {
+    top: 18px;
   }
   .welcome-section h2 {
-    margin-top: 0 !important;
-    margin-bottom: 9px !important;
+    position: relative;
+    z-index: 2;
+    margin: 0 0 9px !important;
+    animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
+    -webkit-animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .welcome-section h2 {
-    animation: none !important;
+/* Explicit blink/glow for the requested welcome heading. */
+.welcome-section h2 {
+  animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
+  -webkit-animation: rm-welcome-title-pulse 1.35s ease-in-out infinite !important;
+  will-change: opacity, text-shadow;
+}
+@keyframes rm-welcome-title-pulse {
+  0%, 100% {
     opacity: 1;
+    text-shadow: 0 0 7px rgba(53, 232, 255, .3), 0 0 14px rgba(255, 69, 212, .18);
+  }
+  50% {
+    opacity: .48;
+    text-shadow: 0 0 16px rgba(53, 232, 255, .95), 0 0 26px rgba(255, 69, 212, .7);
   }
 }
