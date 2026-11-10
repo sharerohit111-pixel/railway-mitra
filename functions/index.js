@@ -165,7 +165,11 @@ exports.startExam = onCall({ region: REGION }, async request => {
       questionId: d.id,
       questionNumber: q.questionNumber,
       questionText: q.questionText,
+      questionTextEn: q.questionTextEn || q.questionText,
+      questionTextHi: q.questionTextHi || null,
       options: q.options,
+      optionsEn: q.optionsEn || q.options,
+      optionsHi: q.optionsHi || null,
       subject: q.subject || "",
       topic: q.topic || ""
     };
