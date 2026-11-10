@@ -515,12 +515,10 @@ exports.searchExamContent = onCall({ region: REGION }, async request => {
   const query = cleanString(request.data.query, "query", 100).toLocaleLowerCase();
   if (query.length < 2) return { folders: [], files: [] };
   const [folderSnap, fileSnap] = await Promise.all([
-    db.collection("examContentFolders").limit(500).get(),
-    db.collection("examContentFiles").limit(500).get()
+    db.collection("examContentFolders").where("nameLower", ">=", query).where("nameLower", "<=", query + String.fromCharCode(63743)).limit(30).get(),
+    db.collection("examContentFiles").where("nameLower", ">=", query).where("nameLower", "<=", query + String.fromCharCode(63743)).limit(30).get()
   ]);
   const folders = folderSnap.docs
-    .filter(d => String(d.data().name || "").toLocaleLowerCase().includes(query))
-    .slice(0, 30)
     .map(d => ({ id: d.id, name: d.data().name, parentId: d.data().parentId || null, category: d.data().category || "" }));
   const files = fileSnap.docs
     .filter(d => String(d.data().name || "").toLocaleLowerCase().includes(query))
