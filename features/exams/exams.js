@@ -63,7 +63,7 @@
         <h2 class="exam-section-title">Other GDCE Posts</h2><div class="exam-card-grid">
           ${card("🚆","GDCE Train Manager","Train Manager departmental exam tests and papers.","stream.html?stream=gdce-train-manager")}
         </div>
-        <div class="exam-admin-note">LDCE JE and other LDCE modules will be added separately after their requirements are finalised. This first development phase is for GDCE only.</div>`;
+        <div class="exam-notice">GDCE and LDCE are maintained as separate departmental exam libraries. Choose LDCE from the Exam Preparation home page to open its independent streams.</div>`;
       return;
     }
     if(page==="ldce"){
@@ -99,21 +99,14 @@
       } else if(items.length){
         list.innerHTML=items.map(item=>`<div class="exam-list-item"><div><strong>${esc(item.title)}</strong><small>${Number(item.totalQuestions)||0} questions • ${Number(item.durationMinutes)||0} minutes${item.sourceLabel?" • "+esc(item.sourceLabel):""}${item.sourceYear?" • "+esc(item.sourceYear):""}</small></div><div style="display:flex;align-items:center;gap:9px"><span class="exam-pill">${item.access==="free"?"FREE":"PAID"}</span><a class="exam-back" href="runner.html?test=${encodeURIComponent(item.testId)}">Start →</a></div></div>`).join("");
       } else {
-        list.innerHTML='<div class="exam-empty"><div class="exam-empty-icon">📚</div><h3>No tests published yet</h3><p>This category is ready for unlimited future papers and tests. Your first PDF will be processed and added after answer verification.</p></div>';
+        list.innerHTML='<div class="exam-empty"><div class="exam-empty-icon">📚</div><h3>No tests published yet</h3><p>No owner-published test is available in this category yet. The owner must create and verify its question bank before publishing; uploading a PDF alone does not create a CBT test.</p></div>';
       }
       return;
     }
     if(page==="admin"){
-      root.innerHTML = header("Exam Admin Workspace","A separate owner-only control centre for managing exam content and settings.","index.html") + `
-        <div class="exam-admin-note"><strong>Secure setup required before activation.</strong><br>Admin editing is not enabled in this preview. Firebase currently requires its security rules and an owner-only admin role to be configured first. We will not store admin passwords or payment controls in browser code.</div>
-        <h2 class="exam-section-title">Planned Admin Controls</h2><div class="exam-card-grid">
-          ${card("🗂️","Exam & Stream Management","Add and organise GDCE posts, streams and test categories.","#")}
-          ${card("➕","Question & Solution Bank","Import approved questions, options, correct answers and explanations.","#")}
-          ${card("⏱️","Test Configuration","Set questions, duration, positive marks and negative marking per test.","#")}
-          ${card("🔐","Access & Subscription","Configure free tests, ₹300 all-tests subscription and separate study-material prices.","#")}
-          ${card("📈","Candidate Records","Review attempts, scores, accuracy and paper-wise history.","#")}
-          ${card("📚","Study Material","Upload, organise and price departmental study resources.","#")}
-        </div><div class="exam-notice">This page is a structural preview only; no fake save buttons or insecure client-side admin actions are provided.</div>`;
+      root.innerHTML = header("Owner Admin Workspace","Open the protected admin dashboard to manage LDCE, GDCE, study PDFs, candidate records and payments.","index.html") + `
+        <section class="exam-empty"><div class="exam-empty-icon">🔐</div><h3>Owner authentication required</h3><p>All administration is handled in the separate Firebase-protected Owner Admin Workspace.</p><a class="exam-back" href="admin-workspace.html">Open Owner Admin Workspace →</a></section>`;
+      return;
     }
   }
   render();
