@@ -889,9 +889,10 @@ exports.submitUserFeedback = onCall({ region: REGION }, async request => {
 
 exports.listMyUserFeedback = onCall({ region: REGION }, async request => {
   const uid = requireUser(request);
-  const snap = await db.collection("userFeedback").where("uid", "==", uid)
-    .orderBy("createdAt", "desc").limit(50).get();
-  return { feedback: snap.docs.map(d => feedbackSummary(d.id, d.data())) };
+  const snap = await db.collection("userFeedback").where("uid", "==", uid).limit(50).get();
+  const feedback = snap.docs.map(d => feedbackSummary(d.id, d.data()));
+  feedback.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return { feedback };
 });
 
 exports.getUserFeedbackThread = onCall({ region: REGION }, async request => {
@@ -955,15 +956,13 @@ exports.adminListUserFeedback = onCall({ region: REGION }, async request => {
   requireAdmin(request);
   const limit = Math.min(100, Math.max(1, Number(request.data.limit) || 75));
   const status = typeof request.data.status === "string" ? request.data.status : "all";
-  let query = db.collection("userFeedback").orderBy("createdAt", "desc").limit(limit);
-  if (["open", "replied", "resolved"].includes(status)) {
-    query = db.collection("userFeedback").where("status", "==", status)
-      .orderBy("createdAt", "desc").limit(limit);
-  } else if (status !== "all") {
+  if (!["all", "open", "replied", "resolved"].includes(status)) {
     throw new HttpsError("invalid-argument", "Unknown feedback status.");
   }
-  const snap = await query.get();
-  return { feedback: snap.docs.map(d => feedbackSummary(d.id, d.data())) };
+  const snap = await db.collection("userFeedback").orderBy("createdAt", "desc").limit(100).get();
+  let feedback = snap.docs.map(d => feedbackSummary(d.id, d.data()));
+  if (status !== "all") feedback = feedback.filter(x => x.status === status);
+  return { feedback: feedback.slice(0, limit) };
 });
 
 exports.adminSetUserFeedbackStatus = onCall({ region: REGION }, async request => {
