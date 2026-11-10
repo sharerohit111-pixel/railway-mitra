@@ -64,7 +64,7 @@ The owner publishing form accepts an optional source label and paper year. These
 
 - Candidate navigation and owner publishing support separate stream IDs: `ldce-je-civil`, `ldce-je-electrical`, `ldce-je-mechanical`, and `ldce-other-posts`.
 - LDCE tests use the same secure CBT engine, private answer-key separation, scoring, candidate history, subscription rules and owner publishing workflow as GDCE.
-- LDCE question papers are not preloaded. The owner must upload and verify LDCE question banks before candidates see any tests. The prepared 150-question paper in this repository is GDCE JE Civil only.
+- LDCE question papers are not preloaded. The owner must upload and verify LDCE question banks before candidates see any tests. No preloaded question bank is included in this release.
 
 ## Question-bank content policy
 
