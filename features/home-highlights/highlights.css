@@ -485,3 +485,47 @@
     font-size: 10px !important;
   }
 }
+
+
+/* Right-align the complete Founder identity as one compact group. */
+.rm-founder-credit {
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  padding: 4px 14px 4px 8px !important;
+}
+.rm-founder-credit img {
+  position: static !important;
+  inset: auto !important;
+  order: 0 !important;
+  flex: 0 0 31px !important;
+  width: 31px !important;
+  height: 31px !important;
+  min-width: 31px !important;
+  transform: none !important;
+  margin: 0 !important;
+}
+.rm-founder-credit span {
+  order: 1 !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  margin: 0 !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  font-weight: 900 !important;
+}
+@media (max-width: 400px) {
+  .rm-founder-credit {
+    justify-content: flex-end !important;
+    gap: 7px !important;
+    padding-right: 11px !important;
+  }
+  .rm-founder-credit img {
+    flex: 0 0 29px !important;
+    width: 29px !important;
+    height: 29px !important;
+    min-width: 29px !important;
+  }
+  .rm-founder-credit span {
+    font-size: 10px !important;
+  }
+}
