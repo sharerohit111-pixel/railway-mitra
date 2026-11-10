@@ -1,0 +1,41 @@
+/* Railway Mitra - isolated global search styling */
+.rm-global-search {
+  position: relative;
+  z-index: 90;
+  width: min(92%, 900px);
+  margin: 18px auto 10px;
+}
+.rm-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1.5px solid #35dff5;
+  border-radius: 18px;
+  background: linear-gradient(120deg, rgba(9,34,75,.96), rgba(42,24,75,.96));
+  box-shadow: 0 0 18px rgba(28,203,255,.22), inset 0 0 12px rgba(82,121,255,.12);
+}
+.rm-search-icon { color: #50eaff; font-size: 30px; line-height: 1; }
+.rm-search-input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+  color: #fff; font-size: 16px; padding: 14px 0;
+}
+.rm-search-input::placeholder { color: #b7cbe7; opacity: 1; }
+.rm-search-clear {
+  border: 0; background: transparent; color: #fff; font-size: 27px; padding: 2px 5px;
+}
+.rm-search-results {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+  max-height: 55vh; overflow-y: auto; border: 1px solid rgba(65,220,255,.7);
+  border-radius: 16px; background: #101d3b; box-shadow: 0 14px 32px rgba(0,0,0,.45);
+}
+.rm-search-result {
+  display: flex; flex-direction: column; gap: 4px; padding: 13px 16px;
+  color: #fff; text-decoration: none; border-bottom: 1px solid rgba(150,190,230,.16);
+}
+.rm-search-result:last-child { border-bottom: 0; }
+.rm-search-result strong { color: #54e8ff; font-size: 15px; }
+.rm-search-result span, .rm-search-empty { color: #c7d6ee; font-size: 13px; }
+.rm-search-empty { padding: 16px; margin: 0; }
+.rm-search-result:active { background: rgba(45,150,220,.2); }
