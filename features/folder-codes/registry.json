@@ -1,0 +1,10 @@
+{
+  "system": "Railway Mitra Folder Identification Code System",
+  "version": 1,
+  "prefix": "RM-F-",
+  "algorithm": "SHA-256 of normalized feature-folder path; first 64 bits displayed as uppercase hexadecimal",
+  "stability": "Codes remain stable across devices and sessions while the folder path remains unchanged.",
+  "scope": "Feature pages under /features/. The Home Screen is explicitly excluded.",
+  "futureFolders": "Any future feature folder receives its code automatically on pages that load folder-codes.js.",
+  "display": "Small, muted badge appended in normal document flow after page content; never absolutely positioned or overlaid."
+}
