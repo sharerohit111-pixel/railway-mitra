@@ -220,6 +220,11 @@ after(async () => {
   await db.collection("examContentFiles").doc(materialFileId).delete().catch(() => {});
 });
 
+test("candidate can view only their own exam history", async () => {
+  const mine = await call("getMyExamAttempts", candidateToken, {});
+  assert.equal(mine.status, 200);
+  assert.ok(mine.body.result.attempts.some(x => x.testId === freeTestId));
+});
 test("candidate attempt records are visible only to the owner", async () => {
   const denied = await call("adminListExamAttempts", candidateToken, { limit: 100 });
   assert.notEqual(denied.status, 200);
