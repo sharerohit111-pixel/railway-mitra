@@ -5,7 +5,7 @@ const { setGlobalOptions } = require("firebase-functions/v2");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 
-initializeApp();
+initializeApp({ storageBucket: "railway-mitra.firebasestorage.app" });
 const db = getFirestore();
 const REGION = "asia-south1";
 const MAX_QUESTIONS = 200;
