@@ -373,3 +373,114 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   await batch.commit();
   return { success: true, testId, totalQuestions, access, published: input.published === true };
 });
+
+
+// Owner-only PDF and study-content library. All metadata mutations run through
+// callable functions so browser clients never receive broad Firestore write access.
+const CONTENT_ROOTS = [
+  { id: "root_ldce", name: "LDCE", category: "LDCE" },
+  { id: "root_gdce", name: "GDCE", category: "GDCE" },
+  { id: "root_study_material", name: "STUDY MATERIAL", category: "STUDY MATERIAL" }
+];
+const CONTENT_MAX_BYTES = 20 * 1024 * 1024;
+function contentName(value, field = "name") {
+  const name = cleanString(value, field, 100).replace(/[\\\\/]/g, "-");
+  if (name === "." || name === "..") throw new HttpsError("invalid-argument", field + " is invalid.");
+  return name;
+}
+function contentFolderRef(id) {
+  return db.collection("examContentFolders").doc(cleanId(id, "folderId", 140));
+}
+exports.listExamContent = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  for (const root of CONTENT_ROOTS) {
+    const ref = db.collection("examContentFolders").doc(root.id);
+    if (!(await ref.get()).exists) {
+      await ref.create({ name: root.name, category: root.category, parentId: null, isRoot: true, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }).catch(async error => {
+        if (error.code !== 6 && error.code !== "already-exists") throw error;
+      });
+    }
+  }
+  const parentId = request.data.parentId === null || request.data.parentId === undefined || request.data.parentId === "" ? null : cleanId(request.data.parentId, "parentId", 140);
+  if (parentId && !(await contentFolderRef(parentId).get()).exists) throw new HttpsError("not-found", "Folder not found.");
+  const [folders, files] = await Promise.all([
+    db.collection("examContentFolders").where("parentId", "==", parentId).get(),
+    db.collection("examContentFiles").where("folderId", "==", parentId || "__root__").get()
+  ]);
+  return {
+    folders: folders.docs.map(d => ({ id: d.id, name: d.data().name, category: d.data().category || "", isRoot: d.data().isRoot === true })),
+    files: files.docs.map(d => ({ id: d.id, folderId: d.data().folderId, name: d.data().name, size: d.data().size, createdAt: d.data().createdAt && d.data().createdAt.toMillis ? d.data().createdAt.toMillis() : null, storagePath: d.data().storagePath }))
+  };
+});
+exports.createExamContentFolder = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const name = contentName(request.data.name);
+  const parentId = cleanId(request.data.parentId, "parentId", 140);
+  const parent = await contentFolderRef(parentId).get();
+  if (!parent.exists) throw new HttpsError("not-found", "Parent folder not found.");
+  const ref = db.collection("examContentFolders").doc();
+  await ref.set({ name, category: parent.data().category || parent.data().name, parentId, isRoot: false, createdBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  return { id: ref.id, name };
+});
+exports.renameExamContentFolder = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.folderId, "folderId", 140);
+  const ref = contentFolderRef(id);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Folder not found.");
+  if (snap.data().isRoot === true) throw new HttpsError("failed-precondition", "Main folders cannot be renamed.");
+  const name = contentName(request.data.name);
+  await ref.update({ name, updatedAt: FieldValue.serverTimestamp() });
+  return { success: true, name };
+});
+exports.deleteExamContentFolder = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.folderId, "folderId", 140);
+  const ref = contentFolderRef(id);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Folder not found.");
+  if (snap.data().isRoot === true) throw new HttpsError("failed-precondition", "Main folders cannot be deleted.");
+  const [children, files] = await Promise.all([
+    db.collection("examContentFolders").where("parentId", "==", id).limit(1).get(),
+    db.collection("examContentFiles").where("folderId", "==", id).limit(1).get()
+  ]);
+  if (!children.empty || !files.empty) throw new HttpsError("failed-precondition", "Folder must be empty before it can be deleted.");
+  await ref.delete();
+  return { success: true };
+});
+exports.registerExamContentFile = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const folderId = cleanId(request.data.folderId, "folderId", 140);
+  if (!(await contentFolderRef(folderId).get()).exists) throw new HttpsError("not-found", "Folder not found.");
+  const fileId = cleanId(request.data.fileId, "fileId", 140);
+  const name = contentName(request.data.name, "fileName");
+  const size = validNumber(request.data.size, "size", 1, CONTENT_MAX_BYTES);
+  if (request.data.contentType !== "application/pdf") throw new HttpsError("invalid-argument", "Only PDF files are allowed.");
+  const storagePath = "exam-content/" + uid + "/" + folderId + "/" + fileId + ".pdf";
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  const [exists] = await bucket.file(storagePath).exists();
+  if (!exists) throw new HttpsError("failed-precondition", "Uploaded PDF was not found in secure storage.");
+  const ref = db.collection("examContentFiles").doc(fileId);
+  await ref.create({ folderId, name, size, contentType: "application/pdf", storagePath, uploadedBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  return { success: true, id: fileId, name };
+});
+exports.renameExamContentFile = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.fileId, "fileId", 140);
+  const ref = db.collection("examContentFiles").doc(id);
+  if (!(await ref.get()).exists) throw new HttpsError("not-found", "PDF not found.");
+  const name = contentName(request.data.name, "fileName");
+  await ref.update({ name, updatedAt: FieldValue.serverTimestamp() });
+  return { success: true, name };
+});
+exports.deleteExamContentFile = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const id = cleanId(request.data.fileId, "fileId", 140);
+  const ref = db.collection("examContentFiles").doc(id);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "PDF not found.");
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  await bucket.file(snap.data().storagePath).delete({ ignoreNotFound: true });
+  await ref.delete();
+  return { success: true };
+});
