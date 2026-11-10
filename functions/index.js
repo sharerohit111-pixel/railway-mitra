@@ -328,8 +328,9 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   const sourceLabel = typeof input.sourceLabel === "string" ? input.sourceLabel.trim().slice(0, 200) : "";
   const sourceYear = input.sourceYear === undefined || input.sourceYear === "" ? null :
     validNumber(input.sourceYear, "sourceYear", 1900, new Date().getFullYear() + 1);
-  if (!["gdce-je-civil", "gdce-je-electrical", "gdce-je-mechanical", "gdce-train-manager"].includes(streamId)) {
-    throw new HttpsError("invalid-argument", "Unsupported GDCE stream.");
+  const supportedStreams = ["gdce-je-civil", "gdce-je-electrical", "gdce-je-mechanical", "gdce-train-manager", "ldce-je-civil", "ldce-je-electrical", "ldce-je-mechanical", "ldce-other-posts"];
+  if (!supportedStreams.includes(streamId)) {
+    throw new HttpsError("invalid-argument", "Unsupported GDCE/LDCE stream.");
   }
   if (!["mock", "previous", "practice"].includes(category)) {
     throw new HttpsError("invalid-argument", "Unsupported test category.");
@@ -353,8 +354,8 @@ exports.adminPublishTest = onCall({ region: REGION, timeoutSeconds: 120 }, async
   const access = mustBeFree ? "free" : "paid";
   if (input.access && input.access !== access) {
     throw new HttpsError("failed-precondition", mustBeFree
-      ? "The first mock test in each GDCE stream must be free."
-      : "Only the first mock test in each GDCE stream is free; this test must be paid.");
+      ? "The first mock test in each GDCE/LDCE stream must be free."
+      : "Only the first mock test in each GDCE/LDCE stream is free; this test must be paid.");
   }
   const subscriptionRequired = access === "paid";
   const testRef = db.collection("examTestCatalog").doc(testId);
