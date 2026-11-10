@@ -7,6 +7,9 @@
 
   // Only list destinations/categories verified in the current app's exam module.
   const examItems = [
+    "LDCE JE P-Way",
+    "LDCE JE Works",
+    "LDCE JE Other Departments",
     "LDCE JE Civil Engineering",
     "LDCE JE Electrical Engineering",
     "LDCE JE Mechanical Engineering",
