@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 210" role="img" aria-labelledby="t d">
+<title id="t">A salute to railway employees</title><desc id="d">Railway track workers at sunrise, railway tracks and an approaching locomotive.</desc>
+<defs>
+ <linearGradient id="sky" x2="1" y2="0"><stop stop-color="#ff9b25"/><stop offset=".36" stop-color="#13294b"/><stop offset=".72" stop-color="#17224d"/><stop offset="1" stop-color="#090f28"/></linearGradient>
+ <linearGradient id="rail" x2="0" y2="1"><stop stop-color="#f8d79a"/><stop offset="1" stop-color="#9caec8"/></linearGradient>
+ <radialGradient id="sun"><stop stop-color="#ffe8a0"/><stop offset="1" stop-color="#ff7b20" stop-opacity="0"/></radialGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<rect width="900" height="210" rx="18" fill="url(#sky)"/>
+<circle cx="105" cy="150" r="105" fill="url(#sun)"/>
+<path d="M0 173 Q120 140 235 175 T470 173 T700 170 T900 150 V210 H0Z" fill="#071329" opacity=".82"/>
+<!-- workers -->
+<g fill="#07101f" stroke="#07101f" stroke-linecap="round" stroke-linejoin="round">
+ <circle cx="86" cy="91" r="12"/><path d="M72 106 Q86 96 99 109 L111 153 L95 158 L86 127 L77 157 L59 153Z"/><path d="M71 112 L40 139 L46 146 L80 126 M98 114 L124 136 L118 143 L92 128" fill="none" stroke-width="9"/><path d="M70 153 L63 189 M96 154 L106 188" fill="none" stroke-width="10"/>
+ <circle cx="178" cy="119" r="9"/><path d="M168 130 L187 130 L194 166 L160 166Z"/><path d="M169 139 L148 155 M186 139 L203 151 M168 165 L164 192 M186 165 L192 192" fill="none" stroke-width="7"/>
+ <path d="M202 113 L202 81 M192 88 L212 88" stroke="#ffd27a" stroke-width="5"/>
+</g>
+<!-- track perspective -->
+<path d="M390 210 L438 150 L450 150 L430 210Z M510 210 L462 150 L450 150 L470 210Z" fill="url(#rail)"/>
+<path d="M398 202 L502 202 M410 185 L490 185 M421 170 L479 170 M433 157 L467 157" stroke="#c8d6e9" stroke-width="5"/>
+<!-- tricolor streaks -->
+<path d="M278 178 Q330 157 385 177" fill="none" stroke="#ff9933" stroke-width="7"/><path d="M278 187 Q330 166 385 186" fill="none" stroke="#fff" stroke-width="7"/><path d="M278 196 Q330 175 385 195" fill="none" stroke="#138808" stroke-width="7"/>
+<path d="M522 177 Q577 157 630 178" fill="none" stroke="#ff9933" stroke-width="7"/><path d="M522 186 Q577 166 630 187" fill="none" stroke="#fff" stroke-width="7"/><path d="M522 195 Q577 175 630 196" fill="none" stroke="#138808" stroke-width="7"/>
+<!-- locomotive -->
+<g transform="translate(720 72)">
+ <path d="M0 73 L18 35 L108 35 L134 73 L134 117 L0 117Z" fill="#142d55" stroke="#53e7ff" stroke-width="3"/>
+ <rect x="24" y="44" width="28" height="24" rx="3" fill="#a9e8ff"/><rect x="62" y="44" width="28" height="24" rx="3" fill="#a9e8ff"/>
+ <path d="M0 85 H134" stroke="#ffcf68" stroke-width="7"/><circle cx="30" cy="116" r="13" fill="#090f1e" stroke="#a8c6df" stroke-width="4"/><circle cx="105" cy="116" r="13" fill="#090f1e" stroke="#a8c6df" stroke-width="4"/>
+ <circle cx="18" cy="91" r="13" fill="#ffc24e" filter="url(#glow)"/><circle cx="18" cy="91" r="6" fill="#fff0a5"/>
+</g>
+<!-- signal -->
+<path d="M865 18 V153" stroke="#a7bed8" stroke-width="5"/><rect x="849" y="25" width="32" height="72" rx="12" fill="#07101f" stroke="#496b91" stroke-width="3"/><circle cx="865" cy="43" r="8" fill="#ff394f" filter="url(#glow)"/><circle cx="865" cy="43" r="5" fill="#ff394f"/><circle cx="865" cy="66" r="5" fill="#ffd35c"/>
+</svg>
