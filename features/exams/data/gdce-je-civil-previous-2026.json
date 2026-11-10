@@ -59,7 +59,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q002",
@@ -109,7 +126,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q003",
@@ -360,7 +394,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q007",
@@ -678,7 +729,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q012",
@@ -996,7 +1064,24 @@
         }
       ],
       "questionTextHi": "एमएस पॉवरप्वाइंट में कौन-सा टैब, किसी स्लाइड में आरेख (diagrams), चित्र (illustrations) और ग्राफिकल कं टेंट जैसे दृश्यात्मक अवयवों को शामिल करने हेतु टूल प्रदान करता है?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q017",
@@ -1314,7 +1399,24 @@
         }
       ],
       "questionTextHi": "निम्नलिखित में से कौन-सा डिफ़ॉल्ट TCP पोर्ट युग्म सुरक्षित संचार के लिए सही है?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q022",
@@ -1498,7 +1600,24 @@
         }
       ],
       "questionTextHi": "वास्को डी गामा निम्नलिखित में से किस वर्ष दूसरी बार मालाबार तट पर कालीकट में उतरा था?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q025",
@@ -1548,7 +1667,24 @@
         }
       ],
       "questionTextHi": "प्लास्टर ऑफ पेरिस का रासायनिक सूत्र क्या है?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q026",
@@ -1665,7 +1801,24 @@
         }
       ],
       "questionTextHi": "एक पिंड एक सरल रेखा में परिवर्तनशील चाल से गतिमान है। 10 s में इसका विस्थापन 50 m है। औसत वेग कितना होगा?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q028",
@@ -2519,7 +2672,24 @@
         }
       ],
       "questionTextHi": "निम्नलिखित कं प्यूटर सिक्योरिटी शब्दों को उनकी सही परिभाषाओं के साथ सुमेलित कीजिए। शब्द परिभाषा 1. एन्क्रिप्शन A. अनधिकृ त नेटवर्क एक्सेस को अवरुद्ध करता है 2. फ़ायरवॉल B. यूजर आइडेंटिटी को वैलिडेट करता है 3. एंटीवायरस C. डेटा को अपठनीय कोड में परिवर्तित करता है 4. ऑथेंटिके शन D. मैलवेयर का पता लगाता है और उसे रिमूव करता है",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q041",
@@ -2703,7 +2873,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q044",
@@ -3021,7 +3208,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q049",
@@ -3071,7 +3275,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q050",
@@ -3188,7 +3409,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q052",
@@ -3238,7 +3476,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q053",
@@ -3288,7 +3543,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q054",
@@ -3338,7 +3610,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q055",
@@ -3455,7 +3744,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q057",
@@ -3572,7 +3878,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q059",
@@ -3622,7 +3945,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q060",
@@ -3672,7 +4012,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q061",
@@ -3722,7 +4079,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q062",
@@ -3772,7 +4146,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q063",
@@ -3822,7 +4213,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q064",
@@ -3872,7 +4280,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q065",
@@ -3922,7 +4347,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q066",
@@ -3972,7 +4414,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q067",
@@ -4022,7 +4481,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q068",
@@ -4072,7 +4548,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q069",
@@ -4122,7 +4615,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q070",
@@ -4172,7 +4682,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q071",
@@ -4222,7 +4749,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q072",
@@ -4272,7 +4816,24 @@
         }
       ],
       "questionTextHi": "500 m2 प्लिंथ क्षेत्रफल और 4 m ऊं चाई वाले एक भवन की सन्निकट लागत की गणना कीजिए, यह मानते हुए कि प्रति घन सामग्री दर ₹3,000 है।",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q073",
@@ -4389,7 +4950,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q075",
@@ -4439,7 +5017,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q076",
@@ -4489,7 +5084,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q077",
@@ -4539,7 +5151,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q078",
@@ -4589,7 +5218,24 @@
         }
       ],
       "questionTextHi": "एक वृत्ताकार स्टील कॉलम का व्यास 200 mm और प्रभावी लंबाई 4 m है। इसका कृ शता अनुपात (slenderness ratio) ज्ञात कीजिए।",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q079",
@@ -4639,7 +5285,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q080",
@@ -4689,7 +5352,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q081",
@@ -4739,7 +5419,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q082",
@@ -4789,7 +5486,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q083",
@@ -4839,7 +5553,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q084",
@@ -5090,7 +5821,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q088",
@@ -5140,7 +5888,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q089",
@@ -5190,7 +5955,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q090",
@@ -5240,7 +6022,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q091",
@@ -5424,7 +6223,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q094",
@@ -5474,7 +6290,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q095",
@@ -5524,7 +6357,24 @@
         }
       ],
       "questionTextHi": "5 kg वजन वाले मोटे एग्रीगेट का एक नमूना 24 घंटे के लिए पानी में पूरी तरह से डूबोया जाता है। पृष्‍ठ सुखने के बाद, इसका वजन 5.08 kg पाया जाता है। यदि नमूने को ओवन में सुखाने पर वजन 5 kg हो जाता है, तो एग्रीगेट का जल अवशोषण प्रतिशत कितना है?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q096",
@@ -5574,7 +6424,24 @@
         }
       ],
       "questionTextHi": "A simply supported beam of span 6 m carries a point load of 20 kN at its mid-span. What is the maximum bending moment developed in the beam?\nप्रश्न (हिंदी): 6 m पाट (span) वाली एक शुद्धालंबित बीम (simply supported beam) के मध्य-पाट पर 20 kN का बिंदु भार (point load) लगाया है। बीम में उत्पन्न होने वाला अधिकतम बंकन आघूर्ण (maximum bending moment) कितना है?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q097",
@@ -5691,7 +6558,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q099",
@@ -5942,7 +6826,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q103",
@@ -5992,7 +6893,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q104",
@@ -6042,7 +6960,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q105",
@@ -6092,7 +7027,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q106",
@@ -6209,7 +7161,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q108",
@@ -6326,7 +7295,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q110",
@@ -6510,7 +7496,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q113",
@@ -6694,7 +7697,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q116",
@@ -6744,7 +7764,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q117",
@@ -6995,7 +8032,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q121",
@@ -7112,7 +8166,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q123",
@@ -7229,7 +8300,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q125",
@@ -7279,7 +8367,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q126",
@@ -7329,7 +8434,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q127",
@@ -7379,7 +8501,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q128",
@@ -7429,7 +8568,24 @@
         }
       ],
       "questionTextHi": "एक आयताकार पटल की चौड़ाई 200 mm तथा ऊँ चाई 300 mm है। मानक सूत्र का उपयोग करके इसके के न्द्रक x-अक्ष (चौड़ाई के समांतर) के सापेक्ष जड़त्व आघूर्ण को mm4 में ज्ञात कीजिए।",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q129",
@@ -7479,7 +8635,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q130",
@@ -7529,7 +8702,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q131",
@@ -7579,7 +8769,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q132",
@@ -7629,7 +8836,24 @@
         }
       ],
       "questionTextHi": "निम्न प्रकार के डंप ट्रकों (Dump trucks) को उनके विवरण के अनुसार मिलान कीजिए: डंप ट्रक विवरण 1. ट्रक ट्रेलर (Truck trailer ) A. ऐसा ट्रक ट्रेलर जिसका संपूर्ण स्वयं का भार और लो 2. अर्ध-ट्रेलर (Semi-trailer) B. ऐसा ट्रक ट्रेलर जो ट्रैक्टर पर लोड कम करने के लि इसमें ≥ 1 धुरी (axle), पाँचवीं पहिया, ड्रॉबार और आ 3. पूर्ण ट्रेलर (Full trailer) C. ≥ 1 धुरी वाला ऐसा ट्रक ट्रेलर; जिसका अग्र भाग औ 4. लोड डिवाइडिंग डॉली (Load dividing dolly) D. ऐसा वाहन (सहायक गतिदायी शक्ति सहित या रहि",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q133",
@@ -7679,7 +8903,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q134",
@@ -7863,7 +9104,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q137",
@@ -7913,7 +9171,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q138",
@@ -7963,7 +9238,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q139",
@@ -8013,7 +9305,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q140",
@@ -8063,7 +9372,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q141",
@@ -8113,7 +9439,24 @@
         }
       ],
       "questionTextHi": "हाइड्रोलिक हैंड पंप वाले 30 mm व्यास और 30 m गहरे एक ट्यूबवेल में आवश्यक प्लास्टिक स्ट्रेनर (plastic strainer) की लागत ज्ञात कीजिए। 200 cm लंबाई वाले मध्यम स्लॉट साइज वाले एक स्ट्रेनर को भूतल (ground level) से 20 m नीचे ट्यूबवेल की जलधारी लेयर में लगाया जाता है और 300 cm लंबाई वाले उच्च स्लॉट साइज वाले एक अन्य स्ट्रेनर को 30 m पर ट्यूबवेल की जलधारी लेयर (water bearing layer) में लगाया जाता है। मान लीजिए कि दोनों स्लॉट साइज वाले स्ट्रेनरों के लिए स्ट्रेनर की दर ₹350/मीटर है।",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q142",
@@ -8230,7 +9573,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q144",
@@ -8280,7 +9640,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q145",
@@ -8397,7 +9774,24 @@
         }
       ],
       "questionTextHi": "A simply supported beam of span 6 m carries a point load of 20 kN at its mid-span. What is the maximum bending moment developed in the beam?\nप्रश्न (हिंदी): 6 m स्पैन वाली एक शुंखला समर्थित बीम के मध्य-स्पैन पर 20 kN का बिंदु भार लगाया गया है। बीम में उत्पन्न होने वाला अधिकतम बंकन आघूर्ण कितना है?",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q147",
@@ -8514,7 +9908,24 @@
         }
       ],
       "questionTextHi": null,
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     },
     {
       "questionId": "q149",
@@ -8631,7 +10042,24 @@
         }
       ],
       "questionTextHi": "चौड़ाई (b) और गहराई (d) वाले आयताकार चैनल परिच्छेद के लिए हाइड्रोलिक त्रिज्या (m) ज्ञात कीजिए।",
-      "optionsHi": []
+      "optionsHi": [
+        {
+          "key": "1",
+          "text": null
+        },
+        {
+          "key": "2",
+          "text": null
+        },
+        {
+          "key": "3",
+          "text": null
+        },
+        {
+          "key": "4",
+          "text": null
+        }
+      ]
     }
   ],
   "notes": "150 questions: JE Common Q1–Q50 and JE Civil & Allied Engineering Q1–Q100 (global Q51–Q150). Candidate response-sheet answers cross-checked against the supplied serial-wise key. Civil Q96 (global Q146) has a source-key discrepancy: the response sheet marks option 3, but the stated simply supported beam calculation Mmax = PL/4 = 30 kN·m makes option 2 correct; the question bank retains option 2 and its worked explanation. Civil Q86–Q87 (global Q136–Q137) are checked as options 3 and 3. This is a candidate response-sheet-derived paper, not represented as an officially released question paper.",
