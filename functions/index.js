@@ -746,3 +746,15 @@ exports.adminSetMaterialPublication = onCall({ region: REGION }, async request =
     fileId, published, actorUid: uid, createdAt: FieldValue.serverTimestamp() });
   return { success: true, fileId, published };
 });
+
+exports.getPublicStoreSettings = onCall({ region: REGION }, async request => {
+  requireUser(request);
+  const snap = await db.collection("appSettings").doc("finance").get();
+  const x = snap.exists ? snap.data() : {};
+  return {
+    subscriptionPrice: Number.isFinite(x.subscriptionPrice) ? x.subscriptionPrice : 300,
+    subscriptionDays: Number.isFinite(x.subscriptionDays) ? x.subscriptionDays : 30,
+    merchantUpiId: typeof x.merchantUpiId === "string" ? x.merchantUpiId : "",
+    merchantName: typeof x.merchantName === "string" ? x.merchantName : "Railway Mitra"
+  };
+});
