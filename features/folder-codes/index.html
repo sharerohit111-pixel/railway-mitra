@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071a32"><title>Folder Code Lookup | Railway Mitra</title>
+<link rel="stylesheet" href="./lookup.css">
+</head>
+<body>
+<main class="lookup-wrap">
+<a class="back" href="../../index.html">← Railway Mitra</a>
+<header><div class="eyebrow">RAILWAY MITRA · FICS</div><h1>Folder Code Lookup</h1><p>Enter any <b>RM-F-</b> code to identify its folder.</p></header>
+<section class="search-panel" aria-label="Search folder code">
+<label for="folderCode">Folder identification code</label>
+<div class="search-row"><input id="folderCode" type="search" placeholder="RM-F-2606F52DB079C215" autocomplete="off" spellcheck="false"><button id="searchBtn" type="button">Search</button></div>
+<div id="result" class="result" aria-live="polite">Enter a folder code to find its location.</div>
+</section>
+<section class="directory"><div class="directory-head"><h2>Folder directory</h2><span id="count">Loading…</span></div><input id="folderFilter" class="filter" type="search" placeholder="Search folder name or path…"><div id="folderList" class="folder-list"></div></section>
+<footer>Codes are generated from folder paths. A code remains stable while its folder path remains unchanged.</footer>
+</main>
+<script src="./lookup.js" defer></script>
+</body></html>
