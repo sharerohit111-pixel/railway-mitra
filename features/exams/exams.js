@@ -38,7 +38,7 @@
       import("https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js")
     ]);
     const user = auth.currentUser || await new Promise(resolve=>{const unsub=onAuthStateChanged(auth,u=>{unsub();resolve(u);});});
-    if(!user) throw new Error("Please sign in to view published GDCE tests.");
+    if(!user) throw new Error("Please sign in to view published LDCE/GDCE tests.");
     const fn=httpsCallable(getFunctions(app,"asia-south1"),"listPublishedTests");
     const response=await fn({streamId,category});
     return response.data.tests || [];
@@ -80,7 +80,7 @@
     if(page==="stream"){
       root.innerHTML = header(esc(stream.name),"Choose the type of preparation you want. Mock Tests, Previous Year Papers and Practice Sets remain separate.",streamId.startsWith("ldce-")?"ldce.html":"gdce.html") + `
         <h2 class="exam-section-title">Choose Test Category</h2><div class="exam-card-grid">
-          ${Object.entries(types).map(([id,t])=>card(t.icon,t.plural,t.description,`tests.html?stream=${encodeURIComponent(streamId)}&type=${id}`,id==="mock"?"First mock test planned as free":"Separate test library")).join("")}
+          ${Object.entries(types).map(([id,t])=>card(t.icon,t.plural,t.description,`tests.html?stream=${encodeURIComponent(streamId)}&type=${id}`,id==="mock"?"First mock test in this stream is free":"Separate test library")).join("")}
         </div><div class="exam-notice">Every paper will have its own question count, duration, marks per question, negative marking, solution availability and access setting.</div>`;
       return;
     }
