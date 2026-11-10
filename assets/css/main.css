@@ -443,15 +443,16 @@ body {
     box-shadow: 0 0 25px #00DFFF35,
                 0 0 35px #FF45D425 !important;
     position: relative;
-    padding-top: 90px !important;
-    overflow: hidden;
+    padding-top: 34px !important;
+    overflow: visible;
 }
 
 .welcome-section::after {
     content: "Rohit Kumar  |  Founder & Developer";
     position: absolute;
-    top: 18px;
+    top: -43px;
     right: 16px;
+    z-index: 5;
     padding: 12px 15px;
     border-radius: 15px;
     color: #FFFFFF;
@@ -568,14 +569,14 @@ body {
 
 @media (max-width: 400px) {
     .welcome-section {
-        padding: 90px 15px 22px !important;
+        padding: 27px 15px 22px !important;
     }
 
     .welcome-section::after {
         font-size: 10px;
         right: 10px;
-        top: 14px;
-        padding: 9px;
+        top: -38px;
+        padding: 8px 10px;
     }
 
     .feature-card {
