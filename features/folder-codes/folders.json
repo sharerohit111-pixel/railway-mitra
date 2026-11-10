@@ -1,0 +1,534 @@
+{
+  "version": 1,
+  "algorithm": "SHA-256 of railway-mitra-folder:<normalized path>; first 16 uppercase hex characters",
+  "folders": [
+    {
+      "path": "allowances",
+      "name": "Allowances"
+    },
+    {
+      "path": "allowances/da",
+      "name": "Allowances / Da"
+    },
+    {
+      "path": "allowances/da-arrear",
+      "name": "Allowances / Da Arrear"
+    },
+    {
+      "path": "allowances/hra",
+      "name": "Allowances / Hra"
+    },
+    {
+      "path": "allowances/kma",
+      "name": "Allowances / Kma"
+    },
+    {
+      "path": "allowances/nda",
+      "name": "Allowances / Nda"
+    },
+    {
+      "path": "allowances/ota",
+      "name": "Allowances / Ota"
+    },
+    {
+      "path": "allowances/ta",
+      "name": "Allowances / Ta"
+    },
+    {
+      "path": "arrears",
+      "name": "Arrears"
+    },
+    {
+      "path": "auth",
+      "name": "Auth"
+    },
+    {
+      "path": "compliance",
+      "name": "Compliance"
+    },
+    {
+      "path": "documents",
+      "name": "Documents"
+    },
+    {
+      "path": "duty",
+      "name": "Duty"
+    },
+    {
+      "path": "duty-diary",
+      "name": "Duty Diary"
+    },
+    {
+      "path": "engineering",
+      "name": "Engineering"
+    },
+    {
+      "path": "exams",
+      "name": "Exams"
+    },
+    {
+      "path": "finance",
+      "name": "Finance"
+    },
+    {
+      "path": "global-search",
+      "name": "Global Search"
+    },
+    {
+      "path": "home-highlights",
+      "name": "Home Highlights"
+    },
+    {
+      "path": "install",
+      "name": "Install"
+    },
+    {
+      "path": "leave",
+      "name": "Leave"
+    },
+    {
+      "path": "map",
+      "name": "Map"
+    },
+    {
+      "path": "pay-commission-8th",
+      "name": "Pay Commission 8th"
+    },
+    {
+      "path": "profile",
+      "name": "Profile"
+    },
+    {
+      "path": "retirement",
+      "name": "Retirement"
+    },
+    {
+      "path": "rules",
+      "name": "Rules"
+    },
+    {
+      "path": "rules/en",
+      "name": "Rules / En"
+    },
+    {
+      "path": "rules/en/allowances",
+      "name": "Rules / En / Allowances"
+    },
+    {
+      "path": "rules/en/allowances/macp",
+      "name": "Rules / En / Allowances / Macp"
+    },
+    {
+      "path": "rules/en/allowances/nda-ota",
+      "name": "Rules / En / Allowances / Nda Ota"
+    },
+    {
+      "path": "rules/en/allowances/running-allowance",
+      "name": "Rules / En / Allowances / Running Allowance"
+    },
+    {
+      "path": "rules/en/conduct",
+      "name": "Rules / En / Conduct"
+    },
+    {
+      "path": "rules/en/conduct/gifts-dowry",
+      "name": "Rules / En / Conduct / Gifts Dowry"
+    },
+    {
+      "path": "rules/en/conduct/private-political",
+      "name": "Rules / En / Conduct / Private Political"
+    },
+    {
+      "path": "rules/en/conduct/property",
+      "name": "Rules / En / Conduct / Property"
+    },
+    {
+      "path": "rules/en/dar",
+      "name": "Rules / En / Dar"
+    },
+    {
+      "path": "rules/en/dar/charge-removal",
+      "name": "Rules / En / Dar / Charge Removal"
+    },
+    {
+      "path": "rules/en/dar/chargesheets",
+      "name": "Rules / En / Dar / Chargesheets"
+    },
+    {
+      "path": "rules/en/dar/mercy-compassionate",
+      "name": "Rules / En / Dar / Mercy Compassionate"
+    },
+    {
+      "path": "rules/en/dar/penalty-matrix",
+      "name": "Rules / En / Dar / Penalty Matrix"
+    },
+    {
+      "path": "rules/en/leave",
+      "name": "Rules / En / Leave"
+    },
+    {
+      "path": "rules/en/leave/eol-encashment",
+      "name": "Rules / En / Leave / Eol Encashment"
+    },
+    {
+      "path": "rules/en/leave/general",
+      "name": "Rules / En / Leave / General"
+    },
+    {
+      "path": "rules/en/leave/regular-leave",
+      "name": "Rules / En / Leave / Regular Leave"
+    },
+    {
+      "path": "rules/en/leave/welfare-leave",
+      "name": "Rules / En / Leave / Welfare Leave"
+    },
+    {
+      "path": "rules/en/medical",
+      "name": "Rules / En / Medical"
+    },
+    {
+      "path": "rules/en/medical/decategorization",
+      "name": "Rules / En / Medical / Decategorization"
+    },
+    {
+      "path": "rules/en/medical/referral",
+      "name": "Rules / En / Medical / Referral"
+    },
+    {
+      "path": "rules/en/medical/umid",
+      "name": "Rules / En / Medical / Umid"
+    },
+    {
+      "path": "rules/en/pass-pto",
+      "name": "Rules / En / Pass Pto"
+    },
+    {
+      "path": "rules/en/pass-pto/duty-pass",
+      "name": "Rules / En / Pass Pto / Duty Pass"
+    },
+    {
+      "path": "rules/en/pass-pto/eligibility",
+      "name": "Rules / En / Pass Pto / Eligibility"
+    },
+    {
+      "path": "rules/en/pass-pto/hrms-misuse",
+      "name": "Rules / En / Pass Pto / Hrms Misuse"
+    },
+    {
+      "path": "rules/en/pass-pto/privilege-pass",
+      "name": "Rules / En / Pass Pto / Privilege Pass"
+    },
+    {
+      "path": "rules/en/pass-pto/pto",
+      "name": "Rules / En / Pass Pto / Pto"
+    },
+    {
+      "path": "rules/en/pass-pto/retirement-pass",
+      "name": "Rules / En / Pass Pto / Retirement Pass"
+    },
+    {
+      "path": "rules/en/pass-pto/school-pass",
+      "name": "Rules / En / Pass Pto / School Pass"
+    },
+    {
+      "path": "rules/en/pension",
+      "name": "Rules / En / Pension"
+    },
+    {
+      "path": "rules/en/pension/nps",
+      "name": "Rules / En / Pension / Nps"
+    },
+    {
+      "path": "rules/en/pension/ops",
+      "name": "Rules / En / Pension / Ops"
+    },
+    {
+      "path": "rules/en/pension/switch-window",
+      "name": "Rules / En / Pension / Switch Window"
+    },
+    {
+      "path": "rules/en/pension/ups",
+      "name": "Rules / En / Pension / Ups"
+    },
+    {
+      "path": "rules/en/quarters-hra",
+      "name": "Rules / En / Quarters Hra"
+    },
+    {
+      "path": "rules/en/quarters-hra/allotment",
+      "name": "Rules / En / Quarters Hra / Allotment"
+    },
+    {
+      "path": "rules/en/quarters-hra/eviction",
+      "name": "Rules / En / Quarters Hra / Eviction"
+    },
+    {
+      "path": "rules/en/quarters-hra/hra",
+      "name": "Rules / En / Quarters Hra / Hra"
+    },
+    {
+      "path": "rules/en/quarters-hra/retention",
+      "name": "Rules / En / Quarters Hra / Retention"
+    },
+    {
+      "path": "rules/en/ticket-booking",
+      "name": "Rules / En / Ticket Booking"
+    },
+    {
+      "path": "rules/en/ticket-cancellation",
+      "name": "Rules / En / Ticket Cancellation"
+    },
+    {
+      "path": "rules/en/ticket-refund",
+      "name": "Rules / En / Ticket Refund"
+    },
+    {
+      "path": "rules/en/ticket-rules",
+      "name": "Rules / En / Ticket Rules"
+    },
+    {
+      "path": "rules/en/transfer",
+      "name": "Rules / En / Transfer"
+    },
+    {
+      "path": "rules/en/transfer/admin",
+      "name": "Rules / En / Transfer / Admin"
+    },
+    {
+      "path": "rules/en/transfer/mutual",
+      "name": "Rules / En / Transfer / Mutual"
+    },
+    {
+      "path": "rules/en/transfer/own",
+      "name": "Rules / En / Transfer / Own"
+    },
+    {
+      "path": "rules/en/transfer/special",
+      "name": "Rules / En / Transfer / Special"
+    },
+    {
+      "path": "rules/en/transfer/spouse",
+      "name": "Rules / En / Transfer / Spouse"
+    },
+    {
+      "path": "rules/hi",
+      "name": "Rules / Hi"
+    },
+    {
+      "path": "rules/hi/allowances",
+      "name": "Rules / Hi / Allowances"
+    },
+    {
+      "path": "rules/hi/allowances/macp",
+      "name": "Rules / Hi / Allowances / Macp"
+    },
+    {
+      "path": "rules/hi/allowances/nda-ota",
+      "name": "Rules / Hi / Allowances / Nda Ota"
+    },
+    {
+      "path": "rules/hi/allowances/running-allowance",
+      "name": "Rules / Hi / Allowances / Running Allowance"
+    },
+    {
+      "path": "rules/hi/conduct",
+      "name": "Rules / Hi / Conduct"
+    },
+    {
+      "path": "rules/hi/conduct/gifts-dowry",
+      "name": "Rules / Hi / Conduct / Gifts Dowry"
+    },
+    {
+      "path": "rules/hi/conduct/private-political",
+      "name": "Rules / Hi / Conduct / Private Political"
+    },
+    {
+      "path": "rules/hi/conduct/property",
+      "name": "Rules / Hi / Conduct / Property"
+    },
+    {
+      "path": "rules/hi/dar",
+      "name": "Rules / Hi / Dar"
+    },
+    {
+      "path": "rules/hi/dar/charge-removal",
+      "name": "Rules / Hi / Dar / Charge Removal"
+    },
+    {
+      "path": "rules/hi/dar/chargesheets",
+      "name": "Rules / Hi / Dar / Chargesheets"
+    },
+    {
+      "path": "rules/hi/dar/mercy-compassionate",
+      "name": "Rules / Hi / Dar / Mercy Compassionate"
+    },
+    {
+      "path": "rules/hi/dar/penalty-matrix",
+      "name": "Rules / Hi / Dar / Penalty Matrix"
+    },
+    {
+      "path": "rules/hi/leave",
+      "name": "Rules / Hi / Leave"
+    },
+    {
+      "path": "rules/hi/leave/eol-encashment",
+      "name": "Rules / Hi / Leave / Eol Encashment"
+    },
+    {
+      "path": "rules/hi/leave/general",
+      "name": "Rules / Hi / Leave / General"
+    },
+    {
+      "path": "rules/hi/leave/regular-leave",
+      "name": "Rules / Hi / Leave / Regular Leave"
+    },
+    {
+      "path": "rules/hi/leave/welfare-leave",
+      "name": "Rules / Hi / Leave / Welfare Leave"
+    },
+    {
+      "path": "rules/hi/medical",
+      "name": "Rules / Hi / Medical"
+    },
+    {
+      "path": "rules/hi/medical/decategorization",
+      "name": "Rules / Hi / Medical / Decategorization"
+    },
+    {
+      "path": "rules/hi/medical/referral",
+      "name": "Rules / Hi / Medical / Referral"
+    },
+    {
+      "path": "rules/hi/medical/umid",
+      "name": "Rules / Hi / Medical / Umid"
+    },
+    {
+      "path": "rules/hi/pass-pto",
+      "name": "Rules / Hi / Pass Pto"
+    },
+    {
+      "path": "rules/hi/pass-pto/duty-pass",
+      "name": "Rules / Hi / Pass Pto / Duty Pass"
+    },
+    {
+      "path": "rules/hi/pass-pto/eligibility",
+      "name": "Rules / Hi / Pass Pto / Eligibility"
+    },
+    {
+      "path": "rules/hi/pass-pto/hrms-misuse",
+      "name": "Rules / Hi / Pass Pto / Hrms Misuse"
+    },
+    {
+      "path": "rules/hi/pass-pto/privilege-pass",
+      "name": "Rules / Hi / Pass Pto / Privilege Pass"
+    },
+    {
+      "path": "rules/hi/pass-pto/pto",
+      "name": "Rules / Hi / Pass Pto / Pto"
+    },
+    {
+      "path": "rules/hi/pass-pto/retirement-pass",
+      "name": "Rules / Hi / Pass Pto / Retirement Pass"
+    },
+    {
+      "path": "rules/hi/pass-pto/school-pass",
+      "name": "Rules / Hi / Pass Pto / School Pass"
+    },
+    {
+      "path": "rules/hi/pension",
+      "name": "Rules / Hi / Pension"
+    },
+    {
+      "path": "rules/hi/pension/nps",
+      "name": "Rules / Hi / Pension / Nps"
+    },
+    {
+      "path": "rules/hi/pension/ops",
+      "name": "Rules / Hi / Pension / Ops"
+    },
+    {
+      "path": "rules/hi/pension/switch-window",
+      "name": "Rules / Hi / Pension / Switch Window"
+    },
+    {
+      "path": "rules/hi/pension/ups",
+      "name": "Rules / Hi / Pension / Ups"
+    },
+    {
+      "path": "rules/hi/quarters-hra",
+      "name": "Rules / Hi / Quarters Hra"
+    },
+    {
+      "path": "rules/hi/quarters-hra/allotment",
+      "name": "Rules / Hi / Quarters Hra / Allotment"
+    },
+    {
+      "path": "rules/hi/quarters-hra/eviction",
+      "name": "Rules / Hi / Quarters Hra / Eviction"
+    },
+    {
+      "path": "rules/hi/quarters-hra/hra",
+      "name": "Rules / Hi / Quarters Hra / Hra"
+    },
+    {
+      "path": "rules/hi/quarters-hra/retention",
+      "name": "Rules / Hi / Quarters Hra / Retention"
+    },
+    {
+      "path": "rules/hi/ticket-booking",
+      "name": "Rules / Hi / Ticket Booking"
+    },
+    {
+      "path": "rules/hi/ticket-cancellation",
+      "name": "Rules / Hi / Ticket Cancellation"
+    },
+    {
+      "path": "rules/hi/ticket-refund",
+      "name": "Rules / Hi / Ticket Refund"
+    },
+    {
+      "path": "rules/hi/ticket-rules",
+      "name": "Rules / Hi / Ticket Rules"
+    },
+    {
+      "path": "rules/hi/transfer",
+      "name": "Rules / Hi / Transfer"
+    },
+    {
+      "path": "rules/hi/transfer/admin",
+      "name": "Rules / Hi / Transfer / Admin"
+    },
+    {
+      "path": "rules/hi/transfer/mutual",
+      "name": "Rules / Hi / Transfer / Mutual"
+    },
+    {
+      "path": "rules/hi/transfer/own",
+      "name": "Rules / Hi / Transfer / Own"
+    },
+    {
+      "path": "rules/hi/transfer/special",
+      "name": "Rules / Hi / Transfer / Special"
+    },
+    {
+      "path": "rules/hi/transfer/spouse",
+      "name": "Rules / Hi / Transfer / Spouse"
+    },
+    {
+      "path": "salary",
+      "name": "Salary"
+    },
+    {
+      "path": "share",
+      "name": "Share"
+    },
+    {
+      "path": "updates",
+      "name": "Updates"
+    },
+    {
+      "path": "weather",
+      "name": "Weather"
+    }
+  ]
+}
