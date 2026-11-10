@@ -16,7 +16,6 @@
     ["NDA Calculator","Night duty allowance calculator","🌙","features/allowances/nda/index.html"],
     ["OTA Calculator","Overtime allowance calculator","⏱️","features/allowances/ota/index.html"],
     ["KMA Calculator","Kilometrage allowance calculator","🚆","features/allowances/kma/index.html"],
-    ["DA Arrear Calculator","DA arrears and difference calculation","🧮","features/allowances/da-arrear/index.html"],
     ["Duty Roster & Allowance Diary","Daily duty records and monthly allowance ledger","🕒","features/duty-diary/index.html"],
     ["Railway Rules","Railway rules, manuals and circulars","📚","features/rules/index.html"],
     ["India Map","Interactive map and location","🗺️","features/map/index.html"],
