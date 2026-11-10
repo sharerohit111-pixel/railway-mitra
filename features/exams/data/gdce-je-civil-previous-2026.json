@@ -9758,19 +9758,19 @@
       "optionsEn": [
         {
           "key": "1",
-          "text": "Forward Loader"
+          "text": "15 kN · m"
         },
         {
           "key": "2",
-          "text": "Grab"
+          "text": "30 kN · m"
         },
         {
           "key": "3",
-          "text": "Dragline"
+          "text": "60 kN · m"
         },
         {
           "key": "4",
-          "text": "Conveyor"
+          "text": "120 kN · m"
         }
       ],
       "questionTextHi": "A simply supported beam of span 6 m carries a point load of 20 kN at its mid-span. What is the maximum bending moment developed in the beam?\nप्रश्न (हिंदी): 6 m स्पैन वाली एक शुंखला समर्थित बीम के मध्य-स्पैन पर 20 kN का बिंदु भार लगाया गया है। बीम में उत्पन्न होने वाला अधिकतम बंकन आघूर्ण कितना है?",
