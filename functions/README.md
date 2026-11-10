@@ -88,3 +88,4 @@ Candidate store:
 - `getPublicStoreSettings`, `listStudyMaterials`
 - `createCandidatePaymentRequest`, `getMyPaymentRequests`
 - `getStudyMaterialDownloadUrl`: returns a five-minute signed URL only after publication and required entitlement checks.
+- `getMyExamAttempts`: candidate-owned submitted test history.
