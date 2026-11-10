@@ -40,7 +40,8 @@ form.addEventListener("submit",async event=>{
   const questions=JSON.parse(String(data.get("questions")));
   if(!Array.isArray(questions))throw new Error("Questions must be a JSON array.");
   const streamId=String(data.get("streamId"));
-  const streamTitle={ "gdce-je-civil":"GDCE JE Civil Engineering","gdce-je-electrical":"GDCE JE Electrical Engineering","gdce-je-mechanical":"GDCE JE Mechanical Engineering","gdce-train-manager":"GDCE Train Manager" }[streamId];
+  const streamTitle={ "gdce-je-civil":"GDCE JE Civil Engineering","gdce-je-electrical":"GDCE JE Electrical Engineering","gdce-je-mechanical":"GDCE JE Mechanical Engineering","gdce-train-manager":"GDCE Train Manager","ldce-je-civil":"LDCE JE Civil Engineering","ldce-je-electrical":"LDCE JE Electrical Engineering","ldce-je-mechanical":"LDCE JE Mechanical Engineering","ldce-other-posts":"LDCE Other Departmental Posts" }[streamId];
+  if(!streamTitle)throw new Error("Please select a valid GDCE or LDCE stream.");
   const response=await publish({test:{
    testId:String(data.get("testId")).trim(),title:String(data.get("title")).trim(),streamId,streamTitle,
    category:String(data.get("category")),sourceLabel:String(data.get("sourceLabel")||"").trim(),sourceYear:data.get("sourceYear")?Number(data.get("sourceYear")):null,durationMinutes:Number(data.get("durationMinutes")),
