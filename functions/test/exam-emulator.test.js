@@ -161,6 +161,13 @@ test("content library is owner-only and supports folder management", async () =>
   assert.deepEqual(roots.map(x => x.name).sort(), ["GDCE", "LDCE", "STUDY MATERIAL"].sort());
 
   const root = roots.find(x => x.name === "GDCE");
+  const rootRename = await call("renameExamContentFolder", adminToken, { folderId: root.id, name: "GDCE Emulator Rename" });
+  assert.equal(rootRename.status, 200);
+  assert.equal(rootRename.body.result.isRoot, true);
+  const renamedRoots = await call("listExamContent", adminToken, { parentId: null });
+  assert.ok(renamedRoots.body.result.folders.some(x => x.id === root.id && x.name === "GDCE Emulator Rename"));
+  const rootRestore = await call("renameExamContentFolder", adminToken, { folderId: root.id, name: "GDCE" });
+  assert.equal(rootRestore.status, 200);
   const created = await call("createExamContentFolder", adminToken, { parentId: root.id, name: "Emulator Test Folder" });
   assert.equal(created.status, 200);
   const folderId = created.body.result.id;
@@ -168,6 +175,12 @@ test("content library is owner-only and supports folder management", async () =>
   const renamed = await call("renameExamContentFolder", adminToken, { folderId, name: "Emulator Renamed Folder" });
   assert.equal(renamed.status, 200);
   assert.equal(renamed.body.result.name, "Emulator Renamed Folder");
+  const searchDenied = await call("searchExamContent", candidateToken, { query: "Emulator" });
+  assert.notEqual(searchDenied.status, 200);
+  assert.equal(searchDenied.body.error && searchDenied.body.error.status, "PERMISSION_DENIED");
+  const searchAllowed = await call("searchExamContent", adminToken, { query: "Emulator Renamed" });
+  assert.equal(searchAllowed.status, 200);
+  assert.ok(searchAllowed.body.result.folders.some(x => x.id === folderId));
 
   const deleted = await call("deleteExamContentFolder", adminToken, { folderId });
   assert.equal(deleted.status, 200);
