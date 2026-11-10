@@ -634,7 +634,7 @@ exports.adminListPayments = onCall({ region: REGION }, async request => {
   return { payments: snap.docs.map(d => {
     const x = d.data();
     return { id: d.id, uid: x.uid, amount: x.amount, reference: x.reference,
-      type: x.type, status: x.status, createdAt: x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : null };
+      type: x.type, materialId: x.materialId || null, status: x.status, createdAt: x.createdAt && x.createdAt.toMillis ? x.createdAt.toMillis() : null };
   }) };
 });
 
