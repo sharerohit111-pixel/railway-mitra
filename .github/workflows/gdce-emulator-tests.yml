@@ -1,50 +1,51 @@
-name: GDCE Emulator Tests
+name: GDCE emulator tests
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "features/exams/**"
-      - "functions/**"
-      - "firebase.json"
-      - "firestore.indexes.json"
-      - ".github/workflows/gdce-emulator-tests.yml"
   push:
-    branches: [integration/main-safe-gdce-admin]
+    branches:
+      - feature/gdce-exam-system
+      - feature/separate-admin-panels-content-library
+  pull_request:
+    branches:
+      - feature/gdce-exam-system
+      - modular-development
     paths:
       - "features/exams/**"
+      - "assets/js/global-search.js"
+      - "assets/css/global-search.css"
       - "functions/**"
       - "firebase.json"
-      - "firestore.indexes.json"
+      - "storage.rules"
       - ".github/workflows/gdce-emulator-tests.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  gdce-emulator-tests:
+  emulator-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 22
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Set up Java 21 for Firebase emulators
+      - name: Set up Java for Firebase emulators
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
 
-      - name: Install Functions dependencies
+      - name: Install Cloud Functions dependencies
         run: npm --prefix functions install --no-audit --no-fund
 
-      - name: Check Functions syntax
+      - name: Check Cloud Functions syntax
         run: npm --prefix functions run lint
 
-      - name: Run GDCE backend tests in local emulators
-        run: npx --yes firebase-tools@latest emulators:exec --project demo-railway-mitra --only auth,firestore,functions "npm --prefix functions test"
+      - name: Run Auth, Firestore and Functions emulator tests
+        run: npx --yes firebase-tools@latest emulators:exec --project railway-mitra --only auth,firestore,functions "npm --prefix functions test"
