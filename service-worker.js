@@ -2,10 +2,10 @@
 /* =========================================
    RAILWAY MITRA
    SERVICE WORKER
-   Version: 1.0.0
+   Version: 1.1.0
    ========================================= */
 
-const CACHE_NAME = "railway-mitra-v1";
+const CACHE_NAME = "railway-mitra-v2";
 
 /* INSTALL */
 self.addEventListener("install", (event) => {
@@ -18,9 +18,15 @@ self.addEventListener("install", (event) => {
 
 /* ACTIVATE */
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    self.clients.claim()
-  );
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(
+      names
+        .filter(name => name.startsWith("railway-mitra-v") && name !== CACHE_NAME)
+        .map(name => caches.delete(name))
+    );
+    await self.clients.claim();
+  })());
 });
 
 /* FETCH */
