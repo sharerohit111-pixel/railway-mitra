@@ -1,3 +1,7 @@
+// IMPORTANT: This file currently contains ONLY the Railway Mitra exam-content rule.
+// Before deploying Storage rules, export the actual live Firebase Storage rules and
+// merge this match block into them. Deploying this file as-is would replace any
+// existing Storage rules for other app features.
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
