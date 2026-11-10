@@ -1,0 +1,53 @@
+/* Railway Mitra - isolated Share App button and feedback */
+.app-header {
+    gap: 10px;
+}
+.rm-share-btn {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 13px;
+    border: 1px solid rgba(53,232,255,.75);
+    border-radius: 12px;
+    color: #fff;
+    background: linear-gradient(135deg,#087da8,#6541a7,#a82d91);
+    box-shadow: 0 0 13px rgba(53,232,255,.22), inset 0 1px 2px rgba(255,255,255,.25);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.rm-share-btn > span:first-child {
+    font-size: 19px;
+    line-height: 1;
+}
+.rm-share-btn:active { transform: scale(.96); }
+.rm-share-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    z-index: 9999;
+    max-width: calc(100vw - 32px);
+    padding: 12px 17px;
+    border: 1px solid rgba(53,232,255,.65);
+    border-radius: 12px;
+    color: #fff;
+    background: linear-gradient(135deg,#071b35,#32194a);
+    box-shadow: 0 5px 24px rgba(0,0,0,.4),0 0 14px rgba(53,232,255,.2);
+    font-size: 13px;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%,12px);
+    transition: opacity .2s ease,transform .2s ease;
+}
+.rm-share-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%,0);
+}
+@media(max-width:400px) {
+    .app-header { gap: 7px; }
+    .rm-share-btn { min-height: 40px; padding: 0 9px; gap: 5px; font-size: 11px; }
+    .rm-share-btn > span:first-child { font-size: 17px; }
+}

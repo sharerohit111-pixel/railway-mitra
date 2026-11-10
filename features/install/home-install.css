@@ -1,0 +1,98 @@
+/* Railway Mitra - install CTA on the main home page */
+.rm-home-install {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: -8px 0 28px;
+    padding: 17px 19px;
+    border: 1px solid rgba(53,232,255,.72);
+    border-radius: 18px;
+    background:
+      radial-gradient(circle at 90% 10%,rgba(255,69,212,.14),transparent 38%),
+      linear-gradient(115deg,#0d2746,#172542 58%,#29153d);
+    box-shadow: 0 0 18px rgba(53,232,255,.12),inset 0 1px rgba(255,255,255,.08);
+}
+.rm-home-install-main {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+.rm-home-install-icon {
+    flex: 0 0 43px;
+    width: 43px;
+    height: 43px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    color: #061326;
+    font-size: 24px;
+    font-weight: 900;
+    background: linear-gradient(135deg,#35e8ff,#8b55ff,#ff45d4);
+    box-shadow: 0 0 15px rgba(53,232,255,.28);
+}
+.rm-home-install-copy h3 {
+    margin: 0 0 4px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+}
+.rm-home-install-copy p {
+    margin: 0;
+    color: #b8d5ef;
+    font-size: 11px;
+    line-height: 1.45;
+}
+.rm-home-install-action {
+    flex: 0 0 auto;
+    min-height: 43px;
+    padding: 0 17px;
+    border: 1px solid #8af5ff;
+    border-radius: 12px;
+    color: #061326;
+    background: linear-gradient(100deg,#35e8ff,#b8f7ff 52%,#ff8cde);
+    box-shadow: 0 0 15px rgba(53,232,255,.22);
+    font-size: 12px;
+    font-weight: 900;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.rm-home-install-action:active { transform: scale(.97); }
+.rm-home-install-status {
+    flex-basis: 100%;
+    margin: -5px 0 0 56px;
+    color: #9fc5e6;
+    font-size: 10px;
+    line-height: 1.5;
+}
+.rm-home-install-help {
+    flex-basis: 100%;
+    margin: 0 0 0 56px;
+    padding: 10px 12px;
+    border: 1px solid rgba(53,232,255,.28);
+    border-radius: 11px;
+    color: #d8ecff;
+    background: rgba(3,15,31,.46);
+    font-size: 11px;
+    line-height: 1.55;
+}
+.rm-home-install-help[hidden] { display: none; }
+.rm-home-install[hidden] { display: none; }
+@media(max-width:600px) {
+    .rm-home-install {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        margin: -5px 0 22px;
+        padding: 13px 12px;
+        border-radius: 15px;
+    }
+    .rm-home-install-main { gap: 9px; }
+    .rm-home-install-icon { width: 35px;height:35px;flex-basis:35px;border-radius:10px;font-size:20px; }
+    .rm-home-install-copy h3 { font-size: 12px; }
+    .rm-home-install-copy p { font-size: 9px; }
+    .rm-home-install-action { min-height: 39px;padding: 0 11px;font-size: 10px; }
+    .rm-home-install-status,.rm-home-install-help { grid-column: 1 / -1;margin: 0; }
+}
