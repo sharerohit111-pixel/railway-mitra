@@ -9,7 +9,24 @@ initializeApp();
 const db = getFirestore();
 const REGION = "asia-south1";
 const MAX_QUESTIONS = 200;
-setGlobalOptions({ maxInstances: 10 });
+// Conservative launch safeguards for the initial 100-user rollout.
+setGlobalOptions({
+  maxInstances: 2,
+  concurrency: 10,
+  memory: "256MiB",
+  timeoutSeconds: 60
+});
+
+function indiaDateKey(timestamp = Date.now()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date(timestamp));
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return values.year + "-" + values.month + "-" + values.day;
+}
 
 function requireUser(request) {
   if (!request.auth || !request.auth.uid) {
@@ -173,7 +190,7 @@ exports.startExam = onCall({ region: REGION }, async request => {
   // The client uses this offset to avoid relying on the device clock or a drifting interval.
   const serverNowMs = Date.now();
   const deadlineAtMs = serverNowMs + durationMinutes * 60 * 1000;
-  await attemptRef.set({
+  const attemptData = {
     candidateUid: uid,
     testId,
     streamId: test.streamId,
@@ -183,7 +200,28 @@ exports.startExam = onCall({ region: REGION }, async request => {
     deadlineAt: Timestamp.fromMillis(deadlineAtMs),
     questionIds: questions.map(q => q.questionId),
     testSettings: settings
-  });
+  };
+
+  // Enforce one mock-test start per user per India calendar day.
+  // The transaction prevents simultaneous requests from bypassing the limit.
+  if (test.category === "mock") {
+    const dailyUsageRef = db.collection("users").doc(uid)
+      .collection("examDailyUsage").doc(indiaDateKey(serverNowMs));
+    await db.runTransaction(async tx => {
+      const usageSnap = await tx.get(dailyUsageRef);
+      const currentCount = usageSnap.exists ? Number(usageSnap.data().mockTestsStarted || 0) : 0;
+      if (currentCount >= 1) {
+        throw new HttpsError("resource-exhausted", "Daily mock-test limit reached. You can start one mock test per day.");
+      }
+      tx.set(dailyUsageRef, {
+        mockTestsStarted: currentCount + 1,
+        updatedAt: FieldValue.serverTimestamp()
+      }, { merge: true });
+      tx.set(attemptRef, attemptData);
+    });
+  } else {
+    await attemptRef.set(attemptData);
+  }
   return {
     attemptId: attemptRef.id,
     serverNowMs: Date.now(),
