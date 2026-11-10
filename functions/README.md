@@ -66,13 +66,11 @@ The owner publishing form accepts an optional source label and paper year. These
 - LDCE tests use the same secure CBT engine, private answer-key separation, scoring, candidate history, subscription rules and owner publishing workflow as GDCE.
 - LDCE question papers are not preloaded. The owner must upload and verify LDCE question banks before candidates see any tests. The prepared 150-question paper in this repository is GDCE JE Civil only.
 
-## Bilingual GDCE JE Civil paper
+## Question-bank content policy
 
-- Prepared source data: `features/exams/data/gdce-je-civil-previous-2026.json`.
-- English question and option text is available for all 150 questions, sourced from the matching English CBT.
-- Hindi source text/options are shown where present in the candidate response-sheet-derived bank; where Hindi text was not supplied, the CBT falls back to English. This dataset is not fully Hindi-translated.
-- The owner admin form has a “Load verified 150-question…” button. It fills the publishing form; the owner must review and explicitly publish. The backend keeps answer keys private.
-- Civil Q96 (global Q146) was replaced with a beam calculation; the answer is option 2 from Mmax = PL/4 = 30 kN·m. The response-key option 3 refers to the original earthwork-equipment question, not the replacement.
+- No question bank is preloaded by this release. The owner must supply, verify and publish each LDCE/GDCE test from the appropriate source.
+- Uploading a PDF stores it in the content library; it does not automatically convert the PDF into CBT questions. Question banks are entered through the protected Exam Admin publishing workflow.
+- Do not label generated practice questions as official previous-year papers. Preserve source labels and years accurately.
 
 ## Storage rules deployment safety
 
@@ -81,7 +79,7 @@ The owner publishing form accepts an optional source label and paper year. These
 ## Additional owner and candidate callables
 
 Owner-only content administration:
-- `listExamContent`, `createExamContentFolder`, `renameExamContentFolder`, `deleteExamContentFolder`
+- `listExamContent`, `createExamContentFolder`, `renameExamContentFolder`, `deleteExamContentFolder` (deletes a selected subfolder tree and its PDFs; protected main roots cannot be deleted)
 - `registerExamContentFile`, `renameExamContentFile`, `deleteExamContentFile`, `searchExamContent`
 - `adminSetMaterialPrice`, `adminSetMaterialPublication`
 - `adminListExamAttempts`: most recent submitted candidate attempts and score summaries.
