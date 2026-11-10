@@ -51,7 +51,20 @@
   input.addEventListener("focus",()=>{if(input.value.trim())search(input.value.trim());});
   document.addEventListener("click",e=>{if(!wrap.contains(e.target))results.classList.remove("open");});
   document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();input.focus();input.select();}if(e.key==="Escape"){results.classList.remove("open");input.blur();}});
-  if(location.pathname.includes("/features/exams/")||location.pathname.endsWith("/index.html")||location.pathname==="/"){
-    import(rootPrefix+"assets/js/firebase.js").then(async ({auth,app})=>{if(!auth.currentUser)await new Promise(resolve=>{let done=false;import("https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js").then(({onAuthStateChanged})=>{const unsub=onAuthStateChanged(auth,u=>{if(done)return;done=true;unsub();resolve(u);});});setTimeout(()=>{if(!done){done=true;resolve(null);}},1800);});const user=auth.currentUser;if(!user)return;try{const token=await user.getIdTokenResult();owner=token.claims.admin===true;if(owner){const {getFunctions,httpsCallable}=await import("https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js");searchFn=httpsCallable(getFunctions(app,"asia-south1"),"searchExamContent");}}catch(_e){owner=false;}});
-  }
+  import(rootPrefix+"assets/js/firebase.js").then(async ({auth,app})=>{
+    const {onAuthStateChanged}=await import("https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js");
+    onAuthStateChanged(auth,async user=>{
+      owner=false;searchFn=null;
+      if(!user)return;
+      try{
+        const token=await user.getIdTokenResult();
+        owner=token.claims.admin===true;
+        if(owner){
+          const {getFunctions,httpsCallable}=await import("https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js");
+          searchFn=httpsCallable(getFunctions(app,"asia-south1"),"searchExamContent");
+          if(input.value.trim().length>=2)search(input.value.trim());
+        }
+      }catch(_e){owner=false;searchFn=null;}
+    });
+  }).catch(()=>{/* Local feature search remains available without Firebase. */});
 })();
