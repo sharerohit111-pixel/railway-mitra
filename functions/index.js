@@ -577,6 +577,7 @@ exports.adminRecordPayment = onCall({ region: REGION }, async request => {
   const uid = requireAdmin(request);
   const candidateUid = cleanString(request.data.uid, "candidateUid", 128);
   const reference = cleanString(request.data.reference, "reference", 100).replace(/\s/g, "");
+  if (!/^[A-Za-z0-9_-]{6,100}$/.test(reference)) throw new HttpsError("invalid-argument", "UPI reference must contain 6–100 letters, numbers, hyphens or underscores.");
   const amount = validNumber(request.data.amount, "amount", 1, 1000000);
   const type = cleanString(request.data.type || "subscription", "type", 30);
   if (!["subscription", "study-material"].includes(type)) {
@@ -624,6 +625,7 @@ exports.adminApprovePayment = onCall({ region: REGION }, async request => {
   const adminUid = requireAdmin(request);
   const candidateUid = cleanString(request.data.uid, "candidateUid", 128);
   const reference = cleanString(request.data.reference, "reference", 100).replace(/\s/g, "");
+  if (!/^[A-Za-z0-9_-]{6,100}$/.test(reference)) throw new HttpsError("invalid-argument", "UPI reference is invalid.");
   const paymentRef = db.collection("paymentRecords").doc(reference);
   const result = await db.runTransaction(async tx => {
     const paymentSnap = await tx.get(paymentRef);
