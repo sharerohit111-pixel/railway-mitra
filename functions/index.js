@@ -396,7 +396,7 @@ exports.listExamContent = onCall({ region: REGION }, async request => {
   for (const root of CONTENT_ROOTS) {
     const ref = db.collection("examContentFolders").doc(root.id);
     if (!(await ref.get()).exists) {
-      await ref.create({ name: root.name, category: root.category, parentId: null, isRoot: true, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }).catch(async error => {
+      await ref.create({ name: root.name, nameLower: root.name.toLocaleLowerCase(), category: root.category, parentId: null, isRoot: true, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }).catch(async error => {
         if (error.code !== 6 && error.code !== "already-exists") throw error;
       });
     }
@@ -424,7 +424,7 @@ exports.createExamContentFolder = onCall({ region: REGION }, async request => {
   const parent = await contentFolderRef(parentId).get();
   if (!parent.exists) throw new HttpsError("not-found", "Parent folder not found.");
   const ref = db.collection("examContentFolders").doc();
-  await ref.set({ name, category: parent.data().category || parent.data().name, parentId, isRoot: false, createdBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  await ref.set({ name, nameLower: name.toLocaleLowerCase(), category: parent.data().category || parent.data().name, parentId, isRoot: false, createdBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
   return { id: ref.id, name };
 });
 exports.renameExamContentFolder = onCall({ region: REGION }, async request => {
@@ -436,6 +436,7 @@ exports.renameExamContentFolder = onCall({ region: REGION }, async request => {
   const name = contentName(request.data.name);
   await ref.update({
     name,
+    nameLower: name.toLocaleLowerCase(),
     ...(snap.data().isRoot === true ? { category: name } : {}),
     updatedAt: FieldValue.serverTimestamp()
   });
@@ -469,7 +470,7 @@ exports.registerExamContentFile = onCall({ region: REGION }, async request => {
   const [exists] = await bucket.file(storagePath).exists();
   if (!exists) throw new HttpsError("failed-precondition", "Uploaded PDF was not found in secure storage.");
   const ref = db.collection("examContentFiles").doc(fileId);
-  await ref.create({ folderId, name, size, contentType: "application/pdf", storagePath, uploadedBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  await ref.create({ folderId, name, nameLower: name.toLocaleLowerCase(), size, contentType: "application/pdf", storagePath, uploadedBy: uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
   return { success: true, id: fileId, name };
 });
 exports.renameExamContentFile = onCall({ region: REGION }, async request => {
@@ -478,7 +479,7 @@ exports.renameExamContentFile = onCall({ region: REGION }, async request => {
   const ref = db.collection("examContentFiles").doc(id);
   if (!(await ref.get()).exists) throw new HttpsError("not-found", "PDF not found.");
   const name = contentName(request.data.name, "fileName");
-  await ref.update({ name, updatedAt: FieldValue.serverTimestamp() });
+  await ref.update({ name, nameLower: name.toLocaleLowerCase(), updatedAt: FieldValue.serverTimestamp() });
   return { success: true, name };
 });
 exports.deleteExamContentFile = onCall({ region: REGION }, async request => {
