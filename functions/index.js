@@ -583,8 +583,14 @@ exports.adminRecordPayment = onCall({ region: REGION }, async request => {
     throw new HttpsError("invalid-argument", "Unsupported payment type.");
   }
   const materialId = type === "study-material" ? cleanId(request.data.materialId, "materialId", 140) : null;
-  if (type === "study-material" && !(await db.collection("examContentFiles").doc(materialId).get()).exists) {
-    throw new HttpsError("not-found", "Study material PDF not found.");
+  if (type === "study-material") {
+    const materialSnap = await db.collection("examContentFiles").doc(materialId).get();
+    if (!materialSnap.exists) throw new HttpsError("not-found", "Study material PDF not found.");
+    if (Number(materialSnap.data().price || 0) !== amount) throw new HttpsError("failed-precondition", "Payment amount does not match the current PDF price.");
+  } else {
+    const settingsSnap = await db.collection("appSettings").doc("finance").get();
+    const expected = settingsSnap.exists && Number.isFinite(settingsSnap.data().subscriptionPrice) ? settingsSnap.data().subscriptionPrice : 300;
+    if (amount !== expected) throw new HttpsError("failed-precondition", "Payment amount does not match the current subscription price.");
   }
   const ref = db.collection("paymentRecords").doc(reference);
   await ref.create({
