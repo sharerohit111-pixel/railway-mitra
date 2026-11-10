@@ -589,3 +589,26 @@
   .rm-tribute-title { font-size: 14px; }
   .rm-tribute-subtitle { font-size: 11px; }
 }
+
+
+/* Center both the Welcome heading and the Railway Heroes tribute lines. */
+.welcome-section h2 {
+  width: 100%;
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.rm-heroes-tribute {
+  justify-content: center !important;
+  text-align: center !important;
+}
+.rm-tribute-copy {
+  align-items: center !important;
+  text-align: center !important;
+}
+.rm-tribute-title,
+.rm-tribute-subtitle {
+  display: block;
+  width: 100%;
+  text-align: center !important;
+}
