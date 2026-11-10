@@ -229,6 +229,26 @@ after(async () => {
   await db.collection("examContentFiles").doc(materialFileId).delete().catch(() => {});
 });
 
+test("owner can recursively delete a folder tree while protected root folders remain", async () => {
+  const roots = await call("listExamContent", adminToken, { parentId: null });
+  assert.equal(roots.status, 200);
+  const parent = await call("createExamContentFolder", adminToken, { name: "Delete tree " + suffix, parentId: "root_ldce" });
+  assert.equal(parent.status, 200);
+  const child = await call("createExamContentFolder", adminToken, { name: "Nested " + suffix, parentId: parent.body.result.id });
+  assert.equal(child.status, 200);
+  const denied = await call("deleteExamContentFolder", candidateToken, { folderId: parent.body.result.id });
+  assert.notEqual(denied.status, 200);
+  assert.equal(denied.body.error && denied.body.error.status, "PERMISSION_DENIED");
+  const deleted = await call("deleteExamContentFolder", adminToken, { folderId: parent.body.result.id });
+  assert.equal(deleted.status, 200);
+  assert.equal(deleted.body.result.deletedFolders, 2);
+  const missing = await call("searchExamContent", adminToken, { folderId: child.body.result.id });
+  assert.notEqual(missing.status, 200);
+  const rootDelete = await call("deleteExamContentFolder", adminToken, { folderId: "root_ldce" });
+  assert.notEqual(rootDelete.status, 200);
+  assert.equal(rootDelete.body.error && rootDelete.body.error.status, "FAILED_PRECONDITION");
+});
+
 test("candidate can view only their own exam history", async () => {
   const mine = await call("getMyExamAttempts", candidateToken, {});
   assert.equal(mine.status, 200);
