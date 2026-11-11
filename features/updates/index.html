@@ -1,52 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#071326">
-<meta name="description" content="Railway Board circulars, pay and allowance orders, departmental exam notices and railway employee updates.">
 <title>Railway Updates | Railway Mitra</title>
 <link rel="manifest" href="../../manifest.json">
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="./updates.css">
+<style>
+.rm-updates-empty{min-height:72vh;display:grid;place-items:center;padding:28px 18px;text-align:center}
+.rm-updates-empty-inner{width:min(100%,680px);padding:34px 24px;border:1px solid rgba(53,211,244,.55);border-radius:24px;background:linear-gradient(135deg,rgba(13,42,77,.9),rgba(37,20,67,.9));box-shadow:0 0 28px rgba(0,190,255,.12)}
+.rm-updates-empty h1{margin:0 0 12px;font-size:clamp(1.7rem,5vw,2.4rem)}
+.rm-updates-empty p{margin:0;color:#c5d7ec;font-size:1.05rem;line-height:1.65}
+.rm-updates-back{display:inline-block;margin:18px 0 0 18px;color:inherit;text-decoration:none;font-weight:700}
+</style>
 </head>
-<body class="rm-updates-page">
-<header class="rm-updates-header"><a href="../../index.html">← Railway Mitra</a><button id="updatesLanguage" type="button" class="rm-language">हिन्दी</button></header>
-<main class="rm-updates-wrap">
-<section class="rm-updates-hero">
- <span class="rm-kicker" data-i18n="kicker">RAILWAY MITRA · EMPLOYEE SERVICES</span>
- <h1 data-i18n="title">Railway Updates</h1>
- <p data-i18n="intro">Find railway circulars, employee notices and important deadlines in one place.</p>
- <div class="rm-updates-search"><label class="sr-only" for="updatesSearch" data-i18n="searchLabel">Search updates</label><input id="updatesSearch" type="search" placeholder="Search by RBE number or keyword…" data-i18n-placeholder="searchPlaceholder"><button id="clearSearch" type="button" data-i18n="clear">Clear</button></div>
-</section>
-<section class="rm-filter-panel">
- <div class="rm-filter-heading"><h2 data-i18n="categories">Browse categories</h2><span id="resultCount" aria-live="polite"></span></div>
- <div class="rm-category-grid" id="categoryFilters">
-  <button class="rm-category active" data-category="all" type="button"><b>✦</b><span data-i18n="all">All updates</span></button>
-  <button class="rm-category" data-category="rbe" type="button"><b>📄</b><span>RBE Circulars</span></button>
-  <button class="rm-category" data-category="pay" type="button"><b>₹</b><span data-i18n="pay">DA & Pay Commission</span></button>
-  <button class="rm-category" data-category="exam" type="button"><b>🎓</b><span>LDCE / GDCE</span></button>
-  <button class="rm-category" data-category="transfer" type="button"><b>↔</b><span data-i18n="transfer">Transfer notices</span></button>
-  <button class="rm-category" data-category="medical" type="button"><b>＋</b><span data-i18n="medical">Medical & Pass</span></button>
-  <button class="rm-category" data-category="zone" type="button"><b>🚆</b><span data-i18n="zone">Zone & Division</span></button>
-  <button class="rm-category" data-category="other" type="button"><b>🔔</b><span data-i18n="other">Other notices</span></button>
- </div>
-</section>
-<section class="rm-notice-section">
- <div class="rm-notice-heading"><div><span class="rm-kicker" data-i18n="noticeKicker">LATEST INFORMATION</span><h2 data-i18n="noticeTitle">Notices & circulars</h2></div><span class="rm-live-label"><i></i><span data-i18n="verifiedOnly">Official-source first</span></span></div>
- <div id="noticeList" class="rm-notice-list" aria-live="polite"></div>
- <div id="emptyState" class="rm-empty"><span>📭</span><h3 data-i18n="emptyTitle">No notices published here yet</h3><p data-i18n="emptyText">This section is ready for verified notices. We will not display unverified dates, circular numbers or claims as official updates.</p></div>
-</section>
-<section class="rm-source-panel">
- <span class="rm-kicker" data-i18n="sourceKicker">CHECK THE ORIGINAL ORDER</span><h2 data-i18n="sourceTitle">Official source directory</h2>
- <p data-i18n="sourceText">Always open the issuing authority’s original notice before relying on a rule, deadline or benefit.</p>
- <div class="rm-source-links">
-  <a href="https://indianrailways.gov.in/" target="_blank" rel="noopener noreferrer"><span>Indian Railways</span><small>Official railway portal ↗</small></a>
-  <a href="https://indianrailways.gov.in/railwayboard/" target="_blank" rel="noopener noreferrer"><span>Railway Board</span><small>Board orders and circulars ↗</small></a>
- </div>
- <p class="rm-disclaimer" data-i18n="disclaimer">Railway Mitra is an independent app, not an official Indian Railways or Government of India service. Verify every notice with the relevant authority.</p>
-</section>
+<body>
+<a class="rm-updates-back" href="../../index.html">← Railway Mitra</a>
+<main class="rm-updates-empty">
+ <section class="rm-updates-empty-inner">
+  <h1>Railway Updates</h1>
+  <p>This section is currently being updated.</p>
+ </section>
 </main>
-<footer class="rm-updates-footer"><a href="../../index.html">Railway Mitra Home</a> · <a href="../privacy/index.html">Privacy Policy</a></footer>
-<script type="module" src="./updates.js"></script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}</script>
-</body></html>
+</body>
+</html>
