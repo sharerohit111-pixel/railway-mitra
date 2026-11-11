@@ -40,11 +40,11 @@
         home: true
       },
       {
-        className: "rm-bottom-nav__item--reserved",
-        label: "Later",
-        title: "Navigation slot reserved for a future feature",
-        paths: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>',
-        reserved: true
+        className: "rm-bottom-nav__item--notifications",
+        label: "Notifications",
+        title: "Open Notifications",
+        href: "features/notifications/index.html",
+        paths: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/>'
       },
       {
         className: "rm-bottom-nav__item--feedback",
