@@ -1,5 +1,6 @@
 import { auth } from "../../assets/js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+// Keep the Firebase app binding distinct from the #fbaApp DOM element below.
 import { app as firebaseApp } from "../../assets/js/firebase.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 const functions=getFunctions(firebaseApp,"asia-south1");
