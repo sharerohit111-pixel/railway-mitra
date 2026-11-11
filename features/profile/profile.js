@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       import("https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js"),
       import("https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js")
     ]);
-    firebaseFns={db,doc,getDoc,setDoc,deleteDoc};
+    firebaseFns={db,doc,getDoc,setDoc,deleteDoc,deleteField};
     onAuthStateChanged(auth,async user=>{
       currentUser=user||null;
       if(!user){status("Not signed in · device-only save");return;}
