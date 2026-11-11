@@ -691,6 +691,9 @@ exports.adminApprovePayment = onCall({ region: REGION }, async request => {
     } else if (payment.type === "study-material" && payment.materialId) {
       tx.set(db.collection("materialEntitlements").doc(candidateUid).collection("items").doc(payment.materialId),
         { active: true, paymentReference: reference, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    } else {
+      // Fail closed: never mark an unknown or incomplete payment type as approved.
+      throw new HttpsError("failed-precondition", "Payment record type is invalid or incomplete.");
     }
     tx.update(paymentRef, { status: "approved", approvedBy: adminUid, approvedAt: FieldValue.serverTimestamp() });
     return { expiresAt: expiresAt ? expiresAt.toDate().toISOString() : null };
