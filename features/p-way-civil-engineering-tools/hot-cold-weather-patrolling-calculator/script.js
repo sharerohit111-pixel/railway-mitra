@@ -69,7 +69,7 @@ function calculateZoneLWR() {
   const tdValid = td >= minTd && td <= maxTd;
   const tdMessage = tdValid
     ? (isEn ? 'Valid against the entered reference range for Zone ' + zone + ': ' + td + '°C (' + minTd + '°C–' + maxTd + '°C).' : 'Zone ' + zone + ' की दी गई संदर्भ सीमा के भीतर: ' + td + '°C (' + minTd + '°C–' + maxTd + '°C)।')
-    : (isEn ? 'Outside the entered reference range for Zone ' + zone + '. Range: ' + minTd + '°C–' + maxTd + '°C.' : 'Zone ' + zone + की दी गई संदर्भ सीमा से बाहर। सीमा: ' + minTd + '°C–' + maxTd + '°C।');
+    : (isEn ? 'Outside the entered reference range for Zone ' + zone + '. Range: ' + minTd + '°C–' + maxTd + '°C.' : 'Zone ' + zone + ' की दी गई संदर्भ सीमा से बाहर। सीमा: ' + minTd + '°C–' + maxTd + '°C।');
   document.getElementById('tdValidationBox').innerHTML = '<div class="td-check">' + (tdValid ? '✓ ' : '⚠ ') + tdMessage + '</div>';
 
   const diff = curr - td;
