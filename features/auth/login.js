@@ -4,7 +4,9 @@ import {
     RecaptchaVerifier,
     signInWithPhoneNumber,
     GoogleAuthProvider,
-    signInWithPopup
+    signInWithPopup,
+    signInWithEmailAndPassword,
+    FacebookAuthProvider
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 const phoneForm = document.getElementById("phoneLoginForm");
@@ -129,36 +131,60 @@ otpForm.addEventListener("submit", async (event) => {
     }
 });
 
-// Google Login
-const googleLoginBtn = document.getElementById("googleLoginBtn");
-
-const googleProvider = new GoogleAuthProvider();
-
-googleProvider.setCustomParameters({
-    prompt: "select_account"
+// Email and password login
+const emailLoginForm = document.getElementById("emailLoginForm");
+const emailLoginBtn = document.getElementById("emailLoginBtn");
+emailLoginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    emailLoginBtn.disabled = true;
+    showMessage("Email से लॉगिन किया जा रहा है...");
+    try {
+        await signInWithEmailAndPassword(
+            auth,
+            document.getElementById("emailAddress").value.trim(),
+            document.getElementById("emailPassword").value
+        );
+        window.location.href = "../../index.html";
+    } catch (error) {
+        console.error("Email Login Error:", error);
+        showMessage("Email Login में समस्या: " + error.message, true);
+    } finally {
+        emailLoginBtn.disabled = false;
+    }
 });
 
-// Google Login - Popup Method
+// Google Login
+const googleLoginBtn = document.getElementById("googleLoginBtn");
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
 googleLoginBtn.addEventListener("click", async () => {
     googleLoginBtn.disabled = true;
     showMessage("Google Account से लॉगिन किया जा रहा है...");
-
     try {
-        const result = await signInWithPopup(auth, googleProvider);
-
-        showMessage("लॉगिन सफल हुआ! Railway Mitra में आपका स्वागत है।");
-
+        await signInWithPopup(auth, googleProvider);
         window.location.href = "../../index.html";
-
     } catch (error) {
         console.error("Google Login Error:", error);
-
-        showMessage(
-            "Google Login में समस्या: " + error.message,
-            true
-        );
-
+        showMessage("Google Login में समस्या: " + error.message, true);
     } finally {
         googleLoginBtn.disabled = false;
+    }
+});
+
+// Facebook Login
+const facebookLoginBtn = document.getElementById("facebookLoginBtn");
+const facebookProvider = new FacebookAuthProvider();
+facebookProvider.setCustomParameters({ display: "popup" });
+facebookLoginBtn.addEventListener("click", async () => {
+    facebookLoginBtn.disabled = true;
+    showMessage("Facebook Account से लॉगिन किया जा रहा है...");
+    try {
+        await signInWithPopup(auth, facebookProvider);
+        window.location.href = "../../index.html";
+    } catch (error) {
+        console.error("Facebook Login Error:", error);
+        showMessage("Facebook Login में समस्या: " + error.message, true);
+    } finally {
+        facebookLoginBtn.disabled = false;
     }
 });
