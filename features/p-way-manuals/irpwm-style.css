@@ -349,3 +349,15 @@ body {
 @media (max-width: 600px) {
   .official-reference-link { align-items: flex-start; flex-direction: column; }
 }
+
+/* Hindi study reader */
+.hindi-reader{margin:18px 0;padding:18px;border:1px solid #b8d5f5;border-radius:16px;background:linear-gradient(135deg,rgba(12,57,120,.08),rgba(0,188,212,.07))}
+.hindi-reader-head{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hindi-reader h2{margin:0 0 8px;color:var(--primary,#0b3d91)}
+.hindi-reader .reader-note{font-size:.88rem;opacity:.82;margin:8px 0 14px}
+.reader-chapter{padding:14px;margin-top:12px;border-radius:12px;background:rgba(255,255,255,.72);border:1px solid rgba(80,130,190,.2)}
+.reader-chapter h3{margin:0 0 10px}
+.reader-chapter h4{margin:14px 0 6px}
+.reader-chapter p{line-height:1.75;white-space:pre-line}
+.reader-ref{font-size:.82rem;font-weight:700;color:#1261a0}
+.reader-source{display:inline-block;margin-top:10px;font-weight:600}
