@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326"><title>Notice Draft Studio | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css"><link rel="stylesheet" href="./updates.css">
+<link rel="stylesheet" href="./publisher.css">
+</head>
+<body class="rm-updates-page">
+<header class="rm-updates-header"><a href="./index.html">← Railway Updates</a><span class="rm-language">Draft workspace</span></header>
+<main class="rm-updates-wrap">
+<section class="rm-updates-hero"><span class="rm-kicker">MAINTAINER TOOL · LOCAL DRAFT ONLY</span><h1>Notice Draft Studio</h1><p>Create a bilingual notice record, validate required details and export a JSON file for maintainer review.</p></section>
+<section class="rm-publisher-warning" role="note"><strong>Important security boundary</strong><p>This page does not authenticate administrators and cannot publish to the live feed. It stores drafts only in this browser session and exports a JSON file. Do not treat a hidden URL or this page as access control. Live publishing still requires an authorized maintainer to review and commit the feed.</p></section>
+<form id="noticeForm" class="rm-publisher-form">
+<div class="rm-form-grid">
+<label>Unique ID<input name="id" required maxlength="80" pattern="[A-Za-z0-9_-]+" placeholder="rbe-2026-001"></label>
+<label>Category<select name="category" required><option value="">Choose category</option><option value="rbe">RBE Circulars</option><option value="pay">DA & Pay Commission</option><option value="exam">LDCE / GDCE</option><option value="transfer">Transfer</option><option value="medical">Medical & Pass</option><option value="zone">Zone & Division</option><option value="other">Other</option></select></label>
+<label>RBE / Order number (optional)<input name="rbeNumber" maxlength="100"></label>
+<label>Publication date<input name="publishedAt" type="date" required></label>
+<label>Last date (optional)<input name="deadline" type="date"></label>
+<label>Official source name<input name="sourceName" required maxlength="160" placeholder="Railway Board / Zonal Railway"></label>
+<label class="rm-full">Official source URL (HTTPS)<input name="sourceUrl" type="url" required placeholder="https://..."></label>
+<label>Title — English<input name="titleEn" required maxlength="180"></label>
+<label>Title — Hindi<input name="titleHi" required maxlength="180"></label>
+<label class="rm-full">Summary — English<textarea name="summaryEn" required maxlength="1200" rows="3"></textarea></label>
+<label class="rm-full">Summary — Hindi<textarea name="summaryHi" required maxlength="1200" rows="3"></textarea></label>
+<label class="rm-full">Search keywords (comma separated)<input name="keywords" maxlength="300" placeholder="leave, RBE, allowance"></label>
+</div>
+<label class="rm-verify-check"><input id="verified" type="checkbox" required><span>I have opened and checked the original official notice, exact number, date, applicability and deadline. I am authorized to submit this draft for maintainer review.</span></label>
+<div class="rm-publisher-actions"><button type="submit" class="rm-publish-btn">Add to draft list</button><button type="button" id="exportJson" class="rm-export-btn" disabled>Export notices.json</button></div>
+<p id="publisherStatus" class="rm-publisher-status" role="status" aria-live="polite">No draft records added.</p>
+</form>
+<section class="rm-filter-panel"><div class="rm-filter-heading"><h2>Draft records</h2><button type="button" id="clearDrafts" class="rm-export-btn">Clear drafts</button></div><div id="draftList" class="rm-draft-list"><p>No drafts yet.</p></div></section>
+</main>
+<script src="./publisher.js"></script>
+</body></html>
