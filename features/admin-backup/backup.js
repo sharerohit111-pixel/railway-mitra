@@ -11,7 +11,19 @@ let owner=null;
 
 function say(text,error=false){$("backupMessage").textContent=text;$("backupMessage").style.color=error?"#fca5a5":"#78e8c1";}
 function getHistory(){try{const x=JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]");return Array.isArray(x)?x:[];}catch(_){return [];}}
-function renderHistory(){const h=getHistory();$("historyCount").textContent=h.length+" downloads";$("lastBackup").textContent=h[0]?.date?new Date(h[0].date).toLocaleString():"Not created yet";$("historyList").innerHTML=h.length?h.slice(0,10).map(x=>'<div class="rm-history-item"><span>'+new Date(x.date).toLocaleString()+'</span><span>'+Number(x.documents||0)+' Firestore docs · '+(x.action==="restore"?"Restored":"Downloaded")+'</span></div>').join(""):"<p>No backup history yet.</p>";}
+function renderHistory(){
+ const h=getHistory();
+ $("historyCount").textContent=h.length+" entries";
+ $("lastBackup").textContent=h[0]?.date?new Date(h[0].date).toLocaleString():"Not created yet";
+ const list=$("historyList");list.replaceChildren();
+ if(!h.length){const p=document.createElement("p");p.textContent="No backup history yet.";list.appendChild(p);return;}
+ h.slice(0,10).forEach(x=>{
+  const row=document.createElement("div");row.className="rm-history-item";
+  const left=document.createElement("span");left.textContent=Number.isFinite(Date.parse(x.date))?new Date(x.date).toLocaleString():"Unknown date";
+  const right=document.createElement("span");right.textContent=Number(x.documents||0)+" Firestore docs · "+(x.action==="restore"?"Restored":"Downloaded");
+  row.append(left,right);list.appendChild(row);
+ });
+}
 function record(action,documents){const h=getHistory();h.unshift({date:new Date().toISOString(),action,documents});localStorage.setItem(HISTORY_KEY,JSON.stringify(h.slice(0,20)));renderHistory();}
 function safeJson(value){return JSON.parse(JSON.stringify(value,(_,v)=>v&&typeof v.toMillis==="function"?{__rmTimestampMillis:v.toMillis()}:v));}
 async function readBackupData(){
