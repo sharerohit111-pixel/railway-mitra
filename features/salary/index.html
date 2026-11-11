@@ -1,58 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#071326">
-<meta name="description" content="Salary and Pay tools - Railway Mitra">
-<title>Salary & Pay | Railway Mitra</title>
-<link rel="manifest" href="../../manifest.json">
-<link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="../../assets/css/module-page.css">
+<title>Monthly Salary Calculator - Railway Mitra</title>
+<style>
+  body { background-color: #0B1120; color: #FFFFFF; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 16px; }
+  .top-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+  .lang-toggle { display: flex; background-color: #111827; border: 1px solid #334155; border-radius: 20px; padding: 3px; }
+  .lang-btn { background: transparent; border: none; color: #94A3B8; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+  .lang-btn.active { background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%); color: #0B1120; }
+  .header-card { background: linear-gradient(180deg, #162238 0%, #0F172A 100%); border: 1px solid #1E293B; border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 16px; }
+  .brand { color: #94A3B8; font-size: 12px; letter-spacing: 2px; font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; margin: 6px 0 2px; color: #FFFFFF; }
+  .subtitle { font-size: 14px; color: #00E5FF; }
+  .card { background-color: #111827; border: 1px solid #1F2937; border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+  .card-heading { color: #00E5FF; font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  label { display: block; font-size: 13px; color: #CBD5E1; margin-bottom: 6px; margin-top: 12px; }
+  input, select { width: 100%; box-sizing: border-box; background-color: #0B1120; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #FFFFFF; font-size: 15px; outline: none; }
+  input:focus, select:focus { border-color: #00E5FF; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-calc { width: 100%; padding: 14px; margin-top: 18px; border: none; border-radius: 12px; background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%); color: #0B1120; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .btn-reset { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #7E22CE; border-radius: 12px; background-color: #1E132C; color: #F472B6; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #1E293B; font-size: 14px; color: #CBD5E1; }
+  .row span:last-child { color: #FFFFFF; font-weight: 600; }
+  .deduct span:last-child { color: #F472B6; }
+  .sub-total { background-color: #162033; padding: 10px 12px; border-radius: 8px; margin-top: 8px; display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; }
+  .highlight-box { background-color: #0F2334; border: 1px solid #0284C7; border-radius: 12px; padding: 15px; margin-top: 14px; display: flex; justify-content: space-between; align-items: center; }
+  .highlight-label { font-size: 15px; font-weight: 700; color: #E2E8F0; }
+  .highlight-val { font-size: 21px; font-weight: 700; color: #00E5FF; }
+  .note { font-size: 11px; color: #94A3B8; margin-top: 12px; line-height: 1.4; }
+</style>
 </head>
 <body>
-<header class="module-header">
-  <a href="../../index.html">← Railway Mitra</a>
-  <button class="language-btn" id="languageToggle" type="button">हिन्दी</button>
-</header>
-<main class="module-page">
-  <section class="module-hero">
-    <div class="eyebrow">Railway Mitra · Employee Services</div>
-    <h2 id="pageTitle">Salary & Pay</h2>
-    <p id="pageDescription">Salary and pay tools for railway employees.</p>
-  </section>
-</main>
-<footer class="app-footer">
-  <h3>Railway Mitra</h3>
-  <p>Your Railway Digital Companion</p>
-  <p>© <span id="moduleYear">2026</span> Railway Mitra</p>
-</footer>
+<div class="top-bar">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnHi" onclick="setLang('hi')">हिन्दी</button>
+    <button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+<div class="header-card">
+  <div class="brand">RAILWAY MITRA</div>
+  <div class="title" id="t_title">मासिक वेतन कैलकुलेटर</div>
+  <div class="subtitle" id="t_subtitle">Complete Monthly Salary Calculator</div>
+</div>
+<div class="card">
+  <div class="card-heading" id="t_head">वेतन व पोस्टिंग विवरण</div>
+  <div class="grid-2">
+    <div><label id="t_lblLevel">पे लेवल (Pay Level)</label><select id="payLevel"><option value="1">Level 1 - 2</option><option value="3" selected>Level 3 - 8</option><option value="9">Level 9 & Above</option></select></div>
+    <div><label id="t_lblBasic">मूल वेतन (Basic Pay) ₹</label><input type="number" id="basicPay" placeholder="35400"></div>
+  </div>
+  <div class="grid-2">
+    <div><label id="t_lblCity">शहर श्रेणी (HRA City)</label><select id="cityClass"><option value="X" id="opt_x">X श्रेणी (30% HRA)</option><option value="Y" selected id="opt_y">Y श्रेणी (20% HRA)</option><option value="Z" id="opt_z">Z श्रेणी (10% HRA)</option></select></div>
+    <div><label id="t_lblTaCity">TA शहर (Transport)</label><select id="taCity"><option value="TPTA" id="opt_tpta">TPTA शहर (उच्च दर)</option><option value="OTHER" selected id="opt_other">अन्य शहर (सामान्य दर)</option></select></div>
+  </div>
+  <div class="grid-2">
+    <div><label id="t_lblDa">DA दर (%)</label><input type="number" id="daRate" value="63"></div>
+    <div><label id="t_lblPension">पेंशन कटौती (10%)</label><select id="pensionType"><option value="yes" id="opt_pyes">NPS / UPS (10% कटौती)</option><option value="no" id="opt_pno">OPS (कोई कटौती नहीं)</option></select></div>
+  </div>
+  <label id="t_lblOtherDed">अन्य मासिक कटौती (CGHS/Tax/VPF आदि) ₹ - वैकल्पिक</label><input type="number" id="otherDed" value="0" placeholder="0">
+  <button class="btn-calc" id="t_btnCalc" onclick="calculateSalary()">वेतन की गणना करें</button>
+  <button class="btn-reset" id="t_btnReset" onclick="resetForm()">रीसेट करें</button>
+</div>
+<div class="card" id="resultCard" style="display:none;">
+  <div class="card-heading" id="t_resHead">वेतन पर्ची सारांश (Salary Summary)</div>
+  <div class="row"><span id="t_rBasic">मूल वेतन (Basic Pay)</span><span id="rBasic">₹0</span></div>
+  <div class="row"><span id="t_rDa">महंगाई भत्ता (DA)</span><span id="rDa">₹0</span></div>
+  <div class="row"><span id="t_rHra">मकान किराया भत्ता (HRA)</span><span id="rHra">₹0</span></div>
+  <div class="row"><span id="t_rTa">यात्रा भत्ता (TA + DA on TA)</span><span id="rTa">₹0</span></div>
+  <div class="sub-total"><span id="t_rGrossLbl" style="color:#00E5FF;">कुल सकल वेतन (Gross Salary)</span><span id="rGross" style="color:#00E5FF;">₹0</span></div>
+  <div class="row deduct" style="margin-top:10px;"><span id="t_rNps">NPS / UPS कटौती (10%)</span><span id="rNps">- ₹0</span></div>
+  <div class="row deduct"><span id="t_rCgegis">CGEGIS (समूह बीमा)</span><span id="rCgegis">- ₹30</span></div>
+  <div class="row deduct"><span id="t_rOther">अन्य कटौती (Other Deductions)</span><span id="rOther">- ₹0</span></div>
+  <div class="highlight-box"><span class="highlight-label" id="t_rNetLbl">हाथ में वेतन (Net In-Hand)</span><span class="highlight-val" id="rNet">₹0</span></div>
+  <div class="note" id="t_note">नोट: DA 50% पार होने के बाद संशोधित HRA (30%, 20%, 10%) और Transport Allowance के नियमों के अनुसार गणना की गई है।</div>
+</div>
 <script>
-(function(){
-  const translations={
-    en:{back:"← Railway Mitra",title:"Salary & Pay",description:"Salary and pay tools for railway employees."},
-    hi:{back:"← रेलवे मित्र",title:"वेतन एवं भुगतान",description:"रेलवे कर्मचारियों के लिए वेतन और भुगतान संबंधी टूल।"}
-  };
-  const toggle=document.getElementById("languageToggle");
-  let lang="en";
-  try{lang=localStorage.getItem("railwayMitraLanguage")==="hi"?"hi":"en";}catch(e){}
-  function render(){
-    const t=translations[lang];
-    document.documentElement.lang=lang;
-    document.querySelector(".module-header a").textContent=t.back;
-    document.getElementById("pageTitle").textContent=t.title;
-    document.getElementById("pageDescription").textContent=t.description;
-    toggle.textContent=lang==="en"?"हिन्दी":"English";
+let currentLang = 'hi';
+const dict = {
+  hi: {
+    t_title:"मासिक वेतन कैलकुलेटर",t_subtitle:"Complete Monthly Salary Calculator",t_head:"वेतन व पोस्टिंग विवरण",t_lblLevel:"पे लेवल (Pay Level)",t_lblBasic:"मूल वेतन (Basic Pay) ₹",t_lblCity:"शहर श्रेणी (HRA City)",opt_x:"X श्रेणी (30% HRA)",opt_y:"Y श्रेणी (20% HRA)",opt_z:"Z श्रेणी (10% HRA)",t_lblTaCity:"TA शहर (Transport)",opt_tpta:"TPTA शहर (उच्च दर)",opt_other:"अन्य शहर (सामान्य दर)",t_lblDa:"DA दर (%)",t_lblPension:"पेंशन कटौती (10%)",opt_pyes:"NPS / UPS (10% कटौती)",opt_pno:"OPS (कोई कटौती नहीं)",t_lblOtherDed:"अन्य मासिक कटौती (CGHS/Tax/VPF आदि) ₹ - वैकल्पिक",t_btnCalc:"वेतन की गणना करें",t_btnReset:"रीसेट करें",t_resHead:"वेतन पर्ची सारांश (Salary Summary)",t_rBasic:"मूल वेतन (Basic Pay)",t_rDa:"महंगाई भत्ता (DA)",t_rHra:"मकान किराया भत्ता (HRA)",t_rTa:"यात्रा भत्ता (TA + DA on TA)",t_rGrossLbl:"कुल सकल वेतन (Gross Salary)",t_rNps:"NPS / UPS कटौती (10%)",t_rCgegis:"CGEGIS (समूह बीमा)",t_rOther:"अन्य कटौती (Other Deductions)",t_rNetLbl:"हाथ में वेतन (Net In-Hand)",t_note:"नोट: DA 50% पार होने के बाद संशोधित HRA (30%, 20%, 10%) और Transport Allowance के नियमों के अनुसार गणना की गई है।",alertMsg:"कृपया सही मूल वेतन (Basic Pay) दर्ज करें।"
+  },
+  en: {
+    t_title:"Monthly Salary Calculator",t_subtitle:"7th CPC Gross & Net Salary Breakdown",t_head:"Pay & Posting Details",t_lblLevel:"Pay Level",t_lblBasic:"Basic Pay (₹)",t_lblCity:"City Class (HRA)",opt_x:"X Class (30% HRA)",opt_y:"Y Class (20% HRA)",opt_z:"Z Class (10% HRA)",t_lblTaCity:"TA City Type",opt_tpta:"TPTA City (Higher Rate)",opt_other:"Other Cities (Normal Rate)",t_lblDa:"DA Rate (%)",t_lblPension:"Pension Deduction (10%)",opt_pyes:"NPS / UPS (10% Ded.)",opt_pno:"OPS (No Deduction)",t_lblOtherDed:"Other Monthly Deductions (CGHS/Tax/VPF) ₹ - Optional",t_btnCalc:"Calculate Salary",t_btnReset:"Reset",t_resHead:"Salary Slip Summary",t_rBasic:"Basic Pay",t_rDa:"Dearness Allowance (DA)",t_rHra:"House Rent Allowance (HRA)",t_rTa:"Transport Allowance (TA + DA)",t_rGrossLbl:"Total Gross Salary",t_rNps:"NPS / UPS Contribution (10%)",t_rCgegis:"CGEGIS (Group Insurance)",t_rOther:"Other Deductions",t_rNetLbl:"Net In-Hand Salary",t_note:"Note: Calculated using revised HRA rates (30%, 20%, 10% post-50% DA) and 7th CPC Transport Allowance slabs.",alertMsg:"Please enter a valid Basic Pay."
   }
-  toggle.addEventListener("click",()=>{
-    lang=lang==="en"?"hi":"en";
-    try{localStorage.setItem("railwayMitraLanguage",lang);}catch(e){}
-    render();
-  });
-  render();
-  document.getElementById("moduleYear").textContent=new Date().getFullYear();
-})();
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}
+};
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btnHi').classList.toggle('active', lang === 'hi');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+  for (let k in dict[lang]) { if (document.getElementById(k)) document.getElementById(k).innerText = dict[lang][k]; }
+  if (document.getElementById('resultCard').style.display === 'block') calculateSalary();
+}
+function calculateSalary() {
+  let level=document.getElementById('payLevel').value;
+  let basic=parseFloat(document.getElementById('basicPay').value)||0;
+  let city=document.getElementById('cityClass').value;
+  let taCity=document.getElementById('taCity').value;
+  let daRate=parseFloat(document.getElementById('daRate').value)||0;
+  let pension=document.getElementById('pensionType').value;
+  let otherDed=parseFloat(document.getElementById('otherDed').value)||0;
+  if(basic<=0){alert(dict[currentLang].alertMsg);return;}
+  let daAmt=Math.round(basic*(daRate/100));
+  let hraPerc=(city==='X')?0.30:(city==='Y'?0.20:0.10);
+  let hraAmt=Math.round(basic*hraPerc);
+  let baseTa=0;
+  if(level==='1'){baseTa=(taCity==='TPTA')?1350:900;if(basic>=24200)baseTa=(taCity==='TPTA')?3600:1800;}
+  else if(level==='3'){baseTa=(taCity==='TPTA')?3600:1800;}
+  else{baseTa=(taCity==='TPTA')?7200:3600;}
+  let taAmt=Math.round(baseTa+(baseTa*daRate/100));
+  let gross=basic+daAmt+hraAmt+taAmt;
+  let npsDed=(pension==='yes')?Math.round((basic+daAmt)*0.10):0;
+  let cgegis=(level==='1')?15:(level==='3'?30:60);
+  let totalDed=npsDed+cgegis+otherDed;
+  let netSalary=gross-totalDed;
+  document.getElementById('rBasic').innerText="₹"+basic.toLocaleString('en-IN');
+  document.getElementById('rDa').innerText="₹"+daAmt.toLocaleString('en-IN');
+  document.getElementById('rHra').innerText="₹"+hraAmt.toLocaleString('en-IN');
+  document.getElementById('rTa').innerText="₹"+taAmt.toLocaleString('en-IN');
+  document.getElementById('rGross').innerText="₹"+gross.toLocaleString('en-IN');
+  document.getElementById('rNps').innerText="- ₹"+npsDed.toLocaleString('en-IN');
+  document.getElementById('rCgegis').innerText="- ₹"+cgegis;
+  document.getElementById('rOther').innerText="- ₹"+otherDed.toLocaleString('en-IN');
+  document.getElementById('rNet').innerText="₹"+netSalary.toLocaleString('en-IN');
+  document.getElementById('resultCard').style.display="block";
+}
+function resetForm(){
+  document.getElementById('basicPay').value="";
+  document.getElementById('otherDed').value="0";
+  document.getElementById('daRate').value="63";
+  document.getElementById('resultCard').style.display="none";
+}
 </script>
 </body>
 </html>
