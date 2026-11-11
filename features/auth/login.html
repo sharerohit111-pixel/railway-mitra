@@ -25,9 +25,29 @@
                 आपका रेलवे डिजिटल साथी
             </p>
 
-            <h2>मोबाइल नंबर से लॉगिन करें</h2>
+            <h2>Email ID से लॉगिन करें</h2>
 
-            <form id="phoneLoginForm">
+            <form id="emailLoginForm">
+                <label for="emailAddress">Email Address</label>
+                <input type="email" id="emailAddress" placeholder="अपना ईमेल दर्ज करें" autocomplete="email" required>
+
+                <label for="emailPassword" style="margin-top:14px;">Password</label>
+                <input type="password" id="emailPassword" placeholder="अपना पासवर्ड दर्ज करें" autocomplete="current-password" required>
+
+                <button type="submit" id="emailLoginBtn">Email से लॉगिन करें</button>
+            </form>
+
+            <div class="rm-login-divider"><span>या</span></div>
+
+            <button type="button" id="googleLoginBtn" class="google-login-btn">G&nbsp; Google से लॉगिन करें</button>
+            <button type="button" id="facebookLoginBtn" class="facebook-login-btn">f&nbsp; Facebook से लॉगिन करें</button>
+
+            <details class="rm-phone-login-later">
+                <summary>मोबाइल नंबर से लॉगिन (जल्द उपलब्ध होगा)</summary>
+                <p>मोबाइल OTP लॉगिन सुविधा बाद में शुरू की जाएगी।</p>
+            </details>
+
+            <form id="phoneLoginForm" hidden>
                 <label for="phoneNumber">मोबाइल नंबर</label>
 
                 <div class="rm-phone-input">
@@ -48,9 +68,6 @@
                     OTP भेजें
                 </button>
             </form>
-            <button type="button" id="googleLoginBtn" class="google-login-btn">
-    <span>G</span> Google से लॉगिन करें
-            </button>
 
             <form id="otpForm" hidden>
                 <label for="otpCode">OTP दर्ज करें</label>
