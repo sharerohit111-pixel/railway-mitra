@@ -106,7 +106,8 @@ function toggleLanguage() {
   if(disclaimer) disclaimer.textContent=currentLang==='hi'
     ? 'महत्वपूर्ण सुरक्षा सूचना: यह अध्ययन एवं त्वरित संदर्भ सामग्री है, नियंत्रित रेलवे आदेश/मैनुअल का विकल्प नहीं। कार्य करने से पहले लागू IRPWM-2024, नवीनतम ACS, RDSO प्रक्रिया आदेश, G&SR, Accident Manual तथा अपने रेलवे/डिवीजन के वर्तमान निर्देश और सक्षम अधिकारी की अनुमति देखें। किसी भी विरोध की स्थिति में वर्तमान आधिकारिक आदेश मान्य होगा।'
     : 'IMPORTANT SAFETY NOTICE: This is learning/reference material, not a substitute for controlled Railway instructions. Before work, consult applicable IRPWM-2024, latest ACS, RDSO procedure orders, G&SR, Accident Manual, current Railway/Division instructions and competent authority. Current official orders prevail.';
-  renderFolders();\n  renderHindiReader();\n  const q=search?search.value.trim():'';
+  renderFolders();
+  renderHindiReader();\n  const q=search?search.value.trim():'';
   if(q) searchAll(); else { const f=irpwmData.find(x=>x.id===selectedFolder); if(f) renderDetailedFolder(f); }
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -117,7 +118,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   } catch(e) {}
   const button=document.getElementById('lang-toggle');
   if(button) button.textContent=currentLang==='hi'?'Switch to English':'हिंदी में बदलें';
-  renderFolders();\n  renderHindiReader();\n  const first=irpwmData.find(x=>x.id===selectedFolder);
+  renderFolders();
+  renderHindiReader();\n  const first=irpwmData.find(x=>x.id===selectedFolder);
   if(first) renderDetailedFolder(first);
 });
 
