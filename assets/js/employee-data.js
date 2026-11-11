@@ -30,7 +30,6 @@
       tpa: profile.tpa === "" || profile.tpa == null ? "" : Number(profile.tpa),
       division: String(profile.division || "").trim(),
       zone: String(profile.zone || "").trim(),
-      employeeNumber: String(profile.employeeNumber || "").trim(),
       department: String(profile.department || "").trim(),
       billUnit: String(profile.billUnit || "").trim(),
       officialMobile: String(profile.officialMobile || "").trim(),
