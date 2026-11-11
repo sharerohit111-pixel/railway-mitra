@@ -6,35 +6,61 @@
   <meta name="theme-color" content="#071326">
   <meta name="description" content="P-Way and Civil Engineering tools for Railway Mitra">
   <title>P-Way &amp; Civil Engineering Tools | Railway Mitra</title>
-  <link rel="stylesheet" href="../../assets/css/main.css">
   <style>
-    .tool-card{display:block;padding:20px;border:1px solid rgba(56,189,248,.28);border-radius:16px;background:linear-gradient(135deg,rgba(14,42,72,.96),rgba(7,19,38,.98));color:inherit;text-decoration:none;transition:transform .2s,border-color .2s}
-    .tool-card:hover{transform:translateY(-2px);border-color:#38bdf8}
-    .tool-card h3{margin:8px 0;color:#e0f2fe}.tool-card p{margin:0;color:#a9bfd3}.tool-icon{font-size:28px}
+    *{box-sizing:border-box}
+    html{font-size:16px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 85% 78%,rgba(100,35,130,.22),transparent 38%),#07101f;color:#e8f1fc;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.5}
+    a{color:inherit}
+    .pw-header{height:60px;display:flex;align-items:center;padding:0 max(18px,calc((100% - 920px)/2));border-bottom:1px solid rgba(148,163,184,.14);background:rgba(5,13,27,.82)}
+    .pw-back{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:#c6d6e8;font-size:15px;font-weight:600}
+    .pw-back:hover{color:#67e8f9}
+    .pw-main{width:min(100% - 32px,820px);margin:0 auto;padding:34px 0 42px}
+    .pw-eyebrow{margin:0 0 8px;color:#6fc8ed;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .pw-title{margin:0;color:#f3f8ff;font-size:clamp(25px,5vw,34px);line-height:1.2;font-weight:750;letter-spacing:-.025em}
+    .pw-intro{max-width:620px;margin:12px 0 28px;color:#a9bbd0;font-size:16px;line-height:1.65}
+    .pw-section-title{margin:0 0 14px;font-size:18px;line-height:1.35;color:#e6f2ff;font-weight:700}
+    .pw-tool-card{position:relative;display:flex;align-items:center;gap:18px;padding:20px;border:1px solid rgba(56,189,248,.3);border-radius:18px;background:linear-gradient(135deg,rgba(17,48,78,.92),rgba(12,25,47,.98));text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.18);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .pw-tool-card:hover,.pw-tool-card:focus-visible{transform:translateY(-2px);border-color:#38bdf8;box-shadow:0 14px 34px rgba(6,182,212,.12);outline:none}
+    .pw-tool-icon{width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center;border-radius:15px;background:rgba(56,189,248,.12);font-size:28px}
+    .pw-tool-copy{min-width:0;flex:1}
+    .pw-tool-title{margin:0 0 5px;color:#e5f5ff;font-size:19px;line-height:1.35;font-weight:700}
+    .pw-tool-desc{margin:0;color:#a9bfd3;font-size:14px;line-height:1.55}
+    .pw-open{flex:0 0 auto;color:#67e8f9;font-size:23px;font-weight:500}
+    .pw-note{margin:18px 2px 0;padding:12px 14px;border-left:3px solid rgba(56,189,248,.65);border-radius:0 10px 10px 0;background:rgba(15,35,59,.55);color:#9fb2c8;font-size:13px;line-height:1.6}
+    .pw-footer{margin-top:20px;padding:22px 16px 26px;border-top:1px solid rgba(56,189,248,.65);text-align:center;background:linear-gradient(110deg,rgba(8,18,36,.55),rgba(46,17,60,.48))}
+    .pw-footer-name{margin:0;color:#9aa9ff;font-size:20px;font-weight:750}
+    .pw-footer-tag{margin:4px 0;color:#c7bce8;font-size:13px}
+    .pw-footer-copy{margin:4px 0 0;color:#9b9db7;font-size:12px}
+    @media(max-width:480px){.pw-main{width:calc(100% - 28px);padding:27px 0 32px}.pw-intro{margin-bottom:23px;font-size:15px}.pw-tool-card{gap:13px;padding:16px;border-radius:16px}.pw-tool-icon{width:46px;height:46px;flex-basis:46px;font-size:24px}.pw-tool-title{font-size:17px}.pw-tool-desc{font-size:13px}.pw-open{font-size:20px}}
+    @media(prefers-reduced-motion:reduce){.pw-tool-card{transition:none}}
   </style>
 </head>
 <body>
-  <header class="module-header">
-    <a href="../../index.html">← Railway Mitra</a>
+  <header class="pw-header">
+    <a class="pw-back" href="../../index.html"><span aria-hidden="true">←</span> Railway Mitra</a>
   </header>
-  <main class="module-page" id="moduleContent">
-    <section class="module-hero">
-      <div class="eyebrow">Railway Mitra · Engineering</div>
-      <h2>P-Way &amp; Civil Engineering Tools</h2>
-      <p>Independent calculators and utilities for track and civil engineering work.</p>
-    </section>
-    <section class="module-panel">
-      <h3>Available Tools</h3>
-      <a class="tool-card" href="versine-calculator/index.html">
-        <span class="tool-icon">📐</span>
-        <h3>Versine Calculator</h3>
-        <p>Calculate curve versine using chord length, degree of curve or radius.</p>
+  <main class="pw-main">
+    <p class="pw-eyebrow">Railway Mitra <span aria-hidden="true">·</span> Engineering</p>
+    <h1 class="pw-title">P-Way &amp; Civil Engineering Tools</h1>
+    <p class="pw-intro">Useful calculators and utilities for railway track and civil engineering work.</p>
+    <section aria-labelledby="pw-tools-heading">
+      <h2 class="pw-section-title" id="pw-tools-heading">Available Tools</h2>
+      <a class="pw-tool-card" href="versine-calculator/index.html" aria-label="Open Versine Calculator">
+        <span class="pw-tool-icon" aria-hidden="true">📐</span>
+        <span class="pw-tool-copy">
+          <span class="pw-tool-title">Versine Calculator</span>
+          <span class="pw-tool-desc">Calculate curve versine using chord length, degree of curve or radius.</span>
+        </span>
+        <span class="pw-open" aria-hidden="true">›</span>
       </a>
-      <div class="module-note">Each calculator is maintained in its own folder so that updates remain isolated from other Railway Mitra features.</div>
-      <div class="module-actions"><a href="../../index.html">Back to Dashboard</a></div>
     </section>
+    <p class="pw-note">Each tool is kept in its own folder, so future updates can be made independently without disturbing other Railway Mitra features.</p>
   </main>
-  <footer class="app-footer"><h3>Railway Mitra</h3><p>Your Railway Digital Companion</p><p>© 2026 Railway Mitra</p></footer>
+  <footer class="pw-footer">
+    <p class="pw-footer-name">Railway Mitra</p>
+    <p class="pw-footer-tag">Your Railway Digital Companion</p>
+    <p class="pw-footer-copy">© 2026 Railway Mitra</p>
+  </footer>
   <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}</script>
 </body>
 </html>
