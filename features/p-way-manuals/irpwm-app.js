@@ -132,10 +132,12 @@ function renderHindiReader(){
  root.replaceChildren();
  const head=el('div','hindi-reader-head');
  head.append(el('h2','',currentLang==='hi'?data.titleHi:data.titleEn));
- const source=el('a','reader-source',currentLang==='hi'?'आधिकारिक मूल मैनुअल और नवीनतम ACS खोलें':'Open official manual and latest ACS');
+ const source=el('a','reader-source',currentLang==='hi'?'Railway Board: नवीनतम ACS देखें ↗':'Railway Board: check latest ACS ↗');
  source.href='https://rb.indianrailways.gov.in/show-irPersonnel/preview/204';source.target='_blank';source.rel='noopener noreferrer';
- head.append(source);root.append(head);
- root.append(el('p','reader-note',currentLang==='hi'?'यह अध्यायवार हिंदी अध्ययन रूपांतरण है। मूल नियम, संख्यात्मक मान और कार्यवाही लागू आधिकारिक मैनुअल/ACS से सत्यापित करें।':'Chapter-wise Hindi study adaptation. Verify rules, numerical limits and procedures against the applicable official manual/ACS.'));
+ const pdf=el('a','reader-source',currentLang==='hi'?'मूल IRPWM 2024 PDF खोलें ↗':'Open original IRPWM 2024 PDF ↗');
+ pdf.href='https://www.iricen.gov.in/iricen/Track_Manuals/IRPWM%202024%20Corrected%20Up%20To%20ACS%20-%205%20%2817.06.25%29.pdf';pdf.target='_blank';pdf.rel='noopener noreferrer';
+ head.append(source,pdf);root.append(head);
+ root.append(el('p','reader-note',currentLang==='hi'?data.noticeHi:data.noticeEn));
  data.chapters.forEach(ch=>{
   const card=el('article','reader-chapter');
   card.append(el('h3','',currentLang==='hi'?ch.hi:ch.en));
