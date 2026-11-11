@@ -10,15 +10,16 @@
 
 <div class="top-bar">
   <span class="tag">IRPWM LWR Zone Tool</span>
-  <button class="lang-btn" onclick="toggleLang()" id="langBtn">English</button>
+  <button type="button" class="lang-btn" id="langBtn">English</button>
 </div>
 
+<!-- Main Calculator Card -->
 <div class="card">
   <h2 id="mainTitle">🌡️ जोन-वाइज LWR तापमान और पेट्रोलिंग</h2>
   <p class="sub" id="subTitle">IRPWM के 4 तापमान जोन (Zone I–IV) के अनुसार td और पेट्रोलिंग की स्थिति जांचें</p>
 
   <label id="zoneLabel">1. रेलवे तापमान जोन चुनें (Temperature Zone):</label>
-  <select id="tempZone" onchange="updateZoneInfo()">
+  <select id="tempZone">
     <option value="1" id="optZ1">Zone I (वार्षिक अंतर: 40°C – 50°C | तटीय क्षेत्र)</option>
     <option value="2" id="optZ2">Zone II (वार्षिक अंतर: 51°C – 60°C | दक्षिण/मध्य)</option>
     <option value="3" selected id="optZ3">Zone III (वार्षिक अंतर: 61°C – 70°C | उत्तर/पश्चिम)</option>
@@ -34,19 +35,35 @@
   <label id="currLabel">4. मौजूदा रेल तापमान (Current Rail Temp °C):</label>
   <input type="number" step="0.5" id="currTemp" placeholder="जैसे: 64">
 
-  <button class="calc-btn" onclick="calculateZoneLWR()" id="calcBtn">पेट्रोलिंग स्थिति जांचें (Check Status)</button>
+  <button type="button" class="calc-btn" id="calcBtn">पेट्रोलिंग स्थिति जांचें (Check Status)</button>
 
+  <!-- Clear Result Box -->
   <div class="result-box" id="resultBox">
     <div id="tdValidationBox" style="margin-bottom: 12px;"></div>
+    
     <div class="res-label" id="resDiffLabel">डिस्ट्रेसिंग तापमान से अंतर (ΔT = Curr - td):</div>
     <div class="result-val" id="diffOutput">0 °C</div>
+
+    <!-- Clear Action Box for Patrolling -->
     <div id="patrollingDecisionBox" class="decision-box"></div>
+
     <div id="limitDetails" class="extra-details"></div>
   </div>
 </div>
 
-<div class="card info-box" id="zoneRulesBox"></div>
-<div class="disclaimer-box" id="disclaimerBox"></div>
+<!-- Zone Reference Box -->
+<div class="card info-box" id="zoneRulesBox">
+  <strong style="color:#38bdf8;">📘 Zone 3 – कैलकुलेटर में दिए गए संदर्भ मान:</strong><br>
+  • <b>अनुमेय td सीमा:</b> tm से tm + 5°C<br>
+  • <b>गर्मी की पेट्रोलिंग (Hot Patrolling):</b> <b>td + 20°C</b> से ऊपर<br>
+  • <b>वॉचमैन / गति प्रतिबंध:</b> <b>td + 25°C</b> से ऊपर<br>
+  • <b>सर्दी की पेट्रोलिंग (Cold Patrolling):</b> <b>td - 30°C</b> से नीचे
+</div>
+
+<!-- Legal Disclaimer Box -->
+<div class="disclaimer-box" id="disclaimerBox">
+  <b>महत्वपूर्ण:</b> यह कैलकुलेटर दिए गए इनपुट और इसमें शामिल संदर्भ सीमाओं के आधार पर प्रारंभिक संकेत देता है। पेट्रोलिंग, वॉचमैन और गति प्रतिबंध के वास्तविक निर्णय के लिए लागू नवीनतम IRPWM, रेलवे बोर्ड/जोनल निर्देश तथा सक्षम अधिकारी के आदेश देखें। इसे परिचालन अनुमति न मानें।
+</div>
 
 <script src="script.js"></script>
 </body>
