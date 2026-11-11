@@ -79,7 +79,6 @@
   const lowerFeatureItems = [
     ["Leave Management", "features/leave/index.html"],
     ["NPS & Pension", "features/retirement/index.html"],
-    ["Loan & Finance", "features/finance/index.html"],
     ["Railway Rules", "features/rules/index.html"],
     ["Engineering Tools", "features/engineering/index.html"],
     ["Documents & PDF", "features/documents/index.html"],
