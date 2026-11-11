@@ -1,5 +1,71 @@
 {
-  "version": 1,
-  "updatedAt": null,
-  "notices": []
+  "version": 2,
+  "updatedAt": "2026-11-12",
+  "notices": [
+    {
+      "id": "rb-plb-2026",
+      "category": "pay",
+      "verified": true,
+      "publishedAt": "2026-10-14",
+      "titleEn": "Cabinet approves 78-day Productivity Linked Bonus for Railway employees",
+      "titleHi": "रेलवे कर्मचारियों के लिए 78 दिनों के उत्पादकता-आधारित बोनस को मंजूरी",
+      "summaryEn": "The Union Cabinet approved 78 days of PLB for eligible non-gazetted Railway employees. The official release states a maximum payable amount of ₹17,951 and includes Track Maintainers and other Group C categories.",
+      "summaryHi": "केंद्रीय मंत्रिमंडल ने पात्र अराजपत्रित रेलवे कर्मचारियों के लिए 78 दिनों के PLB को मंजूरी दी। आधिकारिक विज्ञप्ति में अधिकतम देय राशि ₹17,951 बताई गई है। इसमें ट्रैक मेंटेनर सहित अन्य Group C कर्मचारी शामिल हैं।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://rb.indianrailways.gov.in/public/cms/pdf/press_release/Cabinet_approves_Productivity_Linked_Bonus_%28PLB%29_for_78_days_to_Railway_Employees/2026/10/179212784529714OCT2026-1.pdf",
+      "keywords": "PLB bonus productivity linked bonus 78 days track maintainer employee"
+    },
+    {
+      "id": "rb-station-master-2026",
+      "category": "exam",
+      "verified": true,
+      "publishedAt": "2026-10-27",
+      "titleEn": "Indian Railways announces recruitment of 1,265 Station Masters under CEN 08/2026",
+      "titleHi": "CEN 08/2026 के अंतर्गत 1,265 स्टेशन मास्टर पदों पर भर्ती की घोषणा",
+      "summaryEn": "The Railway Board press release announces 1,265 Station Master vacancies under CEN 08/2026 and gives 25 November 2026 as the online application closing date. Candidates should read the detailed CEN and check the official RRB portal for current application status.",
+      "summaryHi": "रेलवे बोर्ड की विज्ञप्ति में CEN 08/2026 के अंतर्गत स्टेशन मास्टर के 1,265 पदों और ऑनलाइन आवेदन की अंतिम तिथि 25 नवंबर 2026 बताई गई है। अभ्यर्थी विस्तृत CEN पढ़ें और आवेदन की वर्तमान स्थिति आधिकारिक RRB पोर्टल पर जाँचें।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://rb.indianrailways.gov.in/public/cms/pdf/press_release/Indian_Railways_to_Recruit_1%2C265_Station_Masters_Nationwide/2026/10/179325285968327OCT2026-1.pdf",
+      "keywords": "CEN 08/2026 station master recruitment 1265 RRB"
+    },
+    {
+      "id": "rb-campaign6-2026",
+      "category": "rbe",
+      "verified": true,
+      "publishedAt": "2026-11-09",
+      "titleEn": "Special Campaign 6 concludes with over one lakh cleanliness drives",
+      "titleHi": "विशेष अभियान 6 का समापन: रेलवे में एक लाख से अधिक स्वच्छता अभियान",
+      "summaryEn": "Indian Railways reported more than one lakh cleanliness drives across stations, offices and workshops. The official release also reports ₹628.49 crore generated through scrap disposal and Rail Jan Samvad at 5,884 stations.",
+      "summaryHi": "भारतीय रेलवे ने स्टेशनों, कार्यालयों और कार्यशालाओं में एक लाख से अधिक स्वच्छता गतिविधियों की जानकारी दी। आधिकारिक विज्ञप्ति के अनुसार कबाड़ निस्तारण से ₹628.49 करोड़ प्राप्त हुए और 5,884 स्टेशनों पर रेल जन संवाद आयोजित हुआ।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://rb.indianrailways.gov.in/public/cms/pdf/press_release/Indian_Railways_Successfully_Concludes_Special_Campaign_6%3B_Over_1_Lakh_Cleanliness_Drives_Conducted/2026/11/179431333812909NOV2026-1.pdf",
+      "keywords": "special campaign 6 cleanliness scrap disposal Rail Jan Samvad"
+    },
+    {
+      "id": "rb-ndls-security-2026",
+      "category": "transfer",
+      "verified": true,
+      "publishedAt": "2026-11-06",
+      "titleEn": "Railway Minister reviews passenger facilities and security at New Delhi station",
+      "titleHi": "रेल मंत्री ने नई दिल्ली स्टेशन पर यात्री सुविधाओं और सुरक्षा व्यवस्था की समीक्षा की",
+      "summaryEn": "The Ministry reported festive-season arrangements including holding areas, additional trains, enhanced RPF deployment and 700 additional AI cameras. The release describes measures reviewed at New Delhi station.",
+      "summaryHi": "मंत्रालय ने त्योहारों के दौरान यात्रियों के प्रबंधन के लिए होल्डिंग एरिया, अतिरिक्त ट्रेनें, RPF की तैनाती और 700 अतिरिक्त AI कैमरों की जानकारी दी। विज्ञप्ति में नई दिल्ली स्टेशन पर समीक्षा का विवरण है।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://rb.indianrailways.gov.in/public/cms/pdf/press_release/Union_Minister_for_Railways_Shri_Ashwini_Vaishnaw_Reviews_Passenger_Facilities_and_Security_Arrangements_at_New_Delhi_Railway_Station/2026/11/179422725348206NOV2026-1.pdf",
+      "keywords": "New Delhi station passenger facilities security RPF AI cameras"
+    },
+    {
+      "id": "rb-freight-oct-2026",
+      "category": "zone",
+      "verified": true,
+      "publishedAt": "2026-11-04",
+      "titleEn": "Indian Railways records 145.07 million tonnes of freight loading in October 2026",
+      "titleHi": "भारतीय रेलवे ने अक्टूबर 2026 में 145.07 मिलियन टन माल लदान दर्ज किया",
+      "summaryEn": "The Railway Ministry reported October freight loading of 145.07 million tonnes, up 8.32% from October 2025. The release also reports 978.78 million tonnes loaded during April–October 2026.",
+      "summaryHi": "रेल मंत्रालय के अनुसार अक्टूबर 2026 में 145.07 मिलियन टन माल लदान हुआ, जो अक्टूबर 2025 से 8.32% अधिक है। अप्रैल–अक्टूबर 2026 के दौरान 978.78 मिलियन टन माल लदान दर्ज किया गया।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://rb.indianrailways.gov.in/public/cms/pdf/press_release/Indian_Railways_Registers_Freight_Loading_of_145.07_Million_Tonnes_in_October_2026/2026/11/179379540274504NOV2026-1.pdf",
+      "keywords": "freight loading October 2026 goods loading 145.07 million tonnes"
+    }
+  ]
 }
