@@ -79,6 +79,54 @@
     root.appendChild(lane);
   }
 
+
+  // A separate single service ticker sits in the open gap above the Welcome panel.
+  // It is intentionally independent: the existing EXAMS and TOOLS lanes stay unchanged.
+  const serviceItems = [
+    "Leave Rules",
+    "Pass & PTO",
+    "Medical Benefits",
+    "Retirement Benefits",
+    "Employee Welfare",
+    "HRMS Tips"
+  ];
+
+  const serviceLane = document.createElement("section");
+  serviceLane.className = "rm-home-service-ticker";
+  serviceLane.setAttribute("aria-label", "Employee service guides");
+
+  const serviceLabel = document.createElement("span");
+  serviceLabel.className = "rm-home-service-ticker__label";
+  serviceLabel.textContent = "✦ SERVICES";
+
+  const serviceViewport = document.createElement("div");
+  serviceViewport.className = "rm-home-service-ticker__viewport";
+
+  const serviceTrack = document.createElement("div");
+  serviceTrack.className = "rm-home-service-ticker__track";
+
+  for (let copy = 0; copy < 2; copy += 1) {
+    const group = document.createElement("div");
+    group.className = "rm-home-service-ticker__group";
+    if (copy === 1) group.setAttribute("aria-hidden", "true");
+
+    serviceItems.forEach((item) => {
+      const chip = document.createElement("span");
+      chip.className = "rm-home-service-ticker__item";
+      chip.textContent = item;
+      group.appendChild(chip);
+    });
+    serviceTrack.appendChild(group);
+  }
+
+  serviceViewport.appendChild(serviceTrack);
+  serviceLane.append(serviceLabel, serviceViewport);
+
+  const welcome = root.closest(".welcome-section");
+  if (welcome && welcome.parentNode) {
+    welcome.parentNode.insertBefore(serviceLane, welcome);
+  }
+
   addLane("Departmental exam features", "🎓 EXAMS", examItems, "rm-home-highlights__lane--exams");
   addLane("Employee tools and calculators", "🛠 TOOLS", toolItems, "rm-home-highlights__lane--tools");
 })();
