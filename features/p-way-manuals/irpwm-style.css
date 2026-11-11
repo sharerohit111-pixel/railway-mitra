@@ -299,3 +299,53 @@ body {
 .detail-subheading { margin: 0 0 8px; color: var(--primary); font-size: 1rem; line-height: 1.5; }
 .detail-body { margin: 0; white-space: pre-line; color: #334155; font-size: .94rem; line-height: 1.8; }
 .search-folder-heading { margin: 22px 0 6px; padding: 10px 12px; border-radius: 8px; background: #eaf1fb; color: var(--primary); font-size: 1rem; }
+
+
+/* Official source links shown at the top of the P-Way library */
+.official-reference {
+  margin: 14px 0 10px;
+  padding: 14px;
+  background: #eaf2ff;
+  border: 1px solid #bfd3f2;
+  border-radius: 12px;
+}
+.official-reference-title {
+  margin: 0 0 9px;
+  color: var(--primary-deep);
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .7px;
+}
+.official-reference-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 12px 14px;
+  border-radius: 9px;
+  color: #fff;
+  text-decoration: none;
+  font-size: .9rem;
+  line-height: 1.4;
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(8,43,104,.12);
+}
+.official-reference-link span {
+  flex: 0 0 auto;
+  font-size: .75rem;
+  font-weight: 700;
+  opacity: .95;
+}
+.iricen-link { background: linear-gradient(110deg, #0b3d91, #1763bd); }
+.board-link { background: linear-gradient(110deg, #125b45, #16805e); }
+.official-reference small {
+  display: block;
+  margin-top: 8px;
+  color: #475569;
+  font-size: .74rem;
+  line-height: 1.5;
+}
+@media (max-width: 600px) {
+  .official-reference-link { align-items: flex-start; flex-direction: column; }
+}
