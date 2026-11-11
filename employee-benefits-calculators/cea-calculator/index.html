@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEA Calculator - Railway Mitra</title>
+<style>
+  body { background-color: #0B1120; color: #FFFFFF; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 16px; }
+  .header-card { background: linear-gradient(180deg, #162238 0%, #0F172A 100%); border: 1px solid #1E293B; border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 16px; }
+  .brand { color: #94A3B8; font-size: 12px; letter-spacing: 2px; font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; margin: 6px 0 2px; color: #FFFFFF; }
+  .subtitle { font-size: 14px; color: #CBD5E1; }
+  .card { background-color: #111827; border: 1px solid #1F2937; border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+  .card-heading { color: #00E5FF; font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  label { display: block; font-size: 13px; color: #CBD5E1; margin-bottom: 6px; margin-top: 12px; }
+  select { width: 100%; box-sizing: border-box; background-color: #0B1120; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #FFFFFF; font-size: 15px; outline: none; }
+  select:focus { border-color: #00E5FF; }
+  .btn-calc { width: 100%; padding: 14px; margin-top: 18px; border: none; border-radius: 12px; background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%); color: #0B1120; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .btn-reset { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #7E22CE; border-radius: 12px; background-color: #1E132C; color: #F472B6; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1E293B; font-size: 14px; color: #CBD5E1; }
+  .row span:last-child { color: #FFFFFF; font-weight: 600; }
+  .highlight-box { background-color: #0F2334; border: 1px solid #0284C7; border-radius: 12px; padding: 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .highlight-label { font-size: 15px; font-weight: 600; color: #E2E8F0; }
+  .highlight-val { font-size: 20px; font-weight: 700; color: #00E5FF; }
+  .note { font-size: 11px; color: #94A3B8; margin-top: 12px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <div class="brand">RAILWAY MITRA</div>
+  <div class="title">Children Education Allowance</div>
+  <div class="subtitle">बच्चों का शिक्षा भत्ता (CEA) कैलकुलेटर</div>
+</div>
+
+<div class="card">
+  <div class="card-heading">बच्चों का विवरण चुनें</div>
+  
+  <label>पात्र बच्चों की संख्या (अधिकतम 2 बच्चे)</label>
+  <select id="childCount">
+    <option value="1">1 बच्चा (1 Child)</option>
+    <option value="2">2 बच्चे (2 Children)</option>
+  </select>
+
+  <label>क्या बच्चे हॉस्टल (Hostel) में रहते हैं?</label>
+  <select id="hostelStatus">
+    <option value="no">नहीं (केवल स्कूल शिक्षा भत्ता)</option>
+    <option value="yes">हाँ (हॉस्टल सब्सिडी सहित)</option>
+  </select>
+
+  <label>क्या बच्चा दिव्यांग (Divyang / PwD) है?</label>
+  <select id="pwdStatus">
+    <option value="no">नहीं (सामान्य)</option>
+    <option value="yes">हाँ (दोगुना भत्ता देय)</option>
+  </select>
+
+  <button class="btn-calc" onclick="calculateCEA()">CEA भत्ते की गणना करें</button>
+  <button class="btn-reset" onclick="resetForm()">रीसेट करें</button>
+</div>
+
+<div class="card" id="resultCard" style="display:none;">
+  <div class="card-heading">गणना का परिणाम</div>
+  <div class="row"><span>प्रति माह देय भत्ता</span><span id="resMonthly">₹0</span></div>
+  <div class="row"><span>प्रति बच्चा सालाना भत्ता</span><span id="resPerChild">₹0</span></div>
+  
+  <div class="highlight-box">
+    <span class="highlight-label">कुल सालाना CEA राशि</span>
+    <span class="highlight-val" id="resYearly">₹0</span>
+  </div>
+  <div class="note">नोट: DA 50% पार होने के बाद संशोधित दरों (₹2,812.50/माह सामान्य CEA और ₹8,437.50/माह हॉस्टल सब्सिडी) के आधार पर गणना की गई है।</div>
+</div>
+
+<script>
+function calculateCEA() {
+  let count = parseInt(document.getElementById('childCount').value);
+  let hostel = document.getElementById('hostelStatus').value;
+  let pwd = document.getElementById('pwdStatus').value;
+
+  // Revised rates after 50% DA
+  let baseMonthly = (hostel === 'yes') ? 8437.50 : 2812.50;
+  if(pwd === 'yes') {
+    baseMonthly = baseMonthly * 2;
+  }
+
+  let perChildYearly = baseMonthly * 12;
+  let totalMonthly = baseMonthly * count;
+  let totalYearly = perChildYearly * count;
+
+  document.getElementById('resMonthly').innerText = "₹" + totalMonthly.toLocaleString('en-IN');
+  document.getElementById('resPerChild').innerText = "₹" + perChildYearly.toLocaleString('en-IN');
+  document.getElementById('resYearly').innerText = "₹" + totalYearly.toLocaleString('en-IN');
+  document.getElementById('resultCard').style.display = "block";
+}
+
+function resetForm() {
+  document.getElementById('childCount').value = "1";
+  document.getElementById('hostelStatus').value = "no";
+  document.getElementById('pwdStatus').value = "no";
+  document.getElementById('resultCard').style.display = "none";
+}
+</script>
+</body>
+</html>
