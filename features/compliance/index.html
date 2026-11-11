@@ -12,46 +12,108 @@
 </head>
 <body>
 <header class="app-header">
-  <div class="brand"><div class="brand-icon">🛡️</div><div><h1>Legal Information</h1><p>Railway Mitra · Disclaimer & Policies</p></div></div>
-  <a class="back-link" href="../../">Home</a>
+  <div class="brand"><div class="brand-icon">🛡️</div><div><h1 data-i18n="header">Legal Information</h1><p data-i18n="subheader">Railway Mitra · Disclaimer & Policies</p></div></div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+    <div class="lang-toggle" role="group" aria-label="Language selection" style="display:flex;padding:3px;border:1px solid #35e8ff88;border-radius:22px;background:#0b1a31">
+      <button type="button" id="langHi" class="lang-btn" aria-pressed="false" style="border:0;border-radius:18px;padding:7px 11px;background:transparent;color:#b9f6ff;font-weight:800">हिन्दी</button>
+      <button type="button" id="langEn" class="lang-btn" aria-pressed="true" style="border:0;border-radius:18px;padding:7px 11px;background:linear-gradient(90deg,#00d2ff,#6366f1);color:#071326;font-weight:800">English</button>
+    </div>
+    <a class="back-link" href="../../" data-i18n="home">Home</a>
+  </div>
 </header>
 <main class="compliance-wrap">
   <section class="compliance-hero">
-    <span class="eyebrow">RAILWAY MITRA</span>
-    <h2>Clear information.<br><span>Responsible use.</span></h2>
-    <p>This page contains the app's independence disclaimer and links to relevant policy documents.</p>
+    <span class="eyebrow" data-i18n="eyebrow">RAILWAY MITRA</span>
+    <h2><span data-i18n="hero1">Clear information.</span><br><span data-i18n="hero2">Responsible use.</span></h2>
+    <p data-i18n="intro">This page contains the app's independence disclaimer and links to relevant policy documents.</p>
   </section>
   <section class="panel">
-    <span class="eyebrow">APP DISCLAIMER</span>
-    <h2>Independent application</h2>
-    <p class="muted">Railway Mitra is an independently developed application. It is not an official Indian Railways, Ministry of Railways, CRIS or Government of India application. Names of government departments and services are used only to identify their respective sources. No government affiliation, approval or endorsement is claimed.</p>
+    <span class="eyebrow" data-i18n="disclaimerEyebrow">APP DISCLAIMER</span>
+    <h2 data-i18n="disclaimerTitle">Independent application</h2>
+    <p class="muted" data-i18n="disclaimerText">Railway Mitra is an independently developed application. It is not an official Indian Railways, Ministry of Railways, CRIS or Government of India application. Names of government departments and services are used only to identify their respective sources. No government affiliation, approval or endorsement is claimed.</p>
   </section>
   <section class="panel">
-    <span class="eyebrow">POLICY REFERENCES</span>
-    <h2>External policies</h2>
-    <p class="muted">The following links open the original policy pages. Please refer to the issuing organisation for the latest terms and conditions.</p>
+    <span class="eyebrow" data-i18n="policyEyebrow">POLICY REFERENCES</span>
+    <h2 data-i18n="policyTitle">External policies</h2>
+    <p class="muted" data-i18n="policyIntro">The following links open the original policy pages. Please refer to the issuing organisation for the latest terms and conditions.</p>
     <div class="source-list">
       <article class="source-card">
-        <h3>Government Open Data License – India</h3>
-        <p>License terms for eligible government open datasets.</p>
-        <a href="https://data.gov.in/Godl" target="_blank" rel="noopener noreferrer">Read policy</a>
+        <h3 data-i18n="godlTitle">Government Open Data License – India</h3>
+        <p data-i18n="godlDesc">License terms for eligible government open datasets.</p>
+        <a href="https://data.gov.in/Godl" target="_blank" rel="noopener noreferrer" data-i18n="readPolicy">Read policy</a>
       </article>
       <article class="source-card">
-        <h3>OGD Platform Terms of Use</h3>
-        <p>Terms published by the Open Government Data Platform.</p>
-        <a href="https://www.data.gov.in/terms-of-use" target="_blank" rel="noopener noreferrer">Read terms</a>
+        <h3 data-i18n="ogdTitle">OGD Platform Terms of Use</h3>
+        <p data-i18n="ogdDesc">Terms published by the Open Government Data Platform.</p>
+        <a href="https://www.data.gov.in/terms-of-use" target="_blank" rel="noopener noreferrer" data-i18n="readTerms">Read terms</a>
       </article>
       <article class="source-card">
-        <h3>Google Play Intellectual Property Policy</h3>
-        <p>Google Play policy information regarding intellectual property.</p>
-        <a href="https://support.google.com/googleplay/android-developer/answer/9888072" target="_blank" rel="noopener noreferrer">Read policy</a>
+        <h3 data-i18n="googleTitle">Google Play Intellectual Property Policy</h3>
+        <p data-i18n="googleDesc">Google Play policy information regarding intellectual property.</p>
+        <a href="https://support.google.com/googleplay/android-developer/answer/9888072" target="_blank" rel="noopener noreferrer" data-i18n="readPolicy">Read policy</a>
       </article>
     </div>
-    <p class="muted" style="margin-top:16px">External policy links are provided for reference. Their inclusion does not mean that Railway Mitra has integrated or received approval to use any external dataset, API, logo or service.</p>
+    <p class="muted" style="margin-top:16px" data-i18n="policyNote">External policy links are provided for reference. Their inclusion does not mean that Railway Mitra has integrated or received approval to use any external dataset, API, logo or service.</p>
   </section>
   <footer class="compliance-footer">
-    <small>Policy references last reviewed: 09 November 2026. Always check the issuing organisation's current terms before reuse.</small>
+    <small data-i18n="reviewDate">Policy references last reviewed: 09 November 2026. Always check the issuing organisation's current terms before reuse.</small>
   </footer>
 </main>
+<script>
+(function(){
+  const KEY="railwayMitra.complianceLanguage.v1";
+  const translations={
+    en:{
+      header:"Legal Information",subheader:"Railway Mitra · Disclaimer & Policies",home:"Home",eyebrow:"RAILWAY MITRA",
+      hero1:"Clear information.",hero2:"Responsible use.",intro:"This page contains the app's independence disclaimer and links to relevant policy documents.",
+      disclaimerEyebrow:"APP DISCLAIMER",disclaimerTitle:"Independent application",
+      disclaimerText:"Railway Mitra is an independently developed application. It is not an official Indian Railways, Ministry of Railways, CRIS or Government of India application. Names of government departments and services are used only to identify their respective sources. No government affiliation, approval or endorsement is claimed.",
+      policyEyebrow:"POLICY REFERENCES",policyTitle:"External policies",
+      policyIntro:"The following links open the original policy pages. Please refer to the issuing organisation for the latest terms and conditions.",
+      godlTitle:"Government Open Data License – India",godlDesc:"License terms for eligible government open datasets.",
+      ogdTitle:"OGD Platform Terms of Use",ogdDesc:"Terms published by the Open Government Data Platform.",
+      googleTitle:"Google Play Intellectual Property Policy",googleDesc:"Google Play policy information regarding intellectual property.",
+      readPolicy:"Read policy",readTerms:"Read terms",
+      policyNote:"External policy links are provided for reference. Their inclusion does not mean that Railway Mitra has integrated or received approval to use any external dataset, API, logo or service.",
+      reviewDate:"Policy references last reviewed: 09 November 2026. Always check the issuing organisation's current terms before reuse."
+    },
+    hi:{
+      header:"कानूनी जानकारी",subheader:"रेलवे मित्र · अस्वीकरण एवं नीतियाँ",home:"होम",eyebrow:"रेलवे मित्र",
+      hero1:"स्पष्ट जानकारी।",hero2:"जिम्मेदारी से उपयोग।",intro:"इस पेज पर ऐप का स्वतंत्रता संबंधी अस्वीकरण और संबंधित नीतियों के लिंक दिए गए हैं।",
+      disclaimerEyebrow:"ऐप अस्वीकरण",disclaimerTitle:"स्वतंत्र रूप से विकसित ऐप",
+      disclaimerText:"रेलवे मित्र स्वतंत्र रूप से विकसित किया गया ऐप है। यह भारतीय रेलवे, रेल मंत्रालय, CRIS या भारत सरकार का आधिकारिक ऐप नहीं है। सरकारी विभागों और सेवाओं के नामों का उपयोग केवल उनके संबंधित स्रोतों की पहचान के लिए किया गया है। किसी सरकारी संबद्धता, स्वीकृति या समर्थन का दावा नहीं किया जाता।",
+      policyEyebrow:"नीति संबंधी लिंक",policyTitle:"बाहरी नीतियाँ",
+      policyIntro:"नीचे दिए गए लिंक संबंधित संस्थाओं के मूल नीति पेज खोलते हैं। नवीनतम नियमों और शर्तों के लिए संबंधित संस्था की वेबसाइट देखें।",
+      godlTitle:"भारत सरकार का ओपन डेटा लाइसेंस",godlDesc:"पात्र सरकारी ओपन डेटासेट के लाइसेंस संबंधी नियम।",
+      ogdTitle:"ओजीडी प्लेटफ़ॉर्म उपयोग की शर्तें",ogdDesc:"ओपन गवर्नमेंट डेटा प्लेटफ़ॉर्म द्वारा प्रकाशित उपयोग की शर्तें।",
+      googleTitle:"Google Play बौद्धिक संपदा नीति",googleDesc:"बौद्धिक संपदा से संबंधित Google Play की नीति जानकारी।",
+      readPolicy:"नीति पढ़ें",readTerms:"शर्तें पढ़ें",
+      policyNote:"बाहरी नीति लिंक केवल संदर्भ के लिए दिए गए हैं। इन लिंक की मौजूदगी का अर्थ यह नहीं है कि रेलवे मित्र ने किसी बाहरी डेटासेट, API, लोगो या सेवा को इंटीग्रेट किया है या उसके उपयोग की स्वीकृति प्राप्त की है।",
+      reviewDate:"नीति लिंक की पिछली समीक्षा: 09 नवम्बर 2026। किसी सामग्री के पुनः उपयोग से पहले संबंधित संस्था की मौजूदा शर्तें अवश्य जाँचें।"
+    }
+  };
+  const hi=document.getElementById("langHi"),en=document.getElementById("langEn");
+  function setLanguage(lang){
+    const dict=translations[lang]||translations.en;
+    document.documentElement.lang=lang;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key=el.getAttribute("data-i18n");
+      if(dict[key]!==undefined)el.textContent=dict[key];
+    });
+    hi.setAttribute("aria-pressed",String(lang==="hi"));
+    en.setAttribute("aria-pressed",String(lang==="en"));
+    hi.style.background=lang==="hi"?"linear-gradient(90deg,#00d2ff,#6366f1)":"transparent";
+    hi.style.color=lang==="hi"?"#071326":"#b9f6ff";
+    en.style.background=lang==="en"?"linear-gradient(90deg,#00d2ff,#6366f1)":"transparent";
+    en.style.color=lang==="en"?"#071326":"#b9f6ff";
+    try{localStorage.setItem(KEY,lang);}catch(e){}
+  }
+  hi.addEventListener("click",()=>setLanguage("hi"));
+  en.addEventListener("click",()=>setLanguage("en"));
+  let saved="en";
+  try{saved=localStorage.getItem(KEY)||"en";}catch(e){}
+  setLanguage(saved==="hi"?"hi":"en");
+})();
+</script>
 </body>
 </html>
