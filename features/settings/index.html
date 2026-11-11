@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326"><title>Settings | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="./settings.css">
+<script src="../../assets/js/language.js" defer></script>
+<script type="module" src="./settings.js"></script>
+</head>
+<body class="rm-settings-page">
+<main class="rm-settings-shell">
+<a class="rm-back" href="../../index.html">← Back to Dashboard</a>
+<header class="rm-settings-hero">
+<div class="rm-settings-orb">⚙</div>
+<div><p class="rm-eyebrow">RAILWAY MITRA · PERSONAL CONTROL CENTER</p><h1>Settings</h1><p>Make Railway Mitra work the way you like.</p></div>
+</header>
+<section class="rm-account-card">
+<div class="rm-avatar">👤</div><div class="rm-account-copy"><strong id="accountName">Your Railway Mitra Account</strong><span id="accountStatus">Checking sign-in status…</span></div>
+<a class="rm-small-link" href="../profile/index.html">Employee Profile ↗</a>
+</section>
+<div class="rm-settings-grid">
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">🎨</span><div><h2>Appearance</h2><p>Personalize the app display</p></div></div>
+<label class="rm-setting-row"><span><b>Dark theme</b><small>Use the premium dark interface</small></span><input id="darkTheme" type="checkbox" checked><i class="rm-switch"></i></label>
+<label class="rm-setting-row"><span><b>Accent colour</b><small>Choose your highlight colour</small></span><select id="accentColor"><option value="cyan">Neon Cyan</option><option value="blue">Royal Blue</option><option value="violet">Violet</option><option value="pink">Magenta</option></select></label>
+<label class="rm-setting-row"><span><b>Text size</b><small>Adjust reading comfort</small></span><select id="fontSize"><option value="normal">Normal</option><option value="large">Large</option><option value="larger">Extra Large</option></select></label>
+</section>
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">🌐</span><div><h2>Language</h2><p>Choose your preferred language</p></div></div>
+<label class="rm-setting-row"><span><b>App language</b><small>Your choice is saved on this device</small></span><select id="language"><option value="en">English</option><option value="mix">हिंदी + English</option></select></label>
+</section>
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">🧮</span><div><h2>Calculator Preferences</h2><p>Default values for supported calculators</p></div></div>
+<label class="rm-field"><span>Default Basic Pay (₹)</span><input id="basicPay" type="number" min="0" step="1" placeholder="25500"></label>
+<label class="rm-field"><span>Default DA (%)</span><input id="daRate" type="number" min="0" max="200" step="0.01" placeholder="63"></label>
+<p class="rm-hint">ये मान केवल Settings में उपलब्ध रहेंगे। किसी कैलकुलेटर में तभी लागू होंगे जब वह इस preference को पढ़ने के लिए जोड़ा जाएगा।</p>
+</section>
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">🔔</span><div><h2>Notifications</h2><p>Choose the updates you want to see</p></div></div>
+<label class="rm-setting-row"><span><b>Railway updates</b><small>Important railway notices</small></span><input id="notifyUpdates" type="checkbox"><i class="rm-switch"></i></label>
+<label class="rm-setting-row"><span><b>Recruitment alerts</b><small>RRB and GDCE announcements</small></span><input id="notifyRecruitment" type="checkbox"><i class="rm-switch"></i></label>
+<label class="rm-setting-row"><span><b>Personal reminders</b><small>Diary and reminder preferences</small></span><input id="notifyReminders" type="checkbox" checked><i class="rm-switch"></i></label>
+<p class="rm-hint">ये आपकी सूचना-पसंद सेव करते हैं। वास्तविक Push Notifications अलग से सक्षम होने पर ही आएँगे।</p>
+</section>
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">⭐</span><div><h2>Dashboard & Favorites</h2><p>Manage your home screen</p></div></div>
+<div class="rm-info-row"><span><b>Favorite folders</b><small>Use the star button on dashboard cards to pin folders at the top.</small></span><a href="../../index.html" class="rm-small-link">Open Dashboard</a></div>
+</section>
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">💾</span><div><h2>Data & Backup</h2><p>Keep a portable copy of your preferences</p></div></div>
+<div class="rm-info-row"><span><b>Device storage</b><small>Settings are saved locally on this device.</small></span><span class="rm-status">Active</span></div>
+<div class="rm-info-row"><span><b>Account storage</b><small>When signed in, supported settings sync automatically in the background.</small></span><span class="rm-status" id="cloudStatus">Checking…</span></div>
+<div class="rm-actions"><button id="exportBackup" class="rm-secondary-btn" type="button">Download Backup</button><label class="rm-secondary-btn rm-file-btn">Restore Backup<input id="importBackup" type="file" accept="application/json,.json" hidden></label></div>
+<p class="rm-hint">क्लाउड सिंक बैकग्राउंड में होता है। यहाँ Cloud Update या Sync Now का कोई बटन नहीं है। Backup में केवल Settings preferences शामिल हैं, डायरी या अन्य मॉड्यूल का डेटा नहीं।</p>
+</section>
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">🛡️</span><div><h2>Privacy & Security</h2><p>Understand how your settings are stored</p></div></div>
+<div class="rm-info-row"><span><b>Account security</b><small>Sign-in is managed by Railway Mitra authentication.</small></span><a class="rm-small-link" href="../auth/login.html">Sign in</a></div>
+<div class="rm-info-row"><span><b>Data control</b><small>Do not store passwords, OTPs, Aadhaar or bank details in preferences.</small></span></div>
+</section>
+<section class="rm-setting-card">
+<div class="rm-card-heading"><span class="rm-icon">ℹ️</span><div><h2>About & Support</h2><p>Railway Mitra information</p></div></div>
+<div class="rm-info-row"><span><b>Application</b><small>Your Railway Digital Companion</small></span><span class="rm-status">Railway Mitra</span></div>
+<div class="rm-info-row"><span><b>Owned & Developed by</b><small>Rohit Kumar</small></span></div>
+</section>
+</div>
+<footer class="rm-settings-footer"><button id="saveSettings" class="rm-primary-btn" type="button">Save Preferences</button><button id="resetSettings" class="rm-reset-btn" type="button">Reset Settings</button><p id="settingsMessage" role="status" aria-live="polite"></p></footer>
+</main>
+</body></html>
