@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>Account & Data | Railway Mitra</title><link rel="stylesheet" href="../../assets/css/main.css">
+<style>
+.rm-account{width:min(700px,calc(100% - 28px));margin:28px auto 60px;color:#eaf3ff}.rm-panel{padding:22px;margin:18px 0;border:1px solid #31506c;border-radius:18px;background:#101d32}.rm-panel h1,.rm-panel h2{color:#fff}.rm-panel p,.rm-panel li{color:#c5d6e8;line-height:1.65}.rm-panel label{display:block;margin:14px 0 6px}.rm-panel input{box-sizing:border-box;width:100%;padding:13px;border-radius:10px;border:1px solid #48617d;background:#1d2c46;color:#fff;font-size:16px}.rm-btn{padding:13px 18px;border:0;border-radius:10px;background:#b91c1c;color:white;font-weight:800}.rm-btn:disabled{opacity:.5}.rm-status{min-height:24px;color:#8ce8f3}.rm-danger{border-color:#9b3838}
+</style></head>
+<body><main class="rm-account">
+<a href="../../index.html">← Railway Mitra Home</a>
+<section class="rm-panel"><h1>Account & Data</h1><p>Review how your information is handled or request deletion of your Railway Mitra account.</p><p><a href="../privacy/index.html">Read Privacy Policy</a></p></section>
+<section class="rm-panel rm-danger"><h2>Delete my account</h2>
+<p><strong>This action is permanent.</strong> It removes your Firebase sign-in account, employee profile, saved user-scoped records and feedback conversations. You will lose access to this account.</p>
+<ul><li>Payment transaction evidence may be retained in minimized form for legal, accounting or dispute purposes.</li><li>Information saved only on this device may need to be cleared separately.</li><li>You must have signed in within the last five minutes. If not, sign out and sign in again before continuing.</li></ul>
+<label for="confirmText">Type DELETE to confirm</label><input id="confirmText" autocomplete="off" placeholder="DELETE">
+<label><input id="confirmCheck" type="checkbox" style="width:auto"> I understand that this action cannot be undone.</label>
+<button class="rm-btn" id="deleteBtn" type="button" disabled>Delete my account permanently</button>
+<p class="rm-status" id="status" role="status" aria-live="polite"></p>
+</section></main>
+<script type="module" src="./account.js?v=1"></script></body></html>
