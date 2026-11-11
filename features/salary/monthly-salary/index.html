@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Salary Calculator - Railway Mitra</title>
+<style>
+  body { background:#0B1120; color:#FFF; font-family:'Segoe UI',sans-serif; margin:0; padding:16px; }
+  .top-bar { display:flex; justify-content:flex-end; margin-bottom:10px; }
+  .lang-toggle { display:flex; background:#111827; border:1px solid #334155; border-radius:20px; padding:3px; }
+  .lang-btn { background:transparent; border:none; color:#94A3B8; padding:6px 14px; border-radius:16px; font-size:13px; font-weight:600; cursor:pointer; }
+  .lang-btn.active { background:linear-gradient(90deg,#00D2FF,#6366F1); color:#0B1120; }
+  .header-card { background:linear-gradient(180deg,#162238,#0F172A); border:1px solid #1E293B; border-radius:16px; padding:18px; text-align:center; margin-bottom:16px; }
+  .brand { color:#94A3B8; font-size:12px; letter-spacing:2px; font-weight:600; }
+  .title { font-size:22px; font-weight:700; margin:6px 0 2px; }
+  .subtitle { font-size:14px; color:#00E5FF; }
+  .card { background:#111827; border:1px solid #1F2937; border-radius:16px; padding:18px; margin-bottom:16px; }
+  .card-heading { color:#00E5FF; font-size:17px; font-weight:700; margin-bottom:14px; }
+  label { display:block; font-size:13px; color:#CBD5E1; margin:12px 0 6px; }
+  input, select { width:100%; box-sizing:border-box; background:#0B1120; border:1px solid #334155; border-radius:10px; padding:12px; color:#FFF; font-size:15px; outline:none; }
+  input:focus, select:focus { border-color:#00E5FF; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .allow-box { background:#0B1120; border:1px solid #1E293B; border-radius:12px; padding:12px; margin-top:14px; }
+  .allow-title { font-size:13px; color:#00E5FF; font-weight:600; margin-bottom:4px; }
+  .allow-sub { font-size:11px; color:#94A3B8; margin-bottom:10px; }
+  .edit-row { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px solid #1E293B; font-size:13px; }
+  .edit-row:last-child { border-bottom:none; }
+  .edit-lbl { color:#E2E8F0; flex:1; }
+  .name-inp { flex:1; padding:8px 10px; color:#E2E8F0; border:1px solid #334155; border-radius:8px; background:#111827; font-size:13px; }
+  .edit-inp { width:95px; padding:8px 10px; text-align:right; color:#4ADE80; font-weight:700; border:1px solid #334155; border-radius:8px; background:#111827; }
+  .del-btn { background:#3B1226; border:1px solid #9D174D; color:#F472B6; border-radius:8px; padding:7px 10px; cursor:pointer; font-weight:700; }
+  .add-btn { width:100%; padding:10px; margin-top:10px; background:#0F2334; border:1px dashed #0284C7; color:#00E5FF; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-calc { width:100%; padding:14px; margin-top:18px; border:none; border-radius:12px; background:linear-gradient(90deg,#00D2FF,#6366F1); color:#0B1120; font-size:16px; font-weight:700; cursor:pointer; }
+  .btn-reset { width:100%; padding:12px; margin-top:10px; border:1px solid #7E22CE; border-radius:12px; background:#1E132C; color:#F472B6; font-size:15px; font-weight:600; cursor:pointer; }
+  .row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #1E293B; font-size:14px; color:#CBD5E1; }
+  .row span:last-child { color:#FFF; font-weight:600; }
+  .deduct span:last-child { color:#F472B6; }
+  .sub-total { background:#162033; padding:10px 12px; border-radius:8px; margin-top:8px; display:flex; justify-content:space-between; font-weight:700; font-size:15px; }
+  .highlight-box { background:#0F2334; border:1px solid #0284C7; border-radius:12px; padding:15px; margin-top:14px; display:flex; justify-content:space-between; align-items:center; }
+  .highlight-label { font-size:15px; font-weight:700; color:#E2E8F0; }
+  .highlight-val { font-size:21px; font-weight:700; color:#00E5FF; }
+  .note { font-size:11px; color:#94A3B8; margin-top:12px; line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="top-bar"><div class="lang-toggle">
+<button class="lang-btn active" id="btnHi" onclick="setLang('hi')">हिन्दी</button>
+<button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+</div></div>
+<div class="header-card"><div class="brand">RAILWAY MITRA</div>
+<div class="title" id="t1">मासिक वेतन कैलकुलेटर</div>
+<div class="subtitle" id="t2">Post-Wise Complete Salary Calculator</div></div>
+<div class="card">
+<div class="card-heading" id="t3">पद व वेतन विवरण (Post & Pay)</div>
+<label id="t_post">अपना पद चुनें (Select Railway Post)</label>
+<select id="postSelect" onchange="applyPostDefaults()">
+<option value="tm">Track Maintainer (ट्रैक मेंटेनर)</option>
+<option value="pm">Pointsman / Operating Staff (पॉइंट्समैन)</option>
+<option value="sm">Station Master / Traffic (स्टेशन मास्टर)</option>
+<option value="tech">Technician / JE / Artisan (टेक्नीशियन / जेई)</option>
+<option value="clerk">Office Clerk / Ministerial (क्लर्क / ऑफिस स्टाफ)</option>
+<option value="alp">ALP / Loco Pilot (Running Staff)</option>
+<option value="other" id="o_otherPost">Other Post (अन्य पद)</option>
+</select>
+<div class="allow-box">
+<div class="allow-title" id="t_spHead">भत्ते (Allowances - आप बदल या जोड़ सकते हैं):</div>
+<div class="allow-sub" id="t_spSub">किसी भत्ते को हटाने के लिए 0 करें या नीचे से नया भत्ता जोड़ें।</div>
+<div id="specialAllowList"></div><div id="customAllowList"></div>
+<button type="button" class="add-btn" id="t_addBtn" onclick="addCustomAllow()">+ नया भत्ता जोड़ें (Add More Allowance)</button>
+</div>
+<div class="grid-2"><div><label id="t4">पे लेवल (Pay Level)</label>
+<select id="payLevel"><option value="1">Level 1 - 2</option><option value="3" selected>Level 3 - 8</option><option value="9">Level 9 & Above</option></select></div>
+<div><label id="t5">मूल वेतन (Basic Pay) ₹</label><input type="number" id="basicPay" placeholder="25500"></div></div>
+<div class="grid-2"><div><label id="t_qtr">क्या रेलवे क्वार्टर मिला है?</label>
+<select id="qtrStatus" onchange="toggleCity()"><option value="no" id="o_qno">नहीं (HRA मिलेगा)</option><option value="yes" id="o_qyes">हाँ (क्वार्टर मिला है)</option></select></div>
+<div><label id="t6">शहर श्रेणी (HRA City)</label><select id="cityClass"><option value="X" id="ox">X श्रेणी (30% HRA)</option><option value="Y" selected id="oy">Y श्रेणी (20% HRA)</option><option value="Z" id="oz">Z श्रेणी (10% HRA)</option></select></div></div>
+<div class="grid-2"><div><label id="t7">TA शहर (Transport)</label><select id="taCity"><option value="TPTA" id="ot1">TPTA शहर (उच्च दर)</option><option value="OTHER" selected id="ot2">अन्य शहर (सामान्य)</option></select></div>
+<div><label id="t8">DA दर (%)</label><input type="number" id="daRate" value="63"></div></div>
+<div class="grid-2"><div><label id="t9">पेंशन योजना (Pension)</label><select id="pensionType"><option value="yes" id="op1">NPS / UPS (10% Auto)</option><option value="no" id="op2">OPS (0% कटौती)</option></select></div>
+<div><label id="t10">अन्य कटौती (Manual) ₹</label><input type="number" id="manualDed" value="0" placeholder="0"></div></div>
+<button class="btn-calc" id="t11" onclick="calcSal()">वेतन की गणना करें</button>
+<button class="btn-reset" id="t12" onclick="resetF()">रीसेट करें</button>
+</div>
+<div class="card" id="resCard" style="display:none;">
+<div class="card-heading" id="t13">वेतन पर्ची सारांश (Salary Summary)</div>
+<div class="row"><span id="t14">मूल वेतन (Basic Pay)</span><span id="rBasic">₹0</span></div>
+<div class="row"><span id="t15">महंगाई भत्ता (DA)</span><span id="rDa">₹0</span></div>
+<div class="row"><span id="t16">मकान किराया भत्ता (HRA)</span><span id="rHra">₹0</span></div>
+<div class="row"><span id="t17">यात्रा भत्ता (Transport TA)</span><span id="rTa">₹0</span></div>
+<div class="row"><span id="t_rSp">पद-विशेष व अतिरिक्त भत्ते</span><span id="rSp" style="color:#4ADE80;">₹0</span></div>
+<div class="sub-total"><span id="t18" style="color:#00E5FF;">कुल सकल वेतन (Gross Salary)</span><span id="rGross" style="color:#00E5FF;">₹0</span></div>
+<div class="row deduct" style="margin-top:10px;"><span id="t19">NPS / UPS कटौती (10% Auto)</span><span id="rNps">- ₹0</span></div>
+<div class="row deduct"><span id="t21">अन्य कटौती (Manual Deductions)</span><span id="rDed">- ₹0</span></div>
+<div class="highlight-box"><span class="highlight-label" id="t22">हाथ में वेतन (Net In-Hand)</span><span class="highlight-val" id="rNet">₹0</span></div>
+<div class="note" id="t23">नोट: NPS/UPS चुनने पर (Basic + DA) का 10% स्वतः घटता है। इसके अलावा केवल आपके द्वारा दर्ज की गई मैन्युअल कटौती ही घटाई गई है।</div>
+</div>
+<script>
+let lang = 'hi';
+const postData = {
+tm:[{nameHi:'Risk & Hardship Allowance (₹)',nameEn:'Risk & Hardship Allowance (₹)',amt:3375},{nameHi:'Bicycle Allowance (साइकिल भत्ता ₹)',nameEn:'Bicycle Allowance (₹)',amt:180},{nameHi:'Travelling Allowance (TA भत्ता ₹)',nameEn:'Travelling Allowance (TA ₹)',amt:2500}],
+pm:[{nameHi:'Night Duty Allowance (NDA ₹)',nameEn:'Night Duty Allowance (NDA ₹)',amt:2200},{nameHi:'Dress Allowance (मासिक औसत ₹)',nameEn:'Dress Allowance (Monthly Avg ₹)',amt:521},{nameHi:'National Holiday Allowance (NHA ₹)',nameEn:'National Holiday Allowance (₹)',amt:480}],
+sm:[{nameHi:'Night Duty Allowance (NDA ₹)',nameEn:'Night Duty Allowance (NDA ₹)',amt:3200},{nameHi:'Dress Allowance (मासिक औसत ₹)',nameEn:'Dress Allowance (Monthly Avg ₹)',amt:1042}],
+tech:[{nameHi:'Travelling Allowance (TA ₹)',nameEn:'Travelling Allowance (TA ₹)',amt:1800},{nameHi:'Night Duty / Breakdown (₹)',nameEn:'Night Duty / Breakdown (₹)',amt:1500}],
+clerk:[{nameHi:'Travelling / Other Allowance (₹)',nameEn:'Travelling / Other Allowance (₹)',amt:0}],
+alp:[{nameHi:'Kilometreage Allowance (KM भत्ता ₹)',nameEn:'Kilometreage Allowance (KM ₹)',amt:12000},{nameHi:'Additional Running Allowance (₹)',nameEn:'Additional Running Allowance (₹)',amt:1406},{nameHi:'Night Duty Allowance (NDA ₹)',nameEn:'Night Duty Allowance (NDA ₹)',amt:2500}],
+other:[]
+};
+const D = {
+hi:{t1:"मासिक वेतन कैलकुलेटर",t2:"Post-Wise Complete Salary Calculator",t3:"पद व वेतन विवरण (Post & Pay)",t_post:"अपना पद चुनें (Select Railway Post)",o_otherPost:"Other Post (अन्य पद)",t_spHead:"भत्ते (Allowances - आप बदल या जोड़ सकते हैं):",t_spSub:"किसी भत्ते को हटाने के लिए 0 करें या नीचे से नया भत्ता जोड़ें।",t_addBtn:"+ नया भत्ता जोड़ें (Add More Allowance)",t4:"पे लेवल (Pay Level)",t5:"मूल वेतन (Basic Pay) ₹",t_qtr:"क्या रेलवे क्वार्टर मिला है?",o_qno:"नहीं (HRA मिलेगा)",o_qyes:"हाँ (क्वार्टर मिला है)",t6:"शहर श्रेणी (HRA City)",ox:"X श्रेणी (30% HRA)",oy:"Y श्रेणी (20% HRA)",oz:"Z श्रेणी (10% HRA)",t7:"TA शहर (Transport)",ot1:"TPTA शहर (उच्च दर)",ot2:"अन्य शहर (सामान्य)",t8:"DA दर (%)",t9:"पेंशन योजना (Pension)",op1:"NPS / UPS (10% Auto)",op2:"OPS (0% कटौती)",t10:"अन्य कटौती (Manual) ₹",t11:"वेतन की गणना करें",t12:"रीसेट करें",t13:"वेतन पर्ची सारांश",t14:"मूल वेतन (Basic Pay)",t15:"महंगाई भत्ता (DA)",t16:"मकान किराया भत्ता (HRA)",t17:"यात्रा भत्ता (Transport TA)",t_rSp:"पद-विशेष व अतिरिक्त भत्ते",t18:"कुल सकल वेतन (Gross Salary)",t19:"NPS / UPS कटौती (10% Auto)",t21:"अन्य कटौती (Manual Deductions)",t22:"हाथ में वेतन (Net In-Hand)",t23:"नोट: NPS/UPS चुनने पर (Basic + DA) का 10% स्वतः घटता है। इसके अलावा केवल आपके द्वारा दर्ज की गई मैन्युअल कटौती ही घटाई गई है।",al:"कृपया सही मूल वेतन दर्ज करें।"},
+en:{t1:"Monthly Salary Calculator",t2:"Post-Wise Complete Salary Calculator",t3:"Post & Pay Details",t_post:"Select Railway Post",o_otherPost:"Other Post",t_spHead:"Allowances (Pre-filled, editable or add more):",t_spSub:"Set 0 to remove or tap below to add new allowance.",t_addBtn:"+ Add More Allowance",t4:"Pay Level",t5:"Basic Pay (₹)",t_qtr:"Railway Quarter Allotted?",o_qno:"No (Eligible for HRA)",o_qyes:"Yes (Quarter Allotted)",t6:"City Class (HRA)",ox:"X Class (30% HRA)",oy:"Y Class (20% HRA)",oz:"Z Class (10% HRA)",t7:"TA City Type",ot1:"TPTA City (Higher Rate)",ot2:"Other Cities (Normal)",t8:"DA Rate (%)",t9:"Pension Scheme",op1:"NPS / UPS (10% Auto)",op2:"OPS (0% Deduction)",t10:"Other Deductions (Manual) ₹",t11:"Calculate Salary",t12:"Reset",t13:"Salary Slip Summary",t14:"Basic Pay",t15:"Dearness Allowance (DA)",t16:"House Rent Allowance (HRA)",t17:"Transport Allowance (TA)",t_rSp:"Post & Extra Allowances",t18:"Total Gross Salary",t19:"NPS / UPS Deduction (10% Auto)",t21:"Other Deductions (Manual)",t22:"Net In-Hand Salary",t23:"Note: Selecting NPS/UPS automatically deducts 10% of (Basic + DA). Only manual deductions entered by you are subtracted additionally.",al:"Please enter a valid Basic Pay."}
+};
+function applyPostDefaults(){
+let post=document.getElementById('postSelect').value,container=document.getElementById('specialAllowList');container.innerHTML="";
+(postData[post]||[]).forEach(item=>{let labelText=(lang==='hi')?item.nameHi:item.nameEn;container.innerHTML+='<div class="edit-row"><span class="edit-lbl">'+labelText+'</span><input type="number" class="edit-inp sp-inp" value="'+item.amt+'"></div>';});
+}
+function addCustomAllow(){
+let cList=document.getElementById('customAllowList'),ph=(lang==='hi')?"भत्ते का नाम लिखें":"Allowance Name",row=document.createElement('div');row.className='edit-row';
+row.innerHTML='<input type="text" class="name-inp" placeholder="'+ph+'"><input type="number" class="edit-inp sp-inp" placeholder="₹" value="0"><button type="button" class="del-btn" onclick="this.parentElement.remove()">✕</button>';cList.appendChild(row);
+}
+function setLang(l){
+lang=l;document.getElementById('btnHi').classList.toggle('active',l==='hi');document.getElementById('btnEn').classList.toggle('active',l==='en');
+for(let k in D[l])if(document.getElementById(k))document.getElementById(k).innerText=D[l][k];
+applyPostDefaults();if(document.getElementById('resCard').style.display==='block')calcSal();
+}
+function toggleCity(){let q=document.getElementById('qtrStatus').value,c=document.getElementById('cityClass');c.disabled=(q==='yes');c.style.opacity=(q==='yes')?'0.5':'1';}
+function calcSal(){
+let lvl=document.getElementById('payLevel').value,basic=parseFloat(document.getElementById('basicPay').value)||0,qtr=document.getElementById('qtrStatus').value,city=document.getElementById('cityClass').value,taCity=document.getElementById('taCity').value,da=parseFloat(document.getElementById('daRate').value)||63,pen=document.getElementById('pensionType').value,ded=parseFloat(document.getElementById('manualDed').value)||0;
+if(basic<=0){alert(D[lang].al);return;}
+let spTotal=0;document.querySelectorAll('.sp-inp').forEach(inp=>{spTotal+=parseFloat(inp.value)||0;});
+let daAmt=Math.round(basic*(da/100)),hraAmt=(qtr==='no')?Math.round(basic*(city==='X'?0.30:(city==='Y'?0.20:0.10))):0;
+let baseTa=(lvl==='1')?(basic>=24200?(taCity==='TPTA'?3600:1800):(taCity==='TPTA'?1350:900)):(lvl==='3'?(taCity==='TPTA'?3600:1800):(taCity==='TPTA'?7200:3600));
+let taAmt=Math.round(baseTa+(baseTa*da/100)),gross=basic+daAmt+hraAmt+taAmt+spTotal,npsDed=(pen==='yes')?Math.round((basic+daAmt)*0.10):0,net=gross-(npsDed+ded);
+document.getElementById('rBasic').innerText="₹"+basic.toLocaleString('en-IN');document.getElementById('rDa').innerText="₹"+daAmt.toLocaleString('en-IN');document.getElementById('rHra').innerText="₹"+hraAmt.toLocaleString('en-IN');document.getElementById('rTa').innerText="₹"+taAmt.toLocaleString('en-IN');document.getElementById('rSp').innerText="+ ₹"+spTotal.toLocaleString('en-IN');document.getElementById('rGross').innerText="₹"+gross.toLocaleString('en-IN');document.getElementById('rNps').innerText="- ₹"+npsDed.toLocaleString('en-IN');document.getElementById('rDed').innerText="- ₹"+ded.toLocaleString('en-IN');document.getElementById('rNet').innerText="₹"+net.toLocaleString('en-IN');document.getElementById('resCard').style.display="block";
+}
+function resetF(){
+document.getElementById('basicPay').value="";document.getElementById('daRate').value="63";document.getElementById('pensionType').value="yes";document.getElementById('manualDed').value="0";document.getElementById('qtrStatus').value="no";document.getElementById('customAllowList').innerHTML="";toggleCity();applyPostDefaults();document.getElementById('resCard').style.display="none";
+}
+applyPostDefaults();
+</script>
+
+<div class="card">
+  <div class="card-heading">Promotion &amp; MACP Pay Fixation</div>
+  <a href="promotion-macp/">Open Separate Promotion &amp; MACP Calculator →</a>
+</div>
+
+</body>
+</html>
