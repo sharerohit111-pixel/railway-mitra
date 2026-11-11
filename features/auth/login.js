@@ -5,8 +5,7 @@ import {
     signInWithPhoneNumber,
     GoogleAuthProvider,
     signInWithPopup,
-    signInWithEmailAndPassword,
-    FacebookAuthProvider
+    signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 const phoneForm = document.getElementById("phoneLoginForm");
@@ -171,20 +170,3 @@ googleLoginBtn.addEventListener("click", async () => {
     }
 });
 
-// Facebook Login
-const facebookLoginBtn = document.getElementById("facebookLoginBtn");
-const facebookProvider = new FacebookAuthProvider();
-facebookProvider.setCustomParameters({ display: "popup" });
-facebookLoginBtn.addEventListener("click", async () => {
-    facebookLoginBtn.disabled = true;
-    showMessage("Facebook Account से लॉगिन किया जा रहा है...");
-    try {
-        await signInWithPopup(auth, facebookProvider);
-        window.location.href = "../../index.html";
-    } catch (error) {
-        console.error("Facebook Login Error:", error);
-        showMessage("Facebook Login में समस्या: " + error.message, true);
-    } finally {
-        facebookLoginBtn.disabled = false;
-    }
-});
