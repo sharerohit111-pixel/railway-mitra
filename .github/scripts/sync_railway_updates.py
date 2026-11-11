@@ -53,8 +53,9 @@ def extract_records(html):
             if node is None:
                 break
             text = " ".join(node.get_text(" ", strip=True).split())
-            if DATE_RE.search(text) and len(text) > len(best_text):
+            if DATE_RE.search(text):
                 best_text = text
+                break
             node = node.parent
         match = DATE_RE.search(best_text)
         if not match:
