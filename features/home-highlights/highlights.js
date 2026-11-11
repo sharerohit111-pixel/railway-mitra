@@ -111,7 +111,8 @@
     if (copy === 1) group.setAttribute("aria-hidden", "true");
 
     serviceItems.forEach((item) => {
-      const slug = item.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const topicByLabel = { "Leave Rules": "leave-rules-guide", "Pass & PTO": "pass-pto-guide", "Medical Benefits": "medical-benefits", "Retirement Benefits": "retirement-benefits", "Employee Welfare": "employee-welfare", "HRMS Tips": "hrms-tips" };
+      const slug = topicByLabel[item];
       const chip = document.createElement("a");
       chip.className = "rm-home-service-ticker__item";
       chip.href = "features/home-highlights/details/index.html?topic=" + encodeURIComponent(slug);
