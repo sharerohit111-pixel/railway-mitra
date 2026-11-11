@@ -62,9 +62,13 @@
       if (copy === 1) group.setAttribute("aria-hidden", "true");
 
       items.forEach((item) => {
-        const chip = document.createElement("span");
+        const chip = document.createElement("a");
         chip.className = "rm-home-highlights__item";
+        chip.href = "features/home-highlights/details/index.html?topic=" + encodeURIComponent(
+          item.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+        );
         chip.textContent = item;
+        if (copy === 1) chip.tabIndex = -1;
         group.appendChild(chip);
       });
       track.appendChild(group);
