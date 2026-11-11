@@ -717,3 +717,71 @@
   .rm-home-service-ticker__track { animation: none !important; }
   .rm-home-service-ticker__viewport { overflow-x: auto; }
 }
+
+
+/* Multi-lane full-width ticker update — isolated overrides only. */
+.rm-home-service-ticker,
+.rm-home-highlights {
+  width: 100vw !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-radius: 0 !important;
+}
+.rm-home-service-ticker {
+  grid-template-columns: 82px minmax(0, 1fr) !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+.rm-home-highlights {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+.rm-home-highlights__lane {
+  grid-template-columns: 70px minmax(0, 1fr) !important;
+}
+.rm-home-service-ticker__track {
+  animation-duration: 21s !important;
+}
+.rm-home-highlights__lane--exams .rm-home-highlights__track {
+  animation-name: rm-home-tools-scroll !important;
+  animation-duration: 23s !important;
+}
+.rm-home-highlights__lane--tools .rm-home-highlights__track {
+  animation-name: rm-home-tools-scroll !important;
+  animation-duration: 25s !important;
+}
+.rm-home-service-ticker__item:nth-child(odd),
+.rm-home-highlights__item:nth-child(odd) {
+  animation: rm-home-ticker-blink 1.8s ease-in-out infinite !important;
+}
+.rm-home-service-ticker__item:nth-child(3n),
+.rm-home-highlights__item:nth-child(3n) {
+  animation: rm-home-ticker-blink 1.35s ease-in-out infinite !important;
+}
+@keyframes rm-home-ticker-blink {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: .58; filter: brightness(1.55); }
+}
+@media (max-width: 480px) {
+  .rm-home-service-ticker,
+  .rm-home-highlights {
+    width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  .rm-home-service-ticker { grid-template-columns: 67px minmax(0, 1fr) !important; }
+  .rm-home-highlights__lane { grid-template-columns: 62px minmax(0, 1fr) !important; }
+  .rm-home-service-ticker__track { animation-duration: 21s !important; }
+  .rm-home-highlights__lane--exams .rm-home-highlights__track { animation-duration: 23s !important; }
+  .rm-home-highlights__lane--tools .rm-home-highlights__track { animation-duration: 25s !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rm-home-service-ticker__item,
+  .rm-home-highlights__item { animation: none !important; }
+}
