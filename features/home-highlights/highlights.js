@@ -5,24 +5,6 @@
   const root = document.querySelector("[data-rm-home-highlights]");
   if (!root) return;
 
-  // Only list destinations/categories verified in the current app's exam module.
-  const examItems = [
-    "LDCE JE P-Way",
-    "LDCE JE Works",
-    "LDCE JE Other Departments",
-    "LDCE JE Civil Engineering",
-    "LDCE JE Electrical Engineering",
-    "LDCE JE Mechanical Engineering",
-    "LDCE Other Departmental Posts",
-    "GDCE JE Civil",
-    "GDCE JE Electrical",
-    "GDCE JE Mechanical",
-    "GDCE Train Manager",
-    "Mock Tests",
-    "Previous Year Papers",
-    "Practice Sets"
-  ];
-
   // Tools verified in the current app repository.
   const toolItems = [
     "DA Calculator",
@@ -81,7 +63,7 @@
 
 
   // A separate single service ticker sits in the open gap above the Welcome panel.
-  // It is intentionally independent: the existing EXAMS and TOOLS lanes stay unchanged.
+  // It is intentionally independent from the remaining tools highlights.
   const serviceItems = [
     "Leave Rules",
     "Pass & PTO",
@@ -132,6 +114,5 @@
     welcome.parentNode.insertBefore(serviceLane, welcome);
   }
 
-  addLane("Departmental exam features", "🎓 EXAMS", examItems, "rm-home-highlights__lane--exams");
   addLane("Employee tools and calculators", "🛠 TOOLS", toolItems, "rm-home-highlights__lane--tools");
 })();
