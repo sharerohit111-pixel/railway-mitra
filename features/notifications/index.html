@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071326">
+<title>Notifications | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="notifications.css?v=1">
+</head>
+<body class="rm-notifications-page">
+<main class="rm-notifications">
+  <header class="rm-notifications__header">
+    <a class="rm-notifications__back" href="../../">← Home</a>
+    <div><p class="rm-notifications__eyebrow">RAILWAY MITRA</p><h1>🔔 Notifications</h1><p>Important updates and announcements</p></div>
+    <button id="markAllRead" class="rm-notifications__mark" type="button">Mark all read</button>
+  </header>
+  <section class="rm-notifications__summary" aria-live="polite">
+    <strong id="unreadCount">0 unread</strong><span id="totalCount">0 notifications</span>
+  </section>
+  <nav class="rm-notifications__filters" aria-label="Filter notifications">
+    <button class="is-active" data-filter="all" type="button">All</button>
+    <button data-filter="unread" type="button">Unread</button>
+    <button data-filter="railway" type="button">Railway Updates</button>
+    <button data-filter="recruitment" type="button">Recruitment</button>
+    <button data-filter="salary" type="button">Salary & Allowances</button>
+    <button data-filter="app" type="button">App Updates</button>
+    <button data-filter="personal" type="button">Personal</button>
+  </nav>
+  <section id="notificationList" class="rm-notifications__list" aria-live="polite">
+    <div class="rm-notifications__empty">Loading notifications…</div>
+  </section>
+  <p class="rm-notifications__note">In-app updates only. This version does not send mobile push notifications.</p>
+</main>
+<script src="notifications.js?v=1"></script>
+</body>
+</html>
