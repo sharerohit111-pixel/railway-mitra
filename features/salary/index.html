@@ -1,23 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#071326"><meta name="description" content="Salary and pay information">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071326">
+<meta name="description" content="Salary and Pay tools - Railway Mitra">
 <title>Salary & Pay | Railway Mitra</title>
 <link rel="manifest" href="../../manifest.json">
 <link rel="stylesheet" href="../../assets/css/main.css">
 <link rel="stylesheet" href="../../assets/css/module-page.css">
 </head>
-<body data-module-id="salary">
-<header class="module-header"><a href="../../index.html">← Railway Mitra</a><button class="language-btn" id="languageToggle" type="button">हिन्दी</button></header>
-<main class="module-page" id="moduleContent">
-<section class="module-hero"><div class="eyebrow">Railway Mitra · Employee Services</div><h2 id="moduleTitle">Salary & Pay</h2><p id="moduleDescription">Salary and pay information</p></section>
-<section class="module-panel"><h3>Available sections</h3><ul class="module-list" id="moduleItems"><li>Loading…</li></ul>
-<div class="module-note">This module is a navigation and content foundation. Detailed calculators, account sign-in and personal-data storage are not included in this update. Official rules and figures must be checked against the applicable Railway Board or zonal order before use.</div>
-<div class="module-actions"><a href="../../index.html">Back to Dashboard</a><a href="../allowances/index.html">Open Allowances</a></div>
-</section>
+<body>
+<header class="module-header">
+  <a href="../../index.html">← Railway Mitra</a>
+  <button class="language-btn" id="languageToggle" type="button">हिन्दी</button>
+</header>
+<main class="module-page">
+  <section class="module-hero">
+    <div class="eyebrow">Railway Mitra · Employee Services</div>
+    <h2 id="pageTitle">Salary & Pay</h2>
+    <p id="pageDescription">Salary and pay tools for railway employees.</p>
+  </section>
 </main>
-<footer class="app-footer"><h3>Railway Mitra</h3><p>Your Railway Digital Companion</p><p>© <span id="moduleYear">2026</span> Railway Mitra</p></footer>
-<script src="../../assets/js/module-page.js"></script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}</script>
-</body></html>
+<footer class="app-footer">
+  <h3>Railway Mitra</h3>
+  <p>Your Railway Digital Companion</p>
+  <p>© <span id="moduleYear">2026</span> Railway Mitra</p>
+</footer>
+<script>
+(function(){
+  const translations={
+    en:{back:"← Railway Mitra",title:"Salary & Pay",description:"Salary and pay tools for railway employees."},
+    hi:{back:"← रेलवे मित्र",title:"वेतन एवं भुगतान",description:"रेलवे कर्मचारियों के लिए वेतन और भुगतान संबंधी टूल।"}
+  };
+  const toggle=document.getElementById("languageToggle");
+  let lang="en";
+  try{lang=localStorage.getItem("railwayMitraLanguage")==="hi"?"hi":"en";}catch(e){}
+  function render(){
+    const t=translations[lang];
+    document.documentElement.lang=lang;
+    document.querySelector(".module-header a").textContent=t.back;
+    document.getElementById("pageTitle").textContent=t.title;
+    document.getElementById("pageDescription").textContent=t.description;
+    toggle.textContent=lang==="en"?"हिन्दी":"English";
+  }
+  toggle.addEventListener("click",()=>{
+    lang=lang==="en"?"hi":"en";
+    try{localStorage.setItem("railwayMitraLanguage",lang);}catch(e){}
+    render();
+  });
+  render();
+  document.getElementById("moduleYear").textContent=new Date().getFullYear();
+})();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}
+</script>
+</body>
+</html>
