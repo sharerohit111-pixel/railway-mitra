@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPS vs UPS Calculator - Railway Mitra</title>
+<style>
+  body {
+    background-color: #0B1120;
+    color: #FFFFFF;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 16px;
+  }
+  .top-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  .lang-toggle {
+    display: flex;
+    background-color: #111827;
+    border: 1px solid #334155;
+    border-radius: 20px;
+    padding: 3px;
+  }
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: #94A3B8;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .lang-btn.active {
+    background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%);
+    color: #0B1120;
+  }
+  .header-card {
+    background: linear-gradient(180deg, #162238 0%, #0F172A 100%);
+    border: 1px solid #1E293B;
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .brand { color: #94A3B8; font-size: 12px; letter-spacing: 2px; font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; margin: 6px 0 2px; color: #FFFFFF; }
+  .subtitle { font-size: 14px; color: #00E5FF; }
+  .card {
+    background-color: #111827;
+    border: 1px solid #1F2937;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card-heading {
+    color: #00E5FF;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background-color: #0F2334;
+    border: 1px solid #0284C7;
+    color: #00E5FF;
+  }
+  .badge-purple {
+    background-color: #241438;
+    border: 1px solid #9333EA;
+    color: #E879F9;
+  }
+  label { display: block; font-size: 13px; color: #CBD5E1; margin-bottom: 6px; margin-top: 12px; }
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #0B1120;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 12px;
+    color: #FFFFFF;
+    font-size: 15px;
+    outline: none;
+  }
+  input:focus { border-color: #00E5FF; }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .btn-calc {
+    width: 100%;
+    padding: 14px;
+    margin-top: 18px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%);
+    color: #0B1120;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn-reset {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #7E22CE;
+    border-radius: 12px;
+    background-color: #1E132C;
+    color: #F472B6;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #1E293B;
+    font-size: 14px;
+    color: #CBD5E1;
+  }
+  .row span:last-child { color: #FFFFFF; font-weight: 600; }
+  .highlight-box {
+    background-color: #0F2334;
+    border: 1px solid #0284C7;
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .highlight-purple {
+    background-color: #1E132C;
+    border: 1px solid #9333EA;
+  }
+  .highlight-label { font-size: 14px; font-weight: 600; color: #E2E8F0; }
+  .highlight-val { font-size: 19px; font-weight: 700; color: #00E5FF; }
+  .highlight-purple .highlight-val { color: #E879F9; }
+  .note { font-size: 11px; color: #94A3B8; margin-top: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnHi" onclick="setLang('hi')">हिन्दी</button>
+    <button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+
+<div class="header-card">
+  <div class="brand">RAILWAY MITRA</div>
+  <div class="title" id="t_title">NPS vs UPS कैलकुलेटर</div>
+  <div class="subtitle" id="t_subtitle">पेंशन योजना तुलनात्मक गणना</div>
+</div>
+
+<div class="card">
+  <div class="card-heading" id="t_inputHead">कर्मचारी विवरण (Details)</div>
+  
+  <div class="grid-2">
+    <div>
+      <label id="t_lblAge">वर्तमान उम्र (वर्ष)</label>
+      <input type="number" id="currAge" placeholder="32" min="18" max="59">
+    </div>
+    <div>
+      <label id="t_lblService">कुल सेवा वर्ष (60 तक)</label>
+      <input type="number" id="totalService" placeholder="30" min="10" max="42">
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <label id="t_lblCurrBasic">वर्तमान बेसिक पे (₹)</label>
+      <input type="number" id="currBasic" placeholder="45400">
+    </div>
+    <div>
+      <label id="t_lblRetBasic">अंतिम अनुमानित बेसिक (₹)</label>
+      <input type="number" id="retBasic" placeholder="95000">
+    </div>
+  </div>
+
+  <label id="t_lblCorpus">वर्तमान जमा NPS फंड (₹) - वैकल्पिक</label>
+  <input type="number" id="currCorpus" placeholder="500000" value="0">
+
+  <div class="grid-2">
+    <div>
+      <label id="t_lblDa">DA दर (%)</label>
+      <input type="number" id="daRate" value="63">
+    </div>
+    <div>
+      <label id="t_lblReturn">NPS वार्षिक रिटर्न (%)</label>
+      <input type="number" id="npsReturn" value="9.5" step="0.5">
+    </div>
+  </div>
+
+  <button class="btn-calc" id="t_btnCalc" onclick="calculatePension()">तुलना करें (Compare)</button>
+  <button class="btn-reset" id="t_btnReset" onclick="resetForm()">रीसेट करें</button>
+</div>
+
+<div id="resultSection" style="display:none;">
+  
+  <!-- UPS Result Card -->
+  <div class="card">
+    <div class="card-heading">
+      <span id="t_upsTitle">1. UPS (यूनिफाइड पेंशन स्कीम)</span>
+      <span class="badge" id="t_upsBadge">गारंटीड पेंशन</span>
+    </div>
+    <div class="row"><span id="t_upsBasicLbl">मासिक बेसिक पेंशन</span><span id="resUpsBasic">₹0</span></div>
+    <div class="row"><span id="t_upsDrLbl">महंगाई राहत (DR)</span><span id="resUpsDr">₹0</span></div>
+    <div class="row"><span id="t_upsLumpLbl">एकमुश्त राशि (Lump Sum)</span><span id="resUpsLump">₹0</span></div>
+    
+    <div class="highlight-box">
+      <span class="highlight-label" id="t_upsTotalLbl">कुल मासिक पेंशन (DR सहित)</span>
+      <span class="highlight-val" id="resUpsTotal">₹0</span>
+    </div>
+    <div class="note" id="t_upsNote">नोट: UPS में 25 साल की सेवा पर अंतिम बेसिक पे का 50% पेंशन + समय-समय पर बढ़ने वाला DR (महंगाई राहत) मिलता है।</div>
+  </div>
+
+  <!-- NPS Result Card -->
+  <div class="card">
+    <div class="card-heading">
+      <span id="t_npsTitle">2. NPS (नेशनल पेंशन सिस्टम)</span>
+      <span class="badge badge-purple" id="t_npsBadge">बाजार आधारित</span>
+    </div>
+    <div class="row"><span id="t_npsCorpusLbl">रिटायरमेंट पर कुल फंड</span><span id="resNpsCorpus">₹0</span></div>
+    <div class="row"><span id="t_npsLumpLbl">60% एकमुश्त नकद (Tax-Free)</span><span id="resNpsLump">₹0</span></div>
+    <div class="row"><span id="t_npsAnnuityLbl">40% पेंशन फंड (Annuity)</span><span id="resNpsAnnuity">₹0</span></div>
+    
+    <div class="highlight-box highlight-purple">
+      <span class="highlight-label" id="t_npsMonthlyLbl">अनुमानित मासिक पेंशन (6% पर)</span>
+      <span class="highlight-val" id="resNpsMonthly">₹0</span>
+    </div>
+    <div class="note" id="t_npsNote">नोट: NPS में 10% कर्मचारी + 14% रेलवे योगदान (कुल 24%) की गणना की गई है। NPS पेंशन पर भविष्य में DR नहीं बढ़ता।</div>
+  </div>
+
+</div>
+
+<script>
+let currentLang = 'hi';
+
+const translations = {
+  hi: {
+    t_title: "NPS vs UPS कैलकुलेटर",
+    t_subtitle: "पेंशन योजना तुलनात्मक गणना",
+    t_inputHead: "कर्मचारी विवरण (Details)",
+    t_lblAge: "वर्तमान उम्र (वर्ष)",
+    t_lblService: "कुल सेवा वर्ष (60 तक)",
+    t_lblCurrBasic: "वर्तमान बेसिक पे (₹)",
+    t_lblRetBasic: "अंतिम अनुमानित बेसिक (₹)",
+    t_lblCorpus: "वर्तमान जमा NPS फंड (₹) - वैकल्पिक",
+    t_lblDa: "DA दर (%)",
+    t_lblReturn: "NPS वार्षिक रिटर्न (%)",
+    t_btnCalc: "तुलना करें (Compare)",
+    t_btnReset: "रीसेट करें",
+    t_upsTitle: "1. UPS (यूनिफाइड पेंशन स्कीम)",
+    t_upsBadge: "गारंटीड पेंशन",
+    t_upsBasicLbl: "मासिक बेसिक पेंशन",
+    t_upsDrLbl: "महंगाई राहत (DR)",
+    t_upsLumpLbl: "एकमुश्त राशि (Lump Sum)",
+    t_upsTotalLbl: "कुल मासिक पेंशन (DR सहित)",
+    t_upsNote: "नोट: UPS में 25 साल की सेवा पर अंतिम बेसिक पे का 50% पेंशन + समय-समय पर बढ़ने वाला DR (महंगाई राहत) मिलता है।",
+    t_npsTitle: "2. NPS (नेशनल पेंशन सिस्टम)",
+    t_npsBadge: "बाजार आधारित",
+    t_npsCorpusLbl: "रिटायरमेंट पर कुल फंड",
+    t_npsLumpLbl: "60% एकमुश्त नकद (Tax-Free)",
+    t_npsAnnuityLbl: "40% पेंशन फंड (Annuity)",
+    t_npsMonthlyLbl: "अनुमानित मासिक पेंशन (6% पर)",
+    t_npsNote: "नोट: NPS में 10% कर्मचारी + 14% रेलवे योगदान (कुल 24%) की गणना की गई है। NPS पेंशन पर भविष्य में DR नहीं बढ़ता।",
+    alertMsg: "कृपया वर्तमान उम्र, सेवा वर्ष और बेसिक पे सही भरें।"
+  },
+  en: {
+    t_title: "NPS vs UPS Calculator",
+    t_subtitle: "Pension Scheme Comparison Tool",
+    t_inputHead: "Employee Details",
+    t_lblAge: "Current Age (Years)",
+    t_lblService: "Total Service Years (at 60)",
+    t_lblCurrBasic: "Current Basic Pay (₹)",
+    t_lblRetBasic: "Expected Last Basic Pay (₹)",
+    t_lblCorpus: "Current NPS Corpus (₹) - Optional",
+    t_lblDa: "DA Rate (%)",
+    t_lblReturn: "Expected NPS Return (%)",
+    t_btnCalc: "Compare Pensions",
+    t_btnReset: "Reset",
+    t_upsTitle: "1. UPS (Unified Pension Scheme)",
+    t_upsBadge: "Guaranteed Pension",
+    t_upsBasicLbl: "Monthly Basic Pension",
+    t_upsDrLbl: "Dearness Relief (DR)",
+    t_upsLumpLbl: "Retirement Lump Sum",
+    t_upsTotalLbl: "Total Monthly Pension (with DR)",
+    t_upsNote: "Note: Under UPS, 50% of last basic pay is assured for 25+ years of service along with inflation-linked DR.",
+    t_npsTitle: "2. NPS (National Pension System)",
+    t_npsBadge: "Market Linked",
+    t_npsCorpusLbl: "Total Corpus at Retirement",
+    t_npsLumpLbl: "60% Lump Sum (Tax-Free)",
+    t_npsAnnuityLbl: "40% Annuity Corpus",
+    t_npsMonthlyLbl: "Est. Monthly Pension (@6% Annuity)",
+    t_npsNote: "Note: Calculated with 24% total contribution (10% Employee + 14% Govt). NPS pension does not include future DR.",
+    alertMsg: "Please enter valid Current Age, Service Years, and Basic Pay."
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btnHi').classList.toggle('active', lang === 'hi');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+
+  const dict = translations[lang];
+  for (let key in dict) {
+    if (document.getElementById(key)) {
+      document.getElementById(key).innerText = dict[key];
+    }
+  }
+}
+
+function calculatePension() {
+  let age = parseInt(document.getElementById('currAge').value) || 0;
+  let service = parseFloat(document.getElementById('totalService').value) || 0;
+  let currBasic = parseFloat(document.getElementById('currBasic').value) || 0;
+  let retBasic = parseFloat(document.getElementById('retBasic').value) || 0;
+  let currCorpus = parseFloat(document.getElementById('currCorpus').value) || 0;
+  let da = parseFloat(document.getElementById('daRate').value) || 0;
+  let rate = parseFloat(document.getElementById('npsReturn').value) || 9.5;
+
+  if (age < 18 || age >= 60 || service < 10 || currBasic <= 0 || retBasic <= 0) {
+    alert(translations[currentLang].alertMsg);
+    return;
+  }
+
+  // --- 1. UPS Calculation ---
+  let pensionRatio = service >= 25 ? 0.50 : 0.50 * (service / 25);
+  let upsBasicPension = Math.round(retBasic * pensionRatio);
+  if (upsBasicPension < 10000) upsBasicPension = 10000; // Minimum guaranteed ₹10,000
+  let upsDr = Math.round(upsBasicPension * (da / 100));
+  let upsTotalMonthly = upsBasicPension + upsDr;
+
+  // Lump sum: 1/10th of (Basic + DA) for every 6 months of service
+  let halfYears = Math.floor(service * 2);
+  let retEmoluments = retBasic + (retBasic * da / 100);
+  let upsLumpSum = Math.round((retEmoluments / 10) * halfYears);
+
+  // --- 2. NPS Calculation ---
+  let monthsLeft = (60 - age) * 12;
+  let monthlyRate = (rate / 100) / 12;
+  
+  // Average basic pay over remaining years for monthly contribution estimation
+  let avgBasic = (currBasic + retBasic) / 2;
+  let avgEmoluments = avgBasic + (avgBasic * da / 100);
+  let monthlyContribution = avgEmoluments * 0.24; // 10% + 14%
+
+  // Future value of existing corpus + SIP
+  let fvExisting = currCorpus * Math.pow(1 + monthlyRate, monthsLeft);
+  let fvSip = monthlyContribution * ((Math.pow(1 + monthlyRate, monthsLeft) - 1) / monthlyRate);
+  let totalNpsCorpus = Math.round(fvExisting + fvSip);
+
+  let npsLumpSum = Math.round(totalNpsCorpus * 0.60);
+  let npsAnnuityCorpus = Math.round(totalNpsCorpus * 0.40);
+  let npsMonthlyPension = Math.round((npsAnnuityCorpus * 0.06) / 12); // Assuming 6% annuity rate
+
+  // Display UPS Results
+  document.getElementById('resUpsBasic').innerText = "₹" + upsBasicPension.toLocaleString('en-IN');
+  document.getElementById('resUpsDr').innerText = "₹" + upsDr.toLocaleString('en-IN');
+  document.getElementById('resUpsLump').innerText = "₹" + upsLumpSum.toLocaleString('en-IN');
+  document.getElementById('resUpsTotal').innerText = "₹" + upsTotalMonthly.toLocaleString('en-IN');
+
+  // Display NPS Results
+  document.getElementById('resNpsCorpus').innerText = "₹" + totalNpsCorpus.toLocaleString('en-IN');
+  document.getElementById('resNpsLump').innerText = "₹" + npsLumpSum.toLocaleString('en-IN');
+  document.getElementById('resNpsAnnuity').innerText = "₹" + npsAnnuityCorpus.toLocaleString('en-IN');
+  document.getElementById('resNpsMonthly').innerText = "₹" + npsMonthlyPension.toLocaleString('en-IN');
+
+  document.getElementById('resultSection').style.display = "block";
+}
+
+function resetForm() {
+  document.getElementById('currAge').value = "";
+  document.getElementById('totalService').value = "";
+  document.getElementById('currBasic').value = "";
+  document.getElementById('retBasic').value = "";
+  document.getElementById('currCorpus').value = "0";
+  document.getElementById('daRate').value = "63";
+  document.getElementById('npsReturn').value = "9.5";
+  document.getElementById('resultSection').style.display = "none";
+}
+</script>
+</body>
+</html>
