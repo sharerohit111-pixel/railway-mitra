@@ -17,12 +17,30 @@
     <link rel="stylesheet" href="features/home-highlights/highlights.css?v=18">
     <link rel="stylesheet" href="features/home-highlights/welcome-hero.css?v=2">
     <link rel="stylesheet" href="features/bottom-navigation/bottom-navigation.css?v=1">
+    <link rel="stylesheet" href="features/splash-screen/splash.css?v=1">
     <script src="assets/js/language.js" defer></script>
     <script src="features/share/share.js" defer></script>
     <script src="features/install/home-install.js?v=3" defer></script>
+    <script src="features/splash-screen/splash.js?v=1" defer></script>
 </head>
 
 <body>
+
+    <!-- Isolated animated opening screen; app content remains untouched underneath. -->
+    <div class="rm-splash" id="rmSplash" role="status" aria-live="polite" aria-label="Opening Railway Mitra">
+        <div class="rm-splash__content">
+            <div class="rm-splash__logo-wrap">
+                <img class="rm-splash__logo" src="assets/icons/icon-512.png" alt="Railway Mitra Logo">
+            </div>
+            <h1 class="rm-splash__brand">RAILWAY MITRA</h1>
+            <p class="rm-splash__tagline">Your Railway Digital Companion</p>
+            <p class="rm-splash__quote">“Away from their families, uniting millions of lives.”</p>
+            <p class="rm-splash__tribute">A tribute to the real heroes of Indian Railways</p>
+            <div class="rm-splash__loader" role="presentation"><div class="rm-splash__progress"></div></div>
+            <p class="rm-splash__loading">PREPARING YOUR RAILWAY COMPANION</p>
+            <p class="rm-splash__owner">Owned &amp; Developed by <strong>Rohit Kumar</strong></p>
+        </div>
+    </div>
 
     <header class="app-header">
         <div class="brand">

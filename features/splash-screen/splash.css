@@ -1,0 +1,229 @@
+/* Railway Mitra — isolated animated opening screen */
+.rm-splash {
+  --rm-cyan: #20eaff;
+  --rm-pink: #f044dc;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 28px 20px;
+  color: #fff;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 44%, rgba(20, 73, 143, .34), transparent 48%),
+    radial-gradient(circle at 12% 18%, rgba(0, 229, 255, .12), transparent 28%),
+    radial-gradient(circle at 88% 78%, rgba(224, 40, 220, .13), transparent 30%),
+    #050b1a;
+  isolation: isolate;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .55s ease, visibility .55s ease;
+}
+
+.rm-splash::before,
+.rm-splash::after {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+}
+
+.rm-splash::before {
+  inset: -50%;
+  opacity: .23;
+  background-image:
+    linear-gradient(rgba(32, 234, 255, .13) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(32, 234, 255, .13) 1px, transparent 1px);
+  background-size: 42px 42px;
+  transform: perspective(500px) rotateX(58deg) scale(1.45);
+  transform-origin: center 62%;
+  animation: rm-splash-grid 9s linear infinite;
+  mask-image: linear-gradient(transparent 8%, #000 48%, transparent 92%);
+}
+
+.rm-splash::after {
+  width: min(78vw, 430px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(32, 234, 255, .12);
+  border-radius: 50%;
+  box-shadow: 0 0 65px rgba(32, 234, 255, .08), inset 0 0 65px rgba(240, 68, 220, .06);
+  animation: rm-splash-orbit 12s linear infinite;
+}
+
+.rm-splash__content {
+  width: min(100%, 430px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: rm-splash-enter .85s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.rm-splash__logo-wrap {
+  position: relative;
+  width: clamp(190px, 58vw, 260px);
+  aspect-ratio: 1;
+  margin-bottom: 25px;
+  border-radius: 31px;
+  animation: rm-splash-logo 1.15s cubic-bezier(.2,.8,.2,1) both, rm-splash-float 4s ease-in-out 1.15s infinite;
+}
+
+.rm-splash__logo-wrap::before {
+  position: absolute;
+  inset: -5px;
+  z-index: -1;
+  content: "";
+  border-radius: 36px;
+  background: conic-gradient(from 0deg, transparent 0 12%, var(--rm-cyan), transparent 38%, var(--rm-pink), transparent 72%, var(--rm-cyan));
+  filter: blur(12px);
+  opacity: .72;
+  animation: rm-splash-orbit 5s linear infinite;
+}
+
+.rm-splash__logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 29px;
+  box-shadow: 0 0 26px rgba(0, 229, 255, .22), 0 0 52px rgba(240, 68, 220, .13);
+}
+
+.rm-splash__brand {
+  margin: 0;
+  font-size: clamp(27px, 7vw, 36px);
+  line-height: 1.1;
+  font-weight: 900;
+  letter-spacing: 1.6px;
+  text-shadow: 0 0 12px rgba(32, 234, 255, .5), 0 0 26px rgba(240, 68, 220, .28);
+  animation: rm-splash-text-in .7s ease .35s both;
+}
+
+.rm-splash__tagline {
+  margin: 10px 0 0;
+  color: #8cefff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: rm-splash-text-in .7s ease .55s both;
+}
+
+.rm-splash__quote {
+  max-width: 340px;
+  margin: 28px 0 9px;
+  color: #f8fafc;
+  font-size: clamp(14px, 3.8vw, 16px);
+  line-height: 1.55;
+  font-weight: 650;
+  letter-spacing: .15px;
+  animation: rm-splash-text-in .75s ease .8s both;
+}
+
+.rm-splash__tribute {
+  max-width: 330px;
+  margin: 0;
+  color: #43eaff;
+  font-size: 10px;
+  line-height: 1.6;
+  font-weight: 800;
+  letter-spacing: 1.45px;
+  text-transform: uppercase;
+  animation: rm-splash-text-in .75s ease 1s both;
+}
+
+.rm-splash__loader {
+  width: 148px;
+  height: 3px;
+  margin-top: 31px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(148, 163, 184, .2);
+  box-shadow: 0 0 12px rgba(32, 234, 255, .12);
+  animation: rm-splash-text-in .6s ease 1.05s both;
+}
+
+.rm-splash__progress {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #16d9ff, #a855f7, #ff48d7);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: rm-splash-progress 2.35s cubic-bezier(.35,.05,.2,1) .2s forwards;
+}
+
+.rm-splash__loading {
+  margin: 10px 0 0;
+  color: #91a8c7;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  animation: rm-splash-text-in .6s ease 1.15s both;
+}
+
+.rm-splash__owner {
+  margin: 23px 0 0;
+  color: #c6d7ef;
+  font-size: 10px;
+  letter-spacing: .8px;
+  animation: rm-splash-text-in .7s ease 1.25s both;
+}
+
+.rm-splash__owner strong {
+  color: #fff;
+  font-weight: 800;
+}
+
+.rm-splash.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@keyframes rm-splash-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rm-splash-logo {
+  from { opacity: 0; transform: scale(.78) rotate(-3deg); filter: blur(7px); }
+  to { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
+}
+@keyframes rm-splash-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes rm-splash-text-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rm-splash-progress {
+  to { transform: scaleX(1); }
+}
+@keyframes rm-splash-grid {
+  from { background-position: 0 0; }
+  to { background-position: 42px 42px; }
+}
+@keyframes rm-splash-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-height: 650px) {
+  .rm-splash { padding: 16px; }
+  .rm-splash__logo-wrap { width: clamp(145px, 38vh, 205px); margin-bottom: 16px; }
+  .rm-splash__quote { margin-top: 18px; }
+  .rm-splash__loader { margin-top: 20px; }
+  .rm-splash__owner { margin-top: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rm-splash *,
+  .rm-splash::before,
+  .rm-splash::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .rm-splash { transition-duration: .01ms; }
+}
