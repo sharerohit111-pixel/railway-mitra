@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071326">
+  <title>Cant &amp; Safe Speed Calculator - Railway Mitra</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="calculator-shell">
+    <div class="top-bar">
+      <a class="back-link" href="../index.html">← P-Way &amp; Civil Tools</a>
+      <button class="lang-btn" type="button" onclick="toggleLang()" id="langBtn">English</button>
+    </div>
+    <section class="card">
+      <h1 id="mainTitle">📐 कैंट (Superelevation) और सेफ स्पीड</h1>
+      <p class="sub" id="subTitle">ब्रॉड गेज (BG) कर्व के लिए कैंट और अधिकतम सुरक्षित गति निकालें</p>
+      <label for="curveType" id="inputTypeLabel">1. कर्व का मान चुनें (Curve Input):</label>
+      <select id="curveType" onchange="updateLabels()">
+        <option value="degree" id="optDeg">कर्व की डिग्री (Degree - D)</option>
+        <option value="radius" id="optRad">कर्व की त्रिज्या (Radius - R मीटर में)</option>
+      </select>
+      <label for="curveVal" id="curveValLabel">कर्व की डिग्री डालें (Degree):</label>
+      <input type="number" min="0" step="any" id="curveVal" placeholder="जैसे: 2.0" inputmode="decimal">
+      <label for="trainSpeed" id="speedLabel">2. ट्रेन की गति डालें (Speed in km/h):</label>
+      <input type="number" min="0" step="any" id="trainSpeed" placeholder="जैसे: 110" inputmode="decimal">
+      <label for="routeGroup" id="routeLabel">3. रूट की श्रेणी (Route Group - IRPWM):</label>
+      <select id="routeGroup">
+        <option value="165_100" id="optABC">Group A, B, C (Max Ca = 165mm, Cd = 100mm)</option>
+        <option value="140_75" id="optDE">Group D, E (Max Ca = 140mm, Cd = 75mm)</option>
+      </select>
+      <button class="calc-btn" type="button" onclick="calculateCant()" id="calcBtn">गणना करें (Calculate)</button>
+      <div class="result-box" id="resultBox" aria-live="polite">
+        <div class="res-label" id="resCantTitle">आवश्यक इक्विलिब्रियम कैंट (Equilibrium Cant):</div>
+        <div class="result-val" id="cantOutput">0 mm</div>
+        <div id="statusBadge" class="status-line"></div>
+        <div id="extraInfo" class="extra-details"></div>
+      </div>
+    </section>
+    <section class="card info-box" id="principleBox" aria-live="polite"></section>
+    <p class="disclaimer" id="disclaimer">यह परिणाम दिए गए सूत्र और चुनी गई सीमाओं पर आधारित गणितीय अनुमान है। वास्तविक संचालन गति के लिए स्वीकृत रेलवे नियम, स्थानीय प्रतिबंध और सक्षम प्राधिकारी के आदेश मान्य होंगे।</p>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
