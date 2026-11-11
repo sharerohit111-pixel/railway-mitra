@@ -1,0 +1,12 @@
+/* Isolated dashboard folder favourites. */
+.feature-grid > .rm-favorite-card{position:relative;min-width:0}
+.rm-favorite-card[hidden]{display:none!important}
+.rm-favorite-card>.feature-card{height:100%;width:100%;padding-right:48px}
+.rm-favorite-toggle{position:absolute;z-index:4;top:10px;right:10px;width:34px;height:34px;border:1px solid #4a8aa8;border-radius:11px;background:#0b1d35;color:#a9c8dc;font-size:23px;line-height:1;display:grid;place-items:center;box-shadow:0 2px 9px #0005}
+.rm-favorite-toggle.is-active{color:#ffe36b;border-color:#e5c44f;background:#302b22;text-shadow:0 0 10px #ffd84d;box-shadow:0 0 12px #f5cf4b55}
+.rm-favorite-card.is-favorite>.feature-card{border-color:#d4b64d!important;box-shadow:0 0 0 1px #d4b64d55,0 5px 18px #0005,inset 0 0 12px #35e8ff12!important}
+.rm-favorites-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-7px 0 15px 10px;flex-wrap:wrap}
+.rm-favorites-count{color:#a9dff1;font-size:12px}
+.rm-favorites-filter{border:1px solid #4b91b7;border-radius:20px;background:#112846;color:#dff8ff;padding:8px 13px;font-weight:700;font-size:12px}
+.rm-favorites-filter.active{background:linear-gradient(100deg,#806126,#4a3b1e);border-color:#f0d16b;color:#fff1ad}
+@media(max-width:400px){.rm-favorite-toggle{width:31px;height:31px;top:8px;right:8px}.rm-favorite-card>.feature-card{padding-right:43px}}
