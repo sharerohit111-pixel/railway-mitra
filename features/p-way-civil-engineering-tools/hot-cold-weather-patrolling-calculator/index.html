@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zone-Wise LWR Rail Temp & Patrolling - Railway Mitra</title>
+  <title>Zone-Wise LWR Patrolling - Railway Mitra</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,7 +13,6 @@
   <button type="button" class="lang-btn" id="langBtn">English</button>
 </div>
 
-<!-- Main Calculator Card -->
 <div class="card">
   <h2 id="mainTitle">🌡️ जोन-वाइज LWR तापमान और पेट्रोलिंग</h2>
   <p class="sub" id="subTitle">IRPWM के 4 तापमान जोन (Zone I–IV) के अनुसार td और पेट्रोलिंग की स्थिति जांचें</p>
@@ -37,21 +36,17 @@
 
   <button type="button" class="calc-btn" id="calcBtn">पेट्रोलिंग स्थिति जांचें (Check Status)</button>
 
-  <!-- Clear Result Box -->
   <div class="result-box" id="resultBox">
-    <div id="tdValidationBox" style="margin-bottom: 12px;"></div>
-    
-    <div class="res-label" id="resDiffLabel">डिस्ट्रेसिंग तापमान से अंतर (ΔT = Curr - td):</div>
-    <div class="result-val" id="diffOutput">0 °C</div>
-
-    <!-- Clear Action Box for Patrolling -->
-    <div id="patrollingDecisionBox" class="decision-box"></div>
-
+    <div id="patrollingActionBanner" class="action-banner"></div>
+    <div id="tdStatusText" class="td-status"></div>
+    <div class="diff-row">
+      <span id="resDiffLabel">डिस्ट्रेसिंग तापमान से अंतर (ΔT):</span>
+      <strong id="diffOutput" class="diff-val">0 °C</strong>
+    </div>
     <div id="limitDetails" class="extra-details"></div>
   </div>
 </div>
 
-<!-- Zone Reference Box -->
 <div class="card info-box" id="zoneRulesBox">
   <strong style="color:#38bdf8;">📘 Zone 3 – कैलकुलेटर में दिए गए संदर्भ मान:</strong><br>
   • <b>अनुमेय td सीमा:</b> tm से tm + 5°C<br>
@@ -60,7 +55,6 @@
   • <b>सर्दी की पेट्रोलिंग (Cold Patrolling):</b> <b>td - 30°C</b> से नीचे
 </div>
 
-<!-- Legal Disclaimer Box -->
 <div class="disclaimer-box" id="disclaimerBox">
   <b>महत्वपूर्ण:</b> यह कैलकुलेटर दिए गए इनपुट और इसमें शामिल संदर्भ सीमाओं के आधार पर प्रारंभिक संकेत देता है। पेट्रोलिंग, वॉचमैन और गति प्रतिबंध के वास्तविक निर्णय के लिए लागू नवीनतम IRPWM, रेलवे बोर्ड/जोनल निर्देश तथा सक्षम अधिकारी के आदेश देखें। इसे परिचालन अनुमति न मानें।
 </div>
