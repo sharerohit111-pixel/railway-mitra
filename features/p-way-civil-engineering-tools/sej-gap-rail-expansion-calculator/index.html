@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0b0f19">
+<meta name="description" content="SEJ gap and rail temperature expansion reference calculator for Railway Mitra.">
+<title>SEJ Gap & Rail Expansion Calculator - Railway Mitra</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="top-bar">
+  <a class="back-link" href="../index.html">← P-Way Tools</a>
+  <span class="tag">LWR / SEJ Maintenance</span>
+  <button class="lang-btn" onclick="toggleLang()" id="langBtn" type="button">English</button>
+</div>
+<main>
+<div class="card">
+<h1 id="mainTitle">🛤️ SEJ गैप और रेल एक्सपेंशन कैलकुलेटर</h1>
+<p class="sub" id="subTitle">मौजूदा रेल तापमान पर SEJ का सैद्धांतिक गैप और स्थिति जांचें</p>
+<label id="sejTypeLabel" for="initialGap">1. SEJ का प्रकार / td पर प्रारंभिक गैप:</label>
+<select id="initialGap">
+<option value="40" id="opt40">40 mm (Standard 120mm Max Gap SEJ)</option>
+<option value="60" id="opt60">60 mm (Modified / Special SEJ)</option>
+</select>
+<label id="tdLabel" for="tdTemp">2. डिस्ट्रेसिंग तापमान (td °C):</label>
+<input type="number" step="0.5" id="tdTemp" inputmode="decimal" placeholder="जैसे: 42">
+<label id="currLabel" for="currTemp">3. मौजूदा रेल तापमान (°C):</label>
+<input type="number" step="0.5" id="currTemp" inputmode="decimal" placeholder="जैसे: 55">
+<label id="actualLabel" for="actualGap">4. ट्रैक पर नापा गया वास्तविक गैप (mm - वैकल्पिक):</label>
+<input type="number" step="0.5" id="actualGap" inputmode="decimal" placeholder="जैसे: 28 (खाली छोड़ सकते हैं)">
+<button class="calc-btn" onclick="calculateSEJ()" id="calcBtn" type="button">SEJ गैप की गणना करें</button>
+<div class="result-box" id="resultBox" aria-live="polite">
+<div class="res-label" id="resGapLabel">सैद्धांतिक SEJ गैप:</div>
+<div class="result-val" id="gapOutput">0 mm</div>
+<div id="toleranceBadge" class="badge-slot"></div>
+<div id="extraDetails" class="extra-details"></div>
+</div>
+</div>
+<div class="card info-box" id="sejRulesBox"></div>
+<div class="card disclaimer" id="disclaimer">महत्वपूर्ण: 1.15 mm/°C गुणांक, ±10 mm तुलना-सीमा तथा प्रारंभिक गैप विकल्प इस कैलकुलेटर में दिए गए संदर्भ इनपुट हैं। वास्तविक SEJ गैप की गणना SEJ के स्वीकृत ड्रॉइंग, breathing length, रेल प्रोफाइल/व्यवस्था और लागू नवीनतम IRPWM/रेलवे निर्देशों के अनुसार करें। यह परिणाम परिचालन अनुमति या सुरक्षा प्रमाणपत्र नहीं है।</div>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
