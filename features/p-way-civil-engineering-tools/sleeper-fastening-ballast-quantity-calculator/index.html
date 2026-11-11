@@ -3,51 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sleeper, Fastening & Ballast Quantity Calculator - Railway Mitra</title>
+  <title>New & Old Track Material Calculator - Railway Mitra</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
 <div class="top-bar">
   <span class="tag">IRPWM Track Estimator</span>
-  <button class="lang-btn" onclick="toggleLang()" id="langBtn">English</button>
+  <button type="button" class="lang-btn" id="langBtn">English</button>
 </div>
+
 <div class="card">
   <h2 id="mainTitle">🧱 नया और पुराना ट्रैक मटेरियल कैलकुलेटर</h2>
   <p class="sub" id="subTitle">IRPWM मैनुअल के अनुसार New Track और Old Track (Main Line व Yard) की सामग्री निकालें</p>
+
   <label id="trackCatLabel">1. ट्रैक की स्थिति और श्रेणी चुनें (IRPWM Category):</label>
-  <select id="trackCategory" onchange="applyManualDefaults()">
+  <select id="trackCategory">
     <option value="new_main" id="optNewMain">🆕 नया ट्रैक – Main Line (New Line / CTR)</option>
     <option value="new_yard" id="optNewYard">🆕 नया ट्रैक – New Yard / Loop Line (25T)</option>
     <option value="old_main" id="optOldMain">🛤️ पुराना ट्रैक – Existing Main / Branch Line</option>
     <option value="old_yard" id="optOldYard">🏚️ पुराना ट्रैक – Existing Old Yard / Siding</option>
   </select>
+
   <label id="lenLabel">2. ट्रैक की लंबाई डालें (Track Length in Meters):</label>
-  <input type="number" min="0" step="1" id="trackLength" placeholder="जैसे: 1000 (1 किमी के लिए 1000)">
+  <input type="number" step="1" id="trackLength" placeholder="जैसे: 1000 (1 किमी के लिए 1000)">
+
   <label id="densityLabel">3. स्लीपर डेंसिटी (Sleeper Density per km):</label>
   <select id="sleeperDensity">
     <option value="1660" id="opt1660">1660 स्लीपर / किमी (Spacing ~60 cm)</option>
     <option value="1540" id="opt1540">1540 स्लीपर / किमी (Spacing ~65 cm)</option>
     <option value="1310" id="opt1310">1310 स्लीपर / किमी (Spacing ~76 cm)</option>
   </select>
+
   <label id="cushionLabel">4. गिट्टी कुशन की गहराई (Ballast Cushion - IRPWM):</label>
   <select id="ballastCushion">
     <option value="2.52" id="opt350">350 mm कुशन (New High-Speed Main Line - ~2.52 m³/m)</option>
-    <option value="2.28" id="opt300">300 mm कुशन (New Main Line Standard - ~2.28 m³/m)</option>
+    <option value="2.28" id="opt300" selected>300 mm कुशन (New Main Line Standard - ~2.28 m³/m)</option>
     <option value="2.02" id="opt250">250 mm कुशन (New Yard / Old Main - ~2.02 m³/m)</option>
     <option value="1.78" id="opt200">200 mm कुशन (Old Branch / Old Yard - ~1.78 m³/m)</option>
     <option value="1.52" id="opt150">150 mm कुशन (Old Yard / Siding - ~1.52 m³/m)</option>
   </select>
-  <button class="calc-btn" onclick="calculateMaterials()" id="calcBtn">सामग्री की गणना करें (Calculate)</button>
+
+  <button type="button" class="calc-btn" id="calcBtn">सामग्री की गणना करें (Calculate)</button>
+
   <div class="result-box" id="resultBox">
     <div id="categoryBanner" class="cat-badge"></div>
     <div id="manualStandardNote" class="manual-note"></div>
+
     <div class="res-label" id="resSlpLabel">कुल आवश्यक PSC स्लीपर (Total Sleepers):</div>
     <div class="result-val" id="sleeperOutput">0 Nos.</div>
+
     <div class="grid-box" id="fittingsGrid"></div>
+
     <div class="ballast-banner" id="ballastOutput"></div>
   </div>
 </div>
-<div class="card info-box" id="rulesBox"></div>
+
+<div class="card info-box" id="rulesBox">
+  <strong style="color:#38bdf8;">📘 IRPWM नया ट्रैक बनाम पुराना ट्रैक मानक:</strong><br>
+  • <b>नया ट्रैक (New Main Line):</b> 60kg रेल, 1660 PSC स्लीपर/किमी, <b>300–350 mm</b> गिट्टी कुशन।<br>
+  • <b>नया यार्ड / लूप (New Yard):</b> 1540–1660 PSC स्लीपर/किमी, <b>250 mm</b> कुशन (25T एक्सल लोड)।<br>
+  • <b>पुराना ट्रैक (Old Main/Branch):</b> 1540 स्लीपर/किमी, <b>200–250 mm</b> गिट्टी कुशन।<br>
+  • <b>पुराना यार्ड / साइडिंग (Old Yard):</b> 1310–1540 PSC स्लीपर/किमी, <b>150–200 mm</b> गिट्टी कुशन।<br>
+  • <b>प्रति PSC स्लीपर फिटिंग्स:</b> 4 ERC क्लिप, 4 लाइनर और 2 रबर पैड (GRSP)।
+</div>
+
 <script src="script.js"></script>
 </body>
 </html>
