@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CEA Calculator - Railway Mitra</title>
 <style>
   body { background-color: #0B1120; color: #FFFFFF; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 16px; }
+  .top-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+  .lang-toggle { display: flex; background-color: #111827; border: 1px solid #334155; border-radius: 20px; padding: 3px; }
+  .lang-btn { background: transparent; border: none; color: #94A3B8; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+  .lang-btn.active { background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%); color: #0B1120; }
   .header-card { background: linear-gradient(180deg, #162238 0%, #0F172A 100%); border: 1px solid #1E293B; border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 16px; }
   .brand { color: #94A3B8; font-size: 12px; letter-spacing: 2px; font-weight: 600; }
   .title { font-size: 22px; font-weight: 700; margin: 6px 0 2px; color: #FFFFFF; }
-  .subtitle { font-size: 14px; color: #CBD5E1; }
+  .subtitle { font-size: 14px; color: #00E5FF; }
   .card { background-color: #111827; border: 1px solid #1F2937; border-radius: 16px; padding: 18px; margin-bottom: 16px; }
   .card-heading { color: #00E5FF; font-size: 17px; font-weight: 700; margin-bottom: 14px; }
   label { display: block; font-size: 13px; color: #CBD5E1; margin-bottom: 6px; margin-top: 12px; }
@@ -27,60 +31,120 @@
 </head>
 <body>
 
+<div class="top-bar">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnHi" onclick="setLang('hi')">हिन्दी</button>
+    <button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+
 <div class="header-card">
   <div class="brand">RAILWAY MITRA</div>
-  <div class="title">Children Education Allowance</div>
-  <div class="subtitle">बच्चों का शिक्षा भत्ता (CEA) कैलकुलेटर</div>
+  <div class="title" id="t_title">बच्चों का शिक्षा भत्ता (CEA)</div>
+  <div class="subtitle" id="t_subtitle">Children Education Allowance Calculator</div>
 </div>
 
 <div class="card">
-  <div class="card-heading" id="detailsHeading">Select Child Details</div>
+  <div class="card-heading" id="t_head">बच्चों का विवरण चुनें</div>
   
-  <label id="countLabel">Number of eligible children (maximum 2)</label>
+  <label id="t_lblCount">पात्र बच्चों की संख्या (अधिकतम 2 बच्चे)</label>
   <select id="childCount">
-    <option value="1">1 बच्चा (1 Child)</option>
-    <option value="2">2 बच्चे (2 Children)</option>
+    <option value="1" id="opt_c1">1 बच्चा (1 Child)</option>
+    <option value="2" id="opt_c2">2 बच्चे (2 Children)</option>
   </select>
 
-  <label id="hostelLabel">Do the children live in a hostel?</label>
+  <label id="t_lblHostel">क्या बच्चे हॉस्टल (Hostel) में रहते हैं?</label>
   <select id="hostelStatus">
-    <option value="no">नहीं (केवल स्कूल शिक्षा भत्ता)</option>
-    <option value="yes">हाँ (हॉस्टल सब्सिडी सहित)</option>
+    <option value="no" id="opt_hNo">नहीं (केवल स्कूल शिक्षा भत्ता)</option>
+    <option value="yes" id="opt_hYes">हाँ (हॉस्टल सब्सिडी सहित)</option>
   </select>
 
-  <label id="pwdLabel">Is the child a person with disability (PwD)?</label>
+  <label id="t_lblPwd">क्या बच्चा दिव्यांग (Divyang / PwD) है?</label>
   <select id="pwdStatus">
-    <option value="no">नहीं (सामान्य)</option>
-    <option value="yes">हाँ (दोगुना भत्ता देय)</option>
+    <option value="no" id="opt_pNo">नहीं (सामान्य)</option>
+    <option value="yes" id="opt_pYes">हाँ (दोगुना भत्ता देय)</option>
   </select>
 
-  <button class="btn-calc" onclick="calculateCEA()">CEA भत्ते की गणना करें</button>
-  <button class="btn-reset" onclick="resetForm()">रीसेट करें</button>
+  <button class="btn-calc" id="t_btnCalc" onclick="calculateCEA()">CEA भत्ते की गणना करें</button>
+  <button class="btn-reset" id="t_btnReset" onclick="resetForm()">रीसेट करें</button>
 </div>
 
 <div class="card" id="resultCard" style="display:none;">
-  <div class="card-heading" id="resultHeading">Calculation Result</div>
-  <div class="row"><span id="monthlyLabel">Monthly Allowance Payable</span><span id="resMonthly">₹0</span></div>
-  <div class="row"><span id="perChildLabel">Annual Allowance per Child</span><span id="resPerChild">₹0</span></div>
+  <div class="card-heading" id="t_resHead">गणना का परिणाम</div>
+  <div class="row"><span id="t_resMonthLbl">प्रति माह देय भत्ता</span><span id="resMonthly">₹0</span></div>
+  <div class="row"><span id="t_resChildLbl">प्रति बच्चा सालाना भत्ता</span><span id="resPerChild">₹0</span></div>
   
   <div class="highlight-box">
-    <span class="highlight-label" id="totalLabel">Total Annual CEA Amount</span>
+    <span class="highlight-label" id="t_resYearLbl">कुल सालाना CEA राशि</span>
     <span class="highlight-val" id="resYearly">₹0</span>
   </div>
-  <div class="note" id="noteText">Note: Calculation is based on revised rates after DA crossed 50% (₹2,812.50/month for normal CEA and ₹8,437.50/month for Hostel Subsidy).</div>
+  <div class="note" id="t_note">नोट: DA 50% पार होने के बाद संशोधित दरों (₹2,812.50/माह सामान्य CEA और ₹8,437.50/माह हॉस्टल सब्सिडी) के आधार पर गणना की गई है।</div>
 </div>
 
 <script>
+let currentLang = 'hi';
+const dict = {
+  hi: {
+    t_title: "बच्चों का शिक्षा भत्ता (CEA)",
+    t_subtitle: "Children Education Allowance Calculator",
+    t_head: "बच्चों का विवरण चुनें",
+    t_lblCount: "पात्र बच्चों की संख्या (अधिकतम 2 बच्चे)",
+    opt_c1: "1 बच्चा (1 Child)",
+    opt_c2: "2 बच्चे (2 Children)",
+    t_lblHostel: "क्या बच्चे हॉस्टल (Hostel) में रहते हैं?",
+    opt_hNo: "नहीं (केवल स्कूल शिक्षा भत्ता)",
+    opt_hYes: "हाँ (हॉस्टल सब्सिडी सहित)",
+    t_lblPwd: "क्या बच्चा दिव्यांग (Divyang / PwD) है?",
+    opt_pNo: "नहीं (सामान्य)",
+    opt_pYes: "हाँ (दोगुना भत्ता देय)",
+    t_btnCalc: "CEA भत्ते की गणना करें",
+    t_btnReset: "रीसेट करें",
+    t_resHead: "गणना का परिणाम",
+    t_resMonthLbl: "प्रति माह देय भत्ता",
+    t_resChildLbl: "प्रति बच्चा सालाना भत्ता",
+    t_resYearLbl: "कुल सालाना CEA राशि",
+    t_note: "नोट: DA 50% पार होने के बाद संशोधित दरों (₹2,812.50/माह सामान्य CEA और ₹8,437.50/माह हॉस्टल सब्सिडी) के आधार पर गणना की गई है।"
+  },
+  en: {
+    t_title: "Children Education Allowance",
+    t_subtitle: "7th CPC CEA & Hostel Subsidy",
+    t_head: "Select Children Details",
+    t_lblCount: "Number of Eligible Children (Max 2)",
+    opt_c1: "1 Child",
+    opt_c2: "2 Children",
+    t_lblHostel: "Are children staying in a Hostel?",
+    opt_hNo: "No (School Education Allowance only)",
+    opt_hYes: "Yes (With Hostel Subsidy)",
+    t_lblPwd: "Is the child Divyang (PwD)?",
+    opt_pNo: "No (General)",
+    opt_pYes: "Yes (Double Allowance Applicable)",
+    t_btnCalc: "Calculate CEA Allowance",
+    t_btnReset: "Reset",
+    t_resHead: "Calculation Result",
+    t_resMonthLbl: "Monthly Payable Allowance",
+    t_resChildLbl: "Annual Allowance per Child",
+    t_resYearLbl: "Total Annual CEA Amount",
+    t_note: "Note: Calculated on revised rates post 50% DA (₹2,812.50/month for normal CEA and ₹8,437.50/month for Hostel Subsidy)."
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btnHi').classList.toggle('active', lang === 'hi');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+  for (let k in dict[lang]) {
+    if (document.getElementById(k)) document.getElementById(k).innerText = dict[lang][k];
+  }
+  if (document.getElementById('resultCard').style.display === 'block') calculateCEA();
+}
+
 function calculateCEA() {
   let count = parseInt(document.getElementById('childCount').value);
   let hostel = document.getElementById('hostelStatus').value;
   let pwd = document.getElementById('pwdStatus').value;
 
-  // Revised rates after 50% DA
   let baseMonthly = (hostel === 'yes') ? 8437.50 : 2812.50;
-  if(pwd === 'yes') {
-    baseMonthly = baseMonthly * 2;
-  }
+  if (pwd === 'yes') baseMonthly = baseMonthly * 2;
 
   let perChildYearly = baseMonthly * 12;
   let totalMonthly = baseMonthly * count;
@@ -99,6 +163,5 @@ function resetForm() {
   document.getElementById('resultCard').style.display = "none";
 }
 </script>
-<script src="../../assets/js/language.js" defer></script>
 </body>
 </html>
