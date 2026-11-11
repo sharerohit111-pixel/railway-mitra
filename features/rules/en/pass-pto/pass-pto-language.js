@@ -71,6 +71,7 @@
   };
   const original = new WeakMap();
   let mode = localStorage.getItem(KEY) || "en";
+  const originalTitle = document.title;
   function render() {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     let node;
@@ -86,6 +87,8 @@
       } else node.nodeValue = base;
     }
     document.documentElement.lang = mode;
+    const titleBase = originalTitle.replace(/ · Railway Mitra$/, "");
+    document.title = (mode === "hi" ? (HI[titleBase] || titleBase) : titleBase) + " · Railway Mitra";
     const button = document.getElementById("rmPassPtoLanguageToggle");
     if (button) {
       button.textContent = mode === "en" ? "हिंदी" : "English";
