@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b3d91">
+  <meta name="description" content="Indian Railways P-Way Manuals, IRPWM, ACS, safety rules and technical guidelines.">
+  <title>Indian Railways P-Way Manuals &amp; Guidelines - Railway Mitra</title>
+  <link rel="stylesheet" href="irpwm-style.css">
+  <script src="../../assets/js/language.js" defer></script>
+  <script src="irpwm-data.js" defer></script>
+  <script src="irpwm-app.js" defer></script>
+</head>
+<body>
+  <main class="irpwm-container">
+    <header class="hub-header">
+      <div>
+        <p class="hub-eyebrow">RAILWAY MITRA • ENGINEERING LIBRARY</p>
+        <h1 id="ui-title">📚 Indian Railways P-Way Manuals &amp; Guidelines</h1>
+        <p id="ui-subtitle">IRPWM, Advance Correction Slips, safety rules and technical references</p>
+      </div>
+      <button class="lang-btn" type="button" onclick="toggleLanguage()" id="lang-toggle">हिंदी में बदलें</button>
+    </header>
+
+    <nav class="hub-toolbar" aria-label="Page navigation">
+      <a class="back-link" href="../../index.html">← Railway Mitra Home</a>
+      <span class="library-label">P-Way Knowledge Library</span>
+    </nav>
+
+    <section class="search-box" aria-label="Search railway rules">
+      <label class="sr-only" for="searchInput">Search rules, paragraph numbers or tools</label>
+      <input type="search" id="searchInput" oninput="handleSearch()" placeholder="🔍 Search rules, para number or tool (e.g. Patrolling, Detonator, Gauge, ACS)...">
+    </section>
+
+    <section class="folder-grid" id="folderGrid" aria-label="P-Way manual categories"></section>
+    <section class="content-panel" id="contentPanel" aria-live="polite"></section>
+
+    <aside class="disclaimer" id="ui-disclaimer">
+      संदर्भ नोट: यह मॉड्यूल त्वरित संदर्भ के लिए है। नियमों, दूरियों, उपकरणों और प्रक्रियाओं की पुष्टि लागू IRPWM संस्करण, नवीनतम ACS, रेलवे बोर्ड/जोनल निर्देश तथा सक्षम अधिकारी से करें। किसी भी परिचालन निर्णय में आधिकारिक आदेश ही मान्य होंगे।
+    </aside>
+  </main>
+</body>
+</html>
