@@ -314,3 +314,40 @@ test("candidate attempt records are visible only to the owner", async () => {
   assert.equal(allowed.status, 200);
   assert.ok(allowed.body.result.attempts.some(x => x.uid === candidateUid && x.testId === freeTestId));
 });
+
+
+test("user can delete own account and scoped data while payment evidence is anonymized", async () => {
+  const deletionEmail = "delete-me-" + suffix + "@example.test";
+  const deletionUid = await createUser(deletionEmail);
+  const deletionToken = await signIn(deletionEmail);
+  const profileRef = db.collection("users").doc(deletionUid).collection("employeeProfile").doc("main");
+  const diaryRef = db.collection("users").doc(deletionUid).collection("dutyDiary").doc("2026-11-11");
+  const feedbackRef = db.collection("userFeedback").doc("delete-feedback-" + suffix);
+  const paymentRef = db.collection("paymentRecords").doc("delete-payment-" + suffix);
+  await Promise.all([
+    profileRef.set({ name: "Emulator deletion test" }),
+    diaryRef.set({ dutyType: "Day Duty" }),
+    db.collection("userEntitlements").doc(deletionUid).set({ active: true }),
+    db.collection("materialEntitlements").doc(deletionUid).collection("items").doc("sample").set({ active: true }),
+    feedbackRef.set({ uid: deletionUid, subject: "Delete me" }),
+    feedbackRef.collection("messages").doc("first").set({ senderUid: deletionUid, message: "Delete me too" }),
+    paymentRef.set({ uid: deletionUid, reference: paymentRef.id, amount: 10, status: "approved" })
+  ]);
+
+  const deleted = await call("deleteMyAccount", deletionToken, { confirmation: "DELETE" });
+  assert.equal(deleted.status, 200);
+  assert.equal(deleted.body.result.success, true);
+  assert.equal(deleted.body.result.retainedPaymentRecords, 1);
+
+  await assert.rejects(() => auth.getUser(deletionUid));
+  assert.equal((await profileRef.get()).exists, false);
+  assert.equal((await diaryRef.get()).exists, false);
+  assert.equal((await feedbackRef.get()).exists, false);
+  assert.equal((await feedbackRef.collection("messages").doc("first").get()).exists, false);
+  assert.equal((await db.collection("userEntitlements").doc(deletionUid).get()).exists, false);
+  assert.equal((await db.collection("materialEntitlements").doc(deletionUid).collection("items").doc("sample").get()).exists, false);
+  const retainedPayment = await paymentRef.get();
+  assert.equal(retainedPayment.data().uid, null);
+  assert.equal(retainedPayment.data().accountDeleted, true);
+  await paymentRef.delete();
+});
