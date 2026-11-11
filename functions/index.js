@@ -1037,3 +1037,91 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
     deletedFeedbackThreads: feedback.size
   };
 });
+
+
+// Railway Updates: public read + owner-only publishing.
+// All writes require a verified Firebase Auth custom claim; no client-side
+// role flag is trusted. This function is not active until explicitly deployed.
+const RAILWAY_NOTICE_CATEGORIES = ["rbe", "pay", "exam", "transfer", "medical", "zone", "other"];
+
+function normalizeRailwayNotice(data) {
+  const id = cleanId(data.id, "notice id", 80);
+  const category = cleanString(data.category, "category", 20);
+  if (!RAILWAY_NOTICE_CATEGORIES.includes(category)) {
+    throw new HttpsError("invalid-argument", "Unknown notice category.");
+  }
+  const titleEn = cleanString(data.titleEn, "English title", 180);
+  const titleHi = cleanString(data.titleHi, "Hindi title", 180);
+  const summaryEn = cleanString(data.summaryEn, "English summary", 1200);
+  const summaryHi = cleanString(data.summaryHi, "Hindi summary", 1200);
+  const sourceName = cleanString(data.sourceName, "source name", 160);
+  const sourceUrl = cleanString(data.sourceUrl, "source URL", 1200);
+  let parsedUrl;
+  try { parsedUrl = new URL(sourceUrl); } catch (_) {
+    throw new HttpsError("invalid-argument", "Source URL is invalid.");
+  }
+  if (parsedUrl.protocol !== "https:") {
+    throw new HttpsError("invalid-argument", "Only HTTPS official source URLs are accepted.");
+  }
+  const publishedAt = cleanString(data.publishedAt, "publication date", 10);
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(publishedAt) ||
+      Number.isNaN(Date.parse(publishedAt + "T00:00:00Z"))) {
+    throw new HttpsError("invalid-argument", "Publication date must use YYYY-MM-DD.");
+  }
+  const deadline = typeof data.deadline === "string" && data.deadline.trim() ? data.deadline.trim() : null;
+  if (deadline && (!/^\\d{4}-\\d{2}-\\d{2}$/.test(deadline) ||
+      Number.isNaN(Date.parse(deadline + "T00:00:00Z")) || deadline < publishedAt)) {
+    throw new HttpsError("invalid-argument", "Deadline is invalid or earlier than publication date.");
+  }
+  if (data.verified !== true) {
+    throw new HttpsError("failed-precondition", "The original notice must be verified before publishing.");
+  }
+  const keywords = typeof data.keywords === "string" ? data.keywords.slice(0, 300) : "";
+  const rbeNumber = typeof data.rbeNumber === "string" ? data.rbeNumber.slice(0, 100) : "";
+  return {
+    id, category, titleEn, titleHi, summaryEn, summaryHi, sourceName, sourceUrl,
+    publishedAt, deadline, keywords, rbeNumber,
+    verified: true, published: data.published === true
+  };
+}
+
+exports.listPublishedRailwayNotices = onCall({ region: REGION }, async () => {
+  const snap = await db.collection("railwayNotices")
+    .where("published", "==", true)
+    .orderBy("publishedAt", "desc")
+    .limit(200)
+    .get();
+  return {
+    notices: snap.docs.map(doc => {
+      const item = doc.data();
+      return { ...item, id: doc.id };
+    })
+  };
+});
+
+exports.adminListRailwayNotices = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const snap = await db.collection("railwayNotices")
+    .orderBy("updatedAt", "desc")
+    .limit(200)
+    .get();
+  return { notices: snap.docs.map(doc => ({ ...doc.data(), id: doc.id })) };
+});
+
+exports.adminSaveRailwayNotice = onCall({ region: REGION }, async request => {
+  const uid = requireAdmin(request);
+  const notice = normalizeRailwayNotice(request.data || {});
+  const ref = db.collection("railwayNotices").doc(notice.id);
+  const existing = await ref.get();
+  await ref.set({
+    ...notice,
+    createdAt: existing.exists ? existing.data().createdAt : FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedBy: uid
+  }, { merge: true });
+  await db.collection("adminAuditLogs").doc().set({
+    action: notice.published ? "publish_railway_notice" : "save_railway_notice_draft",
+    noticeId: notice.id, actorUid: uid, createdAt: FieldValue.serverTimestamp()
+  });
+  return { success: true, noticeId: notice.id, published: notice.published };
+});
