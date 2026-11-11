@@ -18,11 +18,11 @@
 
     const items = [
       {
-        className: "rm-bottom-nav__item--reserved",
-        label: "Later",
-        title: "Navigation slot reserved for a future feature",
-        paths: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>',
-        reserved: true
+        className: "rm-bottom-nav__item--pway",
+        label: "P-Way",
+        title: "Open P-Way & Civil Engineering Tools",
+        href: "features/p-way-civil-engineering-tools/index.html",
+        paths: '<path d="M3 19h18M5 19l3-8 4 8 4-8 3 8"/><path d="M4 7h16M7 4l-3 3 3 3M17 4l3 3-3 3"/>'
       },
       {
         className: "",
