@@ -72,3 +72,24 @@ Open `publisher.html` from the deployed app or local preview to prepare a notice
 **Security limitation:** this is not an authenticated admin panel and it does not publish directly. Drafts remain in page memory until export; closing/reloading the page clears them. Do not rely on an unlinked URL as access control. Only an authorized repository maintainer should review the original source and merge verified records into `notices.json`.
 
 A truly authenticated live publisher requires a trusted sign-in integration and a server-side callable function enforcing the existing Firebase Admin custom claim `admin: true`. Do not add client-side admin flags, passwords, GitHub tokens or public write access. That backend and deployment are deliberately not part of this change.
+
+## Authenticated owner publishing (backend pending deployment)
+
+A separate `publisher-admin.html` page is now wired to Firebase Authentication and callable Cloud Functions:
+
+- The client refreshes the signed-in user's ID token and checks the `admin` custom claim only to control the UI.
+- The server independently calls `requireAdmin(request)` for every admin list/save operation. Client flags are never trusted.
+- `adminSaveRailwayNotice` validates bilingual fields, category, HTTPS source URL, dates and explicit verification; writes to `railwayNotices` and records an audit entry in `adminAuditLogs`.
+- `listPublishedRailwayNotices` returns only records with `published: true`. The public page prefers this callable and falls back to the static JSON feed while the callable is unavailable.
+- `adminListRailwayNotices` is owner-only and lists drafts and published notices.
+
+### Activation requirements
+
+This PR does not deploy functions or grant an admin claim. Before activation:
+1. Review and test the new callable functions with Firebase Functions Emulator and a test account.
+2. Confirm the intended owner Firebase Auth UID independently.
+3. Use the existing trusted `functions/scripts/set-owner-admin.js` procedure from a secure operator environment only after explicit owner approval; never expose credentials in the browser or repository.
+4. Deploy only the named Railway Updates functions through a reviewed, narrowly scoped deployment procedure. Do not deploy all functions as part of this PR.
+5. Verify unauthorized users receive permission-denied and the public feed returns only published notices.
+
+Until those steps are completed, the admin publishing workflow is present in source but not production-active. No Firestore security rules are changed here.

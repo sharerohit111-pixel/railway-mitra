@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>Railway Updates Admin | Railway Mitra</title><link rel="stylesheet" href="../../assets/css/main.css"><link rel="stylesheet" href="./updates.css"><link rel="stylesheet" href="./publisher.css"></head><body class="rm-updates-page">
+<header class="rm-updates-header"><a href="./index.html">← Railway Updates</a><span class="rm-language">OWNER ADMIN</span></header>
+<main class="rm-updates-wrap"><section class="rm-updates-hero"><span class="rm-kicker">RESTRICTED · FIREBASE ADMIN CLAIM</span><h1>Railway Updates Publisher</h1><p>Publish verified circulars and employee notices. Every write is checked by the server using your Firebase admin claim.</p></section>
+<section id="adminGate" class="rm-publisher-warning" role="status">Checking signed-in owner account…</section>
+<div id="adminPanel" hidden>
+<form id="noticeForm" class="rm-publisher-form"><h2>Notice details</h2><div class="rm-form-grid">
+<label>Unique ID<input name="id" required maxlength="80" pattern="[A-Za-z0-9_-]+"></label>
+<label>Category<select name="category" required><option value="">Choose</option><option value="rbe">RBE Circulars</option><option value="pay">DA & Pay Commission</option><option value="exam">LDCE / GDCE</option><option value="transfer">Transfer</option><option value="medical">Medical & Pass</option><option value="zone">Zone & Division</option><option value="other">Other</option></select></label>
+<label>RBE / Order number<input name="rbeNumber" maxlength="100"></label><label>Publication date<input name="publishedAt" type="date" required></label>
+<label>Last date<input name="deadline" type="date"></label><label>Official source name<input name="sourceName" required maxlength="160"></label>
+<label class="rm-full">Official HTTPS URL<input name="sourceUrl" type="url" required></label>
+<label>English title<input name="titleEn" required maxlength="180"></label><label>Hindi title<input name="titleHi" required maxlength="180"></label>
+<label class="rm-full">English summary<textarea name="summaryEn" required maxlength="1200" rows="3"></textarea></label>
+<label class="rm-full">Hindi summary<textarea name="summaryHi" required maxlength="1200" rows="3"></textarea></label>
+<label class="rm-full">Keywords<input name="keywords" maxlength="300"></label></div>
+<label class="rm-verify-check"><input type="checkbox" id="verified" required><span>I checked the original issuing-authority notice, exact number, publication date, applicability and deadline.</span></label>
+<label class="rm-verify-check"><input type="checkbox" id="publishNow"><span>Publish immediately after saving (otherwise save as unpublished draft).</span></label>
+<div class="rm-publisher-actions"><button class="rm-publish-btn" type="submit">Save notice</button><button class="rm-export-btn" type="reset">Clear form</button><button class="rm-export-btn" id="refreshNotices" type="button">Refresh list</button></div><p id="publisherStatus" class="rm-publisher-status" role="status"></p></form>
+<section class="rm-filter-panel"><div class="rm-filter-heading"><h2>Saved notices</h2></div><div id="adminNoticeList" class="rm-draft-list"></div></section></div>
+</main><script type="module" src="./publisher-admin.js"></script></body></html>
