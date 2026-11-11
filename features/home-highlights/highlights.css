@@ -583,3 +583,21 @@
   border-radius:0;
 }
 .welcome-section > h2 { text-align:center !important; width:100%; margin-inline:auto !important; }
+
+/* Clickable highlight chips — visual rhythm and existing ticker motion preserved. */
+.rm-home-highlights__item {
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 5px;
+  outline-offset: 4px;
+}
+.rm-home-highlights__item:hover,
+.rm-home-highlights__item:focus-visible {
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-color: #35e8ff;
+  text-underline-offset: 3px;
+}
+.rm-home-highlights__item:focus-visible {
+  outline: 1px solid #35e8ff;
+}
