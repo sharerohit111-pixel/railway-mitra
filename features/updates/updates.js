@@ -1,3 +1,4 @@
+import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 "use strict";
 const translations={
  en:{kicker:"RAILWAY MITRA · EMPLOYEE SERVICES",title:"Railway Updates",intro:"Find railway circulars, employee notices and important deadlines in one place.",searchLabel:"Search updates",searchPlaceholder:"Search by RBE number or keyword…",clear:"Clear",categories:"Browse categories",all:"All updates",pay:"DA & Pay Commission",transfer:"Transfer notices",medical:"Medical & Pass",zone:"Zone & Division",other:"Other notices",noticeKicker:"LATEST INFORMATION",noticeTitle:"Notices & circulars",verifiedOnly:"Official-source first",emptyTitle:"No notices published here yet",emptyText:"No verified notices are available in this section yet. Please check the official source directory below.",loadError:"Notices could not be loaded. Please try again later.",sourceKicker:"CHECK THE ORIGINAL ORDER",sourceTitle:"Official source directory",sourceText:"Always open the issuing authority’s original notice before relying on a rule, deadline or benefit.",disclaimer:"Railway Mitra is an independent app, not an official Indian Railways or Government of India service. Verify every notice with the relevant authority.",count:n=>n+" notices",lastDate:"Last date: ",open:"Open original order ↗"},
@@ -16,13 +17,21 @@ function validNotice(n){
 }
 async function loadNotices(){
  try{
-  const response=await fetch("./notices.json",{cache:"no-store"});
-  if(!response.ok)throw new Error("Feed request failed");
-  const payload=await response.json();
-  if(!payload||!Array.isArray(payload.notices))throw new Error("Invalid notice feed");
-  notices=payload.notices.filter(validNotice);
-  notices.sort((a,b)=>(safeText(b.publishedAt)).localeCompare(safeText(a.publishedAt)));
- }catch(error){loadFailed=true;console.error("Railway Updates feed:",error);}
+  const functions=getFunctions(undefined,"asia-south1");
+  const result=await httpsCallable(functions,"listPublishedRailwayNotices")({});
+  if(!result.data||!Array.isArray(result.data.notices))throw new Error("Invalid published notice response");
+  notices=result.data.notices.filter(validNotice);
+ }catch(cloudError){
+  // Backward-compatible fallback while the new callable is awaiting deployment.
+  try{
+   const response=await fetch("./notices.json",{cache:"no-store"});
+   if(!response.ok)throw new Error("Static feed request failed");
+   const payload=await response.json();
+   if(!payload||!Array.isArray(payload.notices))throw new Error("Invalid static notice feed");
+   notices=payload.notices.filter(validNotice);
+  }catch(staticError){loadFailed=true;console.error("Railway Updates feed:",cloudError,staticError);}
+ }
+ notices.sort((a,b)=>(safeText(b.publishedAt)).localeCompare(safeText(a.publishedAt)));
  renderNotices();
 }
 function renderLanguage(){
