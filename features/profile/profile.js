@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const message = document.getElementById("profileMessage");
   if (!api || !form) return;
 
-  const baseFields = ["employeeId","name","post","level","basicPay","tpa","division","zone","employeeNumber","department"];
+  const baseFields = ["employeeId","name","post","level","basicPay","tpa","division","zone","department"];
   const optionalFields = ["billUnit","officialMobile","officialEmail"];
   const allFields = baseFields.concat(optionalFields);
   const employeeId = document.getElementById("employeeId");
@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           // Prefer cloud as the latest cross-device copy once a cloud profile exists.
           localSave(remote);fillForm(remote);
           if (Object.prototype.hasOwnProperty.call(remote,"hrmsId") || Object.prototype.hasOwnProperty.call(remote,"pfNumber")) {
-            await setDoc(profileRef,{hrmsId:deleteField(),pfNumber:deleteField()},{merge:true});
+            await setDoc(profileRef,{hrmsId:deleteField(),pfNumber:deleteField(),employeeNumber:deleteField()},{merge:true});
           }
           status("Cloud synced · "+(user.email||user.phoneNumber||"signed-in account"));
         } else if(api.getProfile()) {
