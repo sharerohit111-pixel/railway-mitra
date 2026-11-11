@@ -74,67 +74,70 @@ select, input {
   cursor: pointer;
 }
 .result-box {
-  margin-top: 16px;
+  margin-top: 18px;
   padding: 15px;
   background-color: #0f172a;
-  border-left: 4px solid #06b6d4;
-  border-radius: 10px;
+  border: 1px solid #334155;
+  border-radius: 12px;
   display: none;
 }
-.res-label {
-  font-size: 12.5px;
-  color: #94a3b8;
-}
-.result-val {
-  font-size: 26px;
-  font-weight: bold;
-  color: #38bdf8;
-  margin-top: 2px;
-}
-
-/* Clear Decision Banner */
-.decision-box {
-  margin: 12px 0;
-  padding: 12px 14px;
-  border-radius: 8px;
-  font-size: 14px;
+.action-banner {
+  padding: 13px 14px;
+  border-radius: 10px;
+  font-size: 14.5px;
   font-weight: bold;
   line-height: 1.45;
+  margin-bottom: 12px;
 }
-.dec-safe {
-  background-color: rgba(16, 185, 129, 0.18);
+.ban-safe {
+  background-color: rgba(16, 185, 129, 0.2);
   border: 1px solid #10b981;
   color: #34d399;
 }
-.dec-hot {
-  background-color: rgba(245, 158, 11, 0.2);
+.ban-hot {
+  background-color: rgba(245, 158, 11, 0.22);
   border: 1px solid #f59e0b;
   color: #fbbf24;
 }
-.dec-danger {
-  background-color: rgba(239, 68, 68, 0.22);
+.ban-danger {
+  background-color: rgba(239, 68, 68, 0.25);
   border: 1px solid #ef4444;
   color: #f87171;
 }
-.dec-cold {
-  background-color: rgba(56, 189, 248, 0.2);
+.ban-cold {
+  background-color: rgba(56, 189, 248, 0.22);
   border: 1px solid #38bdf8;
   color: #7dd3fc;
 }
-
+.td-status {
+  padding: 9px 11px;
+  background-color: #1e293b;
+  border-left: 3px solid #a78bfa;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: #e2e8f0;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.diff-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1e293b;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+.diff-val {
+  font-size: 18px;
+  color: #38bdf8;
+}
 .extra-details {
   font-size: 13px;
   color: #e2e8f0;
-  margin-top: 10px;
   line-height: 1.6;
-}
-.td-check {
-  padding: 9px 11px;
-  border-radius: 7px;
-  font-size: 12.5px;
-  background-color: #1e293b;
-  border-left: 3px solid #a78bfa;
-  line-height: 1.4;
 }
 .info-box {
   font-size: 12.5px;
