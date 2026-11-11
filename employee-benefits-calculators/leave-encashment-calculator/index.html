@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leave Encashment Calculator - Railway Mitra</title>
+<style>
+  body { background-color: #0B1120; color: #FFFFFF; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 16px; }
+  .header-card { background: linear-gradient(180deg, #162238 0%, #0F172A 100%); border: 1px solid #1E293B; border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 16px; }
+  .brand { color: #94A3B8; font-size: 12px; letter-spacing: 2px; font-weight: 600; }
+  .title { font-size: 22px; font-weight: 700; margin: 6px 0 2px; color: #FFFFFF; }
+  .subtitle { font-size: 14px; color: #CBD5E1; }
+  .card { background-color: #111827; border: 1px solid #1F2937; border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+  .card-heading { color: #00E5FF; font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  label { display: block; font-size: 13px; color: #CBD5E1; margin-bottom: 6px; margin-top: 12px; }
+  input { width: 100%; box-sizing: border-box; background-color: #0B1120; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #FFFFFF; font-size: 16px; outline: none; }
+  input:focus { border-color: #00E5FF; }
+  .hint { font-size: 11px; color: #94A3B8; margin-top: 6px; }
+  .btn-calc { width: 100%; padding: 14px; margin-top: 18px; border: none; border-radius: 12px; background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%); color: #0B1120; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .btn-reset { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #7E22CE; border-radius: 12px; background-color: #1E132C; color: #F472B6; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1E293B; font-size: 14px; color: #CBD5E1; }
+  .row span:last-child { color: #FFFFFF; font-weight: 600; }
+  .highlight-box { background-color: #0F2334; border: 1px solid #0284C7; border-radius: 12px; padding: 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .highlight-label { font-size: 15px; font-weight: 600; color: #E2E8F0; }
+  .highlight-val { font-size: 20px; font-weight: 700; color: #00E5FF; }
+  .note { font-size: 11px; color: #94A3B8; margin-top: 12px; line-height: 1.4; }
+</style>
+</head>
+<body>
+
+<div class="header-card">
+  <div class="brand">RAILWAY MITRA</div>
+  <div class="title">Leave Encashment</div>
+  <div class="subtitle">अवकाश नकदीकरण कैलकुलेटर</div>
+</div>
+
+<div class="card">
+  <div class="card-heading">अवकाश व वेतन विवरण</div>
+  
+  <label>मूल वेतन (Basic Pay) ₹</label>
+  <input type="number" id="basicPay" placeholder="उदाहरण: 45400">
+
+  <label>बची हुई LAP छुट्टियाँ (दिनों में)</label>
+  <input type="number" id="lapDays" placeholder="उदाहरण: 300" max="300">
+
+  <label>बची हुई LHAP छुट्टियाँ (वैकल्पिक - यदि LAP 300 से कम हो)</label>
+  <input type="number" id="lhapDays" placeholder="0" value="0">
+
+  <label>DA दर (%)</label>
+  <input type="number" id="daRate" value="63">
+
+  <button class="btn-calc" onclick="calculateLeave()">राशि की गणना करें</button>
+  <button class="btn-reset" onclick="resetForm()">रीसेट करें</button>
+</div>
+
+<div class="card" id="resultCard" style="display:none;">
+  <div class="card-heading">गणना का परिणाम</div>
+  <div class="row"><span>LAP भुगतान राशि</span><span id="resLapAmt">₹0</span></div>
+  <div class="row"><span>LHAP भुगतान राशि (शेष दिनों हेतु)</span><span id="resLhapAmt">₹0</span></div>
+  
+  <div class="highlight-box">
+    <span class="highlight-label">कुल अवकाश नकदीकरण</span>
+    <span class="highlight-val" id="resTotal">₹0</span>
+  </div>
+  <div class="note">नोट: अधिकतम 300 दिनों तक की छुट्टियों (LAP + LHAP मिलाकर) का नकदीकरण देय है। LHAP का भुगतान आधे वेतन पर होता है।</div>
+</div>
+
+<script>
+function calculateLeave() {
+  let basic = parseFloat(document.getElementById('basicPay').value) || 0;
+  let lap = parseInt(document.getElementById('lapDays').value) || 0;
+  let lhap = parseInt(document.getElementById('lhapDays').value) || 0;
+  let da = parseFloat(document.getElementById('daRate').value) || 0;
+
+  if(basic <= 0 || (lap <= 0 && lhap <= 0)) {
+    alert("कृपया मूल वेतन और बची हुई छुट्टियाँ दर्ज करें।");
+    return;
+  }
+
+  if(lap > 300) lap = 300;
+  let remainingSlot = 300 - lap;
+  let usableLhap = lhap > remainingSlot ? remainingSlot : lhap;
+
+  let emoluments = basic + (basic * da / 100);
+  let lapAmount = Math.round((emoluments / 30) * lap);
+  let lhapAmount = Math.round(((emoluments / 2) / 30) * usableLhap);
+  let totalAmount = lapAmount + lhapAmount;
+
+  document.getElementById('resLapAmt').innerText = "₹" + lapAmount.toLocaleString('en-IN') + " (" + lap + " दिन)";
+  document.getElementById('resLhapAmt').innerText = "₹" + lhapAmount.toLocaleString('en-IN') + " (" + usableLhap + " दिन)";
+  document.getElementById('resTotal').innerText = "₹" + totalAmount.toLocaleString('en-IN');
+  document.getElementById('resultCard').style.display = "block";
+}
+
+function resetForm() {
+  document.getElementById('basicPay').value = "";
+  document.getElementById('lapDays').value = "";
+  document.getElementById('lhapDays').value = "0";
+  document.getElementById('daRate').value = "63";
+  document.getElementById('resultCard').style.display = "none";
+}
+</script>
+</body>
+</html>
