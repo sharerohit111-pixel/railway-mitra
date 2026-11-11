@@ -186,6 +186,9 @@ test("owner-only finance ledger records and approves subscription and material p
   assert.equal(recorded.body.result.amount, 300);
   const myRequests = await call("getMyPaymentRequests", candidateToken, {});
   assert.ok(myRequests.body.result.payments.some(p => p.reference === subscriptionPaymentRef));
+  const otherUsersRequests = await call("getMyPaymentRequests", otherToken, {});
+  assert.equal(otherUsersRequests.status, 200);
+  assert.equal(otherUsersRequests.body.result.payments.some(p => p.reference === subscriptionPaymentRef), false);
 
   const approved = await call("adminApprovePayment", adminToken, {
     uid: candidateUid, reference: subscriptionPaymentRef
