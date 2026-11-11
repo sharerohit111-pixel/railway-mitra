@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326">
+<title>Data Backup & Restore | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="./backup.css">
+</head>
+<body class="rm-backup-page">
+<main class="rm-backup-shell">
+<a class="rm-back-link" href="../exams/admin-workspace.html">← Owner Admin Workspace</a>
+<header class="rm-backup-hero"><div class="rm-backup-icon">🛡️</div><div><p class="rm-kicker">OWNER ONLY · DATA PROTECTION</p><h1>Backup & Restore</h1><p>Download a portable copy of the account data currently permitted by Firestore rules.</p></div></header>
+<section id="backupGate" class="rm-panel rm-gate"><h2>🔐 Verifying owner access…</h2><p>Please wait.</p></section>
+<div id="backupApp" hidden>
+<section class="rm-panel"><div class="rm-panel-title"><span>📦</span><div><h2>Firestore JSON Backup</h2><p>Export your own Employee Profile and Duty Diary records, plus this device's Railway Mitra settings.</p></div></div>
+<div class="rm-status-grid"><div><small>Last backup on this device</small><strong id="lastBackup">Not created yet</strong></div><div><small>Backup history</small><strong id="historyCount">0 downloads</strong></div></div>
+<div class="rm-actions"><button id="downloadBackup" class="rm-primary" type="button">Download Backup JSON</button><label class="rm-secondary">Choose Backup to Restore<input id="restoreFile" type="file" accept=".json,application/json" hidden></label></div>
+<p id="backupMessage" class="rm-message" role="status" aria-live="polite"></p></section>
+<section class="rm-panel"><div class="rm-panel-title"><span>🕘</span><div><h2>Backup History</h2><p>History is stored locally on this device only.</p></div></div><div id="historyList" class="rm-history"><p>No backup history yet.</p></div></section>
+<section class="rm-warning"><strong>Important limits</strong><ul>
+<li>This is an account-level backup, not a complete project-wide Firestore export.</li>
+<li>Current Firestore rules allow a user to access only their own Duty Diary and main Employee Profile. Other collections and other users' data are not included.</li>
+<li>Settings are included from this device's local storage. They are not a cloud Firestore export.</li>
+<li>Restore writes only to the signed-in owner's own permitted paths. It does not delete unrelated records.</li>
+<li>Firebase Authentication accounts, Cloud Storage files, exam question banks, payment records, feedback, and other users' data are not included.</li>
+<li>Keep the downloaded JSON private. It may contain personal employee information.</li>
+</ul></section>
+</div>
+</main>
+<script type="module" src="./backup.js"></script>
+</body></html>
