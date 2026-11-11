@@ -181,3 +181,13 @@
         font-size: 24px;
     }
 }
+
+
+/* Login methods added while phone OTP remains hidden for later activation */
+.rm-login-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:#AFC5DA}
+.rm-login-divider::before,.rm-login-divider::after{content:"";height:1px;flex:1;background:rgba(255,255,255,.18)}
+.rm-login-card .facebook-login-btn{background:#1877F2;box-shadow:0 5px 18px rgba(24,119,242,.22)}
+.rm-login-card .google-login-btn{background:#fff;color:#263238;box-shadow:0 5px 18px rgba(255,255,255,.10)}
+.rm-phone-login-later{margin-top:18px;padding:12px;border:1px solid rgba(53,232,255,.2);border-radius:12px;color:#AFC5DA;font-size:13px}
+.rm-phone-login-later summary{cursor:pointer;color:#35E8FF}
+.rm-phone-login-later p{margin-bottom:0}
