@@ -6,8 +6,18 @@
   const STORAGE_KEY = "railwayMitra.employeeProfile.v1";
   function makeId() { return "RM-" + String(Date.now()).slice(-8); }
   function getProfile() {
-    try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : null; }
-    catch (error) { console.error("Employee profile read error:", error); return null; }
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const profile = JSON.parse(raw);
+      // Remove legacy sensitive identifiers from previously saved local profiles.
+      let changed = false;
+      ["hrmsId", "pfNumber"].forEach(key => {
+        if (Object.prototype.hasOwnProperty.call(profile, key)) { delete profile[key]; changed = true; }
+      });
+      if (changed) localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      return profile;
+    } catch (error) { console.error("Employee profile read error:", error); return null; }
   }
   function saveProfile(profile) {
     const existing = getProfile() || {};
@@ -23,8 +33,6 @@
       employeeNumber: String(profile.employeeNumber || "").trim(),
       department: String(profile.department || "").trim(),
       billUnit: String(profile.billUnit || "").trim(),
-      hrmsId: String(profile.hrmsId || "").trim(),
-      pfNumber: String(profile.pfNumber || "").trim(),
       officialMobile: String(profile.officialMobile || "").trim(),
       officialEmail: String(profile.officialEmail || "").trim(),
       customFields: Array.isArray(profile.customFields) ? profile.customFields.slice(0,10).map(item => ({label:String(item.label || "").trim(),value:String(item.value || "").trim()})).filter(item => item.label || item.value) : (existing.customFields || []),
