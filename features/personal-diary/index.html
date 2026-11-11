@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326">
+<meta name="description" content="Private personal notes and diary for railway employees.">
+<title>Personal Diary & Notes | Railway Mitra</title>
+<link rel="manifest" href="../../manifest.json"><link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="./diary.css?v=1">
+</head>
+<body class="rm-personal-diary">
+<header class="pd-header"><a href="../../index.html">← Railway Mitra</a><button id="pdLanguage" type="button">हिन्दी</button></header>
+<main class="pd-wrap">
+<section class="pd-hero"><span class="pd-kicker">RAILWAY MITRA · YOUR PRIVATE SPACE</span><h1 data-i18n="title">My Diary & Notes</h1><p data-i18n="intro">Write down anything you want to remember — duty notes, ideas, reminders, personal thoughts and important details.</p>
+<div class="pd-stats"><div><strong id="pdTotal">0</strong><span data-i18n="total">Total notes</span></div><div><strong id="pdPinned">0</strong><span data-i18n="pinned">Pinned</span></div><div><strong id="pdUpdated">—</strong><span data-i18n="lastSaved">Last saved</span></div></div></section>
+<section class="pd-editor" id="pdEditor"><div class="pd-section-head"><div><span class="pd-kicker" data-i18n="write">WRITE SOMETHING</span><h2 id="pdEditorTitle" data-i18n="newNote">New note</h2></div><span class="pd-save-state" id="pdSaveState" aria-live="polite">Ready</span></div>
+<form id="pdForm">
+<input type="hidden" id="pdId">
+<label><span data-i18n="noteTitle">Title</span><input id="pdTitle" maxlength="120" required placeholder="Give your note a title…"></label>
+<div class="pd-fields"><label><span data-i18n="category">Category</span><select id="pdCategory"><option value="general">Personal / General</option><option value="duty">Duty & Work</option><option value="reminder">Reminder</option><option value="idea">Ideas</option><option value="learning">Learning / Study</option><option value="important">Important information</option></select></label><label><span data-i18n="date">Date</span><input id="pdDate" type="date" required></label></div>
+<label><span data-i18n="content">Your note</span><textarea id="pdContent" rows="8" maxlength="20000" required placeholder="Write freely. Add details you want to remember later…"></textarea></label>
+<label><span data-i18n="tags">Tags (optional, comma separated)</span><input id="pdTags" maxlength="250" placeholder="e.g. Kolayat, night duty, follow-up"></label>
+<div class="pd-form-actions"><button class="pd-primary" type="submit" id="pdSaveBtn" data-i18n="save">Save note</button><button class="pd-secondary" type="button" id="pdCancel" data-i18n="cancel">Cancel</button><label class="pd-pin-check"><input id="pdPin" type="checkbox"><span data-i18n="pin">Pin this note</span></label></div>
+</form></section>
+<section class="pd-list-section"><div class="pd-section-head"><div><span class="pd-kicker" data-i18n="yourNotes">YOUR NOTEBOOK</span><h2 data-i18n="allNotes">All notes</h2></div><button type="button" class="pd-primary pd-new" id="pdNew" data-i18n="newNote">+ New note</button></div>
+<div class="pd-tools"><input type="search" id="pdSearch" placeholder="Search title, content or tags…"><select id="pdFilter" aria-label="Filter notes"><option value="all">All categories</option><option value="general">Personal / General</option><option value="duty">Duty & Work</option><option value="reminder">Reminder</option><option value="idea">Ideas</option><option value="learning">Learning / Study</option><option value="important">Important information</option><option value="pinned">Pinned only</option></select></div>
+<div id="pdNotes" class="pd-notes" aria-live="polite"></div><p id="pdEmpty" class="pd-empty" hidden>No notes yet. Create your first note above.</p>
+<div class="pd-data-tools"><button type="button" id="pdExport" class="pd-secondary" data-i18n="export">Export backup</button><label class="pd-import-btn"><span data-i18n="import">Import backup</span><input id="pdImport" type="file" accept="application/json,.json"></label><button type="button" id="pdPrint" class="pd-secondary" data-i18n="print">Print notes</button></div>
+</section>
+<aside class="pd-privacy"><strong data-i18n="privacyTitle">Privacy note</strong><p data-i18n="privacyText">Your diary is saved in this browser on this device. It is not uploaded to Railway Mitra servers and will not automatically appear on another phone. Export a backup regularly. Clearing browser data or uninstalling the app may erase notes.</p></aside>
+</main>
+<footer class="pd-footer">Railway Mitra · Personal Diary</footer>
+<script src="./diary.js?v=1"></script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}</script>
+</body></html>
