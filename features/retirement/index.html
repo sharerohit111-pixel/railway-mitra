@@ -1,23 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#071326"><meta name="description" content="NPS and pension resources">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071326">
+<meta name="description" content="NPS and pension calculator for Railway Mitra users">
 <title>NPS & Pension | Railway Mitra</title>
 <link rel="manifest" href="../../manifest.json">
 <link rel="stylesheet" href="../../assets/css/main.css">
 <link rel="stylesheet" href="../../assets/css/module-page.css">
+<style>
+.retirement-tool-card{margin-top:20px;padding:22px;border:1px solid #35e8ff88;border-radius:18px;background:linear-gradient(135deg,#10233d,#21163b);box-shadow:0 8px 26px #0003}
+.retirement-tool-card .tool-kicker{color:#35e8ff;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.retirement-tool-card h3{margin:10px 0;color:#fff;font-size:23px}
+.retirement-tool-card p{color:#c7d8ed;line-height:1.65;margin:0 0 18px}
+.retirement-tool-link{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 18px;border-radius:12px;background:linear-gradient(110deg,#00bfeF,#8545d9);color:#fff;font-weight:800;text-decoration:none}
+.retirement-tool-link:focus-visible,.module-header button:focus-visible{outline:3px solid #fff;outline-offset:3px}
+</style>
 </head>
-<body data-module-id="retirement">
-<header class="module-header"><a href="../../index.html">← Railway Mitra</a><button class="language-btn" id="languageToggle" type="button">हिन्दी</button></header>
-<main class="module-page" id="moduleContent">
-<section class="module-hero"><div class="eyebrow">Railway Mitra · Employee Services</div><h2 id="moduleTitle">NPS & Pension</h2><p id="moduleDescription">NPS and pension resources</p></section>
-<section class="module-panel"><h3>Available sections</h3><ul class="module-list" id="moduleItems"><li>Loading…</li></ul>
-<div class="module-note">This module is a navigation and content foundation. Detailed calculators, account sign-in and personal-data storage are not included in this update. Official rules and figures must be checked against the applicable Railway Board or zonal order before use.</div>
-<div class="module-actions"><a href="../../index.html">Back to Dashboard</a><a href="../allowances/index.html">Open Allowances</a></div>
-</section>
+<body>
+<header class="module-header">
+  <a href="../../index.html" id="backLink">← Railway Mitra</a>
+  <button class="language-btn" id="languageToggle" type="button">हिन्दी</button>
+</header>
+<main class="module-page">
+  <section class="module-hero">
+    <div class="eyebrow" id="eyebrow">Railway Mitra · Employee Services</div>
+    <h2 id="pageTitle">NPS & Pension</h2>
+    <p id="pageDescription">Explore the NPS vs UPS comparison calculator for retirement planning.</p>
+  </section>
+
+  <section class="retirement-tool-card">
+    <div class="tool-kicker" id="toolKicker">AVAILABLE CALCULATOR</div>
+    <h3 id="toolTitle">NPS vs UPS Calculator</h3>
+    <p id="toolDescription">Compare estimated pension and retirement benefits under NPS and UPS using your employee details and assumptions.</p>
+    <a class="retirement-tool-link" href="../../employee-benefits-calculators/nps-vs-ups-calculator/index.html" id="openCalculator">Open NPS vs UPS Calculator <span aria-hidden="true">→</span></a>
+  </section>
 </main>
-<footer class="app-footer"><h3>Railway Mitra</h3><p>Your Railway Digital Companion</p><p>© <span id="moduleYear">2026</span> Railway Mitra</p></footer>
-<script src="../../assets/js/module-page.js"></script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}</script>
-</body></html>
+<footer class="app-footer">
+  <h3>Railway Mitra</h3>
+  <p>Your Railway Digital Companion</p>
+  <p>© <span id="moduleYear">2026</span> Railway Mitra</p>
+</footer>
+<script>
+(function(){
+  const translations={
+    en:{
+      back:"← Railway Mitra",eyebrow:"Railway Mitra · Employee Services",title:"NPS & Pension",
+      description:"Explore the NPS vs UPS comparison calculator for retirement planning.",
+      kicker:"AVAILABLE CALCULATOR",toolTitle:"NPS vs UPS Calculator",
+      toolDescription:"Compare estimated pension and retirement benefits under NPS and UPS using your employee details and assumptions.",
+      open:"Open NPS vs UPS Calculator"
+    },
+    hi:{
+      back:"← रेलवे मित्र",eyebrow:"रेलवे मित्र · कर्मचारी सेवाएँ",title:"एनपीएस एवं पेंशन",
+      description:"सेवानिवृत्ति की योजना के लिए एनपीएस बनाम यूपीएस तुलना कैलकुलेटर का उपयोग करें।",
+      kicker:"उपलब्ध कैलकुलेटर",toolTitle:"एनपीएस बनाम यूपीएस कैलकुलेटर",
+      toolDescription:"अपने कर्मचारी विवरण और अनुमानों के आधार पर एनपीएस एवं यूपीएस के अंतर्गत अनुमानित पेंशन और सेवानिवृत्ति लाभों की तुलना करें।",
+      open:"एनपीएस बनाम यूपीएस कैलकुलेटर खोलें"
+    }
+  };
+  const toggle=document.getElementById("languageToggle");
+  let lang="en";
+  try{lang=localStorage.getItem("railwayMitraLanguage")==="hi"?"hi":"en";}catch(e){}
+  function render(){
+    const t=translations[lang];
+    document.documentElement.lang=lang;
+    document.getElementById("backLink").textContent=t.back;
+    document.getElementById("eyebrow").textContent=t.eyebrow;
+    document.getElementById("pageTitle").textContent=t.title;
+    document.getElementById("pageDescription").textContent=t.description;
+    document.getElementById("toolKicker").textContent=t.kicker;
+    document.getElementById("toolTitle").textContent=t.toolTitle;
+    document.getElementById("toolDescription").textContent=t.toolDescription;
+    document.getElementById("openCalculator").innerHTML=t.open+' <span aria-hidden="true">→</span>';
+    toggle.textContent=lang==="en"?"हिन्दी":"English";
+  }
+  toggle.addEventListener("click",()=>{
+    lang=lang==="en"?"hi":"en";
+    try{localStorage.setItem("railwayMitraLanguage",lang);}catch(e){}
+    render();
+  });
+  render();
+  document.getElementById("moduleYear").textContent=new Date().getFullYear();
+})();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}
+</script>
+</body>
+</html>
