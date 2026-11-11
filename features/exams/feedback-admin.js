@@ -1,8 +1,9 @@
 import { auth } from "../../assets/js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { app } from "../../assets/js/firebase.js";
+// Keep the Firebase app binding distinct from the #fbaApp DOM element below.
+import { app as firebaseApp } from "../../assets/js/firebase.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
-const functions=getFunctions(app,"asia-south1");
+const functions=getFunctions(firebaseApp,"asia-south1");
 const call=name=>httpsCallable(functions,name);
 const gate=document.getElementById("fbaGate"), app=document.getElementById("fbaApp"), list=document.getElementById("fbaList"), thread=document.getElementById("fbaThread");
 let activeId=null;
