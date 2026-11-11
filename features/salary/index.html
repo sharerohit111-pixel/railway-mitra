@@ -20,6 +20,13 @@
   input, select { width:100%; box-sizing:border-box; background:#0B1120; border:1px solid #334155; border-radius:10px; padding:12px; color:#FFF; font-size:15px; outline:none; }
   input:focus, select:focus { border-color:#00E5FF; }
   .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .allow-box { background:#0B1120; border:1px solid #1E293B; border-radius:12px; padding:12px; margin-top:14px; }
+  .allow-title { font-size:13px; color:#00E5FF; font-weight:600; margin-bottom:4px; }
+  .allow-sub { font-size:11px; color:#94A3B8; margin-bottom:10px; }
+  .edit-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid #1E293B; font-size:13px; }
+  .edit-row:last-child { border-bottom:none; }
+  .edit-lbl { color:#E2E8F0; flex:1; }
+  .edit-inp { width:105px; padding:8px 10px; text-align:right; color:#4ADE80; font-weight:700; border:1px solid #334155; border-radius:8px; background:#111827; }
   .btn-calc { width:100%; padding:14px; margin-top:18px; border:none; border-radius:12px; background:linear-gradient(90deg,#00D2FF,#6366F1); color:#0B1120; font-size:16px; font-weight:700; cursor:pointer; }
   .btn-reset { width:100%; padding:12px; margin-top:10px; border:1px solid #7E22CE; border-radius:12px; background:#1E132C; color:#F472B6; font-size:15px; font-weight:600; cursor:pointer; }
   .row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #1E293B; font-size:14px; color:#CBD5E1; }
@@ -46,7 +53,7 @@
 <div class="header-card">
   <div class="brand">RAILWAY MITRA</div>
   <div class="title" id="t1">मासिक वेतन कैलकुलेटर</div>
-  <div class="subtitle" id="t2">Complete Monthly Salary Calculator</div>
+  <div class="subtitle" id="t2">Post-Wise Complete Salary Calculator</div>
 </div>
 
 <div class="card separate-link">
@@ -56,7 +63,24 @@
 </div>
 
 <div class="card">
-  <div class="card-heading" id="t3">वेतन व पोस्टिंग विवरण</div>
+  <div class="card-heading" id="t3">पद व वेतन विवरण (Post & Pay)</div>
+
+  <label id="t_post">अपना पद चुनें (Select Railway Post)</label>
+  <select id="postSelect" onchange="applyPostDefaults()">
+    <option value="tm">Track Maintainer (ट्रैक मेंटेनर)</option>
+    <option value="pm">Pointsman / Operating Staff (पॉइंट्समैन)</option>
+    <option value="sm">Station Master / Traffic (स्टेशन मास्टर)</option>
+    <option value="tech">Technician / JE / Artisan (टेक्नीशियन / जेई)</option>
+    <option value="clerk">Office Clerk / Ministerial (क्लर्क / ऑफिस स्टाफ)</option>
+    <option value="alp">ALP / Loco Pilot (Running Staff)</option>
+  </select>
+
+  <div class="allow-box">
+    <div class="allow-title" id="t_spHead">इस पद के भत्ते (राशि पहले से भरी है, आप बदल सकते हैं):</div>
+    <div class="allow-sub" id="t_spSub">किसी भत्ते को हटाने के लिए उसकी राशि 0 कर दें।</div>
+    <div id="specialAllowList"></div>
+  </div>
+
   <div class="grid-2">
     <div>
       <label id="t4">पे लेवल (Pay Level)</label>
@@ -71,6 +95,7 @@
       <input type="number" id="basicPay" placeholder="25500">
     </div>
   </div>
+
   <div class="grid-2">
     <div>
       <label id="t_qtr">क्या रेलवे क्वार्टर मिला है?</label>
@@ -88,6 +113,7 @@
       </select>
     </div>
   </div>
+
   <div class="grid-2">
     <div>
       <label id="t7">TA शहर (Transport)</label>
@@ -101,6 +127,7 @@
       <input type="number" id="daRate" value="63">
     </div>
   </div>
+
   <div class="grid-2">
     <div>
       <label id="t9">पेंशन कटौती (10%)</label>
@@ -110,10 +137,11 @@
       </select>
     </div>
     <div>
-      <label id="t10">अन्य कटौती (CGHS/Tax) ₹</label>
+      <label id="t10">अन्य कटौती (Loan/Tax) ₹</label>
       <input type="number" id="otherDed" value="0" placeholder="0">
     </div>
   </div>
+
   <button class="btn-calc" id="t11" onclick="calcSal()">वेतन की गणना करें</button>
   <button class="btn-reset" id="t12" onclick="resetF()">रीसेट करें</button>
 </div>
@@ -123,31 +151,83 @@
   <div class="row"><span id="t14">मूल वेतन (Basic Pay)</span><span id="rBasic">₹0</span></div>
   <div class="row"><span id="t15">महंगाई भत्ता (DA)</span><span id="rDa">₹0</span></div>
   <div class="row"><span id="t16">मकान किराया भत्ता (HRA)</span><span id="rHra">₹0</span></div>
-  <div class="row"><span id="t17">यात्रा भत्ता (TA + DA on TA)</span><span id="rTa">₹0</span></div>
+  <div class="row"><span id="t17">यात्रा भत्ता (Transport TA)</span><span id="rTa">₹0</span></div>
+  <div class="row"><span id="t_rSp">पद-विशेष व अन्य भत्ते</span><span id="rSp" style="color:#4ADE80;">₹0</span></div>
   <div class="sub-total"><span id="t18" style="color:#00E5FF;">कुल सकल वेतन (Gross)</span><span id="rGross" style="color:#00E5FF;">₹0</span></div>
+
   <div class="row deduct" style="margin-top:10px;"><span id="t19">NPS / UPS कटौती (10%)</span><span id="rNps">- ₹0</span></div>
   <div class="row deduct"><span id="t20">CGEGIS (समूह बीमा)</span><span id="rCgegis">- ₹30</span></div>
-  <div class="row deduct" id="qtrRow" style="display:none;"><span id="t_qrent">क्वार्टर लाइसेंस फीस (अनुमानित)</span><span id="rQtr">- ₹0</span></div>
-  <div class="row deduct"><span id="t21">अन्य कटौती (Other)</span><span id="rOther">- ₹0</span></div>
+  <div class="row deduct" id="qtrRow" style="display:none;"><span id="t_qrent">क्वार्टर लाइसेंस फीस</span><span id="rQtr">- ₹0</span></div>
+  <div class="row deduct"><span id="t21">अन्य कटौती (Loan/Tax)</span><span id="rOther">- ₹0</span></div>
+
   <div class="highlight-box">
     <span class="highlight-label" id="t22">हाथ में वेतन (Net In-Hand)</span>
     <span class="highlight-val" id="rNet">₹0</span>
   </div>
-  <div class="note" id="t23">नोट: रेलवे क्वार्टर आवंटित होने पर HRA देय नहीं होता है और क्वार्टर टाइप के अनुसार लाइसेंस फीस कटती है।</div>
+  <div class="note" id="t23">नोट: पद के अनुसार औसत भत्ते पहले से भरे गए हैं (निर्धारित DA 63% पर)। आप अपनी वास्तविक राशि मैन्युअल टाइप कर सकते हैं।</div>
 </div>
 
 <script>
 let lang = 'hi';
-const D = {
-  hi: { t1:"मासिक वेतन कैलकुलेटर", t2:"Complete Monthly Salary Calculator", t3:"वेतन व पोस्टिंग विवरण", t4:"पे लेवल (Pay Level)", t5:"मूल वेतन (Basic Pay) ₹", t_qtr:"क्या रेलवे क्वार्टर मिला है?", o_qno:"नहीं (HRA मिलेगा)", o_qyes:"हाँ (क्वार्टर मिला है)", t6:"शहर श्रेणी (HRA City)", ox:"X श्रेणी (30% HRA)", oy:"Y श्रेणी (20% HRA)", oz:"Z श्रेणी (10% HRA)", t7:"TA शहर (Transport)", ot1:"TPTA शहर (उच्च दर)", ot2:"अन्य शहर (सामान्य)", t8:"DA दर (%)", t9:"पेंशन कटौती (10%)", op1:"NPS / UPS (10%)", op2:"OPS (कोई कटौती नहीं)", t10:"अन्य कटौती (CGHS/Tax) ₹", t11:"वेतन की गणना करें", t12:"रीसेट करें", t13:"वेतन पर्ची सारांश", t14:"मूल वेतन (Basic Pay)", t15:"महंगाई भत्ता (DA)", t16:"मकान किराया भत्ता (HRA)", t17:"यात्रा भत्ता (TA + DA on TA)", t18:"कुल सकल वेतन (Gross)", t19:"NPS / UPS कटौती (10%)", t20:"CGEGIS (समूह बीमा)", t_qrent:"क्वार्टर लाइसेंस फीस (अनुमानित)", t21:"अन्य कटौती (Other)", t22:"हाथ में वेतन (Net In-Hand)", t23:"नोट: रेलवे क्वार्टर आवंटित होने पर HRA देय नहीं होता है और क्वार्टर टाइप के अनुसार लाइसेंस फीस कटती है।", al:"कृपया सही मूल वेतन दर्ज करें।" },
-  en: { t1:"Monthly Salary Calculator", t2:"7th CPC Gross & Net Salary", t3:"Pay & Posting Details", t4:"Pay Level", t5:"Basic Pay (₹)", t_qtr:"Railway Quarter Allotted?", o_qno:"No (Eligible for HRA)", o_qyes:"Yes (Quarter Allotted)", t6:"City Class (HRA)", ox:"X Class (30% HRA)", oy:"Y Class (20% HRA)", oz:"Z Class (10% HRA)", t7:"TA City Type", ot1:"TPTA City (Higher Rate)", ot2:"Other Cities (Normal)", t8:"DA Rate (%)", t9:"Pension Ded. (10%)", op1:"NPS / UPS (10%)", op2:"OPS (No Deduction)", t10:"Other Ded. (CGHS/Tax) ₹", t11:"Calculate Salary", t12:"Reset", t13:"Salary Slip Summary", t14:"Basic Pay", t15:"Dearness Allowance (DA)", t16:"House Rent Allowance (HRA)", t17:"Transport Allowance (TA+DA)", t18:"Total Gross Salary", t19:"NPS / UPS Ded. (10%)", t20:"CGEGIS (Group Insurance)", t_qrent:"Quarter License Fee (Est.)", t21:"Other Deductions", t22:"Net In-Hand Salary", t23:"Note: If a Railway Quarter is allotted, HRA is not payable and nominal license fee is deducted.", al:"Please enter a valid Basic Pay." }
+
+const postData = {
+  tm: [
+    { nameHi: 'Risk & Hardship Allowance (₹)', nameEn: 'Risk & Hardship Allowance (₹)', amt: 3375 },
+    { nameHi: 'Bicycle Allowance (साइकिल भत्ता ₹)', nameEn: 'Bicycle Allowance (₹)', amt: 180 },
+    { nameHi: 'Travelling Allowance (TA भत्ता ₹)', nameEn: 'Travelling Allowance (TA ₹)', amt: 2500 }
+  ],
+  pm: [
+    { nameHi: 'Night Duty Allowance (NDA ₹)', nameEn: 'Night Duty Allowance (NDA ₹)', amt: 2200 },
+    { nameHi: 'Dress Allowance (मासिक औसत ₹)', nameEn: 'Dress Allowance (Monthly Avg ₹)', amt: 521 },
+    { nameHi: 'National Holiday Allowance (NHA ₹)', nameEn: 'National Holiday Allowance (₹)', amt: 480 }
+  ],
+  sm: [
+    { nameHi: 'Night Duty Allowance (NDA ₹)', nameEn: 'Night Duty Allowance (NDA ₹)', amt: 3200 },
+    { nameHi: 'Dress Allowance (मासिक औसत ₹)', nameEn: 'Dress Allowance (Monthly Avg ₹)', amt: 1042 },
+    { nameHi: 'National Holiday / Other Allowance (₹)', nameEn: 'National Holiday / Other (₹)', amt: 630 }
+  ],
+  tech: [
+    { nameHi: 'Travelling Allowance (TA ₹)', nameEn: 'Travelling Allowance (TA ₹)', amt: 1800 },
+    { nameHi: 'Night Duty / Breakdown Allowance (₹)', nameEn: 'Night Duty / Breakdown (₹)', amt: 1500 }
+  ],
+  clerk: [
+    { nameHi: 'Travelling / Other Allowance (₹)', nameEn: 'Travelling / Other Allowance (₹)', amt: 0 },
+    { nameHi: 'Cash Handling Allowance (₹)', nameEn: 'Cash Handling Allowance (₹)', amt: 0 }
+  ],
+  alp: [
+    { nameHi: 'Kilometreage Allowance (KM भत्ता ₹)', nameEn: 'Kilometreage Allowance (KM ₹)', amt: 12000 },
+    { nameHi: 'Additional Running Allowance (₹)', nameEn: 'Additional Running Allowance (₹)', amt: 1406 },
+    { nameHi: 'Night Duty Allowance (NDA ₹)', nameEn: 'Night Duty Allowance (NDA ₹)', amt: 2500 }
+  ]
 };
+
+const D = {
+  hi: { t1:"मासिक वेतन कैलकुलेटर", t2:"Post-Wise Complete Salary Calculator", t3:"पद व वेतन विवरण (Post & Pay)", t_post:"अपना पद चुनें (Select Railway Post)", t_spHead:"इस पद के भत्ते (राशि पहले से भरी है, आप बदल सकते हैं):", t_spSub:"किसी भत्ते को हटाने के लिए उसकी राशि 0 कर दें।", t4:"पे लेवल (Pay Level)", t5:"मूल वेतन (Basic Pay) ₹", t_qtr:"क्या रेलवे क्वार्टर मिला है?", o_qno:"नहीं (HRA मिलेगा)", o_qyes:"हाँ (क्वार्टर मिला है)", t6:"शहर श्रेणी (HRA City)", ox:"X श्रेणी (30% HRA)", oy:"Y श्रेणी (20% HRA)", oz:"Z श्रेणी (10% HRA)", t7:"TA शहर (Transport)", ot1:"TPTA शहर (उच्च दर)", ot2:"अन्य शहर (सामान्य)", t8:"DA दर (%)", t9:"पेंशन कटौती (10%)", op1:"NPS / UPS (10%)", op2:"OPS (कोई कटौती नहीं)", t10:"अन्य कटौती (Loan/Tax) ₹", t11:"वेतन की गणना करें", t12:"रीसेट करें", t13:"वेतन पर्ची सारांश", t14:"मूल वेतन (Basic Pay)", t15:"महंगाई भत्ता (DA)", t16:"मकान किराया भत्ता (HRA)", t17:"यात्रा भत्ता (Transport TA)", t_rSp:"पद-विशेष व अन्य भत्ते", t18:"कुल सकल वेतन (Gross)", t19:"NPS / UPS कटौती (10%)", t20:"CGEGIS (समूह बीमा)", t_qrent:"क्वार्टर लाइसेंस फीस", t21:"अन्य कटौती (Loan/Tax)", t22:"हाथ में वेतन (Net In-Hand)", t23:"नोट: पद के अनुसार औसत भत्ते पहले से भरे गए हैं (निर्धारित DA 63% पर)। आप अपनी वास्तविक राशि मैन्युअल टाइप कर सकते हैं।", al:"कृपया सही मूल वेतन दर्ज करें।" },
+  en: { t1:"Monthly Salary Calculator", t2:"Post-Wise Complete Salary Calculator", t3:"Post & Pay Details", t_post:"Select Railway Post", t_spHead:"Post Allowances (Pre-filled, editable manually):", t_spSub:"Set amount to 0 to exclude any allowance.", t4:"Pay Level", t5:"Basic Pay (₹)", t_qtr:"Railway Quarter Allotted?", o_qno:"No (Eligible for HRA)", o_qyes:"Yes (Quarter Allotted)", t6:"City Class (HRA)", ox:"X Class (30% HRA)", oy:"Y Class (20% HRA)", oz:"Z Class (10% HRA)", t7:"TA City Type", ot1:"TPTA City (Higher Rate)", ot2:"Other Cities (Normal)", t8:"DA Rate (%)", t9:"Pension Ded. (10%)", op1:"NPS / UPS (10%)", op2:"OPS (No Deduction)", t10:"Other Ded. (Loan/Tax) ₹", t11:"Calculate Salary", t12:"Reset", t13:"Salary Slip Summary", t14:"Basic Pay", t15:"Dearness Allowance (DA)", t16:"House Rent Allowance (HRA)", t17:"Transport Allowance (TA)", t_rSp:"Post & Extra Allowances", t18:"Total Gross Salary", t19:"NPS / UPS Ded. (10%)", t20:"CGEGIS (Group Insurance)", t_qrent:"Quarter License Fee", t21:"Other Deductions", t22:"Net In-Hand Salary", t23:"Note: Standard post allowances are pre-filled (Default DA 63%). You can manually edit any amount.", al:"Please enter a valid Basic Pay." }
+};
+
+function applyPostDefaults() {
+  let post = document.getElementById('postSelect').value;
+  let container = document.getElementById('specialAllowList');
+  container.innerHTML = "";
+  let list = postData[post] || [];
+  list.forEach(item => {
+    let labelText = (lang === 'hi') ? item.nameHi : item.nameEn;
+    container.innerHTML += `
+      <div class="edit-row">
+        <span class="edit-lbl">${labelText}</span>
+        <input type="number" class="edit-inp sp-inp" value="${item.amt}">
+      </div>
+    `;
+  });
+}
 
 function setLang(l) {
   lang = l;
   document.getElementById('btnHi').classList.toggle('active', l === 'hi');
   document.getElementById('btnEn').classList.toggle('active', l === 'en');
   for (let k in D[l]) if (document.getElementById(k)) document.getElementById(k).innerText = D[l][k];
+  applyPostDefaults();
   if (document.getElementById('resCard').style.display === 'block') calcSal();
 }
 
@@ -164,11 +244,16 @@ function calcSal() {
   let qtr = document.getElementById('qtrStatus').value;
   let city = document.getElementById('cityClass').value;
   let taCity = document.getElementById('taCity').value;
-  let da = parseFloat(document.getElementById('daRate').value) || 0;
+  let da = parseFloat(document.getElementById('daRate').value) || 63;
   let pen = document.getElementById('pensionType').value;
   let oth = parseFloat(document.getElementById('otherDed').value) || 0;
 
   if (basic <= 0) { alert(D[lang].al); return; }
+
+  let spTotal = 0;
+  document.querySelectorAll('.sp-inp').forEach(inp => {
+    spTotal += parseFloat(inp.value) || 0;
+  });
 
   let daAmt = Math.round(basic * (da / 100));
   let hraAmt = 0;
@@ -179,13 +264,13 @@ function calcSal() {
     hraAmt = Math.round(basic * hp);
     document.getElementById('qtrRow').style.display = 'none';
   } else {
-    qtrFee = (lvl === '1') ? 220 : (lvl === '3' ? 460 : 920);
+    qtrFee = (lvl === '1') ? 220 : (lvl === '3' ? 280 : 920);
     document.getElementById('qtrRow').style.display = 'flex';
   }
 
   let baseTa = (lvl === '1') ? (basic >= 24200 ? (taCity === 'TPTA' ? 3600 : 1800) : (taCity === 'TPTA' ? 1350 : 900)) : (lvl === '3' ? (taCity === 'TPTA' ? 3600 : 1800) : (taCity === 'TPTA' ? 7200 : 3600));
   let taAmt = Math.round(baseTa + (baseTa * da / 100));
-  let gross = basic + daAmt + hraAmt + taAmt;
+  let gross = basic + daAmt + hraAmt + taAmt + spTotal;
 
   let nps = (pen === 'yes') ? Math.round((basic + daAmt) * 0.10) : 0;
   let cgegis = (lvl === '1') ? 15 : (lvl === '3' ? 30 : 60);
@@ -195,6 +280,7 @@ function calcSal() {
   document.getElementById('rDa').innerText = "₹" + daAmt.toLocaleString('en-IN');
   document.getElementById('rHra').innerText = "₹" + hraAmt.toLocaleString('en-IN');
   document.getElementById('rTa').innerText = "₹" + taAmt.toLocaleString('en-IN');
+  document.getElementById('rSp').innerText = "+ ₹" + spTotal.toLocaleString('en-IN');
   document.getElementById('rGross').innerText = "₹" + gross.toLocaleString('en-IN');
   document.getElementById('rNps').innerText = "- ₹" + nps.toLocaleString('en-IN');
   document.getElementById('rCgegis').innerText = "- ₹" + cgegis;
@@ -206,12 +292,15 @@ function calcSal() {
 
 function resetF() {
   document.getElementById('basicPay').value = "";
+  document.getElementById('daRate').value = "63";
+  document.getElementById('otherDed').value = "0";
   document.getElementById('qtrStatus').value = "no";
   toggleCity();
-  document.getElementById('otherDed').value = "0";
-  document.getElementById('daRate').value = "63";
+  applyPostDefaults();
   document.getElementById('resCard').style.display = "none";
 }
+
+applyPostDefaults();
 </script>
 </body>
 </html>
