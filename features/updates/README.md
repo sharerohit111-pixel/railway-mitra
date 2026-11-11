@@ -64,3 +64,11 @@ The example URL and values are placeholders and must never be published.
 - Do not publish employee personal data or confidential/internal documents.
 - Do not claim real-time alerts. The page currently displays a feed when the user opens it and has no push notification service.
 - The front-end ignores records without `verified: true` and required fields. This is a display safeguard, not an authorization system; repository access control and human review remain essential.
+
+## Local draft workspace
+
+Open `publisher.html` from the deployed app or local preview to prepare a notice draft. The page validates required fields, bilingual text, category, date order and HTTPS source URL, then exports `notices-draft.json`.
+
+**Security limitation:** this is not an authenticated admin panel and it does not publish directly. Drafts remain in page memory until export; closing/reloading the page clears them. Do not rely on an unlinked URL as access control. Only an authorized repository maintainer should review the original source and merge verified records into `notices.json`.
+
+A truly authenticated live publisher requires a trusted sign-in integration and a server-side callable function enforcing the existing Firebase Admin custom claim `admin: true`. Do not add client-side admin flags, passwords, GitHub tokens or public write access. That backend and deployment are deliberately not part of this change.
