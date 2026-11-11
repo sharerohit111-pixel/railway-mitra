@@ -111,9 +111,13 @@
     if (copy === 1) group.setAttribute("aria-hidden", "true");
 
     serviceItems.forEach((item) => {
-      const chip = document.createElement("span");
+      const slug = item.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const chip = document.createElement("a");
       chip.className = "rm-home-service-ticker__item";
+      chip.href = "features/home-highlights/details/index.html?topic=" + encodeURIComponent(slug);
       chip.textContent = item;
+      chip.setAttribute("aria-label", "Open " + item + " guide");
+      if (copy === 1) chip.tabIndex = -1;
       group.appendChild(chip);
     });
     serviceTrack.appendChild(group);
