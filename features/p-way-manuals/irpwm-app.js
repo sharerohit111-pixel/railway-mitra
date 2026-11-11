@@ -197,7 +197,7 @@ function toggleLanguage() {
 
   if (button) button.textContent = currentLang === 'hi' ? 'Switch to English' : 'हिंदी में बदलें';
   if (title) title.textContent = currentLang === 'hi'
-    ? '📚 Indian Railways P-Way Manuals & Guidelines'
+    ? '📚 भारतीय रेलवे P-Way मैनुअल एवं दिशानिर्देश'
     : '📚 Indian Railways P-Way Manuals & Guidelines';
   if (subtitle) subtitle.textContent = currentLang === 'hi'
     ? 'IRPWM, एडवांस करेक्शन स्लिप्स, सुरक्षा नियम और तकनीकी संदर्भ'
