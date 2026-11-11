@@ -62,6 +62,80 @@
   }
 
 
+
+  // Direct links to real feature pages already present in the home dashboard.
+  // These two extra lanes are navigation shortcuts; they do not replace any module.
+  const upperFeatureItems = [
+    ["Salary & Pay", "features/salary/index.html"],
+    ["Income Tax", "features/income-tax/index.html"],
+    ["Employee Benefits", "employee-benefits-calculators/index.html"],
+    ["8th Pay Commission", "features/pay-commission-8th/index.html"],
+    ["Allowances", "features/allowances/index.html"],
+    ["Arrear Calculator", "features/arrears/index.html"],
+    ["Duty Management", "features/duty/index.html"],
+    ["Duty Roster & Allowance Diary", "features/duty-diary/index.html"]
+  ];
+
+  const lowerFeatureItems = [
+    ["Leave Management", "features/leave/index.html"],
+    ["NPS & Pension", "features/retirement/index.html"],
+    ["Loan & Finance", "features/finance/index.html"],
+    ["Railway Rules", "features/rules/index.html"],
+    ["Engineering Tools", "features/engineering/index.html"],
+    ["Documents & PDF", "features/documents/index.html"],
+    ["Railway Updates", "features/updates/index.html"],
+    ["Railway Map", "features/map/index.html"],
+    ["Data Sources & Compliance", "features/compliance/index.html"],
+    ["Employee Profile", "features/profile/index.html"]
+  ];
+
+  function createFeatureTicker(label, ariaLabel, items, className, direction) {
+    const lane = document.createElement("section");
+    lane.className = "rm-home-feature-ticker " + className;
+    lane.setAttribute("aria-label", ariaLabel);
+
+    const title = document.createElement("span");
+    title.className = "rm-home-feature-ticker__label";
+    title.textContent = label;
+
+    const viewport = document.createElement("div");
+    viewport.className = "rm-home-feature-ticker__viewport";
+
+    const track = document.createElement("div");
+    track.className = "rm-home-feature-ticker__track";
+    track.dataset.direction = direction;
+
+    for (let copy = 0; copy < 2; copy += 1) {
+      const group = document.createElement("div");
+      group.className = "rm-home-feature-ticker__group";
+      if (copy === 1) group.setAttribute("aria-hidden", "true");
+
+      items.forEach(([name, href]) => {
+        const link = document.createElement("a");
+        link.className = "rm-home-feature-ticker__item";
+        link.href = href;
+        link.textContent = name;
+        link.setAttribute("aria-label", "Open " + name);
+        if (copy === 1) link.tabIndex = -1;
+        group.appendChild(link);
+      });
+      track.appendChild(group);
+    }
+
+    viewport.appendChild(track);
+    lane.append(title, viewport);
+    return lane;
+  }
+
+  const upperFeatureTicker = createFeatureTicker(
+    "✦ QUICK ACCESS", "Quick access to Railway Mitra features",
+    upperFeatureItems, "rm-home-feature-ticker--upper", "left"
+  );
+  const lowerFeatureTicker = createFeatureTicker(
+    "✦ MORE", "More Railway Mitra features",
+    lowerFeatureItems, "rm-home-feature-ticker--lower", "right"
+  );
+
   // A separate single service ticker sits in the open gap above the Welcome panel.
   // It is intentionally independent from the remaining tools highlights.
   const serviceItems = [
@@ -111,7 +185,13 @@
 
   const welcome = root.closest(".welcome-section");
   if (welcome && welcome.parentNode) {
+    welcome.parentNode.insertBefore(upperFeatureTicker, serviceLane);
     welcome.parentNode.insertBefore(serviceLane, welcome);
+  }
+
+  const profileButton = welcome && welcome.querySelector(".profile-btn");
+  if (profileButton && profileButton.parentNode) {
+    profileButton.parentNode.insertBefore(lowerFeatureTicker, profileButton.nextSibling);
   }
 
   addLane("Employee tools and calculators", "🛠 TOOLS", toolItems, "rm-home-highlights__lane--tools");
