@@ -72,7 +72,6 @@
     ["8th Pay Commission", "features/pay-commission-8th/index.html"],
     ["Allowances", "features/allowances/index.html"],
     ["Arrear Calculator", "features/arrears/index.html"],
-    ["Duty Management", "features/duty/index.html"],
     ["Duty Roster & Allowance Diary", "features/duty-diary/index.html"]
   ];
 
