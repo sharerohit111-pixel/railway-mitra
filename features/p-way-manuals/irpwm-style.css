@@ -290,3 +290,12 @@ body {
   .content-panel { padding: 15px; }
   .folder-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Detailed P-Way knowledge pages */
+.detailed-topic { padding: 20px 0; }
+.detail-intro { font-weight: 600; color: #24364b; background: #f1f6fc; border-left: 4px solid var(--primary); border-radius: 7px; padding: 13px 15px; }
+.detail-section { margin: 16px 0; padding: 14px 16px; background: #fbfdff; border: 1px solid #e2e8f0; border-radius: 9px; }
+.detail-subheading { margin: 0 0 8px; color: var(--primary); font-size: 1rem; line-height: 1.5; }
+.detail-body { margin: 0; white-space: pre-line; color: #334155; font-size: .94rem; line-height: 1.8; }
+.search-folder-heading { margin: 22px 0 6px; padding: 10px 12px; border-radius: 8px; background: #eaf1fb; color: var(--primary); font-size: 1rem; }
