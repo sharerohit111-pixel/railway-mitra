@@ -185,8 +185,9 @@
 
   const welcome = root.closest(".welcome-section");
   if (welcome && welcome.parentNode) {
-    welcome.parentNode.insertBefore(upperFeatureTicker, serviceLane);
+    // Insert the existing SERVICES lane first, then place the new upper lane before it.
     welcome.parentNode.insertBefore(serviceLane, welcome);
+    welcome.parentNode.insertBefore(upperFeatureTicker, serviceLane);
   }
 
   const profileButton = welcome && welcome.querySelector(".profile-btn");
