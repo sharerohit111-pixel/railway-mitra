@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async function () {
           status("Cloud synced · "+(user.email||user.phoneNumber||"signed-in account"));
         } else if(api.getProfile()) {
           const cleanProfile=api.saveProfile(api.getProfile());
-          await setDoc(profileRef,{...cleanProfile,hrmsId:deleteField(),pfNumber:deleteField(),updatedAt:new Date().toISOString()});
+          await setDoc(profileRef,{...cleanProfile,hrmsId:deleteField(),pfNumber:deleteField(),employeeNumber:deleteField(),updatedAt:new Date().toISOString()});
           status("Existing device profile uploaded to cloud");
           showMessage("पुरानी प्रोफाइल इस अकाउंट के Cloud में सुरक्षित कर दी गई।");
         } else {
@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if(currentUser&&firebaseFns){
         status("Uploading to cloud…");
         const profileRef=firebaseFns.doc(firebaseFns.db,"users",currentUser.uid,"employeeProfile","main");
-        await firebaseFns.setDoc(profileRef,{...saved,hrmsId:firebaseFns.deleteField(),pfNumber:firebaseFns.deleteField(),updatedAt:new Date().toISOString()},{merge:true});
+        await firebaseFns.setDoc(profileRef,{...saved,hrmsId:firebaseFns.deleteField(),pfNumber:firebaseFns.deleteField(),employeeNumber:firebaseFns.deleteField(),updatedAt:new Date().toISOString()},{merge:true});
         status("Cloud synced · available on your other devices");
         showMessage("प्रोफाइल इस डिवाइस और Firebase Cloud दोनों में सुरक्षित है।");
       } else {
