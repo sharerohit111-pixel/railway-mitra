@@ -988,3 +988,52 @@ exports.adminSetUserFeedbackStatus = onCall({ region: REGION }, async request =>
   });
   return { success: true, feedbackId, status };
 });
+
+
+// User-requested account deletion. Require a recent sign-in and remove only
+// records that are explicitly keyed to the authenticated UID.
+const { getAuth } = require("firebase-admin/auth");
+
+exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async request => {
+  const uid = requireUser(request);
+  const authTime = Number(request.auth.token.auth_time || 0);
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (!authTime || nowSeconds - authTime > 5 * 60) {
+    throw new HttpsError("failed-precondition", "For your security, sign out and sign in again before deleting your account.");
+  }
+  if (request.data.confirmation !== "DELETE") {
+    throw new HttpsError("invalid-argument", "Explicit account deletion confirmation is required.");
+  }
+
+  const userRef = db.collection("users").doc(uid);
+  const feedback = await db.collection("userFeedback").where("uid", "==", uid).get();
+  for (const item of feedback.docs) {
+    await db.recursiveDelete(item.ref);
+  }
+
+  // Preserve payment/audit evidence where retention may be legally required,
+  // but remove the direct UID association from payment records.
+  const payments = await db.collection("paymentRecords").where("uid", "==", uid).get();
+  for (const payment of payments.docs) {
+    await payment.ref.update({
+      uid: null,
+      accountDeleted: true,
+      accountDeletedAt: FieldValue.serverTimestamp()
+    });
+  }
+
+  await Promise.all([
+    db.recursiveDelete(userRef),
+    db.recursiveDelete(db.collection("materialEntitlements").doc(uid)),
+    db.collection("userEntitlements").doc(uid).delete().catch(error => {
+      if (error.code !== 5 && error.code !== "not-found") throw error;
+    })
+  ]);
+
+  await getAuth().deleteUser(uid);
+  return {
+    success: true,
+    retainedPaymentRecords: payments.size,
+    deletedFeedbackThreads: feedback.size
+  };
+});
