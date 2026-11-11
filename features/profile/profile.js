@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (!api || !form) return;
 
   const baseFields = ["employeeId","name","post","level","basicPay","tpa","division","zone","employeeNumber","department"];
-  const optionalFields = ["billUnit","hrmsId","pfNumber","officialMobile","officialEmail"];
+  const optionalFields = ["billUnit","officialMobile","officialEmail"];
   const allFields = baseFields.concat(optionalFields);
   const employeeId = document.getElementById("employeeId");
   const panel = document.getElementById("optionalPanel");
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Firebase is loaded lazily so the profile remains usable offline.
   try {
-    const [{auth,db},{onAuthStateChanged},{doc,getDoc,setDoc,deleteDoc}] = await Promise.all([
+    const [{auth,db},{onAuthStateChanged},{doc,getDoc,setDoc,deleteDoc,deleteField}] = await Promise.all([
       import("../../assets/js/firebase.js"),
       import("https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js"),
       import("https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js")
@@ -94,9 +94,13 @@ document.addEventListener("DOMContentLoaded", async function () {
           const remote=snap.data();
           // Prefer cloud as the latest cross-device copy once a cloud profile exists.
           localSave(remote);fillForm(remote);
+          if (Object.prototype.hasOwnProperty.call(remote,"hrmsId") || Object.prototype.hasOwnProperty.call(remote,"pfNumber")) {
+            await setDoc(profileRef,{hrmsId:deleteField(),pfNumber:deleteField()},{merge:true});
+          }
           status("Cloud synced · "+(user.email||user.phoneNumber||"signed-in account"));
         } else if(api.getProfile()) {
-          await setDoc(profileRef,{...api.getProfile(),updatedAt:new Date().toISOString()});
+          const cleanProfile=api.saveProfile(api.getProfile());
+          await setDoc(profileRef,{...cleanProfile,hrmsId:deleteField(),pfNumber:deleteField(),updatedAt:new Date().toISOString()});
           status("Existing device profile uploaded to cloud");
           showMessage("पुरानी प्रोफाइल इस अकाउंट के Cloud में सुरक्षित कर दी गई।");
         } else {
@@ -123,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       if(currentUser&&firebaseFns){
         status("Uploading to cloud…");
         const profileRef=firebaseFns.doc(firebaseFns.db,"users",currentUser.uid,"employeeProfile","main");
-        await firebaseFns.setDoc(profileRef,{...saved,updatedAt:new Date().toISOString()},{merge:true});
+        await firebaseFns.setDoc(profileRef,{...saved,hrmsId:firebaseFns.deleteField(),pfNumber:firebaseFns.deleteField(),updatedAt:new Date().toISOString()},{merge:true});
         status("Cloud synced · available on your other devices");
         showMessage("प्रोफाइल इस डिवाइस और Firebase Cloud दोनों में सुरक्षित है।");
       } else {
