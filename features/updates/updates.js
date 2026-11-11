@@ -1,15 +1,30 @@
 "use strict";
 const translations={
- en:{kicker:"RAILWAY MITRA · EMPLOYEE SERVICES",title:"Railway Updates",intro:"Find railway circulars, employee notices and important deadlines in one place.",searchLabel:"Search updates",searchPlaceholder:"Search by RBE number or keyword…",clear:"Clear",categories:"Browse categories",all:"All updates",pay:"DA & Pay Commission",transfer:"Transfer notices",medical:"Medical & Pass",zone:"Zone & Division",other:"Other notices",noticeKicker:"LATEST INFORMATION",noticeTitle:"Notices & circulars",verifiedOnly:"Official-source first",emptyTitle:"No notices published here yet",emptyText:"This section is ready for verified notices. We will not display unverified dates, circular numbers or claims as official updates.",sourceKicker:"CHECK THE ORIGINAL ORDER",sourceTitle:"Official source directory",sourceText:"Always open the issuing authority’s original notice before relying on a rule, deadline or benefit.",disclaimer:"Railway Mitra is an independent app, not an official Indian Railways or Government of India service. Verify every notice with the relevant authority.",count:n=>n+" notices"},
- hi:{kicker:"रेलवे मित्र · कर्मचारी सेवाएँ",title:"रेलवे अपडेट",intro:"रेलवे परिपत्र, कर्मचारी सूचनाएँ और महत्वपूर्ण अंतिम तिथियाँ एक स्थान पर देखें।",searchLabel:"अपडेट खोजें",searchPlaceholder:"RBE नंबर या शब्द से खोजें…",clear:"हटाएँ",categories:"श्रेणियाँ देखें",all:"सभी अपडेट",pay:"महँगाई भत्ता एवं वेतन आयोग",transfer:"स्थानांतरण सूचनाएँ",medical:"मेडिकल एवं पास",zone:"जोन एवं मंडल",other:"अन्य सूचनाएँ",noticeKicker:"नवीनतम जानकारी",noticeTitle:"सूचनाएँ एवं परिपत्र",verifiedOnly:"आधिकारिक स्रोत प्राथमिकता",emptyTitle:"अभी कोई सूचना प्रकाशित नहीं है",emptyText:"यह भाग सत्यापित सूचनाओं के लिए तैयार है। अपुष्ट तिथियों, परिपत्र संख्याओं या दावों को आधिकारिक अपडेट के रूप में नहीं दिखाया जाएगा।",sourceKicker:"मूल आदेश अवश्य देखें",sourceTitle:"आधिकारिक स्रोत निर्देशिका",sourceText:"किसी नियम, अंतिम तिथि या लाभ पर भरोसा करने से पहले जारीकर्ता का मूल आदेश अवश्य खोलें।",disclaimer:"रेलवे मित्र स्वतंत्र ऐप है, भारतीय रेलवे या भारत सरकार की आधिकारिक सेवा नहीं। प्रत्येक सूचना संबंधित प्राधिकरण से सत्यापित करें।",count:n=>n+" सूचनाएँ"}
+ en:{kicker:"RAILWAY MITRA · EMPLOYEE SERVICES",title:"Railway Updates",intro:"Find railway circulars, employee notices and important deadlines in one place.",searchLabel:"Search updates",searchPlaceholder:"Search by RBE number or keyword…",clear:"Clear",categories:"Browse categories",all:"All updates",pay:"DA & Pay Commission",transfer:"Transfer notices",medical:"Medical & Pass",zone:"Zone & Division",other:"Other notices",noticeKicker:"LATEST INFORMATION",noticeTitle:"Notices & circulars",verifiedOnly:"Official-source first",emptyTitle:"No notices published here yet",emptyText:"No verified notices are available in this section yet. Please check the official source directory below.",loadError:"Notices could not be loaded. Please try again later.",sourceKicker:"CHECK THE ORIGINAL ORDER",sourceTitle:"Official source directory",sourceText:"Always open the issuing authority’s original notice before relying on a rule, deadline or benefit.",disclaimer:"Railway Mitra is an independent app, not an official Indian Railways or Government of India service. Verify every notice with the relevant authority.",count:n=>n+" notices",lastDate:"Last date: ",open:"Open original order ↗"},
+ hi:{kicker:"रेलवे मित्र · कर्मचारी सेवाएँ",title:"रेलवे अपडेट",intro:"रेलवे परिपत्र, कर्मचारी सूचनाएँ और महत्वपूर्ण अंतिम तिथियाँ एक स्थान पर देखें।",searchLabel:"अपडेट खोजें",searchPlaceholder:"RBE नंबर या शब्द से खोजें…",clear:"हटाएँ",categories:"श्रेणियाँ देखें",all:"सभी अपडेट",pay:"महँगाई भत्ता एवं वेतन आयोग",transfer:"स्थानांतरण सूचनाएँ",medical:"मेडिकल एवं पास",zone:"जोन एवं मंडल",other:"अन्य सूचनाएँ",noticeKicker:"नवीनतम जानकारी",noticeTitle:"सूचनाएँ एवं परिपत्र",verifiedOnly:"आधिकारिक स्रोत प्राथमिकता",emptyTitle:"अभी कोई सत्यापित सूचना उपलब्ध नहीं है",emptyText:"इस भाग में अभी सत्यापित सूचनाएँ उपलब्ध नहीं हैं। नीचे दी गई आधिकारिक स्रोत निर्देशिका देखें।",loadError:"सूचनाएँ लोड नहीं हो सकीं। कृपया बाद में पुनः प्रयास करें।",sourceKicker:"मूल आदेश अवश्य देखें",sourceTitle:"आधिकारिक स्रोत निर्देशिका",sourceText:"किसी नियम, अंतिम तिथि या लाभ पर भरोसा करने से पहले जारीकर्ता का मूल आदेश अवश्य खोलें।",disclaimer:"रेलवे मित्र स्वतंत्र ऐप है, भारतीय रेलवे या भारत सरकार की आधिकारिक सेवा नहीं। प्रत्येक सूचना संबंधित प्राधिकरण से सत्यापित करें।",count:n=>n+" सूचनाएँ",lastDate:"अंतिम तिथि: ",open:"मूल आदेश खोलें ↗"}
 };
 const categories=["all","rbe","pay","exam","transfer","medical","zone","other"];
-// The feed intentionally starts empty. Only notices verified against an issuing authority
-// should be added here; never invent circular numbers, publication dates or deadlines.
-const notices=[];
+let notices=[],loadFailed=false,category="all",language="en";
 const search=document.getElementById("updatesSearch"),list=document.getElementById("noticeList"),empty=document.getElementById("emptyState"),count=document.getElementById("resultCount");
-let category="all",language="en";
 try{language=localStorage.getItem("railwayMitraLanguage")==="hi"?"hi":"en";}catch{}
+function safeText(value){return typeof value==="string"?value.trim():"";}
+function validNotice(n){
+ return n&&n.verified===true&&categories.includes(n.category)&&n.category!=="all"&&
+  safeText(n.id)&&safeText(n.titleEn)&&safeText(n.titleHi)&&safeText(n.summaryEn)&&safeText(n.summaryHi)&&
+  safeText(n.sourceName)&&/^https:\/\//i.test(safeText(n.sourceUrl))&&
+  (!n.deadline||/^\d{4}-\d{2}-\d{2}$/.test(n.deadline));
+}
+async function loadNotices(){
+ try{
+  const response=await fetch("./notices.json",{cache:"no-store"});
+  if(!response.ok)throw new Error("Feed request failed");
+  const payload=await response.json();
+  if(!payload||!Array.isArray(payload.notices))throw new Error("Invalid notice feed");
+  notices=payload.notices.filter(validNotice);
+  notices.sort((a,b)=>(safeText(b.publishedAt)).localeCompare(safeText(a.publishedAt)));
+ }catch(error){loadFailed=true;console.error("Railway Updates feed:",error);}
+ renderNotices();
+}
 function renderLanguage(){
  const dict=translations[language];document.documentElement.lang=language;
  document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(dict[key])el.textContent=typeof dict[key]==="function"?dict[key](0):dict[key];});
@@ -19,23 +34,26 @@ function renderLanguage(){
 }
 function renderNotices(){
  const q=search.value.trim().toLocaleLowerCase();
- const filtered=notices.filter(n=>(category==="all"||n.category===category)&&[n.title,n.summary,n.number,n.keywords].join(" ").toLocaleLowerCase().includes(q));
+ const filtered=notices.filter(n=>(category==="all"||n.category===category)&&[n.titleEn,n.titleHi,n.summaryEn,n.summaryHi,n.rbeNumber,n.keywords].join(" ").toLocaleLowerCase().includes(q));
  list.replaceChildren();
  filtered.forEach(n=>{
   const article=document.createElement("article");article.className="rm-notice-card";
   const meta=document.createElement("div");meta.className="rm-notice-meta";
   const tag=document.createElement("span");tag.className="rm-notice-tag";tag.textContent=n.category.toUpperCase();meta.append(tag);
-  if(n.number){const num=document.createElement("span");num.textContent=n.number;meta.append(num);}
-  if(n.date){const date=document.createElement("span");date.textContent=n.date;meta.append(date);}
+  if(n.rbeNumber){const num=document.createElement("span");num.textContent=n.rbeNumber;meta.append(num);}
+  if(n.publishedAt){const date=document.createElement("span");date.textContent=n.publishedAt;meta.append(date);}
   article.append(meta);
-  const title=document.createElement("h3");title.textContent=n.title;article.append(title);
-  const summary=document.createElement("p");summary.textContent=n.summary;article.append(summary);
-  if(n.deadline){const deadline=document.createElement("p");deadline.className="rm-deadline";deadline.textContent=(language==="hi"?"अंतिम तिथि: ":"Last date: ")+n.deadline;article.append(deadline);}
-  if(n.url){const link=document.createElement("a");link.href=n.url;link.target="_blank";link.rel="noopener noreferrer";link.textContent=language==="hi"?"मूल आदेश खोलें ↗":"Open original order ↗";article.append(link);}
+  const title=document.createElement("h3");title.textContent=language==="hi"?n.titleHi:n.titleEn;article.append(title);
+  const summary=document.createElement("p");summary.textContent=language==="hi"?n.summaryHi:n.summaryEn;article.append(summary);
+  if(n.deadline){const deadline=document.createElement("p");deadline.className="rm-deadline";deadline.textContent=translations[language].lastDate+n.deadline;article.append(deadline);}
+  const source=document.createElement("p");source.className="rm-notice-meta";source.textContent=(language==="hi"?"स्रोत: ":"Source: ")+n.sourceName;article.append(source);
+  const link=document.createElement("a");link.href=n.sourceUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=translations[language].open;article.append(link);
   list.append(article);
  });
  count.textContent=translations[language].count(filtered.length);
  empty.hidden=filtered.length>0;
+ if(loadFailed){empty.hidden=false;empty.querySelector("p").textContent=translations[language].loadError;}
+ else if(!filtered.length){empty.querySelector("p").textContent=translations[language].emptyText;}
 }
 document.getElementById("categoryFilters").addEventListener("click",event=>{
  const button=event.target.closest("button[data-category]");if(!button)return;
@@ -47,3 +65,4 @@ search.addEventListener("input",renderNotices);
 document.getElementById("clearSearch").addEventListener("click",()=>{search.value="";category="all";document.querySelectorAll(".rm-category").forEach(el=>el.classList.toggle("active",el.dataset.category==="all"));renderNotices();search.focus();});
 document.getElementById("updatesLanguage").addEventListener("click",()=>{language=language==="en"?"hi":"en";try{localStorage.setItem("railwayMitraLanguage",language);}catch{}renderLanguage();});
 renderLanguage();
+loadNotices();
