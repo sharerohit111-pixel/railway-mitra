@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Versine & Curve Calculator - Railway Mitra</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="top-bar">
+  <span style="color:#94a3b8; font-size:13px;" id="moduleTag">Engineering Tools</span>
+  <button class="lang-btn" onclick="toggleLanguage()" id="langToggleBtn">English में देखें</button>
+</div>
+
+<div class="card">
+  <h2 id="titleText">🛤️ वर्साइन और कर्व कैलकुलेटर</h2>
+  <p style="font-size: 13px; color: #94a3b8; margin-top: 6px;" id="subTitleText">
+    Main Line और Yard दोनों के लिए कर्व वर्साइन (mm में) निकालें
+  </p>
+
+  <label id="chordLabel">1. ट्रैक का प्रकार / कॉर्ड लंबाई (Chord Length):</label>
+  <select id="chordLength" onchange="toggleCustomChord()">
+    <option value="20" id="opt20">20 मीटर (Main Line स्टैंडर्ड)</option>
+    <option value="10" id="opt10">10 मीटर (Yard / तीखा मोड़)</option>
+    <option value="6" id="opt6">6 मीटर (Turnout / Cross-over)</option>
+    <option value="custom" id="optCustom">Custom लंबाई (अन्य मीटर)</option>
+  </select>
+
+  <div id="customChordDiv" style="display:none;">
+    <label id="customChordLabel">कॉर्ड की लंबाई डालें (मीटर में):</label>
+    <input type="number" id="customChordInput" placeholder="जैसे: 15">
+  </div>
+
+  <label id="typeLabel">2. मान किस रूप में है? (Input Type):</label>
+  <select id="inputType" onchange="updatePlaceholder()">
+    <option value="degree" id="optDegree">कर्व की डिग्री (Degree - D)</option>
+    <option value="radius" id="optRadius">कर्व की त्रिज्या (Radius - R मीटर में)</option>
+  </select>
+
+  <label id="valueLabel">कर्व की डिग्री डालें (Degree):</label>
+  <input type="number" step="0.01" id="curveValue" placeholder="जैसे: 2.5">
+
+  <button class="calc-btn" onclick="calculateVersine()" id="calcBtnText">वर्साइन निकालें (Calculate)</button>
+
+  <div class="result-box" id="resultBox">
+    <div id="resTitle" style="font-size:13px; color:#94a3b8;">अनुमानित वर्साइन (Versine):</div>
+    <div class="result-val" id="versineOutput">0 mm</div>
+    <div id="extraDetails" style="font-size: 13px; color: #cbd5e1; margin-top: 8px;"></div>
+  </div>
+</div>
+
+<div class="card info-box" id="infoBoxContent">
+  <strong style="color:#38bdf8;">📘 सिद्धांत और नियम (Principle):</strong><br>
+  • <b>मुख्य सूत्र:</b> V = (C² / 8R) × 1000 (mm में)<br>
+  • <b>Main Line (20m कॉर्ड):</b> V = 28.57 × Degree<br>
+  • <b>Yard (10m कॉर्ड):</b> V = 7.14 × Degree<br>
+  • <i>नोट: भारतीय रेलवे के अनुसार 1° कर्व की त्रिज्या (Radius) 1750 मीटर होती है।</i>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
