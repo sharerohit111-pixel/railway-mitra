@@ -106,8 +106,7 @@ function toggleLanguage() {
   if(disclaimer) disclaimer.textContent=currentLang==='hi'
     ? 'महत्वपूर्ण सुरक्षा सूचना: यह अध्ययन एवं त्वरित संदर्भ सामग्री है, नियंत्रित रेलवे आदेश/मैनुअल का विकल्प नहीं। कार्य करने से पहले लागू IRPWM-2024, नवीनतम ACS, RDSO प्रक्रिया आदेश, G&SR, Accident Manual तथा अपने रेलवे/डिवीजन के वर्तमान निर्देश और सक्षम अधिकारी की अनुमति देखें। किसी भी विरोध की स्थिति में वर्तमान आधिकारिक आदेश मान्य होगा।'
     : 'IMPORTANT SAFETY NOTICE: This is learning/reference material, not a substitute for controlled Railway instructions. Before work, consult applicable IRPWM-2024, latest ACS, RDSO procedure orders, G&SR, Accident Manual, current Railway/Division instructions and competent authority. Current official orders prevail.';
-  renderFolders();
-  const q=search?search.value.trim():'';
+  renderFolders();\n  renderHindiReader();\n  const q=search?search.value.trim():'';
   if(q) searchAll(); else { const f=irpwmData.find(x=>x.id===selectedFolder); if(f) renderDetailedFolder(f); }
 }
 document.addEventListener('DOMContentLoaded',()=>{
@@ -118,7 +117,30 @@ document.addEventListener('DOMContentLoaded',()=>{
   } catch(e) {}
   const button=document.getElementById('lang-toggle');
   if(button) button.textContent=currentLang==='hi'?'Switch to English':'हिंदी में बदलें';
-  renderFolders();
-  const first=irpwmData.find(x=>x.id===selectedFolder);
+  renderFolders();\n  renderHindiReader();\n  const first=irpwmData.find(x=>x.id===selectedFolder);
   if(first) renderDetailedFolder(first);
 });
+
+function renderHindiReader(){
+ const root=document.getElementById('hindiReader');
+ const data=window.IRPWMHindiReader;
+ if(!root||!data)return;
+ root.replaceChildren();
+ const head=el('div','hindi-reader-head');
+ head.append(el('h2','',currentLang==='hi'?data.titleHi:data.titleEn));
+ const source=el('a','reader-source',currentLang==='hi'?'आधिकारिक मूल मैनुअल और नवीनतम ACS खोलें':'Open official manual and latest ACS');
+ source.href='https://rb.indianrailways.gov.in/show-irPersonnel/preview/204';source.target='_blank';source.rel='noopener noreferrer';
+ head.append(source);root.append(head);
+ root.append(el('p','reader-note',currentLang==='hi'?'यह अध्यायवार हिंदी अध्ययन रूपांतरण है। मूल नियम, संख्यात्मक मान और कार्यवाही लागू आधिकारिक मैनुअल/ACS से सत्यापित करें।':'Chapter-wise Hindi study adaptation. Verify rules, numerical limits and procedures against the applicable official manual/ACS.'));
+ data.chapters.forEach(ch=>{
+  const card=el('article','reader-chapter');
+  card.append(el('h3','',currentLang==='hi'?ch.hi:ch.en));
+  card.append(el('p','',currentLang==='hi'?ch.introHi:ch.introEn));
+  ch.sections.forEach(s=>{
+   card.append(el('span','reader-ref',s.ref));
+   card.append(el('h4','',currentLang==='hi'?s.hi:s.en));
+   card.append(el('p','',currentLang==='hi'?s.hiText:s.enText));
+  });
+  root.append(card);
+ });
+}
