@@ -5,89 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gratuity Calculator - Railway Mitra</title>
 <style>
-  body {
-    background-color: #0B1120;
-    color: #FFFFFF;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 16px;
-  }
-  .header-card {
-    background: linear-gradient(180deg, #162238 0%, #0F172A 100%);
-    border: 1px solid #1E293B;
-    border-radius: 16px;
-    padding: 18px;
-    text-align: center;
-    margin-bottom: 16px;
-  }
+  body { background-color: #0B1120; color: #FFFFFF; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 16px; }
+  .top-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+  .lang-toggle { display: flex; background-color: #111827; border: 1px solid #334155; border-radius: 20px; padding: 3px; }
+  .lang-btn { background: transparent; border: none; color: #94A3B8; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+  .lang-btn.active { background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%); color: #0B1120; }
+  .header-card { background: linear-gradient(180deg, #162238 0%, #0F172A 100%); border: 1px solid #1E293B; border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 16px; }
   .brand { color: #94A3B8; font-size: 12px; letter-spacing: 2px; font-weight: 600; }
   .title { font-size: 22px; font-weight: 700; margin: 6px 0 2px; color: #FFFFFF; }
-  .subtitle { font-size: 14px; color: #CBD5E1; }
-  .card {
-    background-color: #111827;
-    border: 1px solid #1F2937;
-    border-radius: 16px;
-    padding: 18px;
-    margin-bottom: 16px;
-  }
+  .subtitle { font-size: 14px; color: #00E5FF; }
+  .card { background-color: #111827; border: 1px solid #1F2937; border-radius: 16px; padding: 18px; margin-bottom: 16px; }
   .card-heading { color: #00E5FF; font-size: 17px; font-weight: 700; margin-bottom: 14px; }
   label { display: block; font-size: 13px; color: #CBD5E1; margin-bottom: 6px; margin-top: 12px; }
-  input {
-    width: 100%;
-    box-sizing: border-box;
-    background-color: #0B1120;
-    border: 1px solid #334155;
-    border-radius: 10px;
-    padding: 12px;
-    color: #FFFFFF;
-    font-size: 16px;
-    outline: none;
-  }
+  input { width: 100%; box-sizing: border-box; background-color: #0B1120; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #FFFFFF; font-size: 16px; outline: none; }
   input:focus { border-color: #00E5FF; }
   .hint { font-size: 11px; color: #94A3B8; margin-top: 6px; }
-  .btn-calc {
-    width: 100%;
-    padding: 14px;
-    margin-top: 18px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%);
-    color: #0B1120;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .btn-reset {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border: 1px solid #7E22CE;
-    border-radius: 12px;
-    background-color: #1E132C;
-    color: #F472B6;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #1E293B;
-    font-size: 14px;
-    color: #CBD5E1;
-  }
+  .btn-calc { width: 100%; padding: 14px; margin-top: 18px; border: none; border-radius: 12px; background: linear-gradient(90deg, #00D2FF 0%, #6366F1 100%); color: #0B1120; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .btn-reset { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #7E22CE; border-radius: 12px; background-color: #1E132C; color: #F472B6; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1E293B; font-size: 14px; color: #CBD5E1; }
   .row span:last-child { color: #FFFFFF; font-weight: 600; }
-  .highlight-box {
-    background-color: #0F2334;
-    border: 1px solid #0284C7;
-    border-radius: 12px;
-    padding: 14px;
-    margin-top: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+  .highlight-box { background-color: #0F2334; border: 1px solid #0284C7; border-radius: 12px; padding: 14px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
   .highlight-label { font-size: 15px; font-weight: 600; color: #E2E8F0; }
   .highlight-val { font-size: 20px; font-weight: 700; color: #00E5FF; }
   .note { font-size: 11px; color: #94A3B8; margin-top: 12px; line-height: 1.4; }
@@ -95,67 +32,121 @@
 </head>
 <body>
 
+<div class="top-bar">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnHi" onclick="setLang('hi')">हिन्दी</button>
+    <button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+
 <div class="header-card">
   <div class="brand">RAILWAY MITRA</div>
-  <div class="title">Retirement Gratuity</div>
-  <div class="subtitle">रिटायरमेंट ग्रेच्युटी कैलकुलेटर</div>
+  <div class="title" id="t_title">रिटायरमेंट ग्रेच्युटी कैलकुलेटर</div>
+  <div class="subtitle" id="t_subtitle">Retirement Gratuity Calculator</div>
 </div>
 
 <div class="card">
-  <div class="card-heading">सेवा व वेतन विवरण</div>
+  <div class="card-heading" id="t_head">सेवा व वेतन विवरण</div>
   
-  <label>अंतिम मूल वेतन (Last Basic Pay) ₹</label>
-  <input type="number" id="basicPay" placeholder="उदाहरण: 56900">
+  <label id="t_lblBasic">अंतिम मूल वेतन (Last Basic Pay) ₹</label>
+  <input type="number" id="basicPay" placeholder="56900">
 
-  <label>कुल सेवा अवधि (वर्षों में - Years)</label>
-  <input type="number" id="serviceYears" placeholder="उदाहरण: 30" step="0.5">
-  <div class="hint">नोट: अधिकतम 33 वर्ष की सेवा की गणना होती है।</div>
+  <label id="t_lblYears">कुल सेवा अवधि (वर्षों में - Years)</label>
+  <input type="number" id="serviceYears" placeholder="30" step="0.5">
+  <div class="hint" id="t_hintYears">नोट: अधिकतम 33 वर्ष की सेवा की गणना होती है।</div>
 
-  <label>DA दर (%)</label>
+  <label id="t_lblDa">DA दर (%)</label>
   <input type="number" id="daRate" value="63">
-  <div class="hint">निर्धारित DA दर: 63% (आवश्यकतानुसार बदलें)</div>
+  <div class="hint" id="t_hintDa">निर्धारित DA दर: 63% (आवश्यकतानुसार बदलें)</div>
 
-  <button class="btn-calc" onclick="calculateGratuity()">ग्रेच्युटी की गणना करें</button>
-  <button class="btn-reset" onclick="resetForm()">रीसेट करें</button>
+  <button class="btn-calc" id="t_btnCalc" onclick="calculateGratuity()">ग्रेच्युटी की गणना करें</button>
+  <button class="btn-reset" id="t_btnReset" onclick="resetForm()">रीसेट करें</button>
 </div>
 
 <div class="card" id="resultCard" style="display:none;">
-  <div class="card-heading">गणना का परिणाम</div>
-  <div class="row"><span>कुल वेतन (Basic + DA)</span><span id="resEmoluments">₹0</span></div>
-  <div class="row"><span>गणना योग्य छमाही (Max 66)</span><span id="resHalfYears">0</span></div>
-  <div class="row"><span>वास्तविक गणना राशि</span><span id="resActual">₹0</span></div>
+  <div class="card-heading" id="t_resHead">गणना का परिणाम</div>
+  <div class="row"><span id="t_resEmolLbl">कुल वेतन (Basic + DA)</span><span id="resEmoluments">₹0</span></div>
+  <div class="row"><span id="t_resHalfLbl">गणना योग्य छमाही (Max 66)</span><span id="resHalfYears">0</span></div>
+  <div class="row"><span id="t_resActLbl">वास्तविक गणना राशि</span><span id="resActual">₹0</span></div>
   
   <div class="highlight-box">
-    <span class="highlight-label">देय ग्रेच्युटी (अधिकतम 25 लाख)</span>
+    <span class="highlight-label" id="t_resFinalLbl">देय ग्रेच्युटी (अधिकतम 25 लाख)</span>
     <span class="highlight-val" id="resFinal">₹0</span>
   </div>
-  <div class="note">नोट: 7वें वेतन आयोग और 50%+ DA के नियमों के अनुसार रिटायरमेंट ग्रेच्युटी की अधिकतम कर-मुक्त सीमा ₹25,00,000 है।</div>
+  <div class="note" id="t_note">नोट: 7वें वेतन आयोग और 50%+ DA के नियमों के अनुसार रिटायरमेंट ग्रेच्युटी की अधिकतम कर-मुक्त सीमा ₹25,00,000 है।</div>
 </div>
 
 <script>
+let currentLang = 'hi';
+const dict = {
+  hi: {
+    t_title: "रिटायरमेंट ग्रेच्युटी कैलकुलेटर",
+    t_subtitle: "Retirement Gratuity Calculator",
+    t_head: "सेवा व वेतन विवरण",
+    t_lblBasic: "अंतिम मूल वेतन (Last Basic Pay) ₹",
+    t_lblYears: "कुल सेवा अवधि (वर्षों में - Years)",
+    t_hintYears: "नोट: अधिकतम 33 वर्ष की सेवा की गणना होती है।",
+    t_lblDa: "DA दर (%)",
+    t_hintDa: "निर्धारित DA दर: 63% (आवश्यकतानुसार बदलें)",
+    t_btnCalc: "ग्रेच्युटी की गणना करें",
+    t_btnReset: "रीसेट करें",
+    t_resHead: "गणना का परिणाम",
+    t_resEmolLbl: "कुल वेतन (Basic + DA)",
+    t_resHalfLbl: "गणना योग्य छमाही (Max 66)",
+    t_resActLbl: "वास्तविक गणना राशि",
+    t_resFinalLbl: "देय ग्रेच्युटी (अधिकतम 25 लाख)",
+    t_note: "नोट: 7वें वेतन आयोग और 50%+ DA के नियमों के अनुसार रिटायरमेंट ग्रेच्युटी की अधिकतम कर-मुक्त सीमा ₹25,00,000 है।",
+    unitHalf: " छमाही",
+    alertMsg: "कृपया सही मूल वेतन और सेवा वर्ष दर्ज करें।"
+  },
+  en: {
+    t_title: "Retirement Gratuity Calculator",
+    t_subtitle: "7th CPC Gratuity Calculation",
+    t_head: "Service & Pay Details",
+    t_lblBasic: "Last Basic Pay (₹)",
+    t_lblYears: "Total Service Period (in Years)",
+    t_hintYears: "Note: Maximum 33 years of service is counted.",
+    t_lblDa: "DA Rate (%)",
+    t_hintDa: "Default DA Rate: 63% (Edit if required)",
+    t_btnCalc: "Calculate Gratuity",
+    t_btnReset: "Reset",
+    t_resHead: "Calculation Result",
+    t_resEmolLbl: "Total Emoluments (Basic + DA)",
+    t_resHalfLbl: "Qualifying Half-Years (Max 66)",
+    t_resActLbl: "Actual Calculated Amount",
+    t_resFinalLbl: "Payable Gratuity (Max ₹25 Lakh)",
+    t_note: "Note: As per 7th CPC rules (post 50% DA), the maximum tax-free limit for Retirement Gratuity is ₹25,00,000.",
+    unitHalf: " Half-Years",
+    alertMsg: "Please enter valid Basic Pay and Service Years."
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btnHi').classList.toggle('active', lang === 'hi');
+  document.getElementById('btnEn').classList.toggle('active', lang === 'en');
+  for (let k in dict[lang]) {
+    if (document.getElementById(k)) document.getElementById(k).innerText = dict[lang][k];
+  }
+  if (document.getElementById('resultCard').style.display === 'block') calculateGratuity();
+}
+
 function calculateGratuity() {
   let basic = parseFloat(document.getElementById('basicPay').value) || 0;
   let years = parseFloat(document.getElementById('serviceYears').value) || 0;
   let da = parseFloat(document.getElementById('daRate').value) || 0;
 
-  if(basic <= 0 || years <= 0) {
-    alert("कृपया सही मूल वेतन और सेवा वर्ष दर्ज करें।");
-    return;
-  }
+  if (basic <= 0 || years <= 0) { alert(dict[currentLang].alertMsg); return; }
 
-  let daAmount = (basic * da) / 100;
-  let emoluments = basic + daAmount;
-  
-  // 6-monthly periods (max 66 for 33 years)
+  let emoluments = basic + (basic * da / 100);
   let halfYears = Math.round(years * 2);
-  if(halfYears > 66) halfYears = 66;
+  if (halfYears > 66) halfYears = 66;
 
   let actualGratuity = Math.round((emoluments * halfYears) / 4);
-  let maxLimit = 2500000;
-  let finalGratuity = actualGratuity > maxLimit ? maxLimit : actualGratuity;
+  let finalGratuity = actualGratuity > 2500000 ? 2500000 : actualGratuity;
 
   document.getElementById('resEmoluments').innerText = "₹" + Math.round(emoluments).toLocaleString('en-IN');
-  document.getElementById('resHalfYears').innerText = halfYears + " छमाही";
+  document.getElementById('resHalfYears').innerText = halfYears + dict[currentLang].unitHalf;
   document.getElementById('resActual').innerText = "₹" + actualGratuity.toLocaleString('en-IN');
   document.getElementById('resFinal').innerText = "₹" + finalGratuity.toLocaleString('en-IN');
   document.getElementById('resultCard').style.display = "block";
@@ -168,6 +159,5 @@ function resetForm() {
   document.getElementById('resultCard').style.display = "none";
 }
 </script>
-<script src="../../assets/js/language.js" defer></script>
 </body>
 </html>
