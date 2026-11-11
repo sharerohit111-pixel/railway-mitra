@@ -235,6 +235,25 @@ after(async () => {
   await db.collection("examContentFiles").doc(materialFileId).delete().catch(() => {});
 });
 
+test("invalid or incomplete payment records cannot be approved", async () => {
+  const reference = "bad-type-" + suffix;
+  const paymentRef = db.collection("paymentRecords").doc(reference);
+  await paymentRef.set({
+    uid: candidateUid, amount: 1, reference, type: "unknown-type",
+    status: "pending", createdAt: FieldValue.serverTimestamp()
+  });
+
+  const result = await call("adminApprovePayment", adminToken, {
+    uid: candidateUid, reference
+  });
+  assert.notEqual(result.status, 200);
+  assert.equal(result.body.error && result.body.error.status, "FAILED_PRECONDITION");
+
+  const unchanged = await paymentRef.get();
+  assert.equal(unchanged.data().status, "pending");
+  await paymentRef.delete();
+});
+
 test("owner can recursively delete a folder tree while protected root folders remain", async () => {
   const roots = await call("listExamContent", adminToken, { parentId: null });
   assert.equal(roots.status, 200);
