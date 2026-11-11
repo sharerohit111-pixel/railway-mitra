@@ -20,8 +20,9 @@ const freeTestId = "emulator-free-" + suffix;
 const paidTestId = "emulator-paid-" + suffix;
 const adminEmail = "admin-" + suffix + "@example.test";
 const candidateEmail = "candidate-" + suffix + "@example.test";
+const otherEmail = "other-" + suffix + "@example.test";
 const password = "TestOnly-Password-123!";
-let adminUid, candidateUid, adminToken, candidateToken;
+let adminUid, candidateUid, otherUid, adminToken, candidateToken, otherToken;
 async function authRequest(path, body) {
   const response = await fetch("http://" + AUTH_HOST + "/identitytoolkit.googleapis.com/v1/" + path + "?key=fake-api-key", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body)
@@ -69,14 +70,16 @@ async function seedTest(testId, access) {
 before(async () => {
   adminUid = await createUser(adminEmail);
   candidateUid = await createUser(candidateEmail);
+  otherUid = await createUser(otherEmail);
   await auth.setCustomUserClaims(adminUid, { admin: true });
   adminToken = await signIn(adminEmail);
   candidateToken = await signIn(candidateEmail);
+  otherToken = await signIn(otherEmail);
   await seedTest(freeTestId, "free");
   await seedTest(paidTestId, "paid");
 });
 after(async () => {
-  for (const uid of [adminUid, candidateUid].filter(Boolean)) {
+  for (const uid of [adminUid, candidateUid, otherUid].filter(Boolean)) {
     await db.collection("users").doc(uid).collection("examAttempts").get()
       .then(s => Promise.all(s.docs.map(d => d.ref.delete()))).catch(() => {});
     await auth.deleteUser(uid).catch(() => {});
@@ -183,6 +186,9 @@ test("owner-only finance ledger records and approves subscription and material p
   assert.equal(recorded.body.result.amount, 300);
   const myRequests = await call("getMyPaymentRequests", candidateToken, {});
   assert.ok(myRequests.body.result.payments.some(p => p.reference === subscriptionPaymentRef));
+  const otherUsersRequests = await call("getMyPaymentRequests", otherToken, {});
+  assert.equal(otherUsersRequests.status, 200);
+  assert.equal(otherUsersRequests.body.result.payments.some(p => p.reference === subscriptionPaymentRef), false);
 
   const approved = await call("adminApprovePayment", adminToken, {
     uid: candidateUid, reference: subscriptionPaymentRef
@@ -266,6 +272,33 @@ test("owner can recursively delete a folder tree while protected root folders re
   const rootDelete = await call("deleteExamContentFolder", adminToken, { folderId: "root_ldce" });
   assert.notEqual(rootDelete.status, 200);
   assert.equal(rootDelete.body.error && rootDelete.body.error.status, "FAILED_PRECONDITION");
+});
+
+test("users cannot read or reply to another user's feedback thread", async () => {
+  const created = await call("submitUserFeedback", candidateToken, {
+    category: "Report a Problem", rating: 4,
+    subject: "Emulator privacy check", details: "Private feedback test."
+  });
+  assert.equal(created.status, 200);
+  const feedbackId = created.body.result.feedback.id;
+
+  const deniedRead = await call("getUserFeedbackThread", otherToken, { feedbackId });
+  assert.notEqual(deniedRead.status, 200);
+  assert.equal(deniedRead.body.error && deniedRead.body.error.status, "PERMISSION_DENIED");
+
+  const deniedReply = await call("replyToUserFeedback", otherToken, {
+    feedbackId, message: "Unauthorized reply."
+  });
+  assert.notEqual(deniedReply.status, 200);
+  assert.equal(deniedReply.body.error && deniedReply.body.error.status, "PERMISSION_DENIED");
+
+  const ownRead = await call("getUserFeedbackThread", candidateToken, { feedbackId });
+  assert.equal(ownRead.status, 200);
+  assert.ok(ownRead.body.result.messages.some(x => x.message === "Private feedback test."));
+
+  await db.collection("userFeedback").doc(feedbackId).collection("messages").get()
+    .then(s => Promise.all(s.docs.map(d => d.ref.delete())));
+  await db.collection("userFeedback").doc(feedbackId).delete();
 });
 
 test("candidate can view only their own exam history", async () => {
