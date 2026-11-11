@@ -35,13 +35,9 @@ document.addEventListener("DOMContentLoaded", function () {
             <a href="features/salary/index.html">Salary & Pay</a>
             <a href="features/allowances/index.html">Allowances</a>
             <a href="features/arrears/index.html">Arrear Calculator</a>
-            <a href="features/duty/index.html">Duty Management</a>
-            <a href="features/leave/index.html">Leave Management</a>
             <a href="features/retirement/index.html">NPS & Pension</a>
             <a href="features/finance/index.html">Loan & Finance</a>
             <a href="features/rules/index.html">Railway Rules</a>
-            <a href="features/engineering/index.html">Engineering Tools</a>
-            <a href="features/documents/index.html">Documents</a>
             <a href="features/updates/index.html">Railway Updates</a>
             <a href="features/settings/index.html">⚙️ Settings</a>
             <a href="#" id="rmLogoutBtn">🚪 Logout</a>
