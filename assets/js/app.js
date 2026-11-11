@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
             <a href="features/allowances/index.html">Allowances</a>
             <a href="features/arrears/index.html">Arrear Calculator</a>
             <a href="features/retirement/index.html">NPS & Pension</a>
-            <a href="features/finance/index.html">Loan & Finance</a>
             <a href="features/rules/index.html">Railway Rules</a>
             <a href="features/updates/index.html">Railway Updates</a>
             <a href="features/settings/index.html">⚙️ Settings</a>
