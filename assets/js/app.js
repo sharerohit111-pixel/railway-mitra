@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <a href="features/engineering/index.html">Engineering Tools</a>
             <a href="features/documents/index.html">Documents</a>
             <a href="features/updates/index.html">Railway Updates</a>
+            <a href="features/settings/index.html">⚙️ Settings</a>
             <a href="#" id="rmLogoutBtn">🚪 Logout</a>
         `;
 
