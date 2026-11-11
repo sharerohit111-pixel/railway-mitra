@@ -31,7 +31,6 @@ function renderLanguage(){
  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{const key=el.dataset.i18nPlaceholder;if(dict[key])el.placeholder=dict[key];});
  document.getElementById("updatesLanguage").textContent=language==="en"?"हिन्दी":"English";
  const feed=document.getElementById("feedUpdated");if(feed)feed.textContent=dict.feedUpdated;
- const feed=document.getElementById("feedUpdated");if(feed)feed.textContent=dict.feedUpdated;
  renderNotices();
 }
 function renderNotices(){
