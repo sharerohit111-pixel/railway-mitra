@@ -17,8 +17,8 @@
   .card { background:#111827; border:1px solid #1F2937; border-radius:16px; padding:18px; margin-bottom:16px; }
   .card-heading { color:#00E5FF; font-size:16px; font-weight:700; margin-bottom:12px; }
   label { display:block; font-size:13px; color:#CBD5E1; margin:12px 0 6px; }
-  input { width:100%; box-sizing:border-box; background:#0B1120; border:1px solid #334155; border-radius:10px; padding:12px; color:#FFF; font-size:15px; outline:none; }
-  input:focus { border-color:#00E5FF; }
+  input, select { width:100%; box-sizing:border-box; background:#0B1120; border:1px solid #334155; border-radius:10px; padding:12px; color:#FFF; font-size:15px; outline:none; }
+  input:focus, select:focus { border-color:#00E5FF; }
   .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .btn-calc { width:100%; padding:14px; margin-top:18px; border:none; border-radius:12px; background:linear-gradient(90deg,#00D2FF,#6366F1); color:#0B1120; font-size:16px; font-weight:700; cursor:pointer; }
   .btn-reset { width:100%; padding:12px; margin-top:10px; border:1px solid #7E22CE; border-radius:12px; background:#1E132C; color:#F472B6; font-size:15px; font-weight:600; cursor:pointer; }
@@ -34,129 +34,202 @@
 </style>
 </head>
 <body>
-<div class="top-bar"><div class="lang-toggle">
-<button class="lang-btn active" id="btnHi" onclick="setLang('hi')">हिन्दी</button>
-<button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
-</div></div>
+
+<div class="top-bar">
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btnHi" onclick="setLang('hi')">हिन्दी</button>
+    <button class="lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+  </div>
+</div>
+
 <div class="header-card">
-<div class="brand">RAILWAY MITRA</div>
-<div class="title" id="t1">रेलवे इनकम टैक्स कैलकुलेटर</div>
-<div class="subtitle" id="t2">FY 2025-26 / 2026-27 (New vs Old Regime)</div>
+  <div class="brand">RAILWAY MITRA</div>
+  <div class="title" id="t1">रेलवे इनकम टैक्स कैलकुलेटर</div>
+  <div class="subtitle" id="t2">FY 2025-26 / 2026-27 (New vs Old Regime)</div>
 </div>
+
 <div class="card">
-<div class="card-heading" id="t3">वार्षिक आय व कटौती विवरण</div>
-<label id="t4">वार्षिक सकल वेतन (Annual Gross Salary) ₹</label>
-<input type="number" id="grossSal" placeholder="850000">
-<div class="grid-2">
-<div><label id="t5">NPS / UPS कर्मचारी (10%) ₹</label><input type="number" id="npsEmp" value="0" placeholder="65000"></div>
-<div><label id="t6">कर-मुक्त भत्ते (TA/Tour) ₹</label><input type="number" id="exemptAllow" value="0" placeholder="25000"></div>
+  <div class="card-heading" id="t3">वार्षिक वेतन व पेंशन विवरण</div>
+
+  <div class="grid-2">
+    <div>
+      <label id="t_gross">वार्षिक सकल वेतन (Gross) ₹</label>
+      <input type="number" id="grossSal" placeholder="750000">
+    </div>
+    <div>
+      <label id="t_basic">वार्षिक मूल वेतन (Basic) ₹</label>
+      <input type="number" id="annBasic" placeholder="306000">
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <label id="t_pen">पेंशन व्यवस्था (Scheme)</label>
+      <select id="penScheme">
+        <option value="nps" id="o_nps">NPS / UPS (10% Auto)</option>
+        <option value="ops" id="o_ops">OPS (पुरानी पेंशन - 0%)</option>
+      </select>
+    </div>
+    <div>
+      <label id="t_da">औसत DA दर (%)</label>
+      <input type="number" id="daRate" value="63">
+    </div>
+  </div>
+
+  <label id="t_ex">कर-मुक्त भत्ते (Tour TA / Running 70% / Dress) ₹</label>
+  <input type="number" id="exemptAllow" value="0" placeholder="0">
+
+  <div class="grid-2">
+    <div>
+      <label id="t7">80C निवेश (LIC/PPF/Loan) ₹</label>
+      <input type="number" id="sec80c" value="0" placeholder="150000">
+    </div>
+    <div>
+      <label id="t8">HRA / Home Loan ब्याज ₹</label>
+      <input type="number" id="hraHome" value="0" placeholder="0">
+    </div>
+  </div>
+
+  <button class="btn-calc" id="t9" onclick="calcTax()">इनकम टैक्स की गणना करें</button>
+  <button class="btn-reset" id="t10" onclick="resetF()">रीसेट करें</button>
 </div>
-<div class="grid-2">
-<div><label id="t7">80C निवेश (LIC/PPF/Loan) ₹</label><input type="number" id="sec80c" value="0" placeholder="150000"></div>
-<div><label id="t8">HRA / Home Loan ब्याज ₹</label><input type="number" id="hraHome" value="0" placeholder="0"></div>
-</div>
-<button class="btn-calc" id="t9" onclick="calcTax()">इनकम टैक्स की गणना करें</button>
-<button class="btn-reset" id="t10" onclick="resetF()">रीसेट करें</button>
-</div>
+
 <div class="card" id="resCard" style="display:none;">
-<div class="card-heading" id="t11">टैक्स तुलना परिणाम (Tax Comparison)</div>
-<div class="row"><span id="t12">New Regime कर-योग्य आय (Taxable)</span><span id="rNewTaxable">₹0</span></div>
-<div class="box-new"><span id="t13" style="font-weight:600;">New Tax Regime (कुल टैक्स + 4% Cess)</span><span class="val-cyan" id="rNewTax">₹0</span></div>
-<div class="row" style="margin-top:12px;"><span id="t14">Old Regime कर-योग्य आय (Taxable)</span><span id="rOldTaxable">₹0</span></div>
-<div class="box-old"><span id="t15" style="font-weight:600;">Old Tax Regime (कुल टैक्स + 4% Cess)</span><span class="val-pink" id="rOldTax">₹0</span></div>
-<div class="save-banner" id="rBanner"></div>
-<div class="rule-box" id="t_rules">
-<b>गणना में लागू मुख्य नियम (Applied Rules):</b><br>
-• <b>New Tax Regime:</b> ₹75,000 Standard Deduction + टूर/ट्रैवलिंग भत्ते की छूट। कर-योग्य आय ₹12,00,000 तक होने पर Section 87A के तहत <b>₹0 टैक्स (पूर्ण छूट)</b>।<br>
-• <b>New Slabs:</b> 0-4L: 0% | 4-8L: 5% | 8-12L: 10% | 12-16L: 15% | 16-20L: 20% | 20-24L: 25% | 24L+: 30% + 4% Cess.<br>
-• <b>Old Tax Regime:</b> ₹50,000 Standard Deduction + Section 80C (अधिकतम ₹1.5 लाख) + 80CCD(1B) NPS (₹50,000 तक) + HRA/होम लोन ब्याज छूट। ₹5 लाख तक आय पर टैक्स फ्री।
+  <div class="card-heading" id="t11">टैक्स तुलना परिणाम (Tax Comparison)</div>
+  
+  <div class="row"><span id="t_autoNps">स्वतः गणना NPS/UPS (10% Basic+DA)</span><span id="rAutoNps" style="color:#4ADE80;">₹0</span></div>
+  <div class="row"><span id="t12">New Regime कर-योग्य आय (Taxable)</span><span id="rNewTaxable">₹0</span></div>
+  <div class="box-new">
+    <span id="t13" style="font-weight:600;">New Tax Regime (कुल टैक्स)</span>
+    <span class="val-cyan" id="rNewTax">₹0</span>
+  </div>
+
+  <div class="row" style="margin-top:12px;"><span id="t14">Old Regime कर-योग्य आय (Taxable)</span><span id="rOldTaxable">₹0</span></div>
+  <div class="box-old">
+    <span id="t15" style="font-weight:600;">Old Tax Regime (कुल टैक्स)</span>
+    <span class="val-pink" id="rOldTax">₹0</span>
+  </div>
+
+  <div class="save-banner" id="rBanner"></div>
+
+  <div class="rule-box" id="t_rules"></div>
 </div>
-</div>
+
 <script>
 let lang = 'hi';
 const D = {
-hi: {
-t1:"रेलवे इनकम टैक्स कैलकुलेटर",t2:"FY 2025-26 / 2026-27 (New vs Old Regime)",t3:"वार्षिक आय व कटौती विवरण",
-t4:"वार्षिक सकल वेतन (Annual Gross Salary) ₹",t5:"NPS / UPS कर्मचारी (10%) ₹",t6:"कर-मुक्त भत्ते (TA/Tour) ₹",
-t7:"80C निवेश (LIC/PPF/Loan) ₹",t8:"HRA / Home Loan ब्याज ₹",t9:"इनकम टैक्स की गणना करें",t10:"रीसेट करें",
-t11:"टैक्स तुलना परिणाम (Tax Comparison)",t12:"New Regime कर-योग्य आय (Taxable)",t13:"New Tax Regime (कुल टैक्स)",
-t14:"Old Regime कर-योग्य आय (Taxable)",t15:"Old Tax Regime (कुल टैक्स)",al:"कृपया वार्षिक सकल वेतन दर्ज करें।",
-t_rules:"<b>गणना में लागू मुख्य नियम (Applied Rules):</b><br>• <b>New Tax Regime:</b> ₹75,000 Standard Deduction + टूर/ट्रैवलिंग भत्ते की छूट। कर-योग्य आय ₹12,00,000 तक होने पर Section 87A के तहत <b>₹0 टैक्स (पूर्ण छूट)</b>।<br>• <b>New Slabs:</b> 0-4L: 0% | 4-8L: 5% | 8-12L: 10% | 12-16L: 15% | 16-20L: 20% | 20-24L: 25% | 24L+: 30% + 4% Cess.<br>• <b>Old Tax Regime:</b> ₹50,000 Standard Deduction + Section 80C (अधिकतम ₹1.5 लाख) + 80CCD(1B) NPS (₹50,000 तक) + HRA/होम लोन ब्याज छूट। ₹5 लाख तक आय पर टैक्स फ्री."
-},
-en: {
-t1:"Railway Income Tax Calculator",t2:"FY 2025-26 / 2026-27 (New vs Old Regime)",t3:"Annual Income & Deductions",
-t4:"Annual Gross Salary (₹)",t5:"Employee NPS / UPS (10%) ₹",t6:"Exempt Allowances (Tour TA) ₹",
-t7:"80C Savings (LIC/PPF/Loan) ₹",t8:"HRA / Home Loan Interest ₹",t9:"Calculate Income Tax",t10:"Reset",
-t11:"Tax Comparison Result",t12:"New Regime Taxable Income",t13:"New Tax Regime (Total Tax)",
-t14:"Old Regime Taxable Income",t15:"Old Tax Regime (Total Tax)",al:"Please enter Annual Gross Salary.",
-t_rules:"<b>Key Income Tax Rules Applied:</b><br>• <b>New Tax Regime:</b> ₹75,000 Standard Deduction + Tour/Travelling allowance exemption. <b>Zero Tax (Sec 87A Rebate)</b> if net taxable income is up to ₹12,00,000.<br>• <b>New Slabs:</b> 0-4L: 0% | 4-8L: 5% | 8-12L: 10% | 12-16L: 15% | 16-20L: 20% | 20-24L: 25% | 24L+: 30% + 4% Cess.<br>• <b>Old Tax Regime:</b> ₹50,000 Standard Deduction + Sec 80C (Max ₹1.5L) + Sec 80CCD(1B) NPS (Max ₹50k) + HRA/Home Loan interest. Tax-free up to ₹5L."
-}
+  hi: {
+    t1:"रेलवे इनकम टैक्स कैलकुलेटर", t2:"FY 2025-26 / 2026-27 (New vs Old Regime)", t3:"वार्षिक वेतन व पेंशन विवरण",
+    t_gross:"वार्षिक सकल वेतन (Gross) ₹", t_basic:"वार्षिक मूल वेतन (Basic) ₹", t_pen:"पेंशन व्यवस्था (Scheme)",
+    o_nps:"NPS / UPS (10% Auto)", o_ops:"OPS (पुरानी पेंशन - 0%)", t_da:"औसत DA दर (%)",
+    t_ex:"कर-मुक्त भत्ते (Tour TA / Running 70% / Dress) ₹", t7:"80C निवेश (LIC/PPF/Loan) ₹", t8:"HRA / Home Loan ब्याज ₹",
+    t9:"इनकम टैक्स की गणना करें", t10:"रीसेट करें", t11:"टैक्स तुलना परिणाम (Tax Comparison)",
+    t_autoNps:"स्वतः गणना NPS/UPS (10% Basic+DA)", t12:"New Regime कर-योग्य आय (Taxable)", t13:"New Tax Regime (कुल टैक्स)",
+    t14:"Old Regime कर-योग्य आय (Taxable)", t15:"Old Tax Regime (कुल टैक्स)", al:"कृपया वार्षिक सकल वेतन (Gross Salary) दर्ज करें।",
+    t_rules:"<b>लागू नियम व कर-मुक्त भत्ते (Applied Rules):</b><br>• <b>कर-मुक्त भत्ते (Sec 10(14)):</b> ड्यूटी टूर TA, दैनिक भत्ता, ड्रेस भत्ता, और रनिंग भत्ते का 70% हिस्सा (अधिकतम ₹1.20 लाख/वर्ष) कर-मुक्त है।<br>• <b>New Regime:</b> ₹75,000 Standard Deduction + कर-मुक्त भत्ते। कर-योग्य आय <b>₹12,00,000 तक होने पर ₹0 टैक्स (Sec 87A छूट)</b>।<br>• <b>Old Regime:</b> ₹50,000 Standard Deduction + स्वतः गणना 10% NPS/UPS छूट (80CCD) + 80C (₹1.5L तक) + HRA/होम लोन ब्याज। ₹5 लाख तक आय पर टैक्स फ्री।"
+  },
+  en: {
+    t1:"Railway Income Tax Calculator", t2:"FY 2025-26 / 2026-27 (New vs Old Regime)", t3:"Annual Pay & Pension Details",
+    t_gross:"Annual Gross Salary (₹)", t_basic:"Annual Basic Pay (₹)", t_pen:"Pension Scheme",
+    o_nps:"NPS / UPS (10% Auto)", o_ops:"OPS (Old Pension - 0%)", t_da:"Average DA Rate (%)",
+    t_ex:"Exempt Allowances (Tour TA / Running 70% / Dress) ₹", t7:"80C Savings (LIC/PPF/Loan) ₹", t8:"HRA / Home Loan Interest ₹",
+    t9:"Calculate Income Tax", t10:"Reset", t11:"Tax Comparison Result",
+    t_autoNps:"Auto-Calculated NPS/UPS (10% Basic+DA)", t12:"New Regime Taxable Income", t13:"New Tax Regime (Total Tax)",
+    t14:"Old Regime Taxable Income", t15:"Old Tax Regime (Total Tax)", al:"Please enter Annual Gross Salary.",
+    t_rules:"<b>Applied Rules & Exempt Allowances:</b><br>• <b>Exempt Allowances (Sec 10(14)):</b> Duty Tour TA, Daily Allowance, Dress Allowance, and 70% of Running Allowance (up to ₹1.20L/yr) are tax-exempt.<br>• <b>New Regime:</b> ₹75,000 Standard Deduction + Exempt allowances. <b>Zero Tax up to ₹12,00,000</b> taxable income (Sec 87A).<br>• <b>Old Regime:</b> ₹50,000 Standard Deduction + Auto 10% NPS/UPS deduction (80CCD) + Sec 80C (up to ₹1.5L) + HRA/Home Loan interest. Tax-free up to ₹5L."
+  }
 };
+
 function setLang(l) {
-lang=l;
-document.getElementById('btnHi').classList.toggle('active',l==='hi');
-document.getElementById('btnEn').classList.toggle('active',l==='en');
-for(let k in D[l]) if(document.getElementById(k)) {
-if(k==='t_rules') document.getElementById(k).innerHTML=D[l][k];
-else document.getElementById(k).innerText=D[l][k];
+  lang = l;
+  document.getElementById('btnHi').classList.toggle('active', l === 'hi');
+  document.getElementById('btnEn').classList.toggle('active', l === 'en');
+  for (let k in D[l]) {
+    if (document.getElementById(k)) {
+      if (k === 't_rules') document.getElementById(k).innerHTML = D[l][k];
+      else document.getElementById(k).innerText = D[l][k];
+    }
+  }
+  if (document.getElementById('resCard').style.display === 'block') calcTax();
 }
-if(document.getElementById('resCard').style.display==='block') calcTax();
-}
+
 function calcTax() {
-let gross=parseFloat(document.getElementById('grossSal').value)||0;
-let nps=parseFloat(document.getElementById('npsEmp').value)||0;
-let exAllow=parseFloat(document.getElementById('exemptAllow').value)||0;
-let s80c=Math.min(parseFloat(document.getElementById('sec80c').value)||0,150000);
-let hra=parseFloat(document.getElementById('hraHome').value)||0;
-if(gross<=0){alert(D[lang].al);return;}
-// 1. NEW REGIME (FY 25-26 / 26-27)
-let newTaxable=Math.max(0,gross-75000-exAllow);
-let newTax=0;
-if(newTaxable>1200000){
-if(newTaxable>400000)newTax+=Math.min(newTaxable-400000,400000)*0.05;
-if(newTaxable>800000)newTax+=Math.min(newTaxable-800000,400000)*0.10;
-if(newTaxable>1200000)newTax+=Math.min(newTaxable-1200000,400000)*0.15;
-if(newTaxable>1600000)newTax+=Math.min(newTaxable-1600000,400000)*0.20;
-if(newTaxable>2000000)newTax+=Math.min(newTaxable-2000000,400000)*0.25;
-if(newTaxable>2400000)newTax+=(newTaxable-2400000)*0.30;
-if(newTax>(newTaxable-1200000))newTax=newTaxable-1200000;
+  let gross = parseFloat(document.getElementById('grossSal').value) || 0;
+  let annBasic = parseFloat(document.getElementById('annBasic').value) || 0;
+  let scheme = document.getElementById('penScheme').value;
+  let da = parseFloat(document.getElementById('daRate').value) || 63;
+  let exAllow = parseFloat(document.getElementById('exemptAllow').value) || 0;
+  let s80c = Math.min(parseFloat(document.getElementById('sec80c').value) || 0, 150000);
+  let hra = parseFloat(document.getElementById('hraHome').value) || 0;
+
+  if (gross <= 0) { alert(D[lang].al); return; }
+
+  // Auto calculate 10% NPS/UPS if selected
+  let nps = 0;
+  if (scheme === 'nps' && annBasic > 0) {
+    let annDa = annBasic * (da / 100);
+    nps = Math.round((annBasic + annDa) * 0.10);
+  }
+
+  // 1. NEW REGIME
+  let newTaxable = Math.max(0, gross - 75000 - exAllow);
+  let newTax = 0;
+  if (newTaxable > 1200000) {
+    if (newTaxable > 400000) newTax += Math.min(newTaxable - 400000, 400000) * 0.05;
+    if (newTaxable > 800000) newTax += Math.min(newTaxable - 800000, 400000) * 0.10;
+    if (newTaxable > 1200000) newTax += Math.min(newTaxable - 1200000, 400000) * 0.15;
+    if (newTaxable > 1600000) newTax += Math.min(newTaxable - 1600000, 400000) * 0.20;
+    if (newTaxable > 2000000) newTax += Math.min(newTaxable - 2000000, 400000) * 0.25;
+    if (newTaxable > 2400000) newTax += (newTaxable - 2400000) * 0.30;
+    if (newTax > (newTaxable - 1200000)) newTax = newTaxable - 1200000;
+  }
+  let finalNewTax = Math.round(newTax * 1.04);
+
+  // 2. OLD REGIME
+  let nps80ccd1b = Math.min(nps, 50000);
+  let remNps80c = Math.max(0, nps - 50000);
+  let total80c = Math.min(s80c + remNps80c, 150000);
+  let oldTaxable = Math.max(0, gross - 50000 - exAllow - total80c - nps80ccd1b - hra);
+  
+  let oldTax = 0;
+  if (oldTaxable > 500000) {
+    oldTax += 12500;
+    if (oldTaxable > 500000) oldTax += Math.min(oldTaxable - 500000, 500000) * 0.20;
+    if (oldTaxable > 1000000) oldTax += (oldTaxable - 1000000) * 0.30;
+  }
+  let finalOldTax = Math.round(oldTax * 1.04);
+
+  document.getElementById('rAutoNps').innerText = "₹" + nps.toLocaleString('en-IN');
+  document.getElementById('rNewTaxable').innerText = "₹" + newTaxable.toLocaleString('en-IN');
+  document.getElementById('rNewTax').innerText = "₹" + finalNewTax.toLocaleString('en-IN');
+  document.getElementById('rOldTaxable').innerText = "₹" + oldTaxable.toLocaleString('en-IN');
+  document.getElementById('rOldTax').innerText = "₹" + finalOldTax.toLocaleString('en-IN');
+
+  let diff = Math.abs(finalOldTax - finalNewTax);
+  let banner = document.getElementById('rBanner');
+  if (finalNewTax === 0 && finalOldTax === 0) {
+    banner.innerText = (lang === 'hi') ? "बधाई हो! दोनों व्यवस्थाओं में आपका टैक्स ₹0 (शून्य) है।" : "Congratulations! Your tax is ₹0 under both regimes.";
+  } else if (finalNewTax <= finalOldTax) {
+    banner.innerText = (lang === 'hi') ? "New Tax Regime बेहतर है — आपकी ₹" + diff.toLocaleString('en-IN') + " की बचत होगी!" : "New Tax Regime is better — You save ₹" + diff.toLocaleString('en-IN') + "!";
+  } else {
+    banner.innerText = (lang === 'hi') ? "Old Tax Regime बेहतर है — आपकी ₹" + diff.toLocaleString('en-IN') + " की बचत होगी!" : "Old Tax Regime is better — You save ₹" + diff.toLocaleString('en-IN') + "!";
+  }
+
+  document.getElementById('resCard').style.display = "block";
 }
-let finalNewTax=Math.round(newTax*1.04);
-// 2. OLD REGIME
-let nps80ccd1b=Math.min(nps,50000);
-let remNps80c=Math.max(0,nps-50000);
-let total80c=Math.min(s80c+remNps80c,150000);
-let oldTaxable=Math.max(0,gross-50000-exAllow-total80c-nps80ccd1b-hra);
-let oldTax=0;
-if(oldTaxable>500000){
-oldTax+=12500;
-if(oldTaxable>500000)oldTax+=Math.min(oldTaxable-500000,500000)*0.20;
-if(oldTaxable>1000000)oldTax+=(oldTaxable-1000000)*0.30;
+
+function resetF() {
+  document.getElementById('grossSal').value = "";
+  document.getElementById('annBasic').value = "";
+  document.getElementById('penScheme').value = "nps";
+  document.getElementById('daRate').value = "63";
+  document.getElementById('exemptAllow').value = "0";
+  document.getElementById('sec80c').value = "0";
+  document.getElementById('hraHome').value = "0";
+  document.getElementById('resCard').style.display = "none";
 }
-let finalOldTax=Math.round(oldTax*1.04);
-document.getElementById('rNewTaxable').innerText="₹"+newTaxable.toLocaleString('en-IN');
-document.getElementById('rNewTax').innerText="₹"+finalNewTax.toLocaleString('en-IN');
-document.getElementById('rOldTaxable').innerText="₹"+oldTaxable.toLocaleString('en-IN');
-document.getElementById('rOldTax').innerText="₹"+finalOldTax.toLocaleString('en-IN');
-let diff=Math.abs(finalOldTax-finalNewTax);
-let banner=document.getElementById('rBanner');
-if(finalNewTax===0&&finalOldTax===0){
-banner.innerText=(lang==='hi')?"बधाई हो! दोनों व्यवस्थाओं में आपका टैक्स ₹0 (शून्य) है।":"Congratulations! Your tax is ₹0 under both regimes.";
-}else if(finalNewTax<=finalOldTax){
-banner.innerText=(lang==='hi')?`New Tax Regime बेहतर है — आपकी ₹${diff.toLocaleString('en-IN')} की बचत होगी!`:`New Tax Regime is better — You save ₹${diff.toLocaleString('en-IN')}!`;
-}else{
-banner.innerText=(lang==='hi')?`Old Tax Regime बेहतर है — आपकी ₹${diff.toLocaleString('en-IN')} की बचत होगी!`:`Old Tax Regime is better — You save ₹${diff.toLocaleString('en-IN')}!`;
-}
-document.getElementById('resCard').style.display="block";
-}
-function resetF(){
-document.getElementById('grossSal').value="";
-document.getElementById('npsEmp').value="0";
-document.getElementById('exemptAllow').value="0";
-document.getElementById('sec80c').value="0";
-document.getElementById('hraHome').value="0";
-document.getElementById('resCard').style.display="none";
-}
+
+document.getElementById('t_rules').innerHTML = D['hi'].t_rules;
 </script>
 </body>
 </html>
