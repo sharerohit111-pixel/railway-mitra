@@ -153,8 +153,8 @@ test("student can start, save answers and submit with server-side scoring", asyn
     wrong: 0, unattempted: 1, totalQuestions: 2
   });
   const leaderboard = await callable("rmGetTestLeaderboard", { testId });
-  assert.equal(leaderboard.participantCount, 3);
-  assert.equal(leaderboard.myRank, 2);
+  assert.equal(leaderboard.participantCount, 4);
+  assert.equal(leaderboard.myRank, 3);
   assert.equal(leaderboard.top[0].rank, 1);
   assert.equal(leaderboard.top[0].label, "Candidate 01");
   assert.equal(Object.hasOwn(leaderboard.top[0], "uid"), false);
