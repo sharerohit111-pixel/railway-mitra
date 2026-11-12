@@ -48,18 +48,36 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
       const start = date(test.scheduleStartAt), end = date(test.scheduleEndAt);
       if (!start || !end || now < start || now > end) throw new HttpsError("failed-precondition", "Exam is outside its scheduled window");
     }
+    let freeClaimSnap = null;
     if (Number(test.price || 0) > 0) {
       const ent = await tx.get(db.doc("testSeriesEntitlements/" + uid + "_" + testId));
       if (!ent.exists || ent.data().status !== "active") throw new HttpsError("permission-denied", "Paid test access required");
+    } else {
+      // A free test can only be started through the one-time claim flow.
+      freeClaimSnap = await tx.get(db.doc("testSeriesFreeAttempts/" + uid));
+      if (!freeClaimSnap.exists || freeClaimSnap.data().testId !== testId) {
+        throw new HttpsError("permission-denied", "Claim the free test before starting");
+      }
     }
     const activeRef = db.doc("testSeriesActiveSessions/" + uid), active = await tx.get(activeRef);
     if (active.exists && active.data().status === "in_progress" && date(active.data().expiresAt) > now) {
       if (active.data().testId !== testId) throw new HttpsError("already-exists", "Another exam session is active");
       return { attemptId: active.data().attemptId, startedAt: date(active.data().startedAt).toISOString(), expiresAt: date(active.data().expiresAt).toISOString(), resumed: true };
     }
-    const attemptRef = db.collection("testSeriesAttempts").doc(), duration = Math.max(1, Math.min(240, Number(test.durationMinutes || 30)));
+    const attemptRef = freeClaimSnap
+      ? db.doc("testSeriesAttempts/" + freeClaimSnap.data().attemptId)
+      : db.collection("testSeriesAttempts").doc();
+    const duration = Math.max(1, Math.min(240, Number(test.durationMinutes || 30)));
     const startedAt = Timestamp.now(), expiresAt = Timestamp.fromDate(new Date(now.getTime() + duration * 60000));
-    tx.create(attemptRef, { uid, testId, mode: test.mode || "mock", status: "in_progress", startedAt, expiresAt, answers: {}, updatedAt: FieldValue.serverTimestamp() });
+    if (freeClaimSnap) {
+      const claimedAttempt = await tx.get(attemptRef);
+      if (!claimedAttempt.exists || claimedAttempt.data().uid !== uid || claimedAttempt.data().status !== "created") {
+        throw new HttpsError("failed-precondition", "Free test attempt is no longer available");
+      }
+      tx.update(attemptRef, { status: "in_progress", startedAt, expiresAt, answers: {}, updatedAt: FieldValue.serverTimestamp() });
+    } else {
+      tx.create(attemptRef, { uid, testId, mode: test.mode || "mock", status: "in_progress", startedAt, expiresAt, answers: {}, updatedAt: FieldValue.serverTimestamp() });
+    }
     tx.set(activeRef, { uid, testId, attemptId: attemptRef.id, status: "in_progress", startedAt, expiresAt });
     return { attemptId: attemptRef.id, startedAt: startedAt.toDate().toISOString(), expiresAt: expiresAt.toDate().toISOString(), resumed: false };
   });
