@@ -77,7 +77,8 @@ after(async () => {
     }
     await db.doc(`testSeriesFreeAttempts/${uid}`).delete().catch(() => {});
     await db.doc(`testSeriesActiveSessions/${uid}`).delete().catch(() => {});
-    await db.doc(`testSeriesTests/${testId}`).delete();\n    await db.doc("testSeriesTests/emulator-draft-test").delete();
+    await db.doc(`testSeriesTests/${testId}`).delete();
+    await db.doc("testSeriesTests/emulator-draft-test").delete();
     await db.doc(`testSeriesAnswerKeys/${testId}`).delete();
     await db.doc(`testSeriesQuestionSets/${testId}`).delete();
     await db.doc("testSeriesConfig/freeTest").delete();
