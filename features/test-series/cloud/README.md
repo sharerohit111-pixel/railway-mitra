@@ -15,6 +15,12 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmGetTestLeaderboard: returns anonymized leaderboard entries and the requesting student’s own rank.
 - rmGetOwnerAdminSession: checks server-configured OWNER_UID and Firebase second-factor claim.
 
+## Payment validation boundary (not live integration)
+- `functions/razorpay-signature.js` verifies Razorpay Checkout and webhook HMAC signatures.
+- `functions/payment-validation.js` accepts only a captured payment that exactly matches a trusted server-created order's provider order ID, amount and currency. Its UID/test ID are sourced only from that server order; client-supplied payment notes are ignored.
+- Both modules are covered by isolated Node tests in `functions/tests/` and run through the Test Series Functions validation workflow.
+- There is still no order-creation endpoint, webhook HTTP route, durable payment-event ledger, or entitlement-grant transaction. Do not unlock paid tests from these helpers alone; signature verification and this order-match guard must be followed by transaction-based idempotency and entitlement creation.
+
 ## Firestore rules — review required
 `firestore.rules` is a draft, NOT approved for deployment. It includes example employee paths and a default-deny rule that could block existing Railway Mitra collections if deployed as-is. Before any deployment, retrieve the current live Firestore Rules, merge the CBT deny-by-default paths without removing existing permissions, review the complete result, and obtain explicit approval. Do not overwrite production rules with this draft.
 
