@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071326">
+  <meta name="description" content="Railway Mitra National Holiday and NHA reference calendar for 2026 to 2028.">
+  <title>National Holidays & NHA | Railway Mitra</title>
+  <link rel="manifest" href="../../manifest.json">
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="stylesheet" href="./nh-holidays.css?v=1">
+</head>
+<body class="rm-nh-page">
+  <main class="rm-nh-shell">
+    <a class="rm-nh-back" href="../../app.html">← Railway Mitra Home</a>
+
+    <header class="rm-nh-hero">
+      <span class="rm-nh-kicker">RAILWAY MITRA · EMPLOYEE REFERENCE</span>
+      <h1>🚆 National Holidays (NH) & NHA Calendar</h1>
+      <p>NHA Claim और Field Duty के लिए 2026–2028 संदर्भ सूची</p>
+      <span class="rm-nh-independent">Independent employee reference · Not an official Railway notification</span>
+    </header>
+
+    <section class="rm-nh-controls" aria-label="Holiday calendar filters">
+      <div class="rm-nh-tabs" id="yearTabs" role="group" aria-label="Select year">
+        <button class="rm-nh-tab is-active" type="button" data-year="2026" aria-pressed="true">2026</button>
+        <button class="rm-nh-tab" type="button" data-year="2027" aria-pressed="false">2027</button>
+        <button class="rm-nh-tab" type="button" data-year="2028" aria-pressed="false">2028*</button>
+      </div>
+      <label class="rm-nh-search">
+        <span class="sr-only">त्योहार, तारीख या दिन खोजें</span>
+        <input type="search" id="searchInput" placeholder="त्योहार, तारीख या दिन खोजें…" autocomplete="off">
+      </label>
+    </section>
+
+    <section class="rm-nh-card" aria-live="polite">
+      <div class="rm-nh-card-head">
+        <div>
+          <span class="rm-nh-kicker">HOLIDAY SCHEDULE</span>
+          <h2 id="tableTitle">वर्ष 2026 – कुल 12 नेशनल हॉलिडे (NH)</h2>
+        </div>
+        <span class="rm-nh-status" id="yearStatus">3 अनिवार्य + 9 क्षेत्रीय अवकाश</span>
+      </div>
+      <div class="rm-nh-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">क्र.</th>
+              <th scope="col">अवकाश का नाम (Holiday)</th>
+              <th scope="col">तारीख (Date)</th>
+              <th scope="col">दिन (Day)</th>
+              <th scope="col">श्रेणी (Type)</th>
+            </tr>
+          </thead>
+          <tbody id="nhTableBody"></tbody>
+        </table>
+      </div>
+      <p class="rm-nh-results" id="resultCount" aria-live="polite"></p>
+    </section>
+
+    <section class="rm-nh-info">
+      <h2>📌 NHA (National Holiday Allowance) – जरूरी जानकारी</h2>
+      <ul>
+        <li><strong>12 NH का संदर्भ:</strong> इस संदर्भ सूची में 3 अनिवार्य राष्ट्रीय अवकाश—26 जनवरी, 15 अगस्त और 2 अक्टूबर—तथा 9 क्षेत्रीय/स्वीकृत अवकाश शामिल हैं। अपने ज़ोन/मंडल की घोषित सूची से मिलान करें।</li>
+        <li><strong>पात्रता:</strong> NHA की पात्रता कर्मचारी के पद, ड्यूटी की प्रकृति, लागू रेलवे आदेश और निर्धारित रोस्टर पर निर्भर करती है। केवल इस सूची में नाम होने से भत्ता स्वतः देय नहीं हो जाता।</li>
+        <li><strong>रविवार या Rest Day:</strong> ऐसे दिन NHA देयता का निर्णय लागू Railway Board नियमों और मंडलीय निर्देशों के अनुसार करें।</li>
+        <li><strong>अंतिम सत्यापन:</strong> अपने Division के Personnel Department द्वारा जारी आधिकारिक Holiday Circular और लागू NHA आदेश को ही अंतिम मानें।</li>
+      </ul>
+    </section>
+
+    <section class="rm-nh-note">
+      <strong>महत्वपूर्ण नोट:</strong> यह कर्मचारी-सुविधा हेतु संदर्भ सूची है, आधिकारिक रेलवे अवकाश अधिसूचना नहीं। 2028 की सूची अस्थायी है। ईद की तारीखें चाँद दिखने के अनुसार बदल सकती हैं। ड्यूटी/क्लेम से पहले संबंधित वर्ष का आधिकारिक मंडलीय सर्कुलर अवश्य जाँचें।
+    </section>
+
+    <footer class="rm-nh-footer">© 2026 Railway Mitra · Independent Employee Reference Tool</footer>
+  </main>
+  <script src="./nh-holidays.js?v=1" defer></script>
+</body>
+</html>

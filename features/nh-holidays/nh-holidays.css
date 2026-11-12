@@ -1,0 +1,62 @@
+/* Railway Mitra — isolated National Holiday / NHA reference page. */
+.rm-nh-page {
+  min-height: 100vh;
+  padding: 0 0 38px;
+  color: #edf7ff;
+  background: radial-gradient(ellipse at 10% 0%, rgba(20,139,190,.18), transparent 38%), linear-gradient(145deg,#06101f,#0b2340 55%,#210d35);
+  font-family: Arial, "Noto Sans Devanagari", sans-serif;
+}
+.rm-nh-shell { width: min(100%, 980px); margin: 0 auto; padding: 18px 16px 50px; }
+.rm-nh-back { display: inline-flex; margin: 5px 0 16px; color: #54def4; font-weight: 800; text-decoration: none; }
+.rm-nh-hero,.rm-nh-card,.rm-nh-info,.rm-nh-note {
+  border: 1px solid rgba(53,232,255,.58);
+  border-radius: 20px;
+  background: linear-gradient(135deg,rgba(12,39,68,.97),rgba(37,24,69,.97));
+  box-shadow: 0 10px 26px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.07), 0 0 14px rgba(53,232,255,.1);
+}
+.rm-nh-hero { padding: 23px 20px; margin-bottom: 17px; }
+.rm-nh-kicker { display:block; color:#55eaff; font-size:10px; font-weight:900; letter-spacing:1.25px; }
+.rm-nh-hero h1 { margin:10px 0 7px; color:#f6fbff; font-size:clamp(23px,5vw,34px); line-height:1.2; }
+.rm-nh-hero p { color:#bfd4e9; font-size:14px; }
+.rm-nh-independent { display:inline-block; margin-top:13px; padding:5px 9px; border:1px solid rgba(255,196,64,.55); border-radius:20px; color:#ffdb83; background:rgba(110,70,12,.18); font-size:10px; font-weight:800; }
+.rm-nh-controls { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin:0 0 16px; }
+.rm-nh-tabs { display:flex; gap:5px; padding:5px; border:1px solid rgba(53,232,255,.28); border-radius:13px; background:rgba(8,22,43,.85); }
+.rm-nh-tab { min-height:38px; padding:7px 15px; border:1px solid transparent; border-radius:9px; color:#dceeff; background:transparent; font-size:13px; font-weight:850; cursor:pointer; }
+.rm-nh-tab.is-active { color:#fff; border-color:#35e8ff; background:linear-gradient(110deg,#087fa9,#6246c5,#a32e9b); box-shadow:0 0 12px rgba(53,232,255,.2); }
+.rm-nh-search { flex:1 1 220px; max-width:340px; }
+.rm-nh-search input { width:100%; min-height:42px; padding:10px 13px; border:1px solid rgba(53,232,255,.55); border-radius:12px; outline:none; color:#f4f9ff; background:rgba(7,20,41,.88); font-size:13px; }
+.rm-nh-search input::placeholder { color:#a9bfd6; }
+.rm-nh-search input:focus { border-color:#ff55d8; box-shadow:0 0 0 3px rgba(255,69,212,.12); }
+.rm-nh-card { overflow:hidden; margin-bottom:16px; }
+.rm-nh-card-head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; padding:16px; border-bottom:1px solid rgba(53,232,255,.22); background:rgba(8,25,48,.55); }
+.rm-nh-card-head h2 { margin-top:5px; color:#f4f9ff; font-size:17px; }
+.rm-nh-status { display:inline-flex; padding:5px 9px; border:1px solid rgba(255,196,64,.5); border-radius:20px; color:#ffdb83; background:rgba(113,75,15,.2); font-size:10px; font-weight:800; }
+.rm-nh-table-wrap { width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.rm-nh-card table { width:100%; min-width:690px; border-collapse:collapse; text-align:left; }
+.rm-nh-card th,.rm-nh-card td { padding:12px 13px; border-bottom:1px solid rgba(150,190,220,.14); color:#dceafa; font-size:12px; vertical-align:middle; }
+.rm-nh-card th { color:#6feaff; background:rgba(10,32,58,.92); font-size:11px; white-space:nowrap; }
+.rm-nh-card tbody tr:hover { background:rgba(53,232,255,.06); }
+.rm-nh-card tbody tr:last-child td { border-bottom:0; }
+.rm-nh-badge { display:inline-block; padding:4px 7px; border-radius:7px; font-size:10px; font-weight:850; white-space:nowrap; }
+.rm-nh-badge--comp { color:#a7f3d0; border:1px solid rgba(52,211,153,.35); background:rgba(6,95,70,.28); }
+.rm-nh-badge--reg { color:#a5e5ff; border:1px solid rgba(56,189,248,.35); background:rgba(7,89,133,.28); }
+.rm-nh-empty { padding:25px 12px !important; color:#a9bfd6 !important; text-align:center; }
+.rm-nh-results { padding:8px 13px; color:#9bb8d2; font-size:10px; text-align:right; }
+.rm-nh-info { padding:18px; margin-bottom:14px; }
+.rm-nh-info h2 { margin:0 0 10px; color:#55eaff; font-size:17px; }
+.rm-nh-info ul { padding-left:19px; }
+.rm-nh-info li { margin:9px 0; color:#d4e3f4; font-size:12px; line-height:1.65; }
+.rm-nh-info strong { color:#fff; }
+.rm-nh-note { padding:14px 16px; border-color:rgba(255,196,64,.6); color:#ffe7b0; background:linear-gradient(120deg,rgba(69,47,15,.42),rgba(33,24,57,.95)); font-size:11px; line-height:1.65; }
+.rm-nh-footer { padding:20px 5px 0; color:#91a9c3; font-size:11px; text-align:center; }
+@media(max-width:560px) {
+  .rm-nh-shell { padding:14px 12px 42px; }
+  .rm-nh-hero { padding:19px 15px; }
+  .rm-nh-controls { align-items:stretch; }
+  .rm-nh-tabs { justify-content:space-between; }
+  .rm-nh-tab { flex:1; padding-inline:8px; }
+  .rm-nh-search { max-width:none; flex-basis:100%; }
+  .rm-nh-card-head { padding:14px 13px; }
+  .rm-nh-card-head h2 { font-size:15px; }
+  .rm-nh-info { padding:15px; }
+}
