@@ -290,10 +290,20 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
 
     await assert.rejects(
       callable("rmStartExam", { testId: scheduledTestId }),
+      error => error.code === "functions/failed-precondition"
+    );
+
+    await testRef.update({
+      scheduleStartAt: new Date(Date.now() - 60_000),
+      scheduleEndAt: new Date(Date.now() + 10 * 60_000)
+    });
+    await assert.rejects(
+      callable("rmStartExam", { testId: scheduledTestId }),
       error => error.code === "functions/permission-denied"
     );
 
     await entitlementRef.set({ uid, testId: scheduledTestId, status: "active" });
+    await testRef.update({ scheduleStartAt: new Date(Date.now() + 60_000) });
     await assert.rejects(
       callable("rmStartExam", { testId: scheduledTestId }),
       error => error.code === "functions/failed-precondition"
