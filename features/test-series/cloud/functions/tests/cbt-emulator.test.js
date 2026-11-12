@@ -112,7 +112,7 @@ test("student can claim one free test attempt only once", async () => {
 test("student can start, save answers and submit with server-side scoring", async () => {
   // A stale server-side pointer must not cause a non-existent attempt to be resumed.
   await db.doc("testSeriesActiveSessions/" + uid).set({
-    uid, testId, attemptId: "missing-before-first-start", status: "in_progress",
+    uid, testId: "stale-other-test", attemptId: "missing-before-first-start", status: "in_progress",
     startedAt: new Date(), expiresAt: new Date(Date.now() + 60000)
   });
   const started = await callable("rmStartExam", { testId });
