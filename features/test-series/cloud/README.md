@@ -23,4 +23,4 @@ No Firebase project has been confirmed, no functions have been deployed, and no 
 4. A success message means the client obtained an App Check token. It does not mean callable functions are deployed or that enforcement is enabled.
 5. Keep App Check enforcement OFF until the app has been tested on Android/PWA and every Firebase client entry point is confirmed to initialize App Check.
 
-The site key in `app-check.js` is a public web site key, not a private service-account secret. Never put service-account credentials or private keys in browser code.
+App Check is initialized only by `firebase-app-check-init.js` inside the isolated CBT module; the existing `assets/js/firebase.js` is intentionally unchanged to avoid disturbing other app features. The site key in `app-check.js` is a public web site key, not a private service-account secret. Never put service-account credentials or private keys in browser code.
