@@ -13,7 +13,7 @@ const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("fireb
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
-let app, db, uid, clientApp, clientAuth, functions;
+let app, db, uid, clientApp, clientAuth, functions, claimedAttemptId;
 const testId = "emulator-cbt-test";
 
 async function callable(name, data = {}) {
@@ -81,6 +81,7 @@ test("student can claim one free test attempt only once", async () => {
   const claim = await callable("rmClaimFreeAttempt");
   assert.equal(claim.testId, testId);
   assert.ok(claim.attemptId);
+  claimedAttemptId = claim.attemptId;
   await assert.rejects(
     callable("rmClaimFreeAttempt"),
     error => error.code === "functions/already-exists" || /already claimed/i.test(error.message)
@@ -90,6 +91,7 @@ test("student can claim one free test attempt only once", async () => {
 test("student can start, save answers and submit with server-side scoring", async () => {
   const started = await callable("rmStartExam", { testId });
   assert.ok(started.attemptId);
+  assert.equal(started.attemptId, claimedAttemptId, "free claim must be the attempt that starts");
   assert.equal(started.resumed, false);
 
   const saved = await callable("rmSaveAnswer", {
@@ -104,6 +106,21 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(result.unattempted, 1);
   assert.equal(result.score, 2);
   assert.equal(result.totalQuestions, 2);
+});
+
+test("free test cannot start until the one-time claim is created", async () => {
+  const unclaimedTestId = "emulator-unclaimed-free-test";
+  await db.doc(`testSeriesTests/${unclaimedTestId}`).set({
+    status: "published", price: 0, mode: "mock", durationMinutes: 10
+  });
+  try {
+    await assert.rejects(
+      callable("rmStartExam", { testId: unclaimedTestId }),
+      error => error.code === "functions/permission-denied"
+    );
+  } finally {
+    await db.doc(`testSeriesTests/${unclaimedTestId}`).delete();
+  }
 });
 
 test("unauthenticated caller cannot start an exam", async () => {
