@@ -59,12 +59,36 @@ export function initOwnerAdminDashboard(auth, functions) {
         const heading = document.createElement("b"); heading.textContent = test.title;
         const detail = document.createElement("small");
         detail.textContent = [test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
-        card.append(heading, detail); testsList.append(card);
+        const edit = document.createElement("button");
+        edit.type = "button"; edit.textContent = "Edit";
+        edit.addEventListener("click", () => loadTestForEdit(test.testId));
+        card.append(heading, detail, edit); testsList.append(card);
       });
     } catch (e) { testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
   }
   el("rm-admin-refresh-tests").addEventListener("click", refreshTests);
-  el("rm-admin-test-form").addEventListener("submit", async event => {
+  const testForm = el("rm-admin-test-form");
+  async function loadTestForEdit(testId) {
+    try {
+      const result = await httpsCallable(functions, "rmOwnerGetTest")({ testId });
+      const t = result.data;
+      el("rm-test-id").value = t.testId;
+      el("rm-test-title").value = t.title;
+      el("rm-test-mode").value = t.mode;
+      el("rm-test-duration").value = t.durationMinutes;
+      el("rm-test-price").value = t.price;
+      el("rm-test-marks").value = t.marksPerQuestion;
+      el("rm-test-negative").value = t.negativeMarks;
+      el("rm-test-status").value = t.status;
+      el("rm-test-start").value = t.scheduleStartAt ? new Date(t.scheduleStartAt).toISOString().slice(0,16) : "";
+      el("rm-test-end").value = t.scheduleEndAt ? new Date(t.scheduleEndAt).toISOString().slice(0,16) : "";
+      el("rm-test-questions").value = JSON.stringify(t.questions, null, 2);
+      status("Test Edit mode: " + t.testId);
+      testForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (e) { status(e.message || "Test details नहीं मिले।"); }
+  }
+  el("rm-admin-test-cancel").addEventListener("click", () => { testForm.reset(); el("rm-test-id").value = ""; });
+  testForm.addEventListener("submit", async event => {
     event.preventDefault();
     const button = event.currentTarget.querySelector('button[type="submit"]');
     button.disabled = true;
@@ -80,9 +104,16 @@ export function initOwnerAdminDashboard(auth, functions) {
         negativeMarks: Number(el("rm-test-negative").value),
         status: el("rm-test-status").value, questions
       };
+      const testId = el("rm-test-id").value;
+      if (testId) payload.testId = testId;
+      if (mode === "scheduled") {
+        payload.scheduleStartAt = new Date(el("rm-test-start").value).toISOString();
+        payload.scheduleEndAt = new Date(el("rm-test-end").value).toISOString();
+      }
       const saved = await httpsCallable(functions, "rmOwnerSaveTest")(payload);
       status("Test सेव हुआ: " + saved.data.testId);
       event.currentTarget.reset();
+      el("rm-test-id").value = "";
       await refreshTests();
     } catch (e) { status(e.message || "Test सेव नहीं हुआ।"); }
     finally { button.disabled = false; }
