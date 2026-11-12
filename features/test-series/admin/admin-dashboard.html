@@ -1,0 +1,24 @@
+<section id="rm-owner-admin" class="rm-admin" aria-label="Railway Mitra Owner Admin">
+  <header class="rm-admin-head"><div><span class="rm-admin-kicker">RAILWAY MITRA · TEST SERIES</span><h1>Owner Control Centre</h1><p>Secure administration dashboard</p></div><span class="rm-owner-chip">OWNER ONLY</span></header>
+  <div id="rm-admin-login" class="rm-admin-panel"><h2>Owner Login</h2><p>Google या Email + Password से लॉगिन करें। प्रत्येक Admin session में SMS OTP आवश्यक है।</p>
+    <button id="rm-owner-google" class="rm-admin-primary">Continue with Google</button><div class="rm-admin-or">या Email से लॉगिन करें</div>
+    <label>Email<input id="rm-owner-email" type="email" autocomplete="username" placeholder="Owner email"></label>
+    <label>Password<input id="rm-owner-password" type="password" autocomplete="current-password" placeholder="Owner password"></label>
+    <button id="rm-owner-email-login" class="rm-admin-secondary">Email Login</button><div id="rm-owner-login-status" class="rm-admin-status" role="status"></div><div id="rm-admin-recaptcha"></div>
+  </div>
+  <div id="rm-admin-mfa-setup" class="rm-admin-panel" hidden><h2>Phone OTP सुरक्षा सक्रिय करें</h2><p>पहली बार Owner अकाउंट पर अपना मोबाइल नंबर सत्यापित करके MFA जोड़ें।</p><label>मोबाइल नंबर (देश कोड सहित)<input id="rm-owner-phone" type="tel" placeholder="+91XXXXXXXXXX"></label><button id="rm-owner-enroll-otp" class="rm-admin-primary">OTP भेजें और सुरक्षा सक्रिय करें</button></div>
+  <div id="rm-admin-home" hidden><div class="rm-admin-welcome"><div><small>AUTHORIZED OWNER</small><h2 id="rm-admin-owner-email"></h2></div><button id="rm-owner-logout">Logout</button></div>
+    <div class="rm-admin-status rm-admin-secure">OTP verified · Owner session active</div>
+    <div class="rm-admin-stats"><article><span>Tests</span><b>—</b><small>Cloud data pending</small></article><article><span>Students</span><b>—</b><small>Cloud data pending</small></article><article><span>Payments</span><b>—</b><small>Cloud data pending</small></article><article><span>Results</span><b>—</b><small>Cloud data pending</small></article></div>
+    <h3>Management</h3><div class="rm-admin-grid">
+      <button data-admin-module="tests"><i>📝</i><b>Test Management</b><small>Create · Edit · Publish</small></button>
+      <button data-admin-module="questions"><i>📚</i><b>Question Bank</b><small>JSON / Excel import</small></button>
+      <button data-admin-module="access"><i>🔐</i><b>Free / Paid Access</b><small>Price · Unlock · Lock</small></button>
+      <button data-admin-module="students"><i>👥</i><b>Students</b><small>Accounts · Attempts</small></button>
+      <button data-admin-module="payments"><i>💳</i><b>Payments</b><small>Verified transactions</small></button>
+      <button data-admin-module="analytics"><i>📊</i><b>Results & Ranking</b><small>Scores · Leaderboard</small></button>
+      <button data-admin-module="backup"><i>☁️</i><b>Cloud Backup</b><small>Export · Restore</small></button>
+      <button data-admin-module="settings"><i>⚙️</i><b>System Settings</b><small>Maintenance · Rules</small></button>
+    </div><p id="rm-admin-module-status" class="rm-admin-status">Dashboard shell तैयार है। इन modules के cloud operations अगले सुरक्षित backend चरण में जोड़े जाएँगे।</p>
+  </div>
+</section><link rel="stylesheet" href="./admin-dashboard.css">
