@@ -152,6 +152,13 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(result.score, 2);
   assert.equal(result.totalQuestions, 2);
 
+  // A lost network response may cause the client to submit the same attempt again.
+  const repeatedResult = await callable("rmSubmitExam", { attemptId: started.attemptId });
+  assert.deepEqual(repeatedResult, result, "repeated submit must return the original complete result");
+  const persistedAttempt = (await db.doc("testSeriesAttempts/" + started.attemptId).get()).data();
+  assert.equal(persistedAttempt.status, "submitted");
+  assert.equal(persistedAttempt.timedOut, true);
+
   await db.doc("testSeriesResults/foreign-student-result").set({
     uid: "another-student-uid", testId, score: 999, correct: 99,
     wrong: 0, unattempted: 0, totalQuestions: 99
