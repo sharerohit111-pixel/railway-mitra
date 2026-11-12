@@ -1,7 +1,8 @@
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, hasPhoneMfa, signOut } from "./admin-auth.js";
 
-export function initOwnerAdminDashboard(auth) {
+export function initOwnerAdminDashboard(auth, functions) {
   const el = id => document.getElementById(id);
   const login = el("rm-admin-login"), setup = el("rm-admin-mfa-setup"), otpPanel = el("rm-admin-otp"), home = el("rm-admin-home");
   let pendingVerification = null;
@@ -20,9 +21,12 @@ export function initOwnerAdminDashboard(auth) {
   async function afterLogin(result) {
     const user = result.user || auth.currentUser;
     if (!hasPhoneMfa(user)) { login.hidden = true; setup.hidden = false; return; }
-    // The callable server-side Owner UID + MFA check is mandatory before enabling real admin data.
+    // Never reveal the owner dashboard until the backend validates UID + OTP claim + App Check.
+    const verify = httpsCallable(functions, "rmGetOwnerAdminSession");
+    const authorization = await verify({});
+    if (!authorization.data?.authorized) throw new Error("Owner authorization असफल।");
     login.hidden = true; setup.hidden = true; home.hidden = false;
-    el("rm-admin-owner-email").textContent = user.email || "Owner";
+    el("rm-admin-owner-email").textContent = authorization.data.email || user.email || "Owner";
     el("rm-admin-module-status").textContent = "Login सफल। वास्तविक डेटा और बदलाव तभी उपलब्ध होंगे जब server-side Owner authorization तथा cloud modules deploy होंगे।";
   }
   el("rm-owner-google").addEventListener("click", async () => {
