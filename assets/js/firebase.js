@@ -5,7 +5,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/13.2.0/firebase
 // Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBhxC-YtYTzDvvc7clufOukgdVUNEvrNj4",
-  authDomain: "railway-mitra.firebaseapp.com",
+authDomain: "railway-mitra.firebaseapp.com",
   projectId: "railway-mitra",
   storageBucket: "railway-mitra.firebasestorage.app",
   messagingSenderId: "697258746002",
