@@ -19,10 +19,10 @@
     const items = [
       {
         className: "rm-bottom-nav__item--updates",
-        label: "Railway Update",
-        title: "Open Railway Updates",
-        href: "features/updates/index.html",
-        paths: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/><path d="M9 4.5 12 3l3 1.5"/>'
+        label: "Railway Rules",
+        title: "Open Railway Rules",
+        href: "features/rules/index.html",
+        paths: '<path d="M5 3.5h10.5A2.5 2.5 0 0 1 18 6v15H7a3 3 0 0 1-3-3V5.5a2 2 0 0 1 2-2Z"/><path d="M7 3.5v14a3 3 0 0 0-3 3M8 8h7M8 12h7M8 16h5"/>'
       },
       {
         className: "",
