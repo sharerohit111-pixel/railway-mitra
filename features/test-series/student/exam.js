@@ -25,7 +25,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   async function finish(auto=false){
     if(finished)return;finished=true;clearInterval(timer);el("rm-cbt-submit").disabled=true;
-    try{await saving;const score=await submitCbtExam(app,attemptId);workspace.hidden=true;resultPanel.hidden=false;el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+(auto?" · Time expired":"");}
+    try{await saving;const score=await submitCbtExam(app,attemptId);workspace.hidden=true;resultPanel.hidden=false;el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+((auto||score.timedOut)?" · Time expired":"");}
     catch(e){finished=false;el("rm-cbt-submit").disabled=false;status(e.message||"Submit असफल। इंटरनेट जाँचकर फिर प्रयास करें।");}
   }
   el("rm-cbt-start").addEventListener("click",async()=>{
