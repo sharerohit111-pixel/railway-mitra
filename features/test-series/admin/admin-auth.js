@@ -2,7 +2,7 @@ import {
   GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword,
   getMultiFactorResolver, PhoneAuthProvider, PhoneMultiFactorGenerator,
   RecaptchaVerifier, multiFactor, signOut
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 let recaptcha = null;
 function verifier(auth) {
