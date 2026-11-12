@@ -29,6 +29,10 @@ export async function submitCbtExam(app, attemptId) {
 export async function getCbtAttemptResult(app, attemptId) {
   return (await callable(app, "rmGetCbtAttemptResult")({ attemptId })).data;
 }
+
+export async function getStudentActiveCbtAttempt(app, testId) {
+  return (await callable(app, "rmGetStudentActiveAttempt")({ testId })).data;
+}
 export async function claimFreeCbtAttempt(app) {
   return (await callable(app, "rmClaimFreeAttempt")({})).data;
 }
