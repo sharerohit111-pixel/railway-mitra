@@ -1,7 +1,7 @@
 // Railway Mitra Test Series — isolated cloud access client.
 // Requires Firebase Authentication and a deployed callable function.
 // No localStorage unlocks and no client-side admin passwords.
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 
 export async function claimFirstFreeAttempt(firebaseApp, auth) {
   if (!auth.currentUser) throw new Error("कृपया पहले लॉगिन करें।");
