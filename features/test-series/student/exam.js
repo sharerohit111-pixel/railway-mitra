@@ -9,7 +9,9 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
   function showResult(score){
-    clearInterval(timer);workspace.hidden=true;resultPanel.hidden=false;
+    clearInterval(timer);
+    startPanel.hidden=true;workspace.hidden=true;resultPanel.hidden=false;
+    try{if(attemptId)localStorage.removeItem(draftKey());}catch(_){}
     el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+(score.timedOut?" · Time expired":"");
   }
   function persistPending(){
