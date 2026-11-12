@@ -37,6 +37,9 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
   if (!safeDocumentId(eventId)) fail("invalid_event_id", "A valid provider event ID is required");
 
   const paymentEntity = event && event.payload && event.payload.payment && event.payload.payment.entity;
+  if (!event || event.event !== "payment.captured" || !paymentEntity || paymentEntity.status !== "captured") {
+    fail("payment_not_captured", "Only a captured-payment event can grant access");
+  }
   const paymentId = paymentEntity && paymentEntity.id;
   const orderId = paymentEntity && paymentEntity.order_id;
   if (!safeDocumentId(paymentId) || !safeDocumentId(orderId)) {
