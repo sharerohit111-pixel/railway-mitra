@@ -13,7 +13,7 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 Deploy firestore.rules before connecting clients. All direct client reads/writes are denied; callable backend functions use Admin SDK.
 
 ## Not production-ready
-No Firebase project has been confirmed, no functions have been deployed, and no live student UI is connected. Do not run paid deployment or real SMS until the user explicitly approves the cost.
+The existing Firebase project is identified from the repository configuration as `railway-mitra`; this confirms the project ID configured in code, not the live console state or billing status. No functions have been deployed and no live student UI is connected. Do not run paid deployment or real SMS until the user explicitly approves the cost.
 
 
 ## App Check verification (web/PWA)
@@ -24,3 +24,19 @@ No Firebase project has been confirmed, no functions have been deployed, and no 
 5. Keep App Check enforcement OFF until the app has been tested on Android/PWA and every Firebase client entry point is confirmed to initialize App Check.
 
 App Check is initialized only by `firebase-app-check-init.js` inside the isolated CBT module; the existing `assets/js/firebase.js` is intentionally unchanged to avoid disturbing other app features. The site key in `app-check.js` is a public web site key, not a private service-account secret. Never put service-account credentials or private keys in browser code.
+
+
+## Isolated Functions codebase
+The root `firebase.json` now declares two codebases:
+- `default` → existing `functions/` (left unchanged)
+- `test-series` → `features/test-series/cloud/functions/`
+
+After staging configuration and explicit billing approval, deploy only the CBT backend with:
+
+```bash
+firebase deploy --only functions:test-series
+```
+
+Install dependencies for local validation from `features/test-series/cloud/functions/` with `npm install`. GitHub Actions also checks the isolated codebase configuration and JavaScript syntax. This does not deploy anything.
+
+**Important:** The existing project may require the Blaze plan for Cloud Functions deployment. Do not upgrade or deploy until the projected cost and budget are approved. The ₹500 target cannot be guaranteed for 500 simultaneous exam users.
