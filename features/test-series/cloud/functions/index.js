@@ -187,6 +187,25 @@ exports.rmOwnerSaveTest = onCall(CALLABLE_OPTIONS, async req => {
   return { saved: true, testId, status: payload.metadata.status, questionCount: payload.publicQuestions.length };
 });
 
+exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = id(req.data && req.data.testId);
+  const [testSnap, questionsSnap] = await Promise.all([
+    db.doc("testSeriesTests/" + testId).get(),
+    db.doc("testSeriesQuestionSets/" + testId).get()
+  ]);
+  if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
+  const t = testSnap.data();
+  return {
+    testId, title: t.title || "", mode: t.mode || "mock", status: t.status || "draft",
+    durationMinutes: Number(t.durationMinutes || 30), price: Number(t.price || 0),
+    marksPerQuestion: Number(t.marksPerQuestion ?? 1), negativeMarks: Number(t.negativeMarks ?? 0),
+    scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || "",
+    scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || "",
+    questions: questionsSnap.exists ? questionsSnap.data().questions || [] : []
+  };
+});
+
 exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
   const snap = await db.collection("testSeriesTests").orderBy("updatedAt", "desc").limit(100).get();
