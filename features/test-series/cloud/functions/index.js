@@ -157,6 +157,21 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
   });
 });
 
+exports.rmGetStudentActiveAttempt = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = user(req), testId = id(req.data && req.data.testId);
+  const snap = await db.doc("testSeriesActiveSessions/" + uid).get();
+  if (!snap.exists) return { found: false };
+  const session = snap.data();
+  if (session.uid !== uid || session.testId !== testId || !session.attemptId) return { found: false };
+  if (session.status !== "in_progress" && session.status !== "completed") return { found: false };
+  return {
+    found: true,
+    attemptId: id(session.attemptId),
+    status: session.status,
+    expiresAt: date(session.expiresAt)?.toISOString() || null
+  };
+});
+
 exports.rmGetCbtAttemptResult = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req), attemptId = id(req.data && req.data.attemptId);
   const snap = await db.doc("testSeriesAttempts/" + attemptId).get();
