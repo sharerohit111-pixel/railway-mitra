@@ -94,16 +94,30 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   el("rm-cbt-start").addEventListener("click",async()=>{
     const button=el("rm-cbt-start");button.disabled=true;status("परीक्षा लोड हो रही है…");
     try{
-      try{
-        const previousAttempt=localStorage.getItem(attemptKey());
-        if(previousAttempt){
-          const previousResult=await getCbtAttemptResult(app,previousAttempt);
-          attemptId=previousAttempt;showResult(previousResult);return;
+      let previousAttempt=null;
+      try{previousAttempt=localStorage.getItem(attemptKey());}catch(_){}
+      if(previousAttempt){
+        attemptId=previousAttempt;
+        try{
+          const previousResult=await getCbtAttemptResult(app,attemptId);
+          showResult(previousResult);return;
+        }catch(_){/* Not submitted yet; inspect the original server attempt. */}
+        try{
+          paper=await getCbtExamQuestions(app,attemptId);
+        }catch(_){
+          // If the server deadline has passed, submit only server-persisted answers.
+          const recovered=await submitCbtExam(app,attemptId);
+          try{localStorage.removeItem(draftKey());}catch(_){}
+          showResult(recovered);
+          status("समय सीमा समाप्त थी। परिणाम सर्वर पर सुरक्षित उत्तरों से बनाया गया है; स्थानीय unsaved Draft शामिल नहीं हो सकता।");
+          return;
         }
-      }catch(_){/* No submitted result: continue to resume the active server session. */}
-      const started=await startCbtExam(app,testId);attemptId=started.attemptId;
-      try{localStorage.setItem(attemptKey(),attemptId);}catch(_){}
-      paper=await getCbtExamQuestions(app,attemptId);answers={...paper.savedAnswers};restorePending();
+      }else{
+        const started=await startCbtExam(app,testId);attemptId=started.attemptId;
+        try{localStorage.setItem(attemptKey(),attemptId);}catch(_){}
+        paper=await getCbtExamQuestions(app,attemptId);
+      }
+      answers={...paper.savedAnswers};restorePending();
       for(const [qid,value] of pendingAnswers)answers[qid]=value;
       expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;render();
       if(pendingAnswers.size)retryPending().catch(()=>{});
