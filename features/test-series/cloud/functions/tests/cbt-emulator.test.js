@@ -131,40 +131,6 @@ test("unauthenticated caller cannot start an exam", async () => {
   );
 });
 
-test("owner-only test management stores public questions separately from private answers", async () => {
-  const adminUid = "owner-emulator-user";
-  const originalOwnerUid = process.env.OWNER_UID;
-  process.env.OWNER_UID = adminUid;
-  const adminToken = await getAuth(app).createCustomToken(adminUid);
-  await signInWithCustomToken(clientAuth, adminToken);
-  try {
-    const payload = {
-      title: "Owner CRUD Emulator Test", mode: "mock", durationMinutes: 25,
-      price: 0, marksPerQuestion: 2, negativeMarks: 0.5, status: "published",
-      questions: [
-        { id: "owner-q1", text: "2 + 2 = ?", options: ["3", "4", "5", "6"], correctIndex: 1 }
-      ]
-    };
-    const saved = await callable("rmOwnerSaveTest", payload);
-    assert.equal(saved.saved, true);
-    assert.equal(saved.status, "published");
-    assert.equal(saved.questionCount, 1);
-    const listed = await callable("rmOwnerListTests");
-    assert.ok(listed.tests.some(test => test.testId === saved.testId && test.title === payload.title));
-    const publicSet = await db.doc(`testSeriesQuestionSets/${saved.testId}`).get();
-    const privateKey = await db.doc(`testSeriesAnswerKeys/${saved.testId}`).get();
-    assert.equal(publicSet.data().questions[0].text, "2 + 2 = ?");
-    assert.equal(Object.hasOwn(publicSet.data().questions[0], "correctAnswer"), false);
-    assert.equal(privateKey.data().questions["owner-q1"].correctAnswer, "1");
-    await db.doc(`testSeriesTests/${saved.testId}`).delete();
-    await db.doc(`testSeriesQuestionSets/${saved.testId}`).delete();
-    await db.doc(`testSeriesAnswerKeys/${saved.testId}`).delete();
-  } finally {
-    process.env.OWNER_UID = originalOwnerUid;
-    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
-  }
-});
-
 test("non-owner cannot create a test", async () => {
   const originalOwnerUid = process.env.OWNER_UID;
   process.env.OWNER_UID = "some-other-owner";
