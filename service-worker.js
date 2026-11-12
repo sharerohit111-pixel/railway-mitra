@@ -64,7 +64,7 @@ self.addEventListener("fetch", (event) => {
         if (request.mode === "navigate") {
           return (
             await caches.match(
-              new URL("./", self.registration.scope).href
+              new URL("./app.html", self.registration.scope).href
             )
           ) || new Response(
             "Railway Mitra is offline. Please connect to the internet.",
