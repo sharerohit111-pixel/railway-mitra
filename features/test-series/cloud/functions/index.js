@@ -241,3 +241,25 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
       scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null };
   }) };
 });
+
+
+// Student catalogue exposes published metadata only; question sets and answer keys stay private.
+exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
+  user(req);
+  const snap = await db.collection("testSeriesTests").where("status", "==", "published").limit(100).get();
+  const tests = snap.docs.map(d => {
+    const t = d.data();
+    return {
+      testId: d.id,
+      title: t.title || "",
+      mode: t.mode === "scheduled" ? "scheduled" : "mock",
+      durationMinutes: Number(t.durationMinutes || 30),
+      price: Number(t.price || 0),
+      questionCount: Number(t.questionCount || 0),
+      scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
+      scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null
+    };
+  });
+  tests.sort((a, b) => a.title.localeCompare(b.title));
+  return { tests };
+});
