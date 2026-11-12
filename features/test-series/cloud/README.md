@@ -18,8 +18,9 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 ## Payment validation boundary (not live integration)
 - `functions/razorpay-signature.js` verifies Razorpay Checkout and webhook HMAC signatures.
 - `functions/payment-validation.js` accepts only a captured payment that exactly matches a trusted server-created order's provider order ID, amount and currency. Its UID/test ID are sourced only from that server order; client-supplied payment notes are ignored.
-- Both modules are covered by isolated Node tests in `functions/tests/` and run through the Test Series Functions validation workflow.
-- There is still no order-creation endpoint, webhook HTTP route, durable payment-event ledger, or entitlement-grant transaction. Do not unlock paid tests from these helpers alone; signature verification and this order-match guard must be followed by transaction-based idempotency and entitlement creation.
+- `functions/payment-ledger.js` atomically records a validated capture, marks the server order paid, stores provider event/payment records, and creates the matching student entitlement in one Firestore transaction. It deduplicates both provider event IDs and payment IDs and rejects conflicting replays.
+- The ledger helper must be called only after the raw webhook body passes `razorpay-signature.js` verification. Its Firestore emulator test also starts a paid CBT attempt through `rmStartExam`, proving the resulting server-created entitlement is accepted.
+- Signature, validation and ledger tests run in the isolated Functions/CBT workflows. The helper is not yet called by an HTTP webhook: there is still no server-side order-creation endpoint or webhook HTTP route. Do not unlock paid tests until those endpoints are wired with Secret Manager secrets, raw-body signature verification and this transaction helper.
 
 ## Firestore rules — review required
 `firestore.rules` is a draft, NOT approved for deployment. It includes example employee paths and a default-deny rule that could block existing Railway Mitra collections if deployed as-is. Before any deployment, retrieve the current live Firestore Rules, merge the CBT deny-by-default paths without removing existing permissions, review the complete result, and obtain explicit approval. Do not overwrite production rules with this draft.
