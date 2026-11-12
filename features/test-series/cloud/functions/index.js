@@ -62,7 +62,21 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     const activeRef = db.doc("testSeriesActiveSessions/" + uid), active = await tx.get(activeRef);
     if (active.exists && active.data().status === "in_progress" && date(active.data().expiresAt) > now) {
       if (active.data().testId !== testId) throw new HttpsError("already-exists", "Another exam session is active");
-      return { attemptId: active.data().attemptId, startedAt: date(active.data().startedAt).toISOString(), expiresAt: date(active.data().expiresAt).toISOString(), resumed: true };
+      const activeAttemptId = id(active.data().attemptId);
+      const activeAttemptSnap = await tx.get(db.doc("testSeriesAttempts/" + activeAttemptId));
+      if (activeAttemptSnap.exists) {
+        const activeAttempt = activeAttemptSnap.data();
+        if (activeAttempt.uid === uid && activeAttempt.testId === testId &&
+            activeAttempt.status === "in_progress" && date(activeAttempt.expiresAt) > now) {
+          return {
+            attemptId: activeAttemptId,
+            startedAt: date(activeAttempt.startedAt).toISOString(),
+            expiresAt: date(activeAttempt.expiresAt).toISOString(),
+            resumed: true
+          };
+        }
+      }
+      // A stale session pointer is not a valid active attempt; continue through normal creation checks.
     }
     const attemptRef = freeClaimSnap
       ? db.doc("testSeriesAttempts/" + freeClaimSnap.data().attemptId)
