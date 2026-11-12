@@ -132,6 +132,9 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const [testSnap, keySnap] = await Promise.all([tx.get(db.doc("testSeriesTests/" + a.testId)), tx.get(db.doc("testSeriesAnswerKeys/" + a.testId))]);
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
     const test = testSnap.data(), keys = keySnap.data().questions || {}, answers = a.answers || {};
+    // Once the server deadline passes, accept only the answers already persisted by rmSaveAnswer.
+    // This preserves a result when the client submits at the timer boundary or reconnects late.
+    const timedOut = Boolean(date(a.expiresAt) && date(a.expiresAt) <= new Date());
     let correct = 0, wrong = 0, unattempted = 0;
     for (const qid of Object.keys(keys)) {
       const given = answers[qid];
@@ -140,10 +143,10 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
       else wrong++;
     }
     const score = correct * Number(test.marksPerQuestion ?? 1) - wrong * Number(test.negativeMarks ?? 0);
-    tx.update(ref, { status: "submitted", submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length });
-    tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length, submittedAt: FieldValue.serverTimestamp() });
+    tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length });
+    tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions: Object.keys(keys).length, submittedAt: FieldValue.serverTimestamp() });
     tx.set(db.doc("testSeriesActiveSessions/" + uid), { uid, status: "completed", attemptId, testId: a.testId, completedAt: FieldValue.serverTimestamp() });
-    return { submitted: true, correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length };
+    return { submitted: true, timedOut, correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length };
   });
 });
 
