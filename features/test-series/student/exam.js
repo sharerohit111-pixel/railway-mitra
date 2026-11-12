@@ -55,7 +55,11 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   async function retryPending(){
     const entries=[...pendingAnswers.entries()];
-    for(const [qid,value] of entries) await queueSave(qid,value);
+    for(const [qid,value] of entries){
+      // A newer selection may have replaced this snapshot while retry was waiting.
+      if(pendingAnswers.get(qid)!==value) continue;
+      await queueSave(qid,value);
+    }
     if(pendingAnswers.size) throw new Error("कुछ उत्तर अभी सर्वर पर सेव नहीं हुए हैं।");
   }
   function render(){
