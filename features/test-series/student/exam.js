@@ -84,9 +84,15 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     try{
       let timeoutWarning="";
       if(auto){
-        // At the server deadline, pending client drafts can no longer be saved. Wait for any
-        // in-flight request to settle, but submit the server-persisted answers without retrying.
-        await saving.catch(()=>{});
+        // At the server deadline, pending client drafts can no longer be saved. Give an
+        // in-flight request a short grace period, but never let a stalled network request
+        // prevent the server from finalizing the attempt.
+        let graceTimer;
+        await Promise.race([
+          saving.catch(()=>{}),
+          new Promise(resolve=>{graceTimer=setTimeout(resolve,5000);})
+        ]);
+        clearTimeout(graceTimer);
         if(pendingAnswers.size) timeoutWarning="Some unsaved answers were not included";
       }else{
         await saving;
