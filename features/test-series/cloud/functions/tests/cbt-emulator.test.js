@@ -51,8 +51,8 @@ before(async () => {
   });
   await db.doc(`testSeriesAnswerKeys/${testId}`).set({
     questions: {
-      q1: { correctAnswer: "A" },
-      q2: { correctAnswer: "B" }
+      q1: { correctAnswer: "0" },
+      q2: { correctAnswer: "1" }
     }
   });
   await db.doc(`testSeriesQuestionSets/${testId}`).set({
@@ -129,7 +129,7 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.ok(paper.expiresAt);
 
   const saved = await callable("rmSaveAnswer", {
-    attemptId: started.attemptId, questionId: "q1", answer: "A"
+    attemptId: started.attemptId, questionId: "q1", answer: "0"
   });
   assert.equal(saved.saved, true);
 
