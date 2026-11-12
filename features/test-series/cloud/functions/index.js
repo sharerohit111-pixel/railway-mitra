@@ -201,8 +201,8 @@ exports.rmOwnerSaveTest = onCall(CALLABLE_OPTIONS, async req => {
   const testRef = db.doc("testSeriesTests/" + testId);
   await db.runTransaction(async tx => {
     const existing = await tx.get(testRef);
-    if (existing.exists && existing.data().status === "published" && payload.metadata.status === "draft") {
-      throw new HttpsError("failed-precondition", "Unpublish flow is not enabled; use an approved maintenance process");
+    if (existing.exists && existing.data().status === "published") {
+      throw new HttpsError("failed-precondition", "Published tests are immutable. Create a new draft test to make changes.");
     }
     tx.set(testRef, { ...payload.metadata, createdAt: existing.exists ? existing.data().createdAt : FieldValue.serverTimestamp() }, { merge: true });
     tx.set(db.doc("testSeriesQuestionSets/" + testId), { questions: payload.publicQuestions, updatedAt: FieldValue.serverTimestamp() });
