@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://sharerohit111-pixel.github.io/railway-mitra/sitemap.xml
+Sitemap: https://railwaymitra.com/sitemap.xml
