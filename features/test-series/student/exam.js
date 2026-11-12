@@ -6,6 +6,27 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
   let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, timer=null, saving=Promise.resolve(), finished=false;
   const status = message => { el("rm-cbt-status").textContent=message; };
+  const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
+  function persistPending(){
+    if(!attemptId)return;
+    try{
+      const key=draftKey();
+      if(pendingAnswers.size) localStorage.setItem(key,JSON.stringify([...pendingAnswers.entries()]));
+      else localStorage.removeItem(key);
+    }catch(_){status("स्थानीय Draft सुरक्षित नहीं हो सका। परीक्षा खुली रखें और सेव स्थिति जाँचें।");}
+  }
+  function restorePending(){
+    try{
+      const raw=localStorage.getItem(draftKey());
+      if(!raw)return;
+      const entries=JSON.parse(raw);
+      if(!Array.isArray(entries))return;
+      for(const pair of entries){
+        if(Array.isArray(pair)&&pair.length===2&&typeof pair[0]==="string"&&typeof pair[1]==="string")
+          pendingAnswers.set(pair[0],pair[1]);
+      }
+    }catch(_){status("स्थानीय Draft पढ़ा नहीं जा सका। सर्वर पर सेव उत्तर उपलब्ध रहेंगे।");}
+  }
   const remaining = () => Math.max(0, Math.ceil((expiresAt-Date.now())/1000));
   function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
@@ -45,7 +66,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   el("rm-cbt-start").addEventListener("click",async()=>{
     const button=el("rm-cbt-start");button.disabled=true;status("परीक्षा लोड हो रही है…");
-    try{const started=await startCbtExam(app,testId);attemptId=started.attemptId;paper=await getCbtExamQuestions(app,attemptId);answers={...paper.savedAnswers};expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;render();tick();timer=setInterval(tick,1000);}
+    try{const started=await startCbtExam(app,testId);attemptId=started.attemptId;paper=await getCbtExamQuestions(app,attemptId);answers={...paper.savedAnswers};restorePending();for(const [qid,value] of pendingAnswers)answers[qid]=value;expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;render();if(pendingAnswers.size)retryPending().catch(()=>{});tick();timer=setInterval(tick,1000);}
     catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
   });
   el("rm-cbt-retry").addEventListener("click",async()=>{const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){status(e.message||"Retry असफल।");}finally{b.disabled=false;}});
