@@ -163,12 +163,17 @@ exports.rmGetStudentActiveAttempt = onCall(CALLABLE_OPTIONS, async req => {
   if (!snap.exists) return { found: false };
   const session = snap.data();
   if (session.uid !== uid || session.testId !== testId || !session.attemptId) return { found: false };
-  if (session.status !== "in_progress" && session.status !== "completed") return { found: false };
+  const attemptId = id(session.attemptId);
+  const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
+  if (!attemptSnap.exists) return { found: false };
+  const attempt = attemptSnap.data();
+  if (attempt.uid !== uid || attempt.testId !== testId) return { found: false };
+  if (attempt.status !== "in_progress" && attempt.status !== "submitted") return { found: false };
   return {
     found: true,
-    attemptId: id(session.attemptId),
-    status: session.status,
-    expiresAt: date(session.expiresAt)?.toISOString() || null
+    attemptId,
+    status: attempt.status === "submitted" ? "completed" : "in_progress",
+    expiresAt: date(attempt.expiresAt)?.toISOString() || null
   };
 });
 
