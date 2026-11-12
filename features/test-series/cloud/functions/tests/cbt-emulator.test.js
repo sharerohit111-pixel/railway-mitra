@@ -25,8 +25,9 @@ async function callable(name, data = {}) {
   });
   const body = await response.json();
   if (!response.ok || body.error) {
-    const error = new Error(body.error?.message || `Callable failed: ${response.status}`);
+    const error = new Error(body.error?.message || `Callable failed: ${response.status}; ${JSON.stringify(body)}`);
     error.code = body.error?.status;
+    error.details = body.error?.details;
     throw error;
   }
   return body.result;
