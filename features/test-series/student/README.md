@@ -9,7 +9,7 @@ import { initStudentCbtExam } from "./exam.js";
 initStudentCbtExam({ app: firebaseApp, testId: selectedTestId, root: document });
 ```
 
-The module provides server-timed countdown, question palette, Previous/Next, answer autosave, and server-side submission. It must not be treated as production-ready until real-device testing, connectivity/retry testing, App Check verification, merged Firestore rules review, owner provisioning and backend deployment are completed.
+The module provides server-timed countdown, question palette, Previous/Next, answer autosave, and server-side submission. If an autosave fails while the page remains open, the student's latest unsaved answers stay in an in-memory retry queue; the Retry Unsaved Answers control retries them, and submission waits for that queue to clear. This queue is not durable across a browser/tab crash or reload, so the UI must not claim an offline answer is saved. It must not be treated as production-ready until real-device testing, connectivity/retry testing, App Check verification, merged Firestore rules review, owner provisioning and backend deployment are completed.
 
 ## Student test catalogue
 
