@@ -127,8 +127,19 @@ test("student can start, save answers and submit with server-side scoring", asyn
   });
   assert.equal(saved.saved, true);
 
+  // Simulate the server deadline passing after the answer was persisted.
+  await db.doc("testSeriesAttempts/" + started.attemptId).update({
+    expiresAt: new Date(Date.now() - 1000)
+  });
+  const lateSave = await callable("rmSaveAnswer", {
+    attemptId: started.attemptId, questionId: "q2", answer: "B"
+  }).then(() => null, error => error);
+  assert.ok(lateSave, "answers must not be changed after expiry");
+  assert.ok(/closed|deadline|expired/i.test(lateSave.message));
+
   const result = await callable("rmSubmitExam", { attemptId: started.attemptId });
   assert.equal(result.submitted, true);
+  assert.equal(result.timedOut, true);
   assert.equal(result.correct, 1);
   assert.equal(result.wrong, 0);
   assert.equal(result.unattempted, 1);
