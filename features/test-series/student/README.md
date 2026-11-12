@@ -26,3 +26,10 @@ The module provides server-timed countdown, question palette, Previous/Next, ans
 - Inject the fragment after phone-OTP sign-in, then call `initStudentDashboard({ app, root })`.
 - The backend callable `rmGetStudentDashboard` scopes the query to the authenticated Firebase UID and returns only that student's submitted scores plus safe test titles. It does not return other students' identities, answer keys, or question content.
 - The dashboard is a history/performance view, not a live leaderboard or rank list. Ranking requires a separately designed privacy-safe aggregation.
+
+## Anonymous leaderboard
+
+- `leaderboard.html` and `leaderboard.js` render a published test's top 20 anonymous scores and the signed-in student's own rank.
+- Initialize with `initStudentLeaderboard({ app, testId, root })` after phone-OTP authentication.
+- The callable never returns UID, phone, email or attempt ID. It currently reads at most 1,000 submitted result records per test; if the cap is reached, the UI explicitly marks counts/rank as potentially incomplete. A production-scale leaderboard needs a dedicated aggregation design before large cohorts.
+- Tied scores share competition rank; earlier submission determines ordering within the tie.
