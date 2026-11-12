@@ -28,3 +28,7 @@ export async function submitCbtExam(app, attemptId) {
 export async function claimFreeCbtAttempt(app) {
   return (await callable(app, "rmClaimFreeAttempt")({})).data;
 }
+
+export async function listAvailableCbtTests(app) {
+  return (await callable(app, "rmListAvailableTests")({})).data;
+}
