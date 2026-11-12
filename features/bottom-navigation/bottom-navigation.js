@@ -18,11 +18,11 @@
 
     const items = [
       {
-        className: "rm-bottom-nav__item--pway",
-        label: "P-Way",
-        title: "Open P-Way & Civil Engineering Tools",
-        href: "features/p-way-civil-engineering-tools/index.html",
-        paths: '<path d="M3 19h18M5 19l3-8 4 8 4-8 3 8"/><path d="M4 7h16M7 4l-3 3 3 3M17 4l3 3-3 3"/>'
+        className: "rm-bottom-nav__item--updates",
+        label: "Railway Update",
+        title: "Open Railway Updates",
+        href: "features/updates/index.html",
+        paths: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/><path d="M9 4.5 12 3l3 1.5"/>'
       },
       {
         className: "",
