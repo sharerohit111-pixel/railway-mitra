@@ -89,7 +89,28 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     const startedAt = Timestamp.now(), expiresAt = Timestamp.fromDate(new Date(now.getTime() + duration * 60000));
     if (freeClaimSnap) {
       const claimedAttempt = await tx.get(attemptRef);
-      if (!claimedAttempt.exists || claimedAttempt.data().uid !== uid || claimedAttempt.data().status !== "created") {
+      if (!claimedAttempt.exists || claimedAttempt.data().uid !== uid || claimedAttempt.data().testId !== testId) {
+        throw new HttpsError("failed-precondition", "Free test attempt is no longer available");
+      }
+      const claimed = claimedAttempt.data();
+      if (claimed.status === "in_progress" || claimed.status === "submitted") {
+        // The one-time free claim is the durable pointer to this student's only free attempt.
+        // Repair a stale active-session pointer instead of creating or losing another attempt.
+        const claimedExpiresAt = date(claimed.expiresAt);
+        if (claimed.status === "in_progress") {
+          tx.set(activeRef, {
+            uid, testId, attemptId: attemptRef.id, status: "in_progress",
+            startedAt: claimed.startedAt, expiresAt: claimed.expiresAt
+          });
+        }
+        return {
+          attemptId: attemptRef.id,
+          startedAt: date(claimed.startedAt).toISOString(),
+          expiresAt: claimedExpiresAt ? claimedExpiresAt.toISOString() : null,
+          resumed: true
+        };
+      }
+      if (claimed.status !== "created") {
         throw new HttpsError("failed-precondition", "Free test attempt is no longer available");
       }
       tx.update(attemptRef, { status: "in_progress", startedAt, expiresAt, answers: {}, updatedAt: FieldValue.serverTimestamp() });
