@@ -31,9 +31,11 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
     pendingAnswers.set(qid,value);
+    persistPending();
     el("rm-cbt-saved").textContent="Saving…";
     saving=saving.catch(()=>{}).then(()=>saveCbtAnswer(app,attemptId,qid,value)).then(()=>{
       if(pendingAnswers.get(qid)===value)pendingAnswers.delete(qid);
+      persistPending();
       el("rm-cbt-saved").textContent=pendingAnswers.size?"Some answers pending":"All changes saved";
       el("rm-cbt-retry").hidden=pendingAnswers.size===0;
     }).catch(e=>{
