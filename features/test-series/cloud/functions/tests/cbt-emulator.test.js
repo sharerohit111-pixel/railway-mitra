@@ -43,8 +43,11 @@ before(async () => {
 
   await db.doc("testSeriesConfig/freeTest").set({ enabled: true, testId });
   await db.doc(`testSeriesTests/${testId}`).set({
-    status: "published", price: 0, mode: "mock",
-    durationMinutes: 30, marksPerQuestion: 2, negativeMarks: 0.5
+    title: "Emulator Free Test", status: "published", price: 0, mode: "mock",
+    durationMinutes: 30, marksPerQuestion: 2, negativeMarks: 0.5, questionCount: 2
+  });
+  await db.doc("testSeriesTests/emulator-draft-test").set({
+    title: "Hidden Draft", status: "draft", price: 0, mode: "mock", durationMinutes: 10, questionCount: 1
   });
   await db.doc(`testSeriesAnswerKeys/${testId}`).set({
     questions: {
@@ -74,7 +77,7 @@ after(async () => {
     }
     await db.doc(`testSeriesFreeAttempts/${uid}`).delete().catch(() => {});
     await db.doc(`testSeriesActiveSessions/${uid}`).delete().catch(() => {});
-    await db.doc(`testSeriesTests/${testId}`).delete();
+    await db.doc(`testSeriesTests/${testId}`).delete();\n    await db.doc("testSeriesTests/emulator-draft-test").delete();
     await db.doc(`testSeriesAnswerKeys/${testId}`).delete();
     await db.doc(`testSeriesQuestionSets/${testId}`).delete();
     await db.doc("testSeriesConfig/freeTest").delete();
@@ -82,6 +85,16 @@ after(async () => {
   }
   if (clientApp) await deleteClientApp(clientApp);
   if (app) await deleteApp(app);
+});
+
+test("student catalogue returns published metadata only and never answer keys", async () => {
+  const catalogue = await callable("rmListAvailableTests");
+  const listed = catalogue.tests.find(item => item.testId === testId);
+  assert.ok(listed);
+  assert.equal(listed.title, "Emulator Free Test");
+  assert.equal(listed.price, 0);
+  assert.equal(Object.hasOwn(listed, "correctAnswer"), false);
+  assert.equal(catalogue.tests.some(item => item.testId === "emulator-draft-test"), false);
 });
 
 test("student can claim one free test attempt only once", async () => {
