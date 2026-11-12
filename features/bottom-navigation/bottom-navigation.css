@@ -1,6 +1,5 @@
 /* Railway Mitra — isolated bottom navigation shell
-   Five slots: reserved, Help & Support, Home, reserved, Feedback.
-   Functional destinations will be connected in later feature modules. */
+   Five functional destinations with a prominent Duty Roster shortcut. */
 
 :root {
   --rm-bottom-nav-bg: rgba(7, 18, 39, .96);
@@ -74,7 +73,7 @@
   filter: drop-shadow(0 0 5px rgba(255, 69, 212, .48));
 }
 
-.rm-bottom-nav__item--home {
+.rm-bottom-nav__item--featured-center {
   position: relative;
   z-index: 1;
   min-height: 88px;
@@ -91,15 +90,11 @@
               inset 0 1px 5px rgba(255,255,255,.5);
 }
 
-.rm-bottom-nav__item--home .rm-bottom-nav__icon {
+.rm-bottom-nav__item--featured-center .rm-bottom-nav__icon {
   width: 34px;
   height: 34px;
   color: #fff;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
-}
-
-.rm-bottom-nav__item--reserved {
-  opacity: .78;
 }
 
 .rm-bottom-nav__item:focus-visible {
@@ -107,7 +102,7 @@
   outline-offset: 2px;
 }
 
-.rm-bottom-nav__item--home:focus-visible {
+.rm-bottom-nav__item--featured-center:focus-visible {
   outline-offset: 4px;
 }
 
@@ -120,17 +115,14 @@
     gap: 1px;
   }
   .rm-bottom-nav__icon { width: 28px; height: 28px; }
-  .rm-bottom-nav__item--home { min-height: 78px; width: 78px; }
+  .rm-bottom-nav__item--featured-center { min-height: 78px; width: 78px; }
   .rm-bottom-nav__label { font-size: 9px; }
 }
 
 @media (min-width: 900px) {
-  .rm-bottom-nav {
-    bottom: 14px;
-  }
+  .rm-bottom-nav { bottom: 14px; }
 }
 
-/* Keep page content clear of the fixed navigation. */
 body.rm-has-bottom-nav {
   padding-bottom: calc(112px + env(safe-area-inset-bottom));
 }
