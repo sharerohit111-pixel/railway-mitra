@@ -3,6 +3,8 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 initializeApp();
 const db = getFirestore(), REGION = "asia-south1";
+// The Functions Emulator cannot provide production App Check attestation; keep enforcement enabled everywhere else.
+const CALLABLE_OPTIONS = { region: REGION, enforceAppCheck: process.env.FUNCTIONS_EMULATOR !== "true" };
 function user(req) {
   console.info("CBT auth context", {
     hasAuth: Boolean(req.auth),
@@ -20,7 +22,7 @@ function owner(req) {
 function id(v) { if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(v)) throw new HttpsError("invalid-argument", "Invalid identifier"); return v; }
 function date(v) { return v && v.toDate ? v.toDate() : (v ? new Date(v) : null); }
 
-exports.rmClaimFreeAttempt = onCall({ region: REGION, enforceAppCheck: true }, async req => {
+exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req), claimRef = db.doc("testSeriesFreeAttempts/" + uid), configRef = db.doc("testSeriesConfig/freeTest");
   return db.runTransaction(async tx => {
     const [claim, config] = await Promise.all([tx.get(claimRef), tx.get(configRef)]);
@@ -35,7 +37,7 @@ exports.rmClaimFreeAttempt = onCall({ region: REGION, enforceAppCheck: true }, a
   });
 });
 
-exports.rmStartExam = onCall({ region: REGION, enforceAppCheck: true }, async req => {
+exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req), testId = id(req.data && req.data.testId), testRef = db.doc("testSeriesTests/" + testId);
   return db.runTransaction(async tx => {
     const testSnap = await tx.get(testRef);
@@ -63,7 +65,7 @@ exports.rmStartExam = onCall({ region: REGION, enforceAppCheck: true }, async re
   });
 });
 
-exports.rmSaveAnswer = onCall({ region: REGION, enforceAppCheck: true }, async req => {
+exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req), attemptId = id(req.data && req.data.attemptId), questionId = id(req.data && req.data.questionId), answer = req.data && req.data.answer;
   if (!(typeof answer === "string" || typeof answer === "number" || typeof answer === "boolean" || answer === null)) throw new HttpsError("invalid-argument", "Answer must be scalar");
   const ref = db.doc("testSeriesAttempts/" + attemptId);
@@ -77,7 +79,7 @@ exports.rmSaveAnswer = onCall({ region: REGION, enforceAppCheck: true }, async r
   return { saved: true };
 });
 
-exports.rmSubmitExam = onCall({ region: REGION, enforceAppCheck: true }, async req => {
+exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req), attemptId = id(req.data && req.data.attemptId), ref = db.doc("testSeriesAttempts/" + attemptId);
   return db.runTransaction(async tx => {
     const snap = await tx.get(ref);
@@ -103,7 +105,7 @@ exports.rmSubmitExam = onCall({ region: REGION, enforceAppCheck: true }, async r
   });
 });
 
-exports.rmGetOwnerAdminSession = onCall({ region: REGION, enforceAppCheck: true }, async req => {
+exports.rmGetOwnerAdminSession = onCall(CALLABLE_OPTIONS, async req => {
   const uid = owner(req);
   return { authorized: true, uid, email: req.auth.token.email || null };
 });
