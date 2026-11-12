@@ -61,13 +61,17 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     }
     const activeRef = db.doc("testSeriesActiveSessions/" + uid), active = await tx.get(activeRef);
     if (active.exists && active.data().status === "in_progress" && date(active.data().expiresAt) > now) {
-      if (active.data().testId !== testId) throw new HttpsError("already-exists", "Another exam session is active");
       const activeAttemptId = id(active.data().attemptId);
       const activeAttemptSnap = await tx.get(db.doc("testSeriesAttempts/" + activeAttemptId));
       if (activeAttemptSnap.exists) {
         const activeAttempt = activeAttemptSnap.data();
-        if (activeAttempt.uid === uid && activeAttempt.testId === testId &&
-            activeAttempt.status === "in_progress" && date(activeAttempt.expiresAt) > now) {
+        const validActiveAttempt = activeAttempt.uid === uid &&
+          activeAttempt.testId === active.data().testId &&
+          activeAttempt.status === "in_progress" && date(activeAttempt.expiresAt) > now;
+        if (validActiveAttempt) {
+          if (active.data().testId !== testId) {
+            throw new HttpsError("already-exists", "Another exam session is active");
+          }
           return {
             attemptId: activeAttemptId,
             startedAt: date(activeAttempt.startedAt).toISOString(),
