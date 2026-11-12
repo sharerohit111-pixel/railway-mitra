@@ -134,6 +134,8 @@ test("unauthenticated caller cannot start an exam", async () => {
 test("non-owner cannot create a test", async () => {
   const originalOwnerUid = process.env.OWNER_UID;
   process.env.OWNER_UID = "some-other-owner";
+  // Re-authenticate the ordinary student after the preceding anonymous-call test.
+  await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
   try {
     await assert.rejects(
       callable("rmOwnerSaveTest", {
