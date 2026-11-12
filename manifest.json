@@ -1,16 +1,18 @@
-
 {
-  "id": "./",
+  "id": "./app.html",
   "name": "Railway Mitra",
   "short_name": "Railway Mitra",
   "description": "Your Railway. Your Digital Companion. One Platform for Railway Employee Services.",
-  "start_url": "./",
+  "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#050B1A",
   "theme_color": "#071326",
-  "categories": ["productivity", "utilities"],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "./assets/icons/icon-512.png",
