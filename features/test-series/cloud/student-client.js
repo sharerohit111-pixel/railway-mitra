@@ -36,3 +36,7 @@ export async function listAvailableCbtTests(app) {
 export async function getStudentCbtDashboard(app) {
   return (await callable(app, "rmGetStudentDashboard")({})).data;
 }
+
+export async function getCbtTestLeaderboard(app, testId) {
+  return (await callable(app, "rmGetTestLeaderboard")({ testId })).data;
+}
