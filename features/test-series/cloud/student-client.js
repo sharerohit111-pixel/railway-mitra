@@ -1,7 +1,7 @@
 // Student phone-only sign-in and CBT callable client.
 // Host app must initialize Firebase Auth, Functions and App Check before calling these helpers.
-import { RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 
 let verifier = null;
 function getVerifier(auth, containerId = "rm-student-recaptcha") {
