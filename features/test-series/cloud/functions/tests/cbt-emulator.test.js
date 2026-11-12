@@ -114,6 +114,12 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.ok(started.attemptId);
   assert.equal(started.attemptId, claimedAttemptId, "free claim must be the attempt that starts");
   assert.equal(started.resumed, false);
+  const activeAttempt = await callable("rmGetStudentActiveAttempt", { testId });
+  assert.equal(activeAttempt.found, true);
+  assert.equal(activeAttempt.attemptId, started.attemptId);
+  assert.equal(activeAttempt.status, "in_progress");
+  const otherTestAttempt = await callable("rmGetStudentActiveAttempt", { testId: "another-test" });
+  assert.equal(otherTestAttempt.found, false);
 
   // A reload/re-entry during a live attempt must resume the same server session.
   const resumed = await callable("rmStartExam", { testId });
@@ -170,6 +176,10 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.deepEqual(repeatedResult, result, "repeated submit must return the original complete result");
   const recoveredResult = await callable("rmGetCbtAttemptResult", { attemptId: started.attemptId });
   assert.deepEqual(recoveredResult, result, "a submitted result must be recoverable after re-entry");
+  const completedSession = await callable("rmGetStudentActiveAttempt", { testId });
+  assert.equal(completedSession.found, true);
+  assert.equal(completedSession.status, "completed");
+  assert.equal(completedSession.attemptId, started.attemptId);
   await assert.rejects(
     callable("rmGetCbtAttemptResult", { attemptId: "not-this-students-attempt" }),
     error => error.code === "functions/permission-denied"
