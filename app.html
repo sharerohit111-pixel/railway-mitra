@@ -1,0 +1,218 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#071326">
+
+    <title>Railway Mitra App</title>
+
+    <meta name="description" content="Railway Mitra - Your Railway Digital Companion">
+    <style>html.auth-pending body{visibility:hidden}</style>
+    <script>document.documentElement.classList.add("auth-pending")</script>
+    <script type="module" src="assets/js/auth-guard.js?v=2"></script>
+<link rel="manifest" href="./manifest.json">
+    <link rel="stylesheet" href="assets/css/main.css">\n    <link rel="stylesheet" href="features/favorites/favorites.css?v=1">
+    <link rel="stylesheet" href="features/global-search/global-search.css">
+    <link rel="stylesheet" href="features/share/share.css">
+    <link rel="stylesheet" href="features/install/home-install.css?v=2">
+    <link rel="stylesheet" href="features/home-highlights/highlights.css?v=20">
+    <link rel="stylesheet" href="features/home-highlights/welcome-hero.css?v=2">
+    <link rel="stylesheet" href="features/bottom-navigation/bottom-navigation.css?v=1">
+    <link rel="stylesheet" href="features/splash-screen/splash.css?v=1">
+    <script src="assets/js/language.js" defer></script>
+    <script src="features/share/share.js" defer></script>
+    <script src="features/install/home-install.js?v=3" defer></script>
+    <script src="features/splash-screen/splash.js?v=1" defer></script>
+</head>
+
+<body>
+
+    <!-- Isolated animated opening screen; app content remains untouched underneath. -->
+    <div class="rm-splash" id="rmSplash" role="status" aria-live="polite" aria-label="Opening Railway Mitra">
+        <div class="rm-splash__content">
+            <div class="rm-splash__logo-wrap">
+                <img class="rm-splash__logo" src="assets/icons/icon-512.png" alt="Railway Mitra Logo">
+            </div>
+            <h1 class="rm-splash__brand">RAILWAY MITRA</h1>
+            <p class="rm-splash__tagline">Your Railway Digital Companion</p>
+            <p class="rm-splash__quote">“Away from their families, uniting millions of lives.”</p>
+            <p class="rm-splash__tribute">A tribute to the real heroes of Indian Railways</p>
+            <div class="rm-splash__loader" role="presentation"><div class="rm-splash__progress"></div></div>
+            <p class="rm-splash__loading">PREPARING YOUR RAILWAY COMPANION</p>
+            <p class="rm-splash__owner">Owned &amp; Developed by <strong>Rohit Kumar</strong></p>
+        </div>
+    </div>
+
+    <header class="app-header">
+        <div class="brand">
+            <div class="brand-icon">🚆</div>
+            <div>
+                <h1>Railway Mitra</h1>
+                <p>Your Railway Digital Companion</p>
+            </div>
+        </div>
+
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+            ☰
+        </button>
+        <div class="rm-founder-credit" aria-label="Rohit Kumar, Founder and Developer">
+            <img src="assets/images/rohit-founder-avatar.svg" alt="" />
+            <span>Rohit Kumar | Founder &amp; Developer</span>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <section class="welcome-section">
+            <h2>Welcome to Railway Mitra</h2>
+            <div class="rm-heroes-tribute" role="img" aria-label="Dedicated to the Real Heroes Who Keep the Nation on Track">
+                <img src="features/home-highlights/railway-heroes-banner.svg" alt="Railway track workers at sunrise, Indian tricolour rails and an approaching locomotive" />
+            </div>
+
+            <a href="features/profile/index.html" class="profile-btn">
+                👤 My Employee Profile
+            </a>
+
+            <div class="rm-home-highlights" data-rm-home-highlights aria-label="Railway Mitra live feature highlights"></div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2>Employee Services</h2>
+
+            <div class="feature-grid">
+
+                <a href="features/salary/index.html" class="feature-card">
+                    <span>💰</span>
+                    <h3>Salary & Pay</h3>
+                    <p>Salary and Pay Calculators</p>
+                </a>
+
+                <a href="features/income-tax/index.html" class="feature-card">
+                    <span>🧾</span>
+                    <h3>Income Tax</h3>
+                    <p>New & Old Tax Regime Calculator</p>
+                </a>
+
+                <a href="employee-benefits-calculators/index.html" class="feature-card">
+                    <span>🎁</span>
+                    <h3>Employee Benefits</h3>
+                    <p>Gratuity, Leave Encashment & CEA Calculators</p>
+                </a>
+
+                <a href="features/pay-commission-8th/index.html" class="feature-card">
+                    <span>📈</span>
+                    <h3>8th Pay Commission</h3>
+                    <p>Estimated New Salary & Arrear Calculator</p>
+                </a>
+
+                <a href="features/allowances/index.html" class="feature-card">
+                    <span>📊</span>
+                    <h3>Allowances</h3>
+                    <p>DA, HRA, TA, NDA, OTA</p>
+                </a>
+
+                <a href="features/arrears/index.html" class="feature-card">
+                    <span>🧮</span>
+                    <h3>Arrear Calculator</h3>
+                    <p>DA and Other Arrears</p>
+                </a>
+
+                <a href="features/duty-diary/index.html" class="feature-card">
+                    <span>🗓️</span>
+                    <h3>Duty Roster & Allowance Diary</h3>
+                    <p>Calendar-based duty entries, TA, NDA, OTA, KMA and monthly records</p>
+                </a>
+
+                <a href="features/personal-diary/index.html" class="feature-card">
+                    <span>📔</span>
+                    <h3>Personal Diary & Notes</h3>
+                    <p>Write, save, search and organize personal notes and reminders</p>
+                </a>
+
+                <a href="features/retirement/index.html" class="feature-card">
+                    <span>🏦</span>
+                    <h3>NPS & Pension</h3>
+                    <p>Retirement Planning Tools</p>
+                </a>
+
+                <a href="features/rules/index.html" class="feature-card">
+                    <span>📚</span>
+                    <h3>Railway Rules</h3>
+                    <p>Rules, Manuals and Circulars</p>
+                </a>
+
+                <a href="features/p-way-manuals/index.html" class="feature-card">
+                    <span>📘</span>
+                    <h3>Indian Railways P-Way Manuals &amp; Guidelines</h3>
+                    <p>IRPWM, ACS, Track Safety Rules and Technical Manuals</p>
+                </a>
+
+                <a href="features/p-way-civil-engineering-tools/index.html" class="feature-card">
+                    <span>📐</span>
+                    <h3>P-Way & Civil Engineering Tools</h3>
+                    <p>Versine Calculator and Engineering Utilities</p>
+                </a>
+
+                <a href="features/updates/index.html" class="feature-card">
+                    <span>🔔</span>
+                    <h3>Railway Updates</h3>
+                    <p>Orders and Notifications</p>
+                </a>
+
+
+                <a href="features/map/index.html" class="feature-card">
+                    <span>🗺️</span>
+                    <h3>Railway Map</h3>
+                    <p>Explore India on an interactive map</p>
+                </a>
+
+                <a href="features/compliance/index.html" class="feature-card">
+                    <span>🛡️</span>
+                    <h3>Data Sources & Compliance</h3>
+                    <p>Source register and reuse checklist</p>
+                </a>
+
+                <a href="features/settings/index.html" class="feature-card">
+                    <span>⚙️</span>
+                    <h3>Settings</h3>
+                    <p>App Preferences, Backup & Privacy</p>
+                </a>
+
+            </div>
+        </section>
+
+        <section class="privacy-section">
+            <span>🔐</span>
+            <div>
+                <h3>Privacy First</h3>
+                <p>Your personal employee information must remain private and protected.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="app-footer">
+        <h3>Railway Mitra</h3>
+        <p>Your Railway Digital Companion</p>
+        <p>© 2026 Railway Mitra</p>
+        <p><a href="features/privacy/index.html">Privacy Policy</a></p>
+    </footer>
+
+  
+    <script src="assets/js/app.js"></script>\n    <script src="features/favorites/favorites.js?v=1" defer></script>
+    <script type="module" src="features/exams/admin-menu.js?v=1"></script>
+    <script src="features/home-highlights/highlights.js?v=5" defer></script>
+    <script src="features/global-search/global-search.js?v=4" defer></script>
+    <script src="features/bottom-navigation/bottom-navigation.js?v=3" defer></script>
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js")
+            .catch(error => console.error("Service Worker Error:", error));
+    });
+}
+</script>
+</body>
+</html>
