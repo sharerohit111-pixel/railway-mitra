@@ -19,3 +19,10 @@ The module provides server-timed countdown, question palette, Previous/Next, ans
 - Only the configured free-trial test can be started without a paid entitlement. Paid tests remain visibly unavailable until a verified payment-to-entitlement flow is implemented. Other zero-price tests are not automatically free.
 - The callable returns published metadata only. It never returns questions or answer keys.
 - The module is isolated and is not yet wired into the live Railway Mitra route. Production use still requires auth/App Check integration, Firestore rules review, owner provisioning, deployment approval and real-device testing.
+
+## Student performance dashboard
+
+- `dashboard.html` is the isolated markup fragment; `dashboard.js` initializes the student's own submitted-results view.
+- Inject the fragment after phone-OTP sign-in, then call `initStudentDashboard({ app, root })`.
+- The backend callable `rmGetStudentDashboard` scopes the query to the authenticated Firebase UID and returns only that student's submitted scores plus safe test titles. It does not return other students' identities, answer keys, or question content.
+- The dashboard is a history/performance view, not a live leaderboard or rank list. Ranking requires a separately designed privacy-safe aggregation.
