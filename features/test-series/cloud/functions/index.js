@@ -120,7 +120,7 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
     const question = (questionSet.data().questions || []).find(item => item.id === questionId);
     if (!question) throw new HttpsError("invalid-argument", "Question does not belong to this exam");
-    if (typeof answer !== "string" || !/^\\d+$/.test(answer) || Number(answer) >= question.options.length) {
+    if (typeof answer !== "string" || !/^\d+$/.test(answer) || Number(answer) >= question.options.length) {
       throw new HttpsError("invalid-argument", "Answer must be a valid option index");
     }
     tx.update(ref, { ["answers." + questionId]: answer, updatedAt: FieldValue.serverTimestamp() });
