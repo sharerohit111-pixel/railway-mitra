@@ -1,5 +1,5 @@
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
-import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, hasPhoneMfa, signOut } from "./admin-auth.js";
 
 export function initOwnerAdminDashboard(auth, functions) {
