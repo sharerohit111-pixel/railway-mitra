@@ -1,0 +1,69 @@
+name: Public Site Checks
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'app.html'
+      - 'about.html'
+      - 'contact.html'
+      - 'disclaimer.html'
+      - 'guides/**'
+      - 'features/auth/login.js'
+      - 'features/privacy/**'
+      - 'manifest.json'
+      - 'robots.txt'
+      - 'sitemap.xml'
+      - '.github/workflows/public-site-checks.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'app.html'
+      - 'about.html'
+      - 'contact.html'
+      - 'disclaimer.html'
+      - 'guides/**'
+      - 'features/auth/login.js'
+      - 'features/privacy/**'
+      - 'manifest.json'
+      - 'robots.txt'
+      - 'sitemap.xml'
+
+jobs:
+  public-site-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check login JavaScript syntax
+        run: node --check features/auth/login.js
+      - name: Validate sitemap XML
+        run: python -c "import xml.etree.ElementTree as ET; ET.parse('sitemap.xml'); print('Sitemap XML is valid')"
+      - name: Validate PWA manifest and public pages
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          required = [
+              'index.html', 'app.html', 'about.html', 'contact.html',
+              'disclaimer.html', 'guides/index.html',
+              'guides/allowance-basics.html',
+              'guides/track-maintenance-reference.html',
+              'guides/calculator-checklist.html',
+              'features/privacy/index.html', 'robots.txt', 'sitemap.xml'
+          ]
+          missing = [p for p in required if not Path(p).is_file()]
+          if missing:
+              raise SystemExit('Missing public-site files: ' + ', '.join(missing))
+          manifest = json.loads(Path('manifest.json').read_text())
+          assert manifest.get('start_url') == './app.html', 'PWA must launch authenticated app.html'
+          home = Path('index.html').read_text()
+          app = Path('app.html').read_text()
+          assert 'name="description"' in home
+          assert 'auth-guard.js' in app, 'Authenticated app guard missing'
+          assert 'sign in' in home.lower() or 'sign-in' in home.lower()
+          print('Public pages and PWA manifest checks passed')
+          PY
