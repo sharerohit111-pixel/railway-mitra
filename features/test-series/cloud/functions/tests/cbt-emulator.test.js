@@ -52,6 +52,12 @@ before(async () => {
       q2: { correctAnswer: "B" }
     }
   });
+  await db.doc(`testSeriesQuestionSets/${testId}`).set({
+    questions: [
+      { id: "q1", text: "Question one?", options: ["A", "B"] },
+      { id: "q2", text: "Question two?", options: ["A", "B"] }
+    ]
+  });
 });
 
 after(async () => {
@@ -70,6 +76,7 @@ after(async () => {
     await db.doc(`testSeriesActiveSessions/${uid}`).delete().catch(() => {});
     await db.doc(`testSeriesTests/${testId}`).delete();
     await db.doc(`testSeriesAnswerKeys/${testId}`).delete();
+    await db.doc(`testSeriesQuestionSets/${testId}`).delete();
     await db.doc("testSeriesConfig/freeTest").delete();
     await getAuth(app).deleteUser(uid).catch(() => {});
   }
