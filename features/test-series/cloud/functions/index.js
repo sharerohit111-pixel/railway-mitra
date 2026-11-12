@@ -246,7 +246,11 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
 // Student catalogue exposes published metadata only; question sets and answer keys stay private.
 exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   user(req);
-  const snap = await db.collection("testSeriesTests").where("status", "==", "published").limit(100).get();
+  const [snap, freeConfig] = await Promise.all([
+    db.collection("testSeriesTests").where("status", "==", "published").limit(100).get(),
+    db.doc("testSeriesConfig/freeTest").get()
+  ]);
+  const freeTestId = freeConfig.exists && freeConfig.data().enabled ? freeConfig.data().testId : null;
   const tests = snap.docs.map(d => {
     const t = d.data();
     return {
@@ -255,6 +259,7 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
       mode: t.mode === "scheduled" ? "scheduled" : "mock",
       durationMinutes: Number(t.durationMinutes || 30),
       price: Number(t.price || 0),
+      accessType: d.id === freeTestId ? "free_trial" : (Number(t.price || 0) > 0 ? "paid" : "unavailable"),
       questionCount: Number(t.questionCount || 0),
       scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
       scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null
