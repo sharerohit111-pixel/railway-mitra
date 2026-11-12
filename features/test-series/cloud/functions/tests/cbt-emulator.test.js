@@ -270,6 +270,55 @@ test("free test cannot start until the one-time claim is created", async () => {
   }
 });
 
+test("paid and scheduled exams enforce entitlement and their server-side time window", async () => {
+  const scheduledTestId = "emulator-scheduled-window-test";
+  const testRef = db.doc("testSeriesTests/" + scheduledTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + scheduledTestId);
+  const keyRef = db.doc("testSeriesAnswerKeys/" + scheduledTestId);
+  const questionsRef = db.doc("testSeriesQuestionSets/" + scheduledTestId);
+  let startedAttemptId = null;
+  try {
+    const now = Date.now();
+    await testRef.set({
+      title: "Scheduled Window Test", status: "published", price: 50,
+      mode: "scheduled", durationMinutes: 10,
+      scheduleStartAt: new Date(now + 60_000),
+      scheduleEndAt: new Date(now + 10 * 60_000)
+    });
+    await keyRef.set({ questions: {} });
+    await questionsRef.set({ questions: [] });
+
+    await assert.rejects(
+      callable("rmStartExam", { testId: scheduledTestId }),
+      error => error.code === "functions/permission-denied"
+    );
+
+    await entitlementRef.set({ uid, testId: scheduledTestId, status: "active" });
+    await assert.rejects(
+      callable("rmStartExam", { testId: scheduledTestId }),
+      error => error.code === "functions/failed-precondition"
+    );
+
+    await testRef.update({
+      scheduleStartAt: new Date(Date.now() - 60_000),
+      scheduleEndAt: new Date(Date.now() + 10 * 60_000)
+    });
+    const started = await callable("rmStartExam", { testId: scheduledTestId });
+    startedAttemptId = started.attemptId;
+    assert.ok(startedAttemptId);
+    const submitted = await callable("rmSubmitExam", { attemptId: startedAttemptId });
+    assert.equal(submitted.submitted, true);
+    assert.equal(submitted.totalQuestions, 0);
+  } finally {
+    if (startedAttemptId) {
+      await db.doc("testSeriesAttempts/" + startedAttemptId).delete();
+      await db.doc("testSeriesResults/" + startedAttemptId).delete();
+    }
+    await db.doc("testSeriesActiveSessions/" + uid).delete();
+    await Promise.all([testRef, entitlementRef, keyRef, questionsRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("unauthenticated caller cannot start an exam", async () => {
   await signOut(clientAuth);
   await assert.rejects(
