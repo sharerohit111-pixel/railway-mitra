@@ -1,4 +1,4 @@
-import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult } from "../cloud/student-client.js";
+import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt } from "../cloud/student-client.js";
 import "./exam.css";
 
 export function initStudentCbtExam({ app, testId, root = document }) {
@@ -98,6 +98,13 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     try{
       let previousAttempt=null;
       try{previousAttempt=localStorage.getItem(attemptKey());}catch(_){}
+      if(!previousAttempt){
+        const active=await getStudentActiveCbtAttempt(app,testId);
+        if(active.found){
+          previousAttempt=active.attemptId;
+          try{localStorage.setItem(attemptKey(),previousAttempt);}catch(_){}
+        }
+      }
       if(previousAttempt){
         attemptId=previousAttempt;
         try{
