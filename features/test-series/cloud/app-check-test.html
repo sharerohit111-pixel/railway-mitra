@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#071326">
+<title>Railway Mitra · App Check Test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#071326;color:#eaf4ff;font:16px system-ui,sans-serif;display:grid;place-items:center;padding:20px}
+main{width:min(100%,520px);background:#10233d;border:1px solid #25496c;border-radius:20px;padding:24px;box-shadow:0 18px 50px #0005}
+h1{font-size:22px;margin:0 0 8px}.muted{color:#a9bfd6;line-height:1.55}.status{margin:20px 0;padding:16px;border-radius:12px;background:#0a1728;border:1px solid #29425c;overflow-wrap:anywhere}
+button{width:100%;border:0;border-radius:12px;padding:14px;background:#16b8e8;color:#041322;font-weight:700;font-size:16px}
+.small{font-size:13px;color:#a9bfd6;margin-top:16px}.good{color:#7af0b0}.bad{color:#ff9a9a}
+</style>
+</head>
+<body>
+<main>
+<h1>Railway Mitra · App Check</h1>
+<p class="muted">यह अलग diagnostic पेज Firebase App Check token प्राप्त होने की जाँच करता है। यह कोई token या secret स्क्रीन पर नहीं दिखाता।</p>
+<div class="status" id="status" role="status" aria-live="polite">जाँच शुरू करने के लिए बटन दबाएँ।</div>
+<button id="run" type="button">App Check जाँचें</button>
+<p class="small">यह केवल परीक्षण है। इससे Enforcement चालू नहीं होती और कोई billing upgrade नहीं होता।</p>
+</main>
+<script type="module">
+import { appCheck } from "../../../assets/js/firebase.js";
+import { getToken } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app-check.js";
+const statusEl=document.getElementById("status");
+const button=document.getElementById("run");
+button.addEventListener("click",async()=>{
+  button.disabled=true;statusEl.className="status";statusEl.textContent="App Check token जाँचा जा रहा है…";
+  try{
+    const result=await getToken(appCheck,false);
+    if(!result || !result.token) throw new Error("Firebase ने App Check token नहीं लौटाया।");
+    statusEl.className="status good";
+    statusEl.textContent="सफल: App Check token प्राप्त हुआ। Token सुरक्षित है; इसे यहाँ प्रदर्शित नहीं किया गया।";
+  }catch(error){
+    console.error("Railway Mitra App Check diagnostic:",error);
+    statusEl.className="status bad";
+    statusEl.textContent="जाँच असफल: "+(error.code||"unknown-error")+" — "+(error.message||"कृपया console logs देखें।");
+  }finally{button.disabled=false;}
+});
+</script>
+</body>
+</html>
