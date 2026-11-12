@@ -27,3 +27,15 @@ exports.rmClaimFreeAttempt = onCall({ region: "asia-south1", enforceAppCheck: tr
     return { attemptId: attemptRef.id, testId, status: "started" };
   });
 });
+
+
+exports.rmGetOwnerAdminSession = onCall({ region: "asia-south1", enforceAppCheck: true }, async request => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Owner login required");
+  const ownerUid = process.env.OWNER_UID;
+  if (!ownerUid) throw new HttpsError("failed-precondition", "Owner UID is not configured on the server");
+  if (request.auth.uid !== ownerUid) throw new HttpsError("permission-denied", "Owner access denied");
+  const firebaseClaims = request.auth.token.firebase || {};
+  if (!firebaseClaims.sign_in_second_factor)
+    throw new HttpsError("permission-denied", "A fresh second-factor OTP is required");
+  return { authorized: true, uid: request.auth.uid, email: request.auth.token.email || null };
+});
