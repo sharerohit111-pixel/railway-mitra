@@ -83,6 +83,30 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
   });
 });
 
+exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = user(req), attemptId = id(req.data && req.data.attemptId);
+  const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
+  if (!attemptSnap.exists || attemptSnap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
+  const attempt = attemptSnap.data();
+  if (attempt.status !== "in_progress" || !date(attempt.expiresAt) || date(attempt.expiresAt) <= new Date()) {
+    throw new HttpsError("failed-precondition", "Exam is closed");
+  }
+  const [testSnap, questionsSnap] = await Promise.all([
+    db.doc("testSeriesTests/" + attempt.testId).get(),
+    db.doc("testSeriesQuestionSets/" + attempt.testId).get()
+  ]);
+  if (!testSnap.exists || !questionsSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+  const test = testSnap.data(), questions = questionsSnap.data().questions || [];
+  if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
+  return {
+    test: { testId: attempt.testId, title: test.title || "", durationMinutes: Number(test.durationMinutes || 30),
+      marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0) },
+    questions: questions.map(q => ({ id: q.id, text: q.text, options: q.options })),
+    savedAnswers: attempt.answers || {},
+    expiresAt: date(attempt.expiresAt).toISOString()
+  };
+});
+
 exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req), attemptId = id(req.data && req.data.attemptId), questionId = id(req.data && req.data.questionId), answer = req.data && req.data.answer;
   if (!(typeof answer === "string" || typeof answer === "number" || typeof answer === "boolean" || answer === null)) throw new HttpsError("invalid-argument", "Answer must be scalar");
