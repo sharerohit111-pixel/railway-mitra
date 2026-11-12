@@ -13,7 +13,10 @@ on:
       - feature/test-series-cloud-access
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/student-client.js"
+      - "features/test-series/student/**"
       - "firebase.json"
+      - ".github/workflows/test-series-functions.yml"
 
 jobs:
   syntax:
