@@ -12,6 +12,7 @@ on:
       - 'features/auth/login.js'
       - 'features/privacy/**'
       - 'manifest.json'
+      - 'service-worker.js'
       - 'robots.txt'
       - 'sitemap.xml'
       - '.github/workflows/public-site-checks.yml'
@@ -27,6 +28,7 @@ on:
       - 'features/auth/login.js'
       - 'features/privacy/**'
       - 'manifest.json'
+      - 'service-worker.js'
       - 'robots.txt'
       - 'sitemap.xml'
 
@@ -62,8 +64,10 @@ jobs:
           assert manifest.get('start_url') == './app.html', 'PWA must launch authenticated app.html'
           home = Path('index.html').read_text()
           app = Path('app.html').read_text()
+          service_worker = Path('service-worker.js').read_text()
           assert 'name="description"' in home
           assert 'auth-guard.js' in app, 'Authenticated app guard missing'
+          assert 'new URL("./app.html", self.registration.scope).href' in service_worker, 'Offline navigation must fall back to app.html'
           assert 'sign in' in home.lower() or 'sign-in' in home.lower()
           print('Public pages and PWA manifest checks passed')
           PY
