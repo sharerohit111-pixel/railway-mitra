@@ -10,7 +10,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
     el("rm-cbt-saved").textContent="Saving…";
-    saving=saving.then(()=>saveCbtAnswer(app,attemptId,qid,value)).then(()=>{el("rm-cbt-saved").textContent="All changes saved";}).catch(e=>{el("rm-cbt-saved").textContent="Save failed";status(e.message||"उत्तर सेव नहीं हुआ।");throw e;});
+    saving=saving.catch(()=>{}).then(()=>saveCbtAnswer(app,attemptId,qid,value)).then(()=>{el("rm-cbt-saved").textContent="All changes saved";}).catch(e=>{el("rm-cbt-saved").textContent="Save failed";status(e.message||"उत्तर सेव नहीं हुआ।");throw e;});
     return saving;
   }
   function render(){
