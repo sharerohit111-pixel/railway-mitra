@@ -144,6 +144,23 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(dashboard.results[0].attemptId, started.attemptId);
   assert.equal(dashboard.results[0].testTitle, "Emulator Free Test");
   assert.equal(dashboard.results.some(item => item.score === 999), false);
+  await db.doc("testSeriesResults/leaderboard-higher-score").set({
+    uid: "private-student-uid-1", testId, score: 4, correct: 2,
+    wrong: 0, unattempted: 0, totalQuestions: 2
+  });
+  await db.doc("testSeriesResults/leaderboard-tied-score").set({
+    uid: "private-student-uid-2", testId, score: 2, correct: 1,
+    wrong: 0, unattempted: 1, totalQuestions: 2
+  });
+  const leaderboard = await callable("rmGetTestLeaderboard", { testId });
+  assert.equal(leaderboard.participantCount, 3);
+  assert.equal(leaderboard.myRank, 2);
+  assert.equal(leaderboard.top[0].rank, 1);
+  assert.equal(leaderboard.top[0].label, "Candidate 01");
+  assert.equal(Object.hasOwn(leaderboard.top[0], "uid"), false);
+  assert.equal(Object.hasOwn(leaderboard.top[0], "attemptId"), false);
+  await db.doc("testSeriesResults/leaderboard-higher-score").delete();
+  await db.doc("testSeriesResults/leaderboard-tied-score").delete();
   await db.doc("testSeriesResults/foreign-student-result").delete();
 });
 
