@@ -116,6 +116,13 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
     const a = snap.data();
     if (a.status !== "in_progress" || date(a.expiresAt) <= new Date()) throw new HttpsError("failed-precondition", "Exam is closed");
+    const questionSet = await tx.get(db.doc("testSeriesQuestionSets/" + a.testId));
+    if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+    const question = (questionSet.data().questions || []).find(item => item.id === questionId);
+    if (!question) throw new HttpsError("invalid-argument", "Question does not belong to this exam");
+    if (typeof answer !== "string" || !/^\\d+$/.test(answer) || Number(answer) >= question.options.length) {
+      throw new HttpsError("invalid-argument", "Answer must be a valid option index");
+    }
     tx.update(ref, { ["answers." + questionId]: answer, updatedAt: FieldValue.serverTimestamp() });
   });
   return { saved: true };
