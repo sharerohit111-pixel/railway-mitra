@@ -24,6 +24,16 @@ No Firebase configuration or project files were found in the inspected repositor
 - testSeriesEntitlements/{uid_testId}: server-created paid entitlement containing `uid`, `testId` and `status`; `rmStartExam` checks both identity fields against the authenticated student and requested test before granting access. A future payment webhook must create this record only after provider signature verification and idempotency checks.
 - testSeriesFreeAttempts/{uid}: one-time free attempt claim.
 
+## Razorpay signature verification boundary
+
+The isolated Functions package now includes two server-side HMAC verification helpers in `functions/razorpay-signature.js`:
+
+- Checkout response: verify HMAC-SHA256 over the exact `order_id|payment_id` string with the Razorpay API key secret.
+- Webhook: verify HMAC-SHA256 over the exact raw HTTP request bytes with the separately configured webhook secret. Never reconstruct the signed body with `JSON.stringify(req.body)`.
+- Both helpers reject malformed 64-character hexadecimal signatures and compare digest bytes with Node's constant-time `timingSafeEqual`.
+
+Deterministic tests use emulator-only dummy secrets and cover valid signatures, altered payloads/identifiers, malformed signatures and missing inputs. These helpers are not a payment integration: there is still no order-creation endpoint, webhook HTTP handler, payment-event ledger or entitlement-grant path. Before enabling paid tests, implement server-created order records bound to UID/test/amount/currency, verify captured payments against those records, and use Firestore transaction-based idempotency keyed by payment ID (and retain the webhook event ID for audit). Store real API/webhook secrets in Firebase Secret Manager; never commit them or trust a client-supplied payment-success flag.
+
 ## Important implementation note
 The callable functions are a foundation, not a completed TCS-scale platform. For 500 simultaneous candidates, load testing must determine Firestore document contention, read/write volume, answer payload sizes and autosave cadence. The current initial implementation stores answers on one attempt document and must be stress-tested. If measured contention or document growth is high, move answers into per-question documents or a dedicated answer-write service before launch.
 
