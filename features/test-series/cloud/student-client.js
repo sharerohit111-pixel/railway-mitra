@@ -25,6 +25,10 @@ export async function saveCbtAnswer(app, attemptId, questionId, answer) {
 export async function submitCbtExam(app, attemptId) {
   return (await callable(app, "rmSubmitExam")({ attemptId })).data;
 }
+
+export async function getCbtAttemptResult(app, attemptId) {
+  return (await callable(app, "rmGetCbtAttemptResult")({ attemptId })).data;
+}
 export async function claimFreeCbtAttempt(app) {
   return (await callable(app, "rmClaimFreeAttempt")({})).data;
 }
