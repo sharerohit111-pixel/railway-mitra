@@ -127,3 +127,74 @@ exports.rmGetOwnerAdminSession = onCall(CALLABLE_OPTIONS, async req => {
   const uid = owner(req);
   return { authorized: true, uid, email: req.auth.token.email || null };
 });
+
+
+function ownerTestPayload(data) {
+  const title = typeof data.title === "string" ? data.title.trim() : "";
+  if (!title || title.length > 160) throw new HttpsError("invalid-argument", "Test title is required (max 160 characters)");
+  const mode = data.mode === "scheduled" ? "scheduled" : data.mode === "mock" ? "mock" : null;
+  if (!mode) throw new HttpsError("invalid-argument", "Mode must be mock or scheduled");
+  const durationMinutes = Number(data.durationMinutes);
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 240) throw new HttpsError("invalid-argument", "Duration must be 1–240 minutes");
+  const price = Number(data.price ?? 0), marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
+  if (!Number.isFinite(price) || price < 0 || price > 100000) throw new HttpsError("invalid-argument", "Invalid test price");
+  if (!Number.isFinite(marksPerQuestion) || marksPerQuestion <= 0 || marksPerQuestion > 100) throw new HttpsError("invalid-argument", "Invalid marks per question");
+  if (!Number.isFinite(negativeMarks) || negativeMarks < 0 || negativeMarks > 100) throw new HttpsError("invalid-argument", "Invalid negative marks");
+  const status = data.status === "published" ? "published" : "draft";
+  let scheduleStartAt = null, scheduleEndAt = null;
+  if (mode === "scheduled") {
+    scheduleStartAt = date(data.scheduleStartAt); scheduleEndAt = date(data.scheduleEndAt);
+    if (!scheduleStartAt || !scheduleEndAt || !Number.isFinite(scheduleStartAt.getTime()) || !Number.isFinite(scheduleEndAt.getTime()) || scheduleEndAt <= scheduleStartAt) {
+      throw new HttpsError("invalid-argument", "Scheduled tests need valid start and end times");
+    }
+  }
+  if (!Array.isArray(data.questions) || data.questions.length < 1 || data.questions.length > 500) throw new HttpsError("invalid-argument", "Add 1–500 questions");
+  const seen = new Set();
+  const publicQuestions = [], answerQuestions = {};
+  for (const q of data.questions) {
+    const qid = id(q && q.id);
+    if (seen.has(qid)) throw new HttpsError("invalid-argument", "Duplicate question identifier");
+    seen.add(qid);
+    if (typeof q.text !== "string" || !q.text.trim() || q.text.length > 5000) throw new HttpsError("invalid-argument", "Each question needs text (max 5000 characters)");
+    if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6 || q.options.some(x => typeof x !== "string" || !x.trim() || x.length > 1000)) throw new HttpsError("invalid-argument", "Each question needs 2–6 text options");
+    if (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new HttpsError("invalid-argument", "Each question needs a valid correctIndex");
+    publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options });
+    answerQuestions[qid] = { correctAnswer: String(q.correctIndex) };
+  }
+  return {
+    metadata: { title, mode, durationMinutes, price, marksPerQuestion, negativeMarks, status,
+      scheduleStartAt: scheduleStartAt ? Timestamp.fromDate(scheduleStartAt) : null,
+      scheduleEndAt: scheduleEndAt ? Timestamp.fromDate(scheduleEndAt) : null,
+      questionCount: publicQuestions.length, updatedAt: FieldValue.serverTimestamp() },
+    publicQuestions, answerQuestions
+  };
+}
+
+exports.rmOwnerSaveTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = req.data && req.data.testId ? id(req.data.testId) : db.collection("testSeriesTests").doc().id;
+  const payload = ownerTestPayload(req.data || {});
+  const testRef = db.doc("testSeriesTests/" + testId);
+  await db.runTransaction(async tx => {
+    const existing = await tx.get(testRef);
+    if (existing.exists && existing.data().status === "published" && payload.metadata.status === "draft") {
+      throw new HttpsError("failed-precondition", "Unpublish flow is not enabled; use an approved maintenance process");
+    }
+    tx.set(testRef, { ...payload.metadata, createdAt: existing.exists ? existing.data().createdAt : FieldValue.serverTimestamp() }, { merge: true });
+    tx.set(db.doc("testSeriesQuestionSets/" + testId), { questions: payload.publicQuestions, updatedAt: FieldValue.serverTimestamp() });
+    tx.set(db.doc("testSeriesAnswerKeys/" + testId), { questions: payload.answerQuestions, updatedAt: FieldValue.serverTimestamp() });
+  });
+  return { saved: true, testId, status: payload.metadata.status, questionCount: payload.publicQuestions.length };
+});
+
+exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const snap = await db.collection("testSeriesTests").orderBy("updatedAt", "desc").limit(100).get();
+  return { tests: snap.docs.map(d => {
+    const t = d.data();
+    return { testId: d.id, title: t.title || "", mode: t.mode || "mock", status: t.status || "draft",
+      price: Number(t.price || 0), durationMinutes: Number(t.durationMinutes || 0),
+      questionCount: Number(t.questionCount || 0), scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
+      scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null };
+  }) };
+});
