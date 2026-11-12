@@ -94,6 +94,13 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(started.attemptId, claimedAttemptId, "free claim must be the attempt that starts");
   assert.equal(started.resumed, false);
 
+  const paper = await callable("rmGetExamQuestions", { attemptId: started.attemptId });
+  assert.equal(paper.questions.length, 2);
+  assert.equal(paper.questions[0].id, "q1");
+  assert.equal(Object.hasOwn(paper.questions[0], "correctAnswer"), false);
+  assert.equal(Object.hasOwn(paper.questions[0], "correctIndex"), false);
+  assert.ok(paper.expiresAt);
+
   const saved = await callable("rmSaveAnswer", {
     attemptId: started.attemptId, questionId: "q1", answer: "A"
   });
