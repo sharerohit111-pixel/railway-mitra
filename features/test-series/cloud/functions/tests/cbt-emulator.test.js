@@ -163,6 +163,12 @@ test("student can start, save answers and submit with server-side scoring", asyn
   // A lost network response may cause the client to submit the same attempt again.
   const repeatedResult = await callable("rmSubmitExam", { attemptId: started.attemptId });
   assert.deepEqual(repeatedResult, result, "repeated submit must return the original complete result");
+  const recoveredResult = await callable("rmGetCbtAttemptResult", { attemptId: started.attemptId });
+  assert.deepEqual(recoveredResult, result, "a submitted result must be recoverable after re-entry");
+  await assert.rejects(
+    callable("rmGetCbtAttemptResult", { attemptId: "not-this-students-attempt" }),
+    error => error.code === "functions/permission-denied"
+  );
   const persistedAttempt = (await db.doc("testSeriesAttempts/" + started.attemptId).get()).data();
   assert.equal(persistedAttempt.status, "submitted");
   assert.equal(persistedAttempt.timedOut, true);
