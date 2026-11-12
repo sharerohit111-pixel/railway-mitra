@@ -8,11 +8,11 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   const status = message => { el("rm-cbt-status").textContent=message; };
   const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
-  function showResult(score){
+  function showResult(score, warning=""){
     clearInterval(timer);
     startPanel.hidden=true;workspace.hidden=true;resultPanel.hidden=false;
     try{if(attemptId)localStorage.removeItem(draftKey());}catch(_){}
-    el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+(score.timedOut?" · Time expired":"");
+    el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+(score.timedOut?" · Time expired":"")+(warning?" · "+warning:"");
   }
   function persistPending(){
     if(!attemptId)return;
@@ -82,13 +82,21 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   async function finish(auto=false){
     if(finished)return;finished=true;clearInterval(timer);el("rm-cbt-submit").disabled=true;
     try{
-      await saving;
-      await retryPending();
+      let timeoutWarning="";
+      if(auto){
+        // At the server deadline, pending client drafts can no longer be saved. Wait for any
+        // in-flight request to settle, but submit the server-persisted answers without retrying.
+        await saving.catch(()=>{});
+        if(pendingAnswers.size) timeoutWarning="Some unsaved answers were not included";
+      }else{
+        await saving;
+        await retryPending();
+      }
       const score=await submitCbtExam(app,attemptId);
       // Submission is already confirmed by the server. Browser storage cleanup is best-effort
       // and must never hide a successful result when storage is disabled or quota-restricted.
       try{localStorage.removeItem(draftKey());}catch(_){}
-      showResult(score);
+      showResult(score,timeoutWarning);
     }catch(e){
       finished=false;el("rm-cbt-submit").disabled=false;
       if(remaining()>0&&!timer)timer=setInterval(tick,1000);
