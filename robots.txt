@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sharerohit111-pixel.github.io/sitemap.xml
