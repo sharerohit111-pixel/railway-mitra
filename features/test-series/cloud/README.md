@@ -1,19 +1,16 @@
-# Railway Mitra — Cloud Test Series (isolated foundation)
+# Railway Mitra CBT Cloud
 
-## Rules
-- One published free test (testSeriesConfig/freeTest with enabled=true and testId).
-- One free attempt per authenticated Firebase UID, enforced atomically on server.
-- All other tests require verified paid entitlement; payment implementation is NOT included yet.
-- Do not expose answer keys in student-readable Firestore documents.
-- Do not allow client writes to testSeriesFreeAttempts or testSeriesAttempts.
-- No existing Railway Mitra code is modified.
+See ARCHITECTURE.md for target architecture, data model, budget guardrails and deployment prerequisites.
 
-## Before use
-1. Configure a Firebase project, Authentication, Firestore and App Check.
-2. Deploy the callable function as an isolated functions codebase, after security review.
-3. Set restrictive Firestore Security Rules; client must not edit entitlements, scores, or question keys.
-4. Configure testSeriesConfig/freeTest and publish a zero-price test.
-5. Wire the client to the existing login and test interface, then test repeat claims and concurrent requests.
-6. Implement server-side submission, scoring, payment order creation and Razorpay signature/webhook verification before production.
+## Callable functions
+- rmClaimFreeAttempt: claims one free test attempt per authenticated UID.
+- rmStartExam: creates or resumes a server-timed mock/scheduled attempt.
+- rmSaveAnswer: saves a scalar answer only for the authenticated attempt owner.
+- rmSubmitExam: scores using private server-side answer keys and records the result.
+- rmGetOwnerAdminSession: checks server-configured OWNER_UID and Firebase second-factor claim.
 
-**Not production-ready yet:** function deployment, Firestore rules, integration, test content, secure scoring, payment, and user testing remain.
+## Firestore
+Deploy firestore.rules before connecting clients. All direct client reads/writes are denied; callable backend functions use Admin SDK.
+
+## Not production-ready
+No Firebase project has been confirmed, no functions have been deployed, and no live student UI is connected. Do not run paid deployment or real SMS until the user explicitly approves the cost.
