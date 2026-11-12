@@ -53,9 +53,12 @@ export async function initStudentDashboard({ app, root = document }) {
           detail.textContent = "Correct: " + item.correct + " · Wrong: " + item.wrong + " · Unattempted: " + item.unattempted;
           const totalLine = root.createElement("p");
           totalLine.textContent = "Total questions: " + item.totalQuestions;
+          const timingLine = root.createElement("p");
+          timingLine.className = item.timedOut ? "rm-dashboard-timeout" : "rm-dashboard-submission";
+          timingLine.textContent = item.timedOut ? "Time expired — submitted using saved answers" : "Submitted within the exam time";
           const dateLine = root.createElement("p");
           dateLine.textContent = item.submittedAt ? "Submitted: " + new Date(item.submittedAt).toLocaleString() : "Submission date unavailable";
-          card.append(heading, score, detail, totalLine, dateLine);
+          card.append(heading, score, detail, totalLine, timingLine, dateLine);
           resultsNode.append(card);
         });
       }
