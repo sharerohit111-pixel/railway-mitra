@@ -132,6 +132,15 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(resumed.attemptId, started.attemptId);
   assert.equal(resumed.expiresAt, started.expiresAt);
 
+  // The one-time free claim must recover its attempt if the active-session pointer is stale.
+  await db.doc("testSeriesActiveSessions/" + uid).update({ testId: "stale-other-test" });
+  const recoveredFromClaim = await callable("rmStartExam", { testId });
+  assert.equal(recoveredFromClaim.resumed, true);
+  assert.equal(recoveredFromClaim.attemptId, started.attemptId);
+  const repairedActive = await callable("rmGetStudentActiveAttempt", { testId });
+  assert.equal(repairedActive.found, true);
+  assert.equal(repairedActive.attemptId, started.attemptId);
+
   // A valid active exam must prevent the same student from starting a different paid test.
   const paidTestId = "emulator-paid-concurrent-test";
   await db.doc("testSeriesTests/" + paidTestId).set({
