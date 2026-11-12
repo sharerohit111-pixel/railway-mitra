@@ -297,3 +297,40 @@ exports.rmGetStudentDashboard = onCall(CALLABLE_OPTIONS, async req => {
   results.sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
   return { results, resultCount: results.length };
 });
+
+
+// Privacy-safe per-test leaderboard. Only aggregate rank, score and anonymous
+// display labels are returned; student UID, phone, email and attempt IDs stay private.
+exports.rmGetTestLeaderboard = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = user(req), testId = id(req.data && req.data.testId);
+  const testSnap = await db.doc("testSeriesTests/" + testId).get();
+  if (!testSnap.exists || testSnap.data().status !== "published") {
+    throw new HttpsError("not-found", "Published test not found");
+  }
+  const snap = await db.collection("testSeriesResults")
+    .where("testId", "==", testId).limit(1000).get();
+  const rows = snap.docs.map(d => {
+    const r = d.data();
+    return {
+      uid: r.uid,
+      score: Number(r.score || 0),
+      submittedAt: date(r.submittedAt)?.getTime() || 0
+    };
+  });
+  rows.sort((a, b) => b.score - a.score || a.submittedAt - b.submittedAt);
+  let rank = 0, previousScore = null;
+  const ranked = rows.map((row, index) => {
+    if (previousScore === null || row.score !== previousScore) rank = index + 1;
+    previousScore = row.score;
+    return { rank, score: row.score, uid: row.uid };
+  });
+  const mine = ranked.find(row => row.uid === uid);
+  return {
+    testId,
+    participantCount: rows.length,
+    leaderboardComplete: snap.size < 1000,
+    myRank: mine ? mine.rank : null,
+    myScore: mine ? mine.score : null,
+    top: ranked.slice(0, 20).map(row => ({ rank: row.rank, score: row.score, label: "Candidate " + String(row.rank).padStart(2, "0") }))
+  };
+});
