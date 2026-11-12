@@ -1,0 +1,8 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // All CBT reads and writes go through authenticated callable backend APIs.
+    // Admin SDK bypasses these rules; clients cannot edit scores, keys or entitlements.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
