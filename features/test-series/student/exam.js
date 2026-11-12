@@ -21,10 +21,17 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       if(!raw)return;
       const entries=JSON.parse(raw);
       if(!Array.isArray(entries))return;
+      const validQuestions=new Map(paper.questions.map(q=>[q.id,q]));
+      let discarded=0;
       for(const pair of entries){
-        if(Array.isArray(pair)&&pair.length===2&&typeof pair[0]==="string"&&typeof pair[1]==="string")
-          pendingAnswers.set(pair[0],pair[1]);
+        if(!Array.isArray(pair)||pair.length!==2) { discarded++; continue; }
+        const [qid,value]=pair, question=validQuestions.get(qid);
+        const optionIndex=Number(value);
+        if(!question||!Number.isInteger(optionIndex)||optionIndex<0||optionIndex>=question.options.length) { discarded++; continue; }
+        pendingAnswers.set(qid,String(optionIndex));
       }
+      if(discarded)status("कुछ पुराने/अमान्य Draft हटाए गए; सर्वर पर सेव उत्तर सुरक्षित हैं।");
+      if(!pendingAnswers.size)localStorage.removeItem(draftKey());
     }catch(_){status("स्थानीय Draft पढ़ा नहीं जा सका। सर्वर पर सेव उत्तर उपलब्ध रहेंगे।");}
   }
   const remaining = () => Math.max(0, Math.ceil((expiresAt-Date.now())/1000));
