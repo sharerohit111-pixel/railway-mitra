@@ -48,7 +48,8 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     try{const started=await startCbtExam(app,testId);attemptId=started.attemptId;paper=await getCbtExamQuestions(app,attemptId);answers={...paper.savedAnswers};expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;render();tick();timer=setInterval(tick,1000);}
     catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
   });
-  el("rm-cbt-retry").addEventListener("click",async()=>{const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){status(e.message||"Retry असफल।");}finally{b.disabled=false;}});\n  el("rm-cbt-prev").addEventListener("click",()=>{if(index>0){index--;render();}});
+  el("rm-cbt-retry").addEventListener("click",async()=>{const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){status(e.message||"Retry असफल।");}finally{b.disabled=false;}});
+  el("rm-cbt-prev").addEventListener("click",()=>{if(index>0){index--;render();}});
   el("rm-cbt-next").addEventListener("click",()=>{if(index<paper.questions.length-1){index++;render();}});
   el("rm-cbt-submit").addEventListener("click",()=>{if(confirm("क्या आप परीक्षा Submit करना चाहते हैं?"))finish(false);});
   return { destroy(){clearInterval(timer);} };
