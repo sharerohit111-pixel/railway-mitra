@@ -68,6 +68,39 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   el("rm-admin-refresh-tests").addEventListener("click", refreshTests);
   const testForm = el("rm-admin-test-form");
+  el("rm-question-import").addEventListener("click", async () => {
+    const file = el("rm-question-file").files?.[0];
+    if (!file) { status("पहले JSON या Excel file चुनें।"); return; }
+    const button = el("rm-question-import"); button.disabled = true;
+    try {
+      let questions;
+      const ext = file.name.split(".").pop().toLowerCase();
+      if (ext === "json") {
+        const parsed = JSON.parse(await file.text());
+        questions = Array.isArray(parsed) ? parsed : parsed.questions;
+      } else if (["xlsx", "xls", "csv"].includes(ext)) {
+        const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
+        const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+        questions = rows.map((row, index) => {
+          const normalized = Object.fromEntries(Object.entries(row).map(([k, v]) => [String(k).trim().toLowerCase(), v]));
+          let options = normalized.options;
+          if (typeof options === "string" && options.trim().startsWith("[")) options = JSON.parse(options);
+          if (!Array.isArray(options)) options = ["a", "b", "c", "d", "e", "f"].map(key => normalized["option" + key.toUpperCase()]).filter(v => v !== "");
+          const rawIndex = normalized.correctindex ?? normalized.correct_index ?? normalized.answerindex;
+          const correctIndex = Number(rawIndex);
+          return { id: String(normalized.id || "q" + (index + 1)).trim(), text: String(normalized.text ?? normalized.question ?? "").trim(),
+            options: options.map(value => String(value)), correctIndex };
+        });
+      } else throw new Error("केवल JSON, XLSX, XLS या CSV file समर्थित है।");
+      if (!Array.isArray(questions) || !questions.length) throw new Error("File में प्रश्नों की Array नहीं मिली।");
+      if (questions.length > 500) throw new Error("एक टेस्ट में अधिकतम 500 प्रश्न हो सकते हैं।");
+      el("rm-test-questions").value = JSON.stringify(questions, null, 2);
+      status(questions.length + " प्रश्न Import हुए। Save करने से पहले JSON जाँच लें।");
+    } catch (e) { status("Import असफल: " + (e.message || "File format जाँचें।")); }
+    finally { button.disabled = false; }
+  });
   async function loadTestForEdit(testId) {
     try {
       const result = await httpsCallable(functions, "rmOwnerGetTest")({ testId });
