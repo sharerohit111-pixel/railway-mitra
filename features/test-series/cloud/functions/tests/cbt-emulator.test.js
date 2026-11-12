@@ -10,6 +10,7 @@ const { getFirestore } = require("firebase-admin/firestore");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
 const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
+const { applyCapturedPayment } = require("../payment-ledger");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
@@ -370,5 +371,116 @@ test("non-owner cannot create a test", async () => {
     );
   } finally {
     process.env.OWNER_UID = originalOwnerUid;
+  }
+});
+
+
+test("captured payment ledger grants one paid entitlement and deduplicates webhook retries", async () => {
+  const paidTestId = "emulator-payment-ledger-test";
+  const orderId = "order_ledger_primary";
+  const secondOrderId = "order_ledger_replay";
+  const paymentId = "pay_ledger_captured";
+  const eventId = "evt_ledger_first";
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const secondOrderRef = db.doc("testSeriesPaymentOrders/" + secondOrderId);
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
+  const replayEventRef = db.doc("testSeriesPaymentEvents/evt_ledger_replay");
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  let attemptId = null;
+
+  const event = {
+    event: "payment.captured",
+    payload: {
+      payment: {
+        entity: {
+          id: paymentId,
+          order_id: orderId,
+          amount: 49900,
+          currency: "INR",
+          status: "captured",
+          notes: { uid: "untrusted_uid", testId: "untrusted_test" }
+        }
+      }
+    }
+  };
+
+  try {
+    await testRef.set({
+      title: "Ledger Paid Test", status: "published", price: 499,
+      mode: "mock", durationMinutes: 10, questionCount: 1
+    });
+    await orderRef.set({
+      uid, testId: paidTestId, razorpayOrderId: orderId,
+      amount: 49900, currency: "INR", status: "created"
+    });
+
+    const first = await applyCapturedPayment({ db, event, eventId });
+    assert.deepEqual(first, {
+      granted: true, duplicate: false, paymentId, orderId, uid, testId: paidTestId
+    });
+
+    const paidOrder = (await orderRef.get()).data();
+    assert.equal(paidOrder.status, "paid");
+    assert.equal(paidOrder.paymentId, paymentId);
+    const entitlement = (await entitlementRef.get()).data();
+    assert.equal(entitlement.status, "active");
+    assert.equal(entitlement.uid, uid);
+    assert.equal(entitlement.testId, paidTestId);
+    assert.equal(entitlement.paymentId, paymentId);
+    assert.equal((await paymentRef.get()).exists, true);
+    assert.equal((await eventRef.get()).data().status, "processed");
+
+    const sameEventRetry = await applyCapturedPayment({ db, event, eventId });
+    assert.equal(sameEventRetry.granted, false);
+    assert.equal(sameEventRetry.duplicate, true);
+
+    const newEventRetry = await applyCapturedPayment({ db, event, eventId: "evt_ledger_replay" });
+    assert.equal(newEventRetry.granted, false);
+    assert.equal(newEventRetry.duplicate, true);
+    assert.equal((await replayEventRef.get()).data().status, "duplicate");
+
+    await assert.rejects(
+      applyCapturedPayment({
+        db,
+        event: {
+          ...event,
+          payload: { payment: { entity: { ...event.payload.payment.entity, id: "pay_other_event" } } }
+        },
+        eventId
+      }),
+      error => error.code === "event_id_conflict"
+    );
+
+    await secondOrderRef.set({
+      uid, testId: paidTestId, razorpayOrderId: secondOrderId,
+      amount: 49900, currency: "INR", status: "created"
+    });
+    await assert.rejects(
+      applyCapturedPayment({
+        db,
+        event: {
+          ...event,
+          payload: { payment: { entity: { ...event.payload.payment.entity, order_id: secondOrderId } } }
+        },
+        eventId: "evt_ledger_payment_reuse"
+      }),
+      error => error.code === "payment_id_conflict"
+    );
+
+    // The entitlement created by the verified ledger is the only paid-access
+    // record rmStartExam needs; no browser-supplied payment flag is involved.
+    const started = await callable("rmStartExam", { testId: paidTestId });
+    attemptId = started.attemptId;
+    assert.ok(attemptId);
+    assert.equal(started.resumed, false);
+  } finally {
+    if (attemptId) await db.doc("testSeriesAttempts/" + attemptId).delete().catch(() => {});
+    await db.doc("testSeriesActiveSessions/" + uid).delete().catch(() => {});
+    await Promise.all([
+      testRef, orderRef, secondOrderRef, paymentRef, eventRef, replayEventRef, entitlementRef,
+      db.doc("testSeriesPaymentEvents/evt_ledger_payment_reuse")
+    ].map(ref => ref.delete().catch(() => {})));
   }
 });
