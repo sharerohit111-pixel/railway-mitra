@@ -51,7 +51,12 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     let freeClaimSnap = null;
     if (Number(test.price || 0) > 0) {
       const ent = await tx.get(db.doc("testSeriesEntitlements/" + uid + "_" + testId));
-      if (!ent.exists || ent.data().status !== "active") throw new HttpsError("permission-denied", "Paid test access required");
+      const entitlement = ent.exists ? ent.data() : null;
+      // Bind every server-created entitlement to both the authenticated student and requested test.
+      // A matching document path/status alone must never grant access to a different identity or test.
+      if (!entitlement || entitlement.uid !== uid || entitlement.testId !== testId || entitlement.status !== "active") {
+        throw new HttpsError("permission-denied", "Paid test access required");
+      }
     } else {
       // A free test can only be started through the one-time claim flow.
       freeClaimSnap = await tx.get(db.doc("testSeriesFreeAttempts/" + uid));
