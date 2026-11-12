@@ -1,0 +1,78 @@
+/* Railway Mitra — isolated independent-app disclaimer ticker. */
+.rm-official-disclaimer {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: 100vw;
+  min-height: 42px;
+  box-sizing: border-box;
+  margin: 18px 0 0 calc(50% - 50vw);
+  padding: 8px 12px;
+  overflow: hidden;
+  border-top: 1.5px solid rgba(255, 204, 64, .9);
+  border-bottom: 1.5px solid rgba(53, 232, 255, .72);
+  background: linear-gradient(100deg, rgba(30, 22, 47, .98), rgba(9, 25, 51, .98) 52%, rgba(43, 18, 57, .98));
+  box-shadow: 0 0 13px rgba(255, 196, 45, .14), inset 0 0 12px rgba(53, 232, 255, .07);
+}
+.rm-official-disclaimer__label {
+  color: #ffd34f;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .45px;
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(255, 196, 45, .7);
+}
+.rm-official-disclaimer__viewport {
+  min-width: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+}
+.rm-official-disclaimer__track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  will-change: transform;
+  animation: rm-official-disclaimer-scroll 12s linear infinite;
+}
+.rm-official-disclaimer__message {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding-right: 38px;
+  color: #fff2b5;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 850;
+  white-space: nowrap;
+  text-shadow: 0 0 7px rgba(255, 196, 45, .42), 0 0 12px rgba(53, 232, 255, .18);
+  animation: rm-official-disclaimer-blink 1.15s ease-in-out infinite;
+}
+@keyframes rm-official-disclaimer-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes rm-official-disclaimer-blink {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: .58; filter: brightness(1.55); }
+}
+@media (max-width: 480px) {
+  .rm-official-disclaimer {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 5px;
+    min-height: 40px;
+    margin-top: 15px;
+    padding: 7px 8px;
+  }
+  .rm-official-disclaimer__label { font-size: 9px; letter-spacing: .2px; }
+  .rm-official-disclaimer__message { font-size: 10px; padding-right: 28px; }
+  .rm-official-disclaimer__track { animation-duration: 11s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rm-official-disclaimer__track,
+  .rm-official-disclaimer__message { animation: none !important; }
+  .rm-official-disclaimer__viewport { overflow-x: auto; }
+}
