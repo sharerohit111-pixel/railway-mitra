@@ -4,7 +4,7 @@ import "./exam.css";
 export function initStudentCbtExam({ app, testId, root = document }) {
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
-  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, timer=null, saving=Promise.resolve(), finished=false, submitting=false;
+  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, timer=null, saving=Promise.resolve(), finished=false;
   const status = message => { el("rm-cbt-status").textContent=message; };
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
   function persistPending(){
@@ -79,6 +79,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+((auto||score.timedOut)?" · Time expired":"");
     }catch(e){
       finished=false;el("rm-cbt-submit").disabled=false;
+      if(remaining()>0&&!timer)timer=setInterval(tick,1000);
       status(e.message||"Submit असफल। इंटरनेट जाँचकर फिर प्रयास करें।");
     }
   }
@@ -91,7 +92,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   el("rm-cbt-prev").addEventListener("click",()=>{if(index>0){index--;render();}});
   el("rm-cbt-next").addEventListener("click",()=>{if(index<paper.questions.length-1){index++;render();}});
   el("rm-cbt-submit").addEventListener("click",()=>{if(confirm("क्या आप परीक्षा Submit करना चाहते हैं?"))finish(false);});
-  const onOnline=()=>{if(attemptId&&pendingAnswers.size&&!finished&&!submitting){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>{});}};
+  const onOnline=()=>{if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>{});}};
   if(typeof window!=="undefined")window.addEventListener("online",onOnline);
   return { destroy(){clearInterval(timer);if(typeof window!=="undefined")window.removeEventListener("online",onOnline);} };
 }
