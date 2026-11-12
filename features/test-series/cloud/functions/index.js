@@ -327,6 +327,7 @@ exports.rmGetStudentDashboard = onCall(CALLABLE_OPTIONS, async req => {
       correct: Number(r.correct || 0),
       wrong: Number(r.wrong || 0),
       unattempted: Number(r.unattempted || 0),
+      timedOut: Boolean(r.timedOut),
       totalQuestions: Number(r.totalQuestions || 0),
       submittedAt: date(r.submittedAt)?.toISOString() || null
     };
