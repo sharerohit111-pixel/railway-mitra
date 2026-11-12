@@ -18,6 +18,7 @@ export async function verifyStudentOtp(confirmation, code) {
 }
 function callable(app, name) { return httpsCallable(getFunctions(app, "asia-south1"), name); }
 export async function startCbtExam(app, testId) { return (await callable(app, "rmStartExam")({ testId })).data; }
+export async function getCbtExamQuestions(app, attemptId) { return (await callable(app, "rmGetExamQuestions")({ attemptId })).data; }
 export async function saveCbtAnswer(app, attemptId, questionId, answer) {
   return (await callable(app, "rmSaveAnswer")({ attemptId, questionId, answer })).data;
 }
