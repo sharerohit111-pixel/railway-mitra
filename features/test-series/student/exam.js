@@ -82,5 +82,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   el("rm-cbt-prev").addEventListener("click",()=>{if(index>0){index--;render();}});
   el("rm-cbt-next").addEventListener("click",()=>{if(index<paper.questions.length-1){index++;render();}});
   el("rm-cbt-submit").addEventListener("click",()=>{if(confirm("क्या आप परीक्षा Submit करना चाहते हैं?"))finish(false);});
-  return { destroy(){clearInterval(timer);} };
+  const onOnline=()=>{if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>{});}};
+  if(typeof window!=="undefined")window.addEventListener("online",onOnline);
+  return { destroy(){clearInterval(timer);if(typeof window!=="undefined")window.removeEventListener("online",onOnline);} };
 }
