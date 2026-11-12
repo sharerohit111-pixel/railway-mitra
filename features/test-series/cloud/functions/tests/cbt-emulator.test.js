@@ -1,3 +1,7 @@
+// Point Admin SDK clients and custom-token signing at local emulators before initialization.
+process.env.FIREBASE_AUTH_EMULATOR_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
+process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080";
+
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const { initializeApp, getApps, deleteApp } = require("firebase-admin/app");
