@@ -157,6 +157,23 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
   });
 });
 
+exports.rmGetCbtAttemptResult = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = user(req), attemptId = id(req.data && req.data.attemptId);
+  const snap = await db.doc("testSeriesAttempts/" + attemptId).get();
+  if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
+  const attempt = snap.data();
+  if (attempt.status !== "submitted") throw new HttpsError("failed-precondition", "Exam result is not available yet");
+  return {
+    submitted: true,
+    timedOut: Boolean(attempt.timedOut),
+    score: Number(attempt.score || 0),
+    correct: Number(attempt.correct || 0),
+    wrong: Number(attempt.wrong || 0),
+    unattempted: Number(attempt.unattempted || 0),
+    totalQuestions: Number(attempt.totalQuestions || 0)
+  };
+});
+
 exports.rmGetOwnerAdminSession = onCall(CALLABLE_OPTIONS, async req => {
   const uid = owner(req);
   return { authorized: true, uid, email: req.auth.token.email || null };
