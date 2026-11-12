@@ -196,6 +196,7 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(dashboard.resultCount, 1);
   assert.equal(dashboard.results[0].attemptId, started.attemptId);
   assert.equal(dashboard.results[0].testTitle, "Emulator Free Test");
+  assert.equal(dashboard.results[0].timedOut, true, "dashboard must preserve the server timeout flag");
   assert.equal(dashboard.results.some(item => item.score === 999), false);
   await db.doc("testSeriesResults/leaderboard-higher-score").set({
     uid: "private-student-uid-1", testId, score: 4, correct: 2,
