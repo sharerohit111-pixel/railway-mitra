@@ -7,6 +7,12 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmStartExam: creates or resumes a server-timed mock/scheduled attempt.
 - rmSaveAnswer: saves a scalar answer only for the authenticated attempt owner.
 - rmSubmitExam: scores using private server-side answer keys and records the result.
+- rmGetExamQuestions: returns the authenticated active attempt paper without private answer keys.
+- rmGetStudentActiveAttempt: discovers the authenticated student’s active/completed attempt for safe cross-device recovery.
+- rmGetCbtAttemptResult: retrieves only the authenticated student’s submitted result.
+- rmListAvailableTests: lists published test metadata and access type.
+- rmGetStudentDashboard: returns only the authenticated student’s submitted results.
+- rmGetTestLeaderboard: returns anonymized leaderboard entries and the requesting student’s own rank.
 - rmGetOwnerAdminSession: checks server-configured OWNER_UID and Firebase second-factor claim.
 
 ## Firestore rules — review required
