@@ -1,4 +1,4 @@
-import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam } from "../cloud/student-client.js";
+import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult } from "../cloud/student-client.js";
 import "./exam.css";
 
 export function initStudentCbtExam({ app, testId, root = document }) {
@@ -6,7 +6,12 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
   let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, timer=null, saving=Promise.resolve(), finished=false;
   const status = message => { el("rm-cbt-status").textContent=message; };
+  const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
+  function showResult(score){
+    clearInterval(timer);workspace.hidden=true;resultPanel.hidden=false;
+    el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+(score.timedOut?" · Time expired":"");
+  }
   function persistPending(){
     if(!attemptId)return;
     try{
@@ -79,8 +84,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       await retryPending();
       const score=await submitCbtExam(app,attemptId);
       localStorage.removeItem(draftKey());
-      workspace.hidden=true;resultPanel.hidden=false;
-      el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+((auto||score.timedOut)?" · Time expired":"");
+      showResult(score);
     }catch(e){
       finished=false;el("rm-cbt-submit").disabled=false;
       if(remaining()>0&&!timer)timer=setInterval(tick,1000);
@@ -89,8 +93,22 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   el("rm-cbt-start").addEventListener("click",async()=>{
     const button=el("rm-cbt-start");button.disabled=true;status("परीक्षा लोड हो रही है…");
-    try{const started=await startCbtExam(app,testId);attemptId=started.attemptId;paper=await getCbtExamQuestions(app,attemptId);answers={...paper.savedAnswers};restorePending();for(const [qid,value] of pendingAnswers)answers[qid]=value;expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;render();if(pendingAnswers.size)retryPending().catch(()=>{});tick();timer=setInterval(tick,1000);}
-    catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
+    try{
+      try{
+        const previousAttempt=localStorage.getItem(attemptKey());
+        if(previousAttempt){
+          const previousResult=await getCbtAttemptResult(app,previousAttempt);
+          attemptId=previousAttempt;showResult(previousResult);return;
+        }
+      }catch(_){/* No submitted result: continue to resume the active server session. */}
+      const started=await startCbtExam(app,testId);attemptId=started.attemptId;
+      try{localStorage.setItem(attemptKey(),attemptId);}catch(_){}
+      paper=await getCbtExamQuestions(app,attemptId);answers={...paper.savedAnswers};restorePending();
+      for(const [qid,value] of pendingAnswers)answers[qid]=value;
+      expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;render();
+      if(pendingAnswers.size)retryPending().catch(()=>{});
+      tick();timer=setInterval(tick,1000);
+    }catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
   });
   el("rm-cbt-retry").addEventListener("click",async()=>{const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){status(e.message||"Retry असफल।");}finally{b.disabled=false;}});
   el("rm-cbt-prev").addEventListener("click",()=>{if(index>0){index--;render();}});
