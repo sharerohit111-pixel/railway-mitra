@@ -23,14 +23,14 @@ button{width:100%;border:0;border-radius:12px;padding:14px;background:#16b8e8;co
 <p class="small">यह केवल परीक्षण है। इससे Enforcement चालू नहीं होती और कोई billing upgrade नहीं होता।</p>
 </main>
 <script type="module">
-import { appCheck } from "../../../assets/js/firebase.js";
+import { testSeriesAppCheck } from "./firebase-app-check-init.js";
 import { getToken } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app-check.js";
 const statusEl=document.getElementById("status");
 const button=document.getElementById("run");
 button.addEventListener("click",async()=>{
   button.disabled=true;statusEl.className="status";statusEl.textContent="App Check token जाँचा जा रहा है…";
   try{
-    const result=await getToken(appCheck,false);
+    const result=await getToken(testSeriesAppCheck,false);
     if(!result || !result.token) throw new Error("Firebase ने App Check token नहीं लौटाया।");
     statusEl.className="status good";
     statusEl.textContent="सफल: App Check token प्राप्त हुआ। Token सुरक्षित है; इसे यहाँ प्रदर्शित नहीं किया गया।";
