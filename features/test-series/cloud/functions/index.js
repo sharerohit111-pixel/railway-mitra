@@ -127,7 +127,7 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const snap = await tx.get(ref);
     if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
     const a = snap.data();
-    if (a.status === "submitted") return { submitted: true, score: a.score, correct: a.correct, wrong: a.wrong, unattempted: a.unattempted };
+    if (a.status === "submitted") return { submitted: true, timedOut: Boolean(a.timedOut), score: a.score, correct: a.correct, wrong: a.wrong, unattempted: a.unattempted, totalQuestions: a.totalQuestions };
     if (a.status !== "in_progress") throw new HttpsError("failed-precondition", "Attempt cannot be submitted");
     const [testSnap, keySnap] = await Promise.all([tx.get(db.doc("testSeriesTests/" + a.testId)), tx.get(db.doc("testSeriesAnswerKeys/" + a.testId))]);
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
