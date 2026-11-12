@@ -1,5 +1,5 @@
 /* Railway Mitra — Bottom Navigation (isolated module)
-   Help & Support is connected. Feedback remains a reserved slot for its own module. */
+   Duty Roster is the prominent center shortcut. */
 
 (function () {
   "use strict";
@@ -29,15 +29,15 @@
         label: "Help & Support",
         title: "Open Help & Support",
         href: "features/help-support/index.html",
-        paths: '<path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="7" rx="2"/><rect x="17" y="12" width="4" height="7" rx="2"/><path d="M17 19a5 5 0 0 1-5 3h-1"/>',
-        reserved: true
+        paths: '<path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="12" width="4" height="7" rx="2"/><rect x="17" y="12" width="4" height="7" rx="2"/><path d="M17 19a5 5 0 0 1-5 3h-1"/>'
       },
       {
-        className: "rm-bottom-nav__item--home",
-        label: "Home",
-        title: "Home",
-        paths: '<path d="m3 10 9-7 9 7"/><path d="M5 9.5V21h14V9.5M9 21v-7h6v7"/>',
-        home: true
+        className: "rm-bottom-nav__item--featured-center",
+        label: "Duty Roster",
+        title: "Open Duty Roster & Allowance Diary",
+        href: "features/duty-diary/index.html",
+        paths: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h7"/>',
+        featured: true
       },
       {
         className: "rm-bottom-nav__item--notifications",
@@ -51,26 +51,19 @@
         label: "Feedback",
         title: "Open Feedback for Us",
         href: "features/feedback/index.html",
-        paths: '<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-7.5A8.5 8.5 0 1 1 21 11.5Z"/><path d="m12 7 1.1 2.2 2.4.3-1.8 1.7.4 2.4-2.1-1.1-2.1 1.1.4-2.4-1.8-1.7 2.4-.3Z"/>',
-        reserved: true
+        paths: '<path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2v-7.5A8.5 8.5 0 1 1 21 11.5Z"/><path d="m12 7 1.1 2.2 2.4.3-1.8 1.7.4 2.4-2.1-1.1-2.1 1.1.4-2.4-1.8-1.7 2.4-.3Z"/>'
       }
     ];
 
     items.forEach(function (item) {
-      const control = document.createElement(item.home || item.href ? "a" : "button");
+      const control = document.createElement("a");
       control.className = "rm-bottom-nav__item " + item.className;
       control.title = item.title;
       control.setAttribute("aria-label", item.title);
+      control.href = item.href;
 
-      if (item.home) {
-        control.href = "./";
+      if (item.featured) {
         control.setAttribute("aria-current", "page");
-      } else if (item.href) {
-        control.href = item.href;
-      } else {
-        control.type = "button";
-        control.disabled = true;
-        control.setAttribute("aria-disabled", "true");
       }
 
       control.innerHTML = icon(item.paths) +
