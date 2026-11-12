@@ -268,3 +268,32 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   tests.sort((a, b) => a.title.localeCompare(b.title));
   return { tests };
 });
+
+
+// Student dashboard is strictly scoped to the authenticated UID. It returns only
+// submitted results belonging to that student and safe test metadata.
+exports.rmGetStudentDashboard = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = user(req);
+  const resultsSnap = await db.collection("testSeriesResults")
+    .where("uid", "==", uid).limit(100).get();
+  const results = resultsSnap.docs.map(d => {
+    const r = d.data();
+    return {
+      attemptId: d.id,
+      testId: r.testId,
+      score: Number(r.score || 0),
+      correct: Number(r.correct || 0),
+      wrong: Number(r.wrong || 0),
+      unattempted: Number(r.unattempted || 0),
+      totalQuestions: Number(r.totalQuestions || 0),
+      submittedAt: date(r.submittedAt)?.toISOString() || null
+    };
+  });
+  const testIds = [...new Set(results.map(r => r.testId).filter(Boolean))];
+  const testSnaps = await Promise.all(testIds.map(testId => db.doc("testSeriesTests/" + testId).get()));
+  const titles = {};
+  testSnaps.forEach(s => { if (s.exists) titles[s.id] = s.data().title || ""; });
+  results.forEach(r => { r.testTitle = titles[r.testId] || "Test"; });
+  results.sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+  return { results, resultCount: results.length };
+});
