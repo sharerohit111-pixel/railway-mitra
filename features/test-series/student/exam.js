@@ -85,7 +85,9 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       await saving;
       await retryPending();
       const score=await submitCbtExam(app,attemptId);
-      localStorage.removeItem(draftKey());
+      // Submission is already confirmed by the server. Browser storage cleanup is best-effort
+      // and must never hide a successful result when storage is disabled or quota-restricted.
+      try{localStorage.removeItem(draftKey());}catch(_){}
       showResult(score);
     }catch(e){
       finished=false;el("rm-cbt-submit").disabled=false;
