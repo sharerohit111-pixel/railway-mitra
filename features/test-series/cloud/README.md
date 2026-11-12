@@ -4,7 +4,7 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 
 ## Callable functions
 - rmClaimFreeAttempt: claims one free test attempt per authenticated UID.
-- rmStartExam: creates or resumes a server-timed mock/scheduled attempt.
+- rmStartExam: creates or resumes a server-timed mock/scheduled attempt. A student with a valid active attempt cannot start a second test in parallel; stale session pointers are checked against the attempt record before resume.
 - rmSaveAnswer: saves a scalar answer only for the authenticated attempt owner.
 - rmSubmitExam: scores using private server-side answer keys and records the result.
 - rmGetExamQuestions: returns the authenticated active attempt paper without private answer keys.
