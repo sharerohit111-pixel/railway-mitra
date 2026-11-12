@@ -128,6 +128,14 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(Object.hasOwn(paper.questions[0], "correctIndex"), false);
   assert.ok(paper.expiresAt);
 
+  await assert.rejects(
+    callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "q1", answer: "9" }),
+    error => error.code === "functions/invalid-argument"
+  );
+  await assert.rejects(
+    callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "not-in-paper", answer: "0" }),
+    error => error.code === "functions/invalid-argument"
+  );
   const saved = await callable("rmSaveAnswer", {
     attemptId: started.attemptId, questionId: "q1", answer: "0"
   });
