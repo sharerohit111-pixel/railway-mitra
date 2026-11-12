@@ -21,7 +21,7 @@ No Firebase configuration or project files were found in the inspected repositor
 - testSeriesAttempts/{attemptId}: uid, testId, status, startedAt, expiresAt, answers map, score summary.
 - testSeriesActiveSessions/{uid}: active attempt pointer.
 - testSeriesResults/{attemptId}: final score summary.
-- testSeriesEntitlements/{uid_testId}: server-created paid entitlement.
+- testSeriesEntitlements/{uid_testId}: server-created paid entitlement containing `uid`, `testId` and `status`; `rmStartExam` checks both identity fields against the authenticated student and requested test before granting access. A future payment webhook must create this record only after provider signature verification and idempotency checks.
 - testSeriesFreeAttempts/{uid}: one-time free attempt claim.
 
 ## Important implementation note
