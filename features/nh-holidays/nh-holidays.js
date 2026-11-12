@@ -15,7 +15,8 @@
       { no: 9, name: "ईद-उल-जुहा / बकरीद (Id-ul-Zuha)*", date: "27 / 28 मई 2026", day: "बुध / गुरुवार", type: "reg" },
       { no: 10, name: "दशहरा / विजयादशमी (Dussehra)", date: "20 अक्टूबर 2026", day: "मंगलवार (Tuesday)", type: "reg" },
       { no: 11, name: "दीपावली (Diwali / Deepavali)", date: "08 नवंबर 2026", day: "रविवार (Sunday)", type: "reg" },
-      { no: 12, name: "क्रिसमस (Christmas Day)", date: "25 दिसंबर 2026", day: "शुक्रवार (Friday)", type: "reg" }
+      { no: 12, name: "क्रिसमस (Christmas Day)", date: "25 दिसंबर 2026", day: "शुक्रवार (Friday)", type: "reg" },
+      { no: 13, name: "रक्षाबंधन (Raksha Bandhan)", date: "28 अगस्त 2026", day: "शुक्रवार (Friday)", type: "reg" }
     ],
     "2027": [
       { no: 1, name: "गणतंत्र दिवस (Republic Day)", date: "26 जनवरी 2027", day: "मंगलवार (Tuesday)", type: "comp" },
@@ -29,7 +30,8 @@
       { no: 9, name: "जन्माष्टमी (Janmashtami)", date: "25 अगस्त 2027", day: "बुधवार (Wednesday)", type: "reg" },
       { no: 10, name: "दशहरा / विजयादशमी (Dussehra)", date: "09 अक्टूबर 2027", day: "शनिवार (Saturday)", type: "reg" },
       { no: 11, name: "दीपावली (Diwali / Deepavali)", date: "29 अक्टूबर 2027", day: "शुक्रवार (Friday)", type: "reg" },
-      { no: 12, name: "क्रिसमस (Christmas Day)", date: "25 दिसंबर 2027", day: "शनिवार (Saturday)", type: "reg" }
+      { no: 12, name: "क्रिसमस (Christmas Day)", date: "25 दिसंबर 2027", day: "शनिवार (Saturday)", type: "reg" },
+      { no: 13, name: "रक्षाबंधन (Raksha Bandhan)", date: "17 अगस्त 2027", day: "मंगलवार (Tuesday)", type: "reg" }
     ],
     "2028": [
       { no: 1, name: "गणतंत्र दिवस (Republic Day)", date: "26 जनवरी 2028", day: "बुधवार (Wednesday)", type: "comp" },
@@ -43,7 +45,8 @@
       { no: 9, name: "जन्माष्टमी (Janmashtami)", date: "13 अगस्त 2028", day: "रविवार (Sunday)", type: "reg" },
       { no: 10, name: "दशहरा / विजयादशमी (Dussehra)", date: "27 सितंबर 2028", day: "बुधवार (Wednesday)", type: "reg" },
       { no: 11, name: "दीपावली (Diwali / Deepavali)", date: "17 अक्टूबर 2028", day: "मंगलवार (Tuesday)", type: "reg" },
-      { no: 12, name: "क्रिसमस (Christmas Day)", date: "25 दिसंबर 2028", day: "सोमवार (Monday)", type: "reg" }
+      { no: 12, name: "क्रिसमस (Christmas Day)", date: "25 दिसंबर 2028", day: "सोमवार (Monday)", type: "reg" },
+      { no: 13, name: "रक्षाबंधन (Raksha Bandhan)", date: "05 अगस्त 2028", day: "शनिवार (Saturday)", type: "reg" }
     ]
   };
 
@@ -67,10 +70,10 @@
         });
       });
 
-      tableTitle.textContent = "वर्ष " + currentYear + " – कुल 12 नेशनल हॉलिडे (NH)";
+      tableTitle.textContent = "वर्ष " + currentYear + " – कुल " + list.length + " नेशनल हॉलिडे (NH)";
       yearStatus.textContent = currentYear === "2028"
-        ? "Provisional · 3 अनिवार्य + 9 क्षेत्रीय"
-        : "3 अनिवार्य + 9 क्षेत्रीय अवकाश";
+        ? "Provisional · 3 अनिवार्य + " + (list.length - 3) + " क्षेत्रीय"
+        : "3 अनिवार्य + " + (list.length - 3) + " क्षेत्रीय अवकाश";
       tableBody.replaceChildren();
 
       if (!filtered.length) {
