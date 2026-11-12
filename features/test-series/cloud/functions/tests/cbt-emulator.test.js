@@ -147,17 +147,34 @@ test("student can start, save answers and submit with server-side scoring", asyn
     title: "Paid Concurrent Test", status: "published", price: 50,
     mode: "mock", durationMinutes: 10, questionCount: 1
   });
-  await db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId).set({
-    uid, testId: paidTestId, status: "active"
-  });
+  const paidEntitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
   try {
+    // An active record at the expected document path is not sufficient: its owner and test
+    // fields must also match the authenticated student and requested paid test.
+    await paidEntitlementRef.set({
+      uid: "different-student-uid", testId: paidTestId, status: "active"
+    });
+    await assert.rejects(
+      callable("rmStartExam", { testId: paidTestId }),
+      error => error.code === "functions/permission-denied"
+    );
+
+    await paidEntitlementRef.set({
+      uid, testId: "different-paid-test", status: "active"
+    });
+    await assert.rejects(
+      callable("rmStartExam", { testId: paidTestId }),
+      error => error.code === "functions/permission-denied"
+    );
+
+    await paidEntitlementRef.set({ uid, testId: paidTestId, status: "active" });
     await assert.rejects(
       callable("rmStartExam", { testId: paidTestId }),
       error => error.code === "functions/already-exists"
     );
   } finally {
     await db.doc("testSeriesTests/" + paidTestId).delete();
-    await db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId).delete();
+    await paidEntitlementRef.delete();
   }
 
   const paper = await callable("rmGetExamQuestions", { attemptId: started.attemptId });
