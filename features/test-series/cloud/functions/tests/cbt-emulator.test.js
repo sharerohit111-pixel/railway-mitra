@@ -180,6 +180,10 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(completedSession.found, true);
   assert.equal(completedSession.status, "completed");
   assert.equal(completedSession.attemptId, started.attemptId);
+  await db.doc("testSeriesActiveSessions/" + uid).update({ attemptId: "missing-attempt-record" });
+  const staleSession = await callable("rmGetStudentActiveAttempt", { testId });
+  assert.equal(staleSession.found, false, "stale active-session pointers must not expose nonexistent attempts");
+  await db.doc("testSeriesActiveSessions/" + uid).update({ attemptId: started.attemptId });
   await assert.rejects(
     callable("rmGetCbtAttemptResult", { attemptId: "not-this-students-attempt" }),
     error => error.code === "functions/permission-denied"
