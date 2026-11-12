@@ -8,7 +8,7 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
-const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken } = require("firebase/auth");
+const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
@@ -104,4 +104,12 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(result.unattempted, 1);
   assert.equal(result.score, 2);
   assert.equal(result.totalQuestions, 2);
+});
+
+test("unauthenticated caller cannot start an exam", async () => {
+  await signOut(clientAuth);
+  await assert.rejects(
+    callable("rmStartExam", { testId }),
+    error => error.code === "functions/unauthenticated"
+  );
 });
