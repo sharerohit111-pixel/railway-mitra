@@ -141,6 +141,11 @@ test("student can start, save answers and submit with server-side scoring", asyn
   });
   assert.equal(saved.saved, true);
 
+  await assert.rejects(
+    callable("rmGetCbtAttemptResult", { attemptId: started.attemptId }),
+    error => error.code === "functions/failed-precondition"
+  );
+
   // Simulate the server deadline passing after the answer was persisted.
   await db.doc("testSeriesAttempts/" + started.attemptId).update({
     expiresAt: new Date(Date.now() - 1000)
