@@ -132,6 +132,25 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(resumed.attemptId, started.attemptId);
   assert.equal(resumed.expiresAt, started.expiresAt);
 
+  // A valid active exam must prevent the same student from starting a different paid test.
+  const paidTestId = "emulator-paid-concurrent-test";
+  await db.doc("testSeriesTests/" + paidTestId).set({
+    title: "Paid Concurrent Test", status: "published", price: 50,
+    mode: "mock", durationMinutes: 10, questionCount: 1
+  });
+  await db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId).set({
+    uid, testId: paidTestId, status: "active"
+  });
+  try {
+    await assert.rejects(
+      callable("rmStartExam", { testId: paidTestId }),
+      error => error.code === "functions/already-exists"
+    );
+  } finally {
+    await db.doc("testSeriesTests/" + paidTestId).delete();
+    await db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId).delete();
+  }
+
   const paper = await callable("rmGetExamQuestions", { attemptId: started.attemptId });
   assert.equal(paper.questions.length, 2);
   assert.equal(paper.questions[0].id, "q1");
