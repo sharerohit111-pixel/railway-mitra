@@ -45,8 +45,54 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) { status(e.message || "OTP enrollment असफल।"); }
   });
   el("rm-owner-logout").addEventListener("click", async () => { await signOut(auth); home.hidden = true; login.hidden = false; });
+  const testsPanel = el("rm-admin-tests-panel");
+  const testsList = el("rm-admin-tests-list");
+  async function refreshTests() {
+    testsList.textContent = "Cloud से टेस्ट सूची लोड हो रही है…";
+    try {
+      const result = await httpsCallable(functions, "rmOwnerListTests")({});
+      testsList.replaceChildren();
+      if (!result.data.tests.length) { testsList.textContent = "अभी कोई टेस्ट नहीं है।"; return; }
+      result.data.tests.forEach(test => {
+        const card = document.createElement("article");
+        card.className = "rm-admin-test-row";
+        const heading = document.createElement("b"); heading.textContent = test.title;
+        const detail = document.createElement("small");
+        detail.textContent = [test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
+        card.append(heading, detail); testsList.append(card);
+      });
+    } catch (e) { testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
+  }
+  el("rm-admin-refresh-tests").addEventListener("click", refreshTests);
+  el("rm-admin-test-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = event.currentTarget.querySelector('button[type="submit"]');
+    button.disabled = true;
+    try {
+      const questions = JSON.parse(el("rm-test-questions").value);
+      if (!Array.isArray(questions)) throw new Error("Questions JSON में Array होना चाहिए।");
+      const mode = el("rm-test-mode").value;
+      const payload = {
+        title: el("rm-test-title").value, mode,
+        durationMinutes: Number(el("rm-test-duration").value),
+        price: Number(el("rm-test-price").value),
+        marksPerQuestion: Number(el("rm-test-marks").value),
+        negativeMarks: Number(el("rm-test-negative").value),
+        status: el("rm-test-status").value, questions
+      };
+      const saved = await httpsCallable(functions, "rmOwnerSaveTest")(payload);
+      status("Test सेव हुआ: " + saved.data.testId);
+      event.currentTarget.reset();
+      await refreshTests();
+    } catch (e) { status(e.message || "Test सेव नहीं हुआ।"); }
+    finally { button.disabled = false; }
+  });
   document.querySelectorAll("[data-admin-module]").forEach(button => button.addEventListener("click", () => {
-    el("rm-admin-module-status").textContent = button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
+    const module = button.dataset.adminModule;
+    testsPanel.hidden = module !== "tests";
+    el("rm-admin-module-status").textContent = module === "tests"
+      ? "Test Management खुला है।" : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
+    if (module === "tests") refreshTests();
   }));
   return { destroy() { /* host owns route lifecycle */ } };
 }
