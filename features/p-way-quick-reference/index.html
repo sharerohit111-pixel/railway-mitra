@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326">
+<title>P-Way Quick Reference Parameters (BG) | Railway Mitra</title>
+<style>
+:root{color-scheme:dark;--bg:#071326;--panel:#10243b;--line:#284966;--blue:#1d4ed8;--cyan:#6ee7f9;--muted:#b8cadd}
+*{box-sizing:border-box}body{margin:0;padding:18px;background:radial-gradient(ellipse at 15% 0%,#12385b 0,transparent 42%),var(--bg);color:#edf6ff;font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+.container{max-width:980px;margin:auto;background:#0c1b30;border:1px solid var(--line);border-radius:18px;padding:clamp(16px,3vw,28px);box-shadow:0 12px 36px #0005}
+.header{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px}
+h1{font-size:clamp(20px,4vw,28px);line-height:1.25;margin:0;color:#fff}.subtitle{margin:7px 0 0;color:var(--muted)}
+button{background:linear-gradient(120deg,#087fa8,#1764bc);color:white;border:1px solid #55d7f2;padding:10px 15px;border-radius:10px;font-weight:700;cursor:pointer}
+#searchInput{width:100%;padding:13px 15px;margin:2px 0 18px;border:1px solid #45627e;border-radius:10px;background:#071326;color:white;font:inherit}
+#searchInput:focus{outline:2px solid var(--cyan);outline-offset:1px}
+.category-title{background:linear-gradient(100deg,#173f79,#124a68);color:#fff;padding:11px 14px;border-radius:9px;margin:24px 0 8px;font-weight:700}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:540px}th,td{padding:12px;text-align:left;border-bottom:1px solid #28425c;vertical-align:top}
+th{background:#142b45;color:#dceeff}tr:last-child td{border-bottom:0}tbody tr:hover{background:#132a42}
+.highlight{font-weight:700;color:#7ce9db}
+.disclaimer{margin-top:28px;padding:15px;background:#3a2c13;border-left:4px solid #e7a936;border-radius:8px;color:#ffe3a3;font-size:13px}
+.note{color:var(--muted);font-size:12px;margin:14px 0 0}
+.empty{display:none;padding:18px;text-align:center;color:var(--muted)}
+body.lang-en .hi{display:none}body.lang-hi .en{display:none}
+@media(max-width:600px){body{padding:10px}.container{border-radius:13px}th,td{padding:10px;font-size:13px}}
+</style>
+</head>
+<body class="lang-hi">
+<main class="container">
+<header class="header">
+<div><h1><span class="hi">🚆 पी-वे तकनीकी पैरामीटर्स (BG)</span><span class="en">🚆 P-Way Technical Parameters (BG)</span></h1>
+<p class="subtitle"><span class="hi">त्वरित संदर्भ गाइड · Railway Mitra</span><span class="en">Quick Reference Guide · Railway Mitra</span></p></div>
+<button type="button" id="langBtn" onclick="toggleLanguage()">Switch to English</button>
+</header>
+<input type="search" id="searchInput" oninput="filterTable()" placeholder="पैरामीटर खोजें (जैसे: Check rail, SEJ, Versine, Ballast, Turnout)..." aria-label="Search parameters">
+<div id="tablesContainer">
+<section class="category-block"><div class="category-title"><span class="hi">1. चेक रेल और गार्ड रेल क्लियरेंस</span><span class="en">1. Check Rail &amp; Guard Rail Clearances</span></div><div class="table-wrap"><table><thead><tr><th><span class="hi">पैरामीटर</span><span class="en">Parameter</span></th><th><span class="hi">दिया गया मान / सीमा</span><span class="en">Submitted Value / Limit</span></th></tr></thead><tbody>
+<tr><td><span class="hi">लेवल क्रॉसिंग पर चेक रेल क्लियरेंस</span><span class="en">Level Crossing Check Rail Clearance</span></td><td class="highlight"><span class="hi">न्यूनतम 51 mm | अधिकतम 57 mm (गहराई कम से कम 38 mm)</span><span class="en">Min 51 mm | Max 57 mm (Depth min 38 mm)</span></td></tr>
+<tr><td><span class="hi">टर्नआउट पर चेक रेल क्लियरेंस (Fan-shaped)</span><span class="en">Turnout Check Rail Clearance (Fan-shaped)</span></td><td class="highlight"><span class="hi">41–45 mm (मानक 44 mm)</span><span class="en">41–45 mm (Standard 44 mm)</span></td></tr>
+<tr><td><span class="hi">कर्व पर चेक रेल क्लियरेंस</span><span class="en">Curve Check Rail Clearance</span></td><td class="highlight"><span class="hi">न्यूनतम 44 mm (+ स्लैक गेज)</span><span class="en">Minimum 44 mm (+ Slack Gauge)</span></td></tr>
+<tr><td><span class="hi">ब्रिज पर गार्ड रेल क्लियरेंस</span><span class="en">Bridge Guard Rail Clearance</span></td><td class="highlight">250 mm ± 50 mm (200–300 mm)</td></tr>
+</tbody></table></div></section>
+<section class="category-block"><div class="category-title"><span class="hi">2. SEJ और LWR पैरामीटर्स</span><span class="en">2. SEJ &amp; LWR Parameters</span></div><div class="table-wrap"><table><thead><tr><th><span class="hi">पैरामीटर</span><span class="en">Parameter</span></th><th><span class="hi">दिया गया मान / सीमा</span><span class="en">Submitted Value / Limit</span></th></tr></thead><tbody>
+<tr><td><span class="hi">डिस्ट्रेसिंग तापमान (Td) पर SEJ गैप</span><span class="en">SEJ Gap at Destressing Temp (Td)</span></td><td class="highlight"><span class="hi">40 mm (52kg/60kg रेल) | 60 mm (पुराने सेक्शन)</span><span class="en">40 mm (52kg/60kg rail) | 60 mm (older sections)</span></td></tr>
+<tr><td><span class="hi">SEJ गैप टॉलरेंस</span><span class="en">SEJ Gap Tolerance</span></td><td class="highlight"><span class="hi">सैद्धांतिक गैप से ±20 mm</span><span class="en">±20 mm from theoretical gap</span></td></tr>
+<tr><td><span class="hi">हॉट वेदर पेट्रोलिंग शुरू होने का तापमान</span><span class="en">Hot Weather Patrolling Start Temperature</span></td><td class="highlight"><span class="hi">Td + 20°C से ऊपर</span><span class="en">Above Td + 20°C</span></td></tr>
+<tr><td><span class="hi">कोल्ड वेदर पेट्रोलिंग शुरू होने का तापमान</span><span class="en">Cold Weather Patrolling Start Temperature</span></td><td class="highlight"><span class="hi">Td − 30°C से नीचे</span><span class="en">Below Td − 30°C</span></td></tr>
+<tr><td><span class="hi">AT वेल्डिंग मानक गैप और ब्लॉक समय</span><span class="en">AT Welding Standard Gap &amp; Block Time</span></td><td class="highlight"><span class="hi">25 mm गैप (पोरिंग के 30 मिनट बाद ट्रैफिक पास)</span><span class="en">25 mm gap (traffic block release 30 minutes after pouring)</span></td></tr>
+</tbody></table></div></section>
+<section class="category-block"><div class="category-title"><span class="hi">3. कर्व और वर्साइन टॉलरेंस (20 m Chord)</span><span class="en">3. Curve &amp; Versine Tolerances (20 m Chord)</span></div><div class="table-wrap"><table><thead><tr><th><span class="hi">पैरामीटर</span><span class="en">Parameter</span></th><th><span class="hi">दिया गया मान / सीमा</span><span class="en">Submitted Value / Limit</span></th></tr></thead><tbody>
+<tr><td><span class="hi">50 kmph से 110 kmph तक</span><span class="en">Speed 50 kmph to 110 kmph</span></td><td class="highlight"><span class="hi">20 mm या औसत वर्साइन का 20% (जो अधिक हो)</span><span class="en">20 mm or 20% of average versine (whichever is more)</span></td></tr>
+<tr><td><span class="hi">50 kmph से कम गति पर</span><span class="en">Speed below 50 kmph</span></td><td class="highlight"><span class="hi">40 mm या औसत वर्साइन का 20% (जो अधिक हो)</span><span class="en">40 mm or 20% of average versine (whichever is more)</span></td></tr>
+</tbody></table></div></section>
+<section class="category-block"><div class="category-title"><span class="hi">4. ट्रैक ज्योमेट्री, गेज और रेल वियर</span><span class="en">4. Track Geometry, Gauge &amp; Rail Wear</span></div><div class="table-wrap"><table><thead><tr><th><span class="hi">पैरामीटर</span><span class="en">Parameter</span></th><th><span class="hi">दिया गया मान / सीमा</span><span class="en">Submitted Value / Limit</span></th></tr></thead><tbody>
+<tr><td><span class="hi">मानक ब्रॉड गेज (BG)</span><span class="en">Broad Gauge (BG) Standard</span></td><td class="highlight">1676 mm</td></tr>
+<tr><td><span class="hi">सीधी लाइन पर गेज टॉलरेंस</span><span class="en">Gauge Tolerance (Straight Track)</span></td><td class="highlight">−6 mm (tight) to +6 mm (slack)</td></tr>
+<tr><td><span class="hi">कर्व पर गेज टॉलरेंस (Radius ≥ 350 m)</span><span class="en">Gauge Tolerance (Curve R ≥ 350 m)</span></td><td class="highlight">−6 mm to +15 mm</td></tr>
+<tr><td><span class="hi">कर्व पर गेज टॉलरेंस (Radius &lt; 350 m)</span><span class="en">Gauge Tolerance (Curve R &lt; 350 m)</span></td><td class="highlight"><span class="hi">+20 mm (slack) तक</span><span class="en">Up to +20 mm (slack)</span></td></tr>
+<tr><td><span class="hi">स्लीपर-टू-स्लीपर गेज वेरिएशन</span><span class="en">Sleeper-to-Sleeper Gauge Variation</span></td><td class="highlight"><span class="hi">अधिकतम ±2 mm</span><span class="en">Maximum ±2 mm</span></td></tr>
+<tr><td><span class="hi">अधिकतम वर्टिकल रेल वियर</span><span class="en">Maximum Vertical Rail Wear</span></td><td class="highlight">60 kg: 13 mm | 52 kg: 8 mm</td></tr>
+<tr><td><span class="hi">अधिकतम लैटरल रेल वियर (कर्व पर)</span><span class="en">Maximum Lateral Rail Wear (Curves)</span></td><td class="highlight"><span class="hi">ग्रुप A व B: 8 mm | ग्रुप C व D: 10 mm</span><span class="en">Group A &amp; B: 8 mm | Group C &amp; D: 10 mm</span></td></tr>
+</tbody></table></div></section>
+<section class="category-block"><div class="category-title"><span class="hi">5. पॉइंट्स एंड क्रॉसिंग (Turnout) पैरामीटर्स</span><span class="en">5. Points &amp; Crossing (Turnout) Parameters</span></div><div class="table-wrap"><table><thead><tr><th><span class="hi">पैरामीटर</span><span class="en">Parameter</span></th><th><span class="hi">दिया गया मान / सीमा</span><span class="en">Submitted Value / Limit</span></th></tr></thead><tbody>
+<tr><td><span class="hi">स्विच ओपनिंग (Throw of Switch)</span><span class="en">Switch Opening (Throw of Switch)</span></td><td class="highlight">115 mm (curved switch) | 95 mm (straight)</td></tr>
+<tr><td><span class="hi">न्यूनतम फ्लैंजवे क्लियरेंस (Heel पर)</span><span class="en">Minimum Flangeway Clearance (Heel)</span></td><td class="highlight">50–54 mm</td></tr>
+<tr><td><span class="hi">क्रॉसिंग नोज़ और विंग रेल वियर सीमा</span><span class="en">Crossing Nose &amp; Wing Rail Wear Limit</span></td><td class="highlight"><span class="hi">अधिकतम 10 mm (A/B रूट पर 6–8 mm पर रीकंडीशनिंग)</span><span class="en">Maximum 10 mm (reconditioning at 6–8 mm on A/B routes)</span></td></tr>
+<tr><td><span class="hi">टो ऑफ स्विच पर गेज (1 in 12 / 1 in 8.5)</span><span class="en">Gauge at Toe of Switch (1 in 12 / 1 in 8.5)</span></td><td class="highlight"><span class="hi">1673 mm (3 mm tight) या RDSO ड्रॉइंग अनुसार 1676 mm</span><span class="en">1673 mm (3 mm tight) or 1676 mm as per RDSO drawing</span></td></tr>
+</tbody></table></div></section>
+<section class="category-block"><div class="category-title"><span class="hi">6. बैलास्ट कुशन और स्लीपर डेंसिटी</span><span class="en">6. Ballast Cushion &amp; Sleeper Density</span></div><div class="table-wrap"><table><thead><tr><th><span class="hi">पैरामीटर</span><span class="en">Parameter</span></th><th><span class="hi">दिया गया मान / सीमा</span><span class="en">Submitted Value / Limit</span></th></tr></thead><tbody>
+<tr><td><span class="hi">बैलास्ट कुशन (ग्रुप A, B, C, D Spl)</span><span class="en">Ballast Cushion (Group A, B, C, D Spl)</span></td><td class="highlight"><span class="hi">350 mm (न्यूनतम क्लीन कुशन: 150 mm)</span><span class="en">350 mm (minimum clean cushion: 150 mm)</span></td></tr>
+<tr><td><span class="hi">बैलास्ट कुशन (ग्रुप D और E)</span><span class="en">Ballast Cushion (Group D &amp; E)</span></td><td class="highlight">250–300 mm</td></tr>
+<tr><td><span class="hi">बैलास्ट शोल्डर चौड़ाई (Straight LWR)</span><span class="en">Ballast Shoulder Width (Straight LWR)</span></td><td class="highlight"><span class="hi">350 mm (तीखे कर्व के बाहरी तरफ 500 mm)</span><span class="en">350 mm (500 mm on outside of sharp curves)</span></td></tr>
+<tr><td><span class="hi">स्लीपर डेंसिटी (मेन लाइन / LWR)</span><span class="en">Sleeper Density (Main Lines / LWR)</span></td><td class="highlight"><span class="hi">1660 स्लीपर/किमी (दूरी 60 cm)</span><span class="en">1660 sleepers/km (spacing 60 cm)</span></td></tr>
+<tr><td><span class="hi">स्लीपर डेंसिटी (लूप लाइन / यार्ड)</span><span class="en">Sleeper Density (Loop Lines / Yards)</span></td><td class="highlight"><span class="hi">1540 स्लीपर/किमी (दूरी 65 cm)</span><span class="en">1540 sleepers/km (spacing 65 cm)</span></td></tr>
+</tbody></table></div></section>
+</div>
+<div class="empty" id="emptyState"><span class="hi">कोई मिलान नहीं मिला। दूसरा शब्द खोजें।</span><span class="en">No matching parameters found. Try another term.</span></div>
+<div class="disclaimer"><span class="hi"><strong>अस्वीकरण:</strong> ये मान उपयोगकर्ता द्वारा दिए गए प्रारंभिक संदर्भ डेटा हैं; इन्हें नवीनतम IRPWM/ACS से स्वतंत्र रूप से प्रमाणित नहीं किया गया है। फील्ड में कार्य करने से पहले नवीनतम IRPWM, लागू Zonal/Divisional Correction Slips, RDSO ड्रॉइंग्स और सक्षम अधिकारी के निर्देशों से पुष्टि करें।</span><span class="en"><strong>Disclaimer:</strong> Values are initial reference data supplied for this tool and have not been independently verified against the latest IRPWM/ACS. Before field execution, confirm the current IRPWM, applicable Zonal/Divisional Correction Slips, RDSO drawings and competent-authority instructions.</span></div>
+<p class="note"><span class="hi">शैक्षणिक/त्वरित संदर्भ हेतु; यह आधिकारिक आदेश या फील्ड निर्देश का विकल्प नहीं है।</span><span class="en">For educational/quick reference only; not a substitute for official instructions or field orders.</span></p>
+</main>
+<script>
+function toggleLanguage(){
+ const body=document.body,btn=document.getElementById("langBtn"),search=document.getElementById("searchInput");
+ const english=body.classList.contains("lang-hi");
+ body.classList.toggle("lang-hi",!english);body.classList.toggle("lang-en",english);
+ btn.textContent=english?"हिन्दी में देखें":"Switch to English";
+ search.placeholder=english?"Search parameter (e.g. Check rail, SEJ, Versine, Ballast, Turnout)...":"पैरामीटर खोजें (जैसे: Check rail, SEJ, Versine, Ballast, Turnout)...";
+}
+function filterTable(){
+ const q=document.getElementById("searchInput").value.trim().toLocaleLowerCase();
+ let visible=0;
+ document.querySelectorAll(".category-block").forEach(block=>{
+  let matches=0;
+  block.querySelectorAll("tbody tr").forEach(row=>{
+   const show=row.textContent.toLocaleLowerCase().includes(q);
+   row.hidden=!show;if(show)matches++;
+  });
+  block.hidden=matches===0;if(matches)visible+=matches;
+ });
+ document.getElementById("emptyState").style.display=visible?"none":"block";
+}
+</script>
+</body></html>
