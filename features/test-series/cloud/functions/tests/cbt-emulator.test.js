@@ -146,7 +146,7 @@ test("student can start, save answers and submit with server-side scoring", asyn
     expiresAt: new Date(Date.now() - 1000)
   });
   const lateSave = await callable("rmSaveAnswer", {
-    attemptId: started.attemptId, questionId: "q2", answer: "B"
+    attemptId: started.attemptId, questionId: "q2", answer: "1"
   }).then(() => null, error => error);
   assert.ok(lateSave, "answers must not be changed after expiry");
   assert.ok(/closed|deadline|expired/i.test(lateSave.message));
