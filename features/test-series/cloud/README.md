@@ -9,8 +9,8 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmSubmitExam: scores using private server-side answer keys and records the result.
 - rmGetOwnerAdminSession: checks server-configured OWNER_UID and Firebase second-factor claim.
 
-## Firestore
-Deploy firestore.rules before connecting clients. All direct client reads/writes are denied; callable backend functions use Admin SDK.
+## Firestore rules — review required
+`firestore.rules` is a draft, NOT approved for deployment. It includes example employee paths and a default-deny rule that could block existing Railway Mitra collections if deployed as-is. Before any deployment, retrieve the current live Firestore Rules, merge the CBT deny-by-default paths without removing existing permissions, review the complete result, and obtain explicit approval. Do not overwrite production rules with this draft.
 
 ## Not production-ready
 The existing Firebase project is identified from the repository configuration as `railway-mitra`; this confirms the project ID configured in code, not the live console state or billing status. No functions have been deployed and no live student UI is connected. Do not run paid deployment or real SMS until the user explicitly approves the cost.
