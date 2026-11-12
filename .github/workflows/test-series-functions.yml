@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/student-client.js"
+      - "features/test-series/student/**"
       - "firebase.json"
       - ".github/workflows/test-series-functions.yml"
   push:
@@ -34,3 +36,4 @@ jobs:
           node --check --input-type=module < features/test-series/cloud/student-client.js
           node --check --input-type=module < features/test-series/student/catalogue.js
           node --check --input-type=module < features/test-series/student/exam.js
+          node --check --input-type=module < features/test-series/student/dashboard.js
