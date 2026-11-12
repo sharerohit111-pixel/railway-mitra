@@ -134,6 +134,17 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(result.unattempted, 1);
   assert.equal(result.score, 2);
   assert.equal(result.totalQuestions, 2);
+
+  await db.doc("testSeriesResults/foreign-student-result").set({
+    uid: "another-student-uid", testId, score: 999, correct: 99,
+    wrong: 0, unattempted: 0, totalQuestions: 99
+  });
+  const dashboard = await callable("rmGetStudentDashboard");
+  assert.equal(dashboard.resultCount, 1);
+  assert.equal(dashboard.results[0].attemptId, started.attemptId);
+  assert.equal(dashboard.results[0].testTitle, "Emulator Free Test");
+  assert.equal(dashboard.results.some(item => item.score === 999), false);
+  await db.doc("testSeriesResults/foreign-student-result").delete();
 });
 
 test("free test cannot start until the one-time claim is created", async () => {
