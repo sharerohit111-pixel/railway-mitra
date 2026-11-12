@@ -115,6 +115,12 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(started.attemptId, claimedAttemptId, "free claim must be the attempt that starts");
   assert.equal(started.resumed, false);
 
+  // A reload/re-entry during a live attempt must resume the same server session.
+  const resumed = await callable("rmStartExam", { testId });
+  assert.equal(resumed.resumed, true);
+  assert.equal(resumed.attemptId, started.attemptId);
+  assert.equal(resumed.expiresAt, started.expiresAt);
+
   const paper = await callable("rmGetExamQuestions", { attemptId: started.attemptId });
   assert.equal(paper.questions.length, 2);
   assert.equal(paper.questions[0].id, "q1");
