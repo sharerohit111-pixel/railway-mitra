@@ -23,6 +23,23 @@ let confirmationResult = null;
 
 auth.languageCode = "en";
 
+// Return users to the requested same-origin app page after sign-in.
+function getPostLoginUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("redirect");
+    if (requested) {
+        try {
+            const target = new URL(requested, window.location.origin);
+            if (target.origin === window.location.origin &&
+                (target.pathname.endsWith("/app.html") || target.pathname.includes("/features/"))) {
+                return target.href;
+            }
+        } catch (_) {}
+    }
+    return new URL("../../app.html", window.location.href).href;
+}
+const postLoginUrl = getPostLoginUrl();
+
 function showMessage(message, isError = false) {
     loginMessage.textContent = message;
     loginMessage.style.color = isError ? "#FF7777" : "#35E8FF";
@@ -115,7 +132,7 @@ otpForm.addEventListener("submit", async (event) => {
 
         showMessage("लॉगिन सफल हुआ। Railway Mitra में आपका स्वागत है।");
 
-        window.location.href = "../../index.html";
+        window.location.href = postLoginUrl;
 
     } catch (error) {
         console.error("OTP Verification Error:", error);
@@ -143,7 +160,7 @@ emailLoginForm.addEventListener("submit", async (event) => {
             document.getElementById("emailAddress").value.trim(),
             document.getElementById("emailPassword").value
         );
-        window.location.href = "../../index.html";
+        window.location.href = postLoginUrl;
     } catch (error) {
         console.error("Email Login Error:", error);
         showMessage("Email Login में समस्या: " + error.message, true);
@@ -161,7 +178,7 @@ googleLoginBtn.addEventListener("click", async () => {
     showMessage("Google Account से लॉगिन किया जा रहा है...");
     try {
         await signInWithPopup(auth, googleProvider);
-        window.location.href = "../../index.html";
+        window.location.href = postLoginUrl;
     } catch (error) {
         console.error("Google Login Error:", error);
         showMessage("Google Login में समस्या: " + error.message, true);
