@@ -23,7 +23,7 @@
     </div>
     <section id="rm-admin-tests-panel" class="rm-admin-panel" hidden>
       <h3>Test Management</h3>
-      <form id="rm-admin-test-form">
+      <form id="rm-admin-test-form">\n        <input id="rm-test-id" type="hidden">
         <label>Test Title<input id="rm-test-title" required maxlength="160" placeholder="जैसे GDCE JE Civil Mock Test 01"></label>
         <div class="rm-admin-form-grid">
           <label>Mode<select id="rm-test-mode"><option value="mock">Mock Test</option><option value="scheduled">Scheduled Test</option></select></label>
@@ -31,11 +31,11 @@
           <label>Price (₹)<input id="rm-test-price" type="number" min="0" step="0.01" value="0" required></label>
           <label>Marks / Question<input id="rm-test-marks" type="number" min="0.01" max="100" step="0.25" value="1" required></label>
           <label>Negative Marks<input id="rm-test-negative" type="number" min="0" max="100" step="0.25" value="0" required></label>
-          <label>Status<select id="rm-test-status"><option value="draft">Draft</option><option value="published">Published</option></select></label>
+          <label>Schedule Start<input id="rm-test-start" type="datetime-local"></label>\n          <label>Schedule End<input id="rm-test-end" type="datetime-local"></label>\n          <label>Status<select id="rm-test-status"><option value="draft">Draft</option><option value="published">Published</option></select></label>
         </div>
         <label>Questions (JSON)<textarea id="rm-test-questions" rows="10" required placeholder='[{"id":"q1","text":"Question?","options":["A","B","C","D"],"correctIndex":0}]'></textarea></label>
         <p class="rm-admin-hint">हर प्रश्न में id, text, options और correctIndex दें। सही उत्तर सर्वर पर अलग सुरक्षित रखा जाएगा।</p>
-        <button class="rm-admin-primary" type="submit">Save Test</button>
+        <div class="rm-admin-form-grid"><button class="rm-admin-primary" type="submit">Save Test</button><button id="rm-admin-test-cancel" type="button">Clear / New Test</button></div>
       </form>
       <h3>Cloud Tests</h3><button id="rm-admin-refresh-tests" type="button">Refresh Test List</button>
       <div id="rm-admin-tests-list" class="rm-admin-tests-list">अभी सूची लोड नहीं हुई।</div>
