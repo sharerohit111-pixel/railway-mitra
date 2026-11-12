@@ -3,7 +3,14 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 initializeApp();
 const db = getFirestore(), REGION = "asia-south1";
-function user(req) {\n  console.info("CBT auth context", { hasAuth: Boolean(req.auth), hasUid: Boolean(req.auth && req.auth.uid) });\n  if (!req.auth) throw new HttpsError("unauthenticated", "Mobile OTP login required");\n  return req.auth.uid;\n}
+function user(req) {
+  console.info("CBT auth context", {
+    hasAuth: Boolean(req.auth),
+    hasUid: Boolean(req.auth && req.auth.uid)
+  });
+  if (!req.auth) throw new HttpsError("unauthenticated", "Mobile OTP login required");
+  return req.auth.uid;
+}
 function owner(req) {
   const uid = user(req);
   if (!process.env.OWNER_UID || uid !== process.env.OWNER_UID) throw new HttpsError("permission-denied", "Owner access denied");
