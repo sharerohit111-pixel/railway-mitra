@@ -26,3 +26,21 @@ test("empty analytics produces a safe empty report", () => {
   assert.match(testAnalyticsPrintHtml(null), /<tbody><\/tbody>/);
   assert.equal(testAnalyticsCsv(null).split("\r\n").length, 1);
 });
+
+
+import { filterAndSortTestAnalytics } from "../result-analytics.mjs";
+
+test("filters test-wise analytics by ID or title and sorts requested metric", () => {
+  const rows = [
+    { testId: "civil-1", title: "Civil JE", attempts: 12, averageScore: 40, averageCorrectPercent: 60 },
+    { testId: "math-1", title: "Math", attempts: 4, averageScore: 80, averageCorrectPercent: 90 },
+    { testId: "civil-2", title: "Advanced Civil", attempts: 8, averageScore: 55, averageCorrectPercent: 75 }
+  ];
+  assert.deepEqual(filterAndSortTestAnalytics(rows, "civil", "averageScore").map(x => x.testId), ["civil-2", "civil-1"]);
+  assert.deepEqual(filterAndSortTestAnalytics(rows, "MATH").map(x => x.testId), ["math-1"]);
+  assert.deepEqual(filterAndSortTestAnalytics(rows, "", "averageCorrectPercent").map(x => x.testId), ["math-1", "civil-2", "civil-1"]);
+});
+
+test("malformed rows are ignored safely", () => {
+  assert.deepEqual(filterAndSortTestAnalytics(null), []);
+});
