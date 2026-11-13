@@ -381,7 +381,9 @@ export function initOwnerAdminDashboard(auth, functions) {
           // A blank spreadsheet cell must not silently become option 0 (A).
           const correctIndex = rawIndex === undefined || rawIndex === null || String(rawIndex).trim() === "" ? NaN : Number(rawIndex);
           return { id: String(normalized.id || "q" + (index + 1)).trim(), text: String(normalized.text ?? normalized.question ?? "").trim(),
-            options: options.map(value => String(value)), correctIndex };
+            options: options.map(value => String(value)), correctIndex,
+            ...(String(normalized.section ?? "").trim() ? { section: String(normalized.section).trim() } : {}),
+            ...(String(normalized.explanation ?? "").trim() ? { explanation: String(normalized.explanation).trim() } : {}) };
         });
       } else throw new Error("केवल JSON, XLSX, XLS या CSV file समर्थित है।");
       if (!Array.isArray(questions) || !questions.length) throw new Error("File में प्रश्नों की Array नहीं मिली।");
