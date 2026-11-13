@@ -128,6 +128,43 @@ test("student dashboard returns the latest 100 submitted results first", async (
   }
 });
 
+test("student dashboard caps its response at the newest 100 results", async () => {
+  const refs = Array.from({ length: 105 }, (_, index) =>
+    db.doc("testSeriesResults/emulator-dashboard-cap-" + String(index).padStart(3, "0"))
+  );
+  const base = Date.now();
+  try {
+    const batchSize = 400;
+    const batch = db.batch();
+    refs.forEach((ref, index) => batch.set(ref, {
+      uid,
+      testId: "emulator-dashboard-cap-test",
+      score: index,
+      correct: index,
+      wrong: 0,
+      unattempted: 0,
+      totalQuestions: 1,
+      submittedAt: new Date(base + index * 1000)
+    }));
+    await batch.commit();
+
+    const result = await callable("rmGetStudentDashboard");
+    const rows = result.results.filter(row => row.attemptId.startsWith("emulator-dashboard-cap-"));
+    assert.equal(rows.length, 100);
+    assert.equal(rows[0].attemptId, "emulator-dashboard-cap-104");
+    assert.equal(rows.at(-1).attemptId, "emulator-dashboard-cap-005");
+    assert.equal(rows.some(row => row.attemptId === "emulator-dashboard-cap-004"), false);
+  } finally {
+    const chunks = [];
+    for (let start = 0; start < refs.length; start += 400) chunks.push(refs.slice(start, start + 400));
+    await Promise.all(chunks.map(async chunk => {
+      const cleanup = db.batch();
+      chunk.forEach(ref => cleanup.delete(ref));
+      await cleanup.commit().catch(() => {});
+    }));
+  }
+});
+
 test("owner access accepts only a verified phone MFA factor", () => {
   assert.equal(hasVerifiedPhoneMfa({ firebase: { sign_in_second_factor: "phone" } }), true);
   assert.equal(hasVerifiedPhoneMfa({ firebase: { sign_in_second_factor: "totp" } }), false);
