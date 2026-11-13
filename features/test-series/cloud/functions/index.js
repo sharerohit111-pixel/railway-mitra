@@ -31,6 +31,7 @@ const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require(
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
+const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { restoreOwnerQuestionAnswerKeys } = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
@@ -106,13 +107,25 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     }
     let freeClaimSnap = null;
     if (Number(test.price || 0) > 0) {
-      const ent = await tx.get(db.doc("testSeriesEntitlements/" + uid + "_" + testId));
-      const entitlement = ent.exists ? ent.data() : null;
-      // Bind every server-created entitlement to both the authenticated student and requested test.
-      // A matching document path/status alone must never grant access to a different identity or test.
-      if (!entitlement || entitlement.uid !== uid || entitlement.testId !== testId || entitlement.status !== "active") {
-        throw new HttpsError("permission-denied", "Paid test access required");
-      }
+      const entitlementSnap = await tx.get(db.doc("testSeriesEntitlements/" + uid + "_" + testId));
+      const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
+      // The entitlement document is only one part of the grant. Re-read its
+      // captured payment and paid order in this same transaction so a stale,
+      // orphaned or edited grant cannot unlock a paid test by itself.
+      const ledgerRefs = getPaidEntitlementLedgerReferences({ uid, testId, entitlement });
+      if (!ledgerRefs) throw new HttpsError("permission-denied", "Paid test access required");
+      const [paymentSnap, orderSnap] = await Promise.all([
+        tx.get(db.doc("testSeriesPayments/" + ledgerRefs.paymentId)),
+        tx.get(db.doc("testSeriesPaymentOrders/" + ledgerRefs.orderId))
+      ]);
+      const access = validatePaidEntitlement({
+        uid,
+        testId,
+        entitlement,
+        payment: paymentSnap.exists ? paymentSnap.data() : null,
+        order: orderSnap.exists ? orderSnap.data() : null
+      });
+      if (!access.valid) throw new HttpsError("permission-denied", "Paid test access required");
     } else {
       // A free test can only be started through the one-time claim flow.
       freeClaimSnap = await tx.get(db.doc("testSeriesFreeAttempts/" + uid));

@@ -1234,8 +1234,47 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
       error => error.code === "payment_id_conflict"
     );
 
-    // The entitlement created by the verified ledger is the only paid-access
-    // record rmStartExam needs; no browser-supplied payment flag is involved.
+    // Paid access must be backed by all three matching server ledger records,
+    // not merely by an active entitlement document.
+    const originalPaymentForStart = (await paymentRef.get()).data();
+    const originalOrderForStart = (await orderRef.get()).data();
+    const originalEntitlementForStart = (await entitlementRef.get()).data();
+    const corruptedStartRecords = [
+      [paymentRef, { ...originalPaymentForStart, status: "refunded" }],
+      [paymentRef, { ...originalPaymentForStart, amount: 1 }],
+      [orderRef, { ...originalOrderForStart, status: "created" }],
+      [orderRef, { ...originalOrderForStart, paymentId: "pay_other_order" }],
+      [entitlementRef, { ...originalEntitlementForStart, amount: 1 }],
+      [entitlementRef, { ...originalEntitlementForStart, razorpayOrderId: "order_other" }]
+    ];
+    for (const [recordRef, corruptedRecord] of corruptedStartRecords) {
+      await recordRef.set(corruptedRecord);
+      await assert.rejects(
+        callable("rmStartExam", { testId: paidTestId }),
+        error => error.code === "functions/permission-denied",
+        "paid test start must reject a mismatched payment ledger record"
+      );
+      if (recordRef.path === paymentRef.path) await recordRef.set(originalPaymentForStart);
+      else if (recordRef.path === orderRef.path) await recordRef.set(originalOrderForStart);
+      else await recordRef.set(originalEntitlementForStart);
+    }
+
+    await paymentRef.delete();
+    await assert.rejects(
+      callable("rmStartExam", { testId: paidTestId }),
+      error => error.code === "functions/permission-denied",
+      "paid test start must reject a missing captured-payment record"
+    );
+    await paymentRef.set(originalPaymentForStart);
+
+    await orderRef.delete();
+    await assert.rejects(
+      callable("rmStartExam", { testId: paidTestId }),
+      error => error.code === "functions/permission-denied",
+      "paid test start must reject a missing paid-order record"
+    );
+    await orderRef.set(originalOrderForStart);
+
     const started = await callable("rmStartExam", { testId: paidTestId });
     attemptId = started.attemptId;
     assert.ok(attemptId);
