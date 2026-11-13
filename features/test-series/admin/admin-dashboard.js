@@ -53,6 +53,10 @@ export function initOwnerAdminDashboard(auth, functions) {
     try {
       const result = await httpsCallable(functions, "rmOwnerListTests")({});
       testsList.replaceChildren();
+      freeTestSelect.replaceChildren();
+      const freeEligible = result.data.tests.filter(test => test.status === "published" && Number(test.price) === 0);
+      if (!freeEligible.length) freeTestSelect.add(new Option("कोई पात्र प्रकाशित ₹0 टेस्ट नहीं", ""));
+      else freeEligible.forEach(test => freeTestSelect.add(new Option(test.title + " · " + test.testId, test.testId)));
       if (!result.data.tests.length) { testsList.textContent = "अभी कोई टेस्ट नहीं है।"; return; }
       result.data.tests.forEach(test => {
         const card = document.createElement("article");
@@ -69,6 +73,17 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) { testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
   }
   el("rm-admin-refresh-tests").addEventListener("click", refreshTests);
+  const freeTestSelect = el("rm-free-test-select");
+  el("rm-free-test-save").addEventListener("click", async () => {
+    const testId = freeTestSelect.value;
+    if (!testId) { status("पहले प्रकाशित और ₹0 मूल्य वाला टेस्ट चुनें।"); return; }
+    const button = el("rm-free-test-save"); button.disabled = true;
+    try {
+      const result = await httpsCallable(functions, "rmOwnerSetFreeTest")({ testId });
+      status("पहला निःशुल्क टेस्ट निर्धारित हुआ: " + result.data.testId);
+    } catch (e) { status(e.message || "निःशुल्क टेस्ट निर्धारित नहीं हुआ।"); }
+    finally { button.disabled = false; }
+  });
   const testForm = el("rm-admin-test-form");
   el("rm-question-import").addEventListener("click", async () => {
     const file = el("rm-question-file").files?.[0];
