@@ -128,6 +128,7 @@ test("rejects invalid page sizes and unknown or unsafe cursors", async () => {
 });
 
 test("continues beyond a 500-document scan window without skipping older unresolved requests", async () => {
+  const scanCollection = collectionName + "_scan_window";
   const scanIds = Array.from({ length: 501 }, (_, index) =>
     "request_scan_" + String(index).padStart(3, "0"));
   const base = Date.parse("2026-11-12T00:00:00.000Z");
@@ -138,7 +139,7 @@ test("continues beyond a 500-document scan window without skipping older unresol
       scanIds.slice(offset, offset + 400).forEach((id, localIndex) => {
         const index = offset + localIndex;
         const updatedAt = new Date(base + index * 1000);
-        batch.set(db.doc(collectionName + "/" + id), {
+        batch.set(db.doc(scanCollection + "/" + id), {
           uid: "student_scan_fixture",
           testId: "scan_boundary_test",
           amount: 10000,
@@ -151,14 +152,14 @@ test("continues beyond a 500-document scan window without skipping older unresol
       await batch.commit();
     }
 
-    const first = await listOwnerPaymentReconciliation({ db, pageSize: 25, collectionName });
+    const first = await listOwnerPaymentReconciliation({ db, pageSize: 25, collectionName: scanCollection });
     assert.deepEqual(first.requests, []);
     assert.equal(first.scanLimited, true);
     assert.equal(first.hasMore, true);
     assert.equal(first.nextCursor, scanIds[1]);
 
     const second = await listOwnerPaymentReconciliation({
-      db, pageSize: 25, cursor: first.nextCursor, collectionName
+      db, pageSize: 25, cursor: first.nextCursor, collectionName: scanCollection
     });
     assert.deepEqual(second.requests.map(item => item.requestRecordId), [scanIds[0]]);
     assert.equal(second.requests[0].status, "unknown");
@@ -167,7 +168,7 @@ test("continues beyond a 500-document scan window without skipping older unresol
   } finally {
     for (let offset = 0; offset < scanIds.length; offset += 400) {
       const batch = db.batch();
-      scanIds.slice(offset, offset + 400).forEach(id => batch.delete(db.doc(collectionName + "/" + id)));
+      scanIds.slice(offset, offset + 400).forEach(id => batch.delete(db.doc(scanCollection + "/" + id)));
       await batch.commit();
     }
   }
