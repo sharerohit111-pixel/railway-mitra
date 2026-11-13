@@ -2,3 +2,5 @@ Trigger full-paper isolated local Firestore Emulator load test.
 Workload: 500 synthetic students, 1 wave, 500 concurrent workers, 50 questions per student (25,000 answer-save transactions).
 Each student saves all 50 answers sequentially while 500 students run concurrently.
 Local GitHub-hosted Firestore Emulator only. No production Firebase, real SMS, or payments.
+
+Retry after correcting the harness output formatting syntax.
