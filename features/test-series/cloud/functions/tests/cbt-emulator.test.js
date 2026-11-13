@@ -667,3 +667,194 @@ test("verified Razorpay webhook reaches the Firestore ledger exactly once", asyn
     ].map(ref => ref.delete().catch(() => {})));
   }
 });
+
+
+test("payment request reservation serializes concurrent same-ID requests and replays the saved order", async () => {
+  const {
+    PAYMENT_REQUEST_STATES,
+    paymentRequestDocumentId,
+    paymentRequestFingerprint,
+    inspectPaymentRequest
+  } = require("../payment-order-request");
+  const requestId = "emulator-concurrent-request-0001";
+  const paidTestId = "emulator-request-replay-test";
+  const amount = 49900;
+  const requestDocId = paymentRequestDocumentId({ uid, testId: paidTestId, requestId });
+  const requestRef = db.doc("testSeriesPaymentRequests/" + requestDocId);
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const orderId = "order_emulator_request_replay";
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const fingerprint = paymentRequestFingerprint({ uid, testId: paidTestId, amount, currency: "INR" });
+
+  async function reserve(token) {
+    return db.runTransaction(async tx => {
+      const [requestSnap, testSnap, entitlementSnap] = await Promise.all([
+        tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef)
+      ]);
+      assert.equal(testSnap.exists, true);
+      assert.equal(testSnap.data().status, "published");
+      assert.equal(entitlementSnap.exists, false);
+      const decision = inspectPaymentRequest(requestSnap.exists ? requestSnap.data() : null, fingerprint);
+      if (decision.action !== "reserve") return decision;
+      tx.create(requestRef, {
+        uid, testId: paidTestId, requestId, fingerprint, amount, currency: "INR",
+        status: PAYMENT_REQUEST_STATES.CREATING, reservationToken: token,
+        receipt: "rm_emulator_concurrent_request", createdAt: new Date()
+      });
+      return { action: "create", token };
+    });
+  }
+
+  try {
+    await testRef.set({ title: "Request Replay Test", status: "published", price: 499 });
+    const decisions = await Promise.all([reserve("reservation-a"), reserve("reservation-b")]);
+    assert.equal(decisions.filter(item => item.action === "create").length, 1);
+    assert.equal(decisions.filter(item => item.action === "wait").length, 1);
+
+    await orderRef.set({
+      uid, testId: paidTestId, razorpayOrderId: orderId,
+      amount, currency: "INR", status: "created", paymentRequestId: requestDocId
+    });
+    await requestRef.update({
+      status: PAYMENT_REQUEST_STATES.CREATED,
+      razorpayOrderId: orderId,
+      updatedAt: new Date()
+    });
+
+    const savedRequest = (await requestRef.get()).data();
+    const replay = inspectPaymentRequest(savedRequest, fingerprint);
+    assert.deepEqual(replay, { action: "replay", orderId });
+    const savedOrder = (await db.doc("testSeriesPaymentOrders/" + replay.orderId).get()).data();
+    assert.equal(savedOrder.uid, uid);
+    assert.equal(savedOrder.testId, paidTestId);
+    assert.equal(savedOrder.amount, amount);
+    assert.equal(savedOrder.currency, "INR");
+    assert.equal(savedOrder.status, "created");
+
+    const conflictingFingerprint = paymentRequestFingerprint({
+      uid, testId: paidTestId, amount: amount + 100, currency: "INR"
+    });
+    assert.equal(inspectPaymentRequest(savedRequest, conflictingFingerprint).action, "reject");
+  } finally {
+    await Promise.all([requestRef, testRef, entitlementRef, orderRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
+test("concurrent duplicate captured-payment deliveries grant exactly one entitlement", async () => {
+  const paidTestId = "emulator-concurrent-payment-test";
+  const orderId = "order_emulator_concurrent_payment";
+  const paymentId = "pay_emulator_concurrent_payment";
+  const eventId = "evt_emulator_concurrent_payment";
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const event = {
+    event: "payment.captured",
+    payload: { payment: { entity: {
+      id: paymentId, order_id: orderId, amount: 24900,
+      currency: "INR", status: "captured"
+    } } }
+  };
+  try {
+    await orderRef.set({
+      uid, testId: paidTestId, razorpayOrderId: orderId,
+      amount: 24900, currency: "INR", status: "created"
+    });
+    const results = await Promise.all([
+      applyCapturedPayment({ db, event, eventId }),
+      applyCapturedPayment({ db, event, eventId })
+    ]);
+    assert.equal(results.filter(result => result.granted === true).length, 1);
+    assert.equal(results.filter(result => result.duplicate === true).length, 1);
+    assert.equal((await entitlementRef.get()).data().status, "active");
+    assert.equal((await paymentRef.get()).exists, true);
+    assert.equal((await eventRef.get()).data().status, "processed");
+    assert.equal((await db.collection("testSeriesEntitlements")
+      .where("uid", "==", uid).where("testId", "==", paidTestId).get()).size, 1);
+  } finally {
+    await Promise.all([orderRef, paymentRef, eventRef, entitlementRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
+test("webhook safely recovers after a transient Firestore transaction failure", async () => {
+  const paidTestId = "emulator-firestore-recovery-test";
+  const orderId = "order_emulator_firestore_recovery";
+  const paymentId = "pay_emulator_firestore_recovery";
+  const eventId = "evt_emulator_firestore_recovery";
+  const webhookSecret = "emulator-firestore-recovery-secret";
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const event = {
+    event: "payment.captured",
+    payload: { payment: { entity: {
+      id: paymentId, order_id: orderId, amount: 7750,
+      currency: "INR", status: "captured"
+    } } }
+  };
+  const rawBody = Buffer.from(JSON.stringify(event));
+  const signature = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
+  const req = {
+    method: "POST", rawBody, body: event,
+    get(name) {
+      if (name === "x-razorpay-signature") return signature;
+      if (name === "x-razorpay-event-id") return eventId;
+      return undefined;
+    }
+  };
+  function makeResponse() {
+    return {
+      code: null, body: null, set() { return this; },
+      status(code) { this.code = code; return this; },
+      send(body) { this.body = body; return this; },
+      json(body) { this.body = body; return this; }
+    };
+  }
+  let failOnce = true;
+  const flakyDb = {
+    doc: path => db.doc(path),
+    runTransaction: (...args) => {
+      if (failOnce) {
+        failOnce = false;
+        const error = new Error("simulated transient Firestore unavailable");
+        error.code = "unavailable";
+        return Promise.reject(error);
+      }
+      return db.runTransaction(...args);
+    }
+  };
+
+  try {
+    await orderRef.set({
+      uid, testId: paidTestId, razorpayOrderId: orderId,
+      amount: 7750, currency: "INR", status: "created"
+    });
+    const failedResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req, res: failedResponse, secret: webhookSecret,
+      db: flakyDb, applyPayment: applyCapturedPayment
+    });
+    assert.equal(failedResponse.code, 500);
+    assert.equal((await orderRef.get()).data().status, "created");
+    assert.equal((await paymentRef.get()).exists, false);
+    assert.equal((await eventRef.get()).exists, false);
+    assert.equal((await entitlementRef.get()).exists, false);
+
+    const recoveredResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req, res: recoveredResponse, secret: webhookSecret,
+      db, applyPayment: applyCapturedPayment
+    });
+    assert.equal(recoveredResponse.code, 200);
+    assert.deepEqual(recoveredResponse.body, { received: true, duplicate: false });
+    assert.equal((await orderRef.get()).data().status, "paid");
+    assert.equal((await paymentRef.get()).exists, true);
+    assert.equal((await eventRef.get()).data().status, "processed");
+    assert.equal((await entitlementRef.get()).data().status, "active");
+  } finally {
+    await Promise.all([orderRef, paymentRef, eventRef, entitlementRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
