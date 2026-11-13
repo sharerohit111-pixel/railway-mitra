@@ -510,6 +510,52 @@ exports.rmOwnerListStudentActivity = onCall(CALLABLE_OPTIONS, async req => {
   };
 });
 
+// Owner-only analytics over the latest 500 submitted result summaries.
+// This bounded report is explicitly a recent-activity snapshot, not lifetime totals.
+exports.rmOwnerGetResultAnalytics = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const snap = await db.collection("testSeriesResults").orderBy("submittedAt", "desc").limit(500).get();
+  const byTest = new Map();
+  let totalScore = 0, totalPercent = 0, scored = 0, timedOut = 0;
+  snap.docs.forEach(doc => {
+    const row = doc.data();
+    const testId = typeof row.testId === "string" ? row.testId : "unknown";
+    const score = Number(row.score || 0);
+    const correct = Number(row.correct || 0);
+    const total = Number(row.totalQuestions || 0);
+    const percent = total > 0 ? (correct / total) * 100 : null;
+    const entry = byTest.get(testId) || { testId, attempts: 0, scoreTotal: 0, percentTotal: 0, percentCount: 0, timedOut: 0 };
+    entry.attempts += 1;
+    entry.scoreTotal += Number.isFinite(score) ? score : 0;
+    if (percent !== null && Number.isFinite(percent)) { entry.percentTotal += percent; entry.percentCount += 1; }
+    if (row.timedOut === true) { entry.timedOut += 1; timedOut += 1; }
+    byTest.set(testId, entry);
+    totalScore += Number.isFinite(score) ? score : 0;
+    if (percent !== null && Number.isFinite(percent)) { totalPercent += percent; scored += 1; }
+  });
+  const testIds = [...byTest.keys()].filter(id => id !== "unknown");
+  const testSnaps = await Promise.all(testIds.map(testId => db.doc("testSeriesTests/" + testId).get()));
+  const titles = {};
+  testSnaps.forEach(doc => { if (doc.exists) titles[doc.id] = doc.data().title || ""; });
+  const tests = [...byTest.values()].map(entry => ({
+    testId: entry.testId,
+    title: titles[entry.testId] || "Test",
+    attempts: entry.attempts,
+    averageScore: Math.round((entry.scoreTotal / entry.attempts) * 100) / 100,
+    averageCorrectPercent: entry.percentCount ? Math.round(entry.percentTotal / entry.percentCount * 10) / 10 : null,
+    timedOut: entry.timedOut
+  })).sort((a, b) => b.attempts - a.attempts);
+  return {
+    window: "latest_500_submissions",
+    sampledAttempts: snap.size,
+    hasMore: snap.size === 500,
+    averageScore: snap.size ? Math.round(totalScore / snap.size * 100) / 100 : 0,
+    averageCorrectPercent: scored ? Math.round(totalPercent / scored * 10) / 10 : null,
+    timedOut,
+    tests
+  };
+});
+
 // Student catalogue exposes published metadata only; question sets and answer keys stay private.
 exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req);
