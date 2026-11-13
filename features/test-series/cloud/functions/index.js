@@ -330,7 +330,7 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions });
     tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions, submittedAt: FieldValue.serverTimestamp() });
     tx.set(db.doc("testSeriesActiveSessions/" + uid), { uid, status: "completed", attemptId, testId: a.testId, completedAt: FieldValue.serverTimestamp() });
-    return { submitted: true, timedOut, correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length };
+    return { submitted: true, timedOut, correct, wrong, unattempted, score, totalQuestions };
   });
 });
 
