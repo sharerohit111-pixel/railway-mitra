@@ -44,7 +44,7 @@ test("lists only unresolved payment requests newest-first with safe allow-listed
         currency: "INR", status: "unknown", failureCode: "provider_outcome_unknown",
         providerOrderIdObserved: "order_reconcile_latest",
         reservationToken: "private-reservation-token", fingerprint: "private-fingerprint",
-        receipt: "private-receipt", requestId: "private-request-id",
+        receipt: "rm_reconcile_latest", requestId: "private-request-id",
         phone: "+919999999999", email: "private@example.invalid",
         providerPayload: { notes: { secret: "never return" } }
       }
@@ -86,11 +86,12 @@ test("lists only unresolved payment requests newest-first with safe allow-listed
   assert.equal(first.requests[0].status, "unknown");
   assert.equal(first.requests[0].amountPaise, 49900);
   assert.equal(first.requests[0].failureCode, "provider_outcome_unknown");
+  assert.equal(first.requests[0].receiptRef, "rm_reconcile_latest");
   assert.deepEqual(Object.keys(first.requests[0]).sort(), [
-    "amountPaise", "createdAt", "currency", "failureCode", "providerOrderIdObserved",
+    "amountPaise", "createdAt", "currency", "failureCode", "providerOrderIdObserved", "receiptRef",
     "requestRecordId", "status", "studentUid", "testId", "updatedAt"
   ].sort());
-  for (const forbidden of ["reservationToken", "fingerprint", "receipt", "requestId", "phone", "email", "providerPayload"]) {
+  for (const forbidden of ["reservationToken", "fingerprint", "requestId", "phone", "email", "providerPayload"]) {
     assert.equal(Object.hasOwn(first.requests[0], forbidden), false, forbidden + " must not be returned");
   }
 
