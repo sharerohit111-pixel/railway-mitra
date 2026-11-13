@@ -110,3 +110,7 @@ The Results & Ranking module can export its per-test aggregates as CSV or open a
 ### Test-wise report search and sorting
 
 The Owner Results & Ranking screen can filter the loaded per-test aggregates by test ID or title and sort by attempts, average score, average correct-answer percentage, or test name. CSV and print/PDF exports use the currently visible filtered and sorted test rows, while the report continues to label the bounded server-side sample. The filter is client-side over the returned analytics snapshot and does not expand the latest-500 server query.
+
+### Live Razorpay order inspection (read-only)
+
+For reconciliation requests that contain a provider order ID observed after a Firestore write failure, the Owner can request a live Razorpay lookup from the reconciliation queue. The Owner-only callable reads the request record, fetches the Razorpay order and its payment attempts using server-held API credentials, and compares the provider receipt, amount, currency, and server-owned UID/test notes against the reserved request. The response is a strict allow-list and excludes provider notes, contact details, email, and raw payloads. This operation is read-only: it does not retry order creation, mark a request resolved, release a student-test lock, grant access, or alter payment records. Requests without a known provider order ID remain support cases and cannot be inspected through this control. A captured provider payment must still be reconciled through the separately verified payment-ledger workflow; this lookup alone never grants access.
