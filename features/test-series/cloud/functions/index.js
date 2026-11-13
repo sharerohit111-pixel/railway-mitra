@@ -467,11 +467,13 @@ exports.rmOwnerSaveQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
       !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
     throw new HttpsError("invalid-argument", "Question text, 2–6 options and a valid correctIndex are required");
   }
+  const section = typeof question.section === "string" ? question.section.trim() : "";
+  if (section.length > 80) throw new HttpsError("invalid-argument", "Question section name is too long");
   const itemId = data.itemId ? id(data.itemId) : db.collection("testSeriesQuestionBank").doc().id;
   const ref = db.doc("testSeriesQuestionBank/" + itemId);
   await ref.set({
     topic, chapter, folder,
-    question: { text, options, explanation: typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : "" },
+    question: { text, options, ...(section ? { section } : {}), explanation: typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : "" },
     correctIndex,
     updatedAt: FieldValue.serverTimestamp(),
     ...(!data.itemId ? { createdAt: FieldValue.serverTimestamp() } : {})
@@ -502,8 +504,10 @@ exports.rmOwnerBulkSaveQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
         !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
       throw new HttpsError("invalid-argument", "Invalid topic, chapter, folder or question at row " + (index + 1));
     }
+    const section = question && typeof question.section === "string" ? question.section.trim() : "";
+    if (section.length > 80) throw new HttpsError("invalid-argument", "Invalid section at row " + (index + 1));
     return { topic, chapter, folder, question: {
-      text, options,
+      text, options, ...(section ? { section } : {}),
       explanation: question && typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : ""
     }, correctIndex };
   });
