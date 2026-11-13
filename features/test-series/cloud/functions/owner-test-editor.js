@@ -16,7 +16,7 @@ function restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap) {
       ? answerMap[question.id]
       : null;
     const rawIndex = answer && answer.correctAnswer;
-    const correctIndex = typeof rawIndex === "string" && /^\d+$/.test(rawIndex)
+    const correctIndex = typeof rawIndex === "string" && /^(0|[1-9]\d*)$/.test(rawIndex)
       ? Number(rawIndex)
       : NaN;
     if (!Number.isSafeInteger(correctIndex) || correctIndex < 0
