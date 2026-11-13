@@ -9,16 +9,22 @@ function fakeDb(rows) {
   return {
     collection(name) {
       assert.equal(name, "testSeriesPaymentAudit");
+      let afterId = null;
       return {
         orderBy(field, direction) {
           assert.equal(field, "createdAt"); assert.equal(direction, "desc");
           return {
-            async limit(size) {
-              return { docs: rows.slice(0, size).map(row => ({
-                id: row.id, data: () => row.data
-              })) };
-            },
-            startAfter(cursor) { return this; }
+            startAfter(cursor) { afterId = cursor.id; return this; },
+            limit(size) {
+              return {
+                async get() {
+                  const start = afterId ? rows.findIndex(row => row.id === afterId) + 1 : 0;
+                  return { docs: rows.slice(start, start + size).map(row => ({
+                    id: row.id, data: () => row.data
+                  })) };
+                }
+              };
+            }
           };
         }
       };
@@ -26,7 +32,7 @@ function fakeDb(rows) {
     doc(path) {
       const id = path.split("/").pop();
       const row = rows.find(item => item.id === id);
-      return { async get() { return { exists: Boolean(row), data: () => row && row.data }; } };
+      return { id, async get() { return { exists: Boolean(row), id, data: () => row && row.data }; } };
     }
   };
 }
@@ -41,13 +47,20 @@ test("lists only allow-listed audit metadata and paginates newest-first", async 
       requestRecordId: "b".repeat(64), outcome: "provider_lookup_failed",
       paymentStatuses: [], paymentCount: 0, createdAt: timestamp("2026-11-13T09:00:00Z") } }
   ];
-  const result = await listOwnerPaymentAudit({ db: fakeDb(rows), pageSize: 1 });
+  const db = fakeDb(rows);
+  const result = await listOwnerPaymentAudit({ db, pageSize: 1 });
   assert.equal(result.records.length, 1);
   assert.equal(result.records[0].auditId, "audit_1");
   assert.equal(result.records[0].matchesRequest, true);
   assert.equal(result.nextCursor, "audit_1");
   assert.equal(result.hasMore, true);
   assert.equal(JSON.stringify(result).includes("never return"), false);
+
+  const next = await listOwnerPaymentAudit({ db, pageSize: 1, cursor: result.nextCursor });
+  assert.equal(next.records.length, 1);
+  assert.equal(next.records[0].auditId, "audit_2");
+  assert.equal(next.nextCursor, null);
+  assert.equal(next.hasMore, false);
 });
 
 test("rejects invalid page size and cursor", async () => {
