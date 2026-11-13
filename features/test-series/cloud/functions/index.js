@@ -477,6 +477,45 @@ exports.rmOwnerSaveQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
   return { saved: true, itemId };
 });
 
+exports.rmOwnerBulkSaveQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const items = req.data && req.data.items;
+  if (!Array.isArray(items) || items.length < 1 || items.length > 100) {
+    throw new HttpsError("invalid-argument", "Upload between 1 and 100 questions per batch");
+  }
+  const normalized = items.map((item, index) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      throw new HttpsError("invalid-argument", "Invalid question at row " + (index + 1));
+    }
+    const topic = String(item.topic || "").trim();
+    const chapter = String(item.chapter || "").trim();
+    const folder = String(item.folder || "").trim();
+    const question = item.question;
+    const text = question && typeof question.text === "string" ? question.text.trim() : "";
+    const options = question && Array.isArray(question.options) ? question.options.map(value => String(value).trim()) : [];
+    const correctIndex = question && question.correctIndex;
+    if (!topic || topic.length > 80 || !chapter || chapter.length > 100 || !folder || folder.length > 120 ||
+        !text || text.length > 4000 || options.length < 2 || options.length > 6 ||
+        options.some(option => !option || option.length > 1000) ||
+        !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
+      throw new HttpsError("invalid-argument", "Invalid topic, chapter, folder or question at row " + (index + 1));
+    }
+    return { topic, chapter, folder, question: {
+      text, options,
+      explanation: question && typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : ""
+    }, correctIndex };
+  });
+  const batch = db.batch();
+  const refs = normalized.map(item => db.collection("testSeriesQuestionBank").doc());
+  normalized.forEach((item, index) => batch.set(refs[index], {
+    ...item,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  }));
+  await batch.commit();
+  return { saved: refs.length, itemIds: refs.map(ref => ref.id) };
+});
+
 exports.rmOwnerDeleteQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
   const itemId = id(req.data && req.data.itemId);
