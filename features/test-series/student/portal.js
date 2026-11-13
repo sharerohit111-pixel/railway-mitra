@@ -7,7 +7,7 @@ import { initStudentDashboard } from "./dashboard.js";
 const el = id => document.getElementById(id);
 const login = el("rm-portal-login"), workspace = el("rm-portal-app"), view = el("rm-portal-view");
 const authStatus = el("rm-portal-auth-status"), portalStatus = el("rm-portal-status");
-let confirmation = null, recaptcha = null, currentUser = null, currentTestId = null, activeView = "catalogue", authStateVersion = 0, activeExamController = null;
+let confirmation = null, recaptcha = null, currentUser = null, currentTestId = null, activeView = "catalogue", authStateVersion = 0, viewRequestVersion = 0, activeExamController = null;
 
 function setBusy(button, busy, label) {
   button.disabled = busy;
@@ -22,6 +22,7 @@ function isCurrentStudentSession(version, uid) {
 }
 
 async function showView(name) {
+  const requestVersion = ++viewRequestVersion;
   const sessionVersion = authStateVersion;
   const sessionUid = currentUser?.uid;
   if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
@@ -35,12 +36,14 @@ async function showView(name) {
     const response = await fetch("./catalogue.html");
     const markup = await response.text();
     if (!response.ok) throw new Error("Test catalogue could not be loaded.");
-    if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
+    if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
     view.innerHTML = markup;
     await initStudentTestCatalogue({ app, root: document, onStart: async ({ test }) => {
+      if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
       currentTestId = test.testId;
       await showExam(test);
     }});
+    if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
   } else if (name === "dashboard") {
     const response = await fetch("./dashboard.html");
     const markup = await response.text();
@@ -50,13 +53,14 @@ async function showView(name) {
     // initStudentDashboard owns the single refresh listener; do not attach a
     // second handler here or each click will issue duplicate dashboard requests.
     await initStudentDashboard({ app, root: document });
+    if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
   } else if (name === "exam") {
     const testId = currentTestId;
     if (!testId) throw new Error("Select a test before opening the exam.");
     const response = await fetch("./exam.html");
     const testMarkup = await response.text();
     if (!response.ok) throw new Error("Exam screen could not be loaded.");
-    if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
+    if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
     view.innerHTML = testMarkup;
     const back = document.createElement("button");
     back.type = "button";
@@ -136,6 +140,7 @@ document.querySelectorAll("[data-view]").forEach(button => button.addEventListen
 onAuthStateChanged(auth, async user => {
   const version = ++authStateVersion;
   if (!user) {
+    viewRequestVersion += 1;
     activeExamController?.destroy();
     activeExamController = null;
     currentUser = null;
