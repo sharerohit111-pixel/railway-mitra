@@ -60,11 +60,11 @@ The existing Firebase project is identified from the repository configuration as
 
 
 ## App Check verification (web/PWA)
-1. Confirm the Firebase Console App Check app entry shows **Railway Mitra Web — Registered** with Fraud Defense.
-2. Deploy this branch to a staging URL or merge it only after review; GitHub Pages on the default branch will not serve branch-only changes automatically.
-3. Open `features/test-series/cloud/app-check-test.html` on one of the registered/authorized domains and tap **App Check जाँचें**.
-4. A success message means the client obtained an App Check token. It does not mean callable functions are deployed or that enforcement is enabled.
-5. Keep App Check enforcement OFF until the app has been tested on Android/PWA and every Firebase client entry point is confirmed to initialize App Check.
+1. Confirm the Firebase Console App Check app entry shows **Railway Mitra Web — Registered** with reCAPTCHA Enterprise/Fraud Defense and the intended authorized domains.
+2. Serve the branch from an approved staging origin; GitHub Pages on the default branch will not serve branch-only changes automatically.
+3. Open `features/test-series/cloud/app-check-test.html` on that origin and tap **App Check जाँचें**.
+4. A success message proves only that this browser obtained a token. It does not prove that Cloud Functions are deployed, that Android/PWA clients work, or that the project is production-ready.
+5. Before deploying the callable code, verify App Check tokens from every real Test Series client entry point on staging. The callable code intentionally sets `enforceAppCheck: true` in deployed environments; only the local Functions Emulator bypasses it. Keep any broader Firestore/Storage enforcement switches off until their client coverage and impact on existing Railway Mitra features have been separately reviewed and approved.
 
 The Owner and Student portals use a dedicated Firebase app instance named `railway-mitra-test-series`. `firebase-app-check-init.js` initializes that app, then initializes App Check, and only afterward creates its Auth and Firestore clients. This ordering ensures the protected callable client starts with App Check available. The Test Series bootstrap carries the same public Firebase config as `assets/js/firebase.js`; a regression test compares all config fields so the isolated copy cannot silently drift. The shared `assets/js/firebase.js` and all unrelated Railway Mitra features remain unchanged. Server callables use one fail-closed policy: App Check is enforced in deployed environments and bypassed only when the Firebase Functions Emulator explicitly sets `FUNCTIONS_EMULATOR=true`. The Razorpay webhook is an HTTP provider callback and is authenticated by its raw-body HMAC secret rather than browser App Check. The site key in `app-check.js` is a public web site key, not a private service-account secret. Never put service-account credentials or private keys in browser code.
 
