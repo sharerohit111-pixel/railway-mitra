@@ -44,8 +44,24 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment } = {}
       eventId,
       code: error && error.code ? error.code : "unknown"
     });
-    if (["event_id_conflict", "payment_id_conflict", "payment_not_captured",
-      "invalid_event_id", "invalid_payment_identity"].includes(error && error.code)) {
+    const permanentErrors = new Set([
+      "event_id_conflict",
+      "payment_id_conflict",
+      "payment_not_captured",
+      "invalid_event_id",
+      "invalid_payment_identity",
+      "order_not_found",
+      "order_not_payable",
+      "entitlement_conflict",
+      "payment_unsupported_event",
+      "payment_payment_not_captured",
+      "payment_invalid_server_order",
+      "payment_invalid_payment_fields",
+      "payment_order_mismatch",
+      "payment_amount_mismatch",
+      "payment_currency_mismatch"
+    ]);
+    if (permanentErrors.has(error && error.code)) {
       res.status(200).json({ received: true, rejected: true });
       return;
     }
