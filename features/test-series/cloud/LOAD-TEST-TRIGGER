@@ -1,0 +1,3 @@
+Manual trigger marker for the isolated local Firestore Emulator load test.
+Workload defaults: 25 students, 2 waves, 10 concurrent workers.
+No production Firebase project is used.
