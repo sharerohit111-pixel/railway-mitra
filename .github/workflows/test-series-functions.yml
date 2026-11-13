@@ -50,3 +50,4 @@ jobs:
           node --check --input-type=module < features/test-series/student/exam.js
           node --check --input-type=module < features/test-series/student/dashboard.js
           node --check --input-type=module < features/test-series/student/leaderboard.js
+          node --check --input-type=module < features/test-series/student/portal.js
