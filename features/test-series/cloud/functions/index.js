@@ -261,8 +261,13 @@ function ownerTestPayload(data) {
   if (!mode) throw new HttpsError("invalid-argument", "Mode must be mock or scheduled");
   const durationMinutes = Number(data.durationMinutes);
   if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 240) throw new HttpsError("invalid-argument", "Duration must be 1–240 minutes");
-  const price = Number(data.price ?? 0), marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
+  const rawPrice = data.price ?? 0;
+  const price = Number(rawPrice), marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
   if (!Number.isFinite(price) || price < 0 || price > 100000) throw new HttpsError("invalid-argument", "Invalid test price");
+  if (price > 0) {
+    try { rupeesToPaise(rawPrice, { maxRupees: 100000 }); }
+    catch { throw new HttpsError("invalid-argument", "Test price must be a valid amount with at most two decimal places"); }
+  }
   if (!Number.isFinite(marksPerQuestion) || marksPerQuestion <= 0 || marksPerQuestion > 100) throw new HttpsError("invalid-argument", "Invalid marks per question");
   if (!Number.isFinite(negativeMarks) || negativeMarks < 0 || negativeMarks > 100) throw new HttpsError("invalid-argument", "Invalid negative marks");
   const status = data.status === "published" ? "published" : "draft";
