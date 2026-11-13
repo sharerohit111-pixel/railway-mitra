@@ -244,5 +244,5 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     setConnectionState(window.navigator?.onLine!==false);
     if(window.navigator?.onLine===false)onOffline();
   }
-  return { destroy(){clearInterval(timer);if(typeof window!=="undefined"){window.removeEventListener("offline",onOffline);window.removeEventListener("online",onOnline);}} };
+  return { destroy(){clearInterval(timer);navigationRequest++;if(typeof window!=="undefined"){window.removeEventListener("offline",onOffline);window.removeEventListener("online",onOnline);window.removeEventListener("beforeunload",onBeforeUnload);window.removeEventListener("pagehide",onPageHide);}} };
 }
