@@ -817,6 +817,12 @@ export function initOwnerAdminDashboard(auth, functions) {
       let question;
       try { question = JSON.parse(el("rm-qb-question").value); }
       catch { throw new Error("प्रश्न JSON सही प्रारूप में नहीं है।"); }
+      if (!question || typeof question !== "object" || Array.isArray(question)) {
+        throw new Error("प्रश्न JSON एक Object होना चाहिए।");
+      }
+      const section = el("rm-qb-question-section").value.trim();
+      if (section) question.section = section;
+      else delete question.section;
       const itemId = el("rm-qb-item-id").value;
       await httpsCallable(functions, "rmOwnerSaveQuestionBankItem")({
         ...(itemId ? { itemId } : {}), topic: el("rm-qb-topic").value,
