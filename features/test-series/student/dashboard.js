@@ -1,5 +1,8 @@
 import { getStudentCbtDashboard } from "../cloud/student-client.js";
 
+// Keep one click listener per refresh button even if the dashboard is mounted again.
+const refreshHandlers = new WeakMap();
+
 export async function initStudentDashboard({ app, root = document }) {
   const status = root.getElementById("rm-dashboard-status");
   const summary = root.getElementById("rm-dashboard-summary");
@@ -69,6 +72,10 @@ export async function initStudentDashboard({ app, root = document }) {
       refresh.disabled = false;
     }
   }
-  refresh.addEventListener("click", load);
+  refreshHandlers.set(refresh, load);
+  if (!refresh.dataset.rmDashboardRefreshBound) {
+    refresh.addEventListener("click", () => refreshHandlers.get(refresh)?.());
+    refresh.dataset.rmDashboardRefreshBound = "true";
+  }
   return load();
 }
