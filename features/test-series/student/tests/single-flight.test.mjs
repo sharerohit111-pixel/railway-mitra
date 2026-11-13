@@ -48,3 +48,11 @@ test("invalid keys and operations are rejected", () => {
   assert.throws(() => runSingleFlight(null, () => {}), TypeError);
   assert.throws(() => runSingleFlight({}, null), TypeError);
 });
+
+test("a synchronous operation error also releases the key", async () => {
+  const key = {};
+  assert.equal(await runSingleFlight(key, () => {
+    throw new Error("sync failure");
+  }).catch(error => error.message), "sync failure");
+  assert.equal(await runSingleFlight(key, () => "recovered"), "recovered");
+});
