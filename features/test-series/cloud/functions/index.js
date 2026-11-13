@@ -184,8 +184,9 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
   return {
     test: { testId: attempt.testId, title: test.title || "", durationMinutes: Number(test.durationMinutes || 30),
-      marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0) },
-    questions: questions.map(q => ({ id: q.id, text: q.text, options: q.options })),
+      marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0),
+      sections: Array.isArray(test.sections) ? test.sections : [] },
+    questions: questions.map(q => ({ id: q.id, text: q.text, options: q.options, ...(q.section ? { section: q.section } : {}) })),
     savedAnswers: attempt.answers || {},
     expiresAt: date(attempt.expiresAt).toISOString()
   };
