@@ -192,6 +192,38 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   };
 });
 
+exports.rmEnterCbtSection = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId), sectionName = typeof req.data?.section === "string" ? req.data.section.trim() : "";
+  if (!sectionName || sectionName.length > 80) throw new HttpsError("invalid-argument", "Valid section name is required");
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  return db.runTransaction(async tx => {
+    const attemptSnap = await tx.get(attemptRef);
+    if (!attemptSnap.exists || attemptSnap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
+    const attempt = attemptSnap.data(), now = new Date(), overallExpiry = date(attempt.expiresAt);
+    if (attempt.status !== "in_progress" || !overallExpiry || overallExpiry <= now) throw new HttpsError("failed-precondition", "Exam is closed");
+    const [testSnap, paperSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesTests/" + attempt.testId)),
+      tx.get(db.doc("testSeriesQuestionSets/" + attempt.testId))
+    ]);
+    if (!testSnap.exists || !paperSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
+    if (!(paperSnap.data().questions || []).some(item => item.section === sectionName)) throw new HttpsError("not-found", "Section not found in this exam");
+    const config = (testSnap.data().sections || []).find(item => item.name === sectionName);
+    const limit = Number(config?.timeLimitMinutes || 0);
+    if (!Number.isInteger(limit) || limit < 0 || limit > 240) throw new HttpsError("failed-precondition", "Invalid section time configuration");
+    const timings = attempt.sectionTimings || {}, existing = timings[sectionName];
+    if (existing) {
+      const expiry = date(existing.expiresAt);
+      if (!expiry || expiry <= now) throw new HttpsError("deadline-exceeded", "Section time has expired");
+      return { section: sectionName, startedAt: date(existing.startedAt)?.toISOString() || null, expiresAt: expiry.toISOString(), timeLimitMinutes: limit, resumed: true };
+    }
+    if (!limit) return { section: sectionName, startedAt: null, expiresAt: overallExpiry.toISOString(), timeLimitMinutes: 0, resumed: false };
+    const startedAt = Timestamp.fromDate(now);
+    const expiresAt = Timestamp.fromDate(new Date(Math.min(now.getTime() + limit * 60000, overallExpiry.getTime())));
+    tx.update(attemptRef, { ["sectionTimings." + sectionName]: { startedAt, expiresAt }, updatedAt: FieldValue.serverTimestamp() });
+    return { section: sectionName, startedAt: startedAt.toDate().toISOString(), expiresAt: expiresAt.toDate().toISOString(), timeLimitMinutes: limit, resumed: false };
+  });
+});
+
 exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req), attemptId = id(req.data && req.data.attemptId), questionId = id(req.data && req.data.questionId), answer = req.data && req.data.answer;
   if (!(typeof answer === "string" || typeof answer === "number" || typeof answer === "boolean" || answer === null)) throw new HttpsError("invalid-argument", "Answer must be scalar");
@@ -206,6 +238,14 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
     const question = (questionSet.data().questions || []).find(item => item.id === questionId);
     if (!question) throw new HttpsError("invalid-argument", "Question does not belong to this exam");
+    if (question.section) {
+      const testSnap = await tx.get(db.doc("testSeriesTests/" + a.testId));
+      const config = (testSnap.data()?.sections || []).find(item => item.name === question.section);
+      if (Number(config?.timeLimitMinutes || 0) > 0) {
+        const expiry = date(a.sectionTimings?.[question.section]?.expiresAt);
+        if (!expiry || expiry <= new Date()) throw new HttpsError("deadline-exceeded", "Section time has expired or has not started");
+      }
+    }
     if (typeof answer !== "string" || !/^\d+$/.test(answer) || Number(answer) >= question.options.length) {
       throw new HttpsError("invalid-argument", "Answer must be a valid option index");
     }
