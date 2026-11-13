@@ -22,7 +22,7 @@ const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const { getCallableOptions } = require("./app-check-policy");
-const { normalizeQuestionBankItem } = require("./question-bank-validation");
+const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require("./question-bank-validation");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -607,21 +607,13 @@ exports.rmOwnerDeleteQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
 
 exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
-  const data = req.data || {};
-  const pageSize = data.pageSize === undefined ? 50 : data.pageSize;
-  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
-    throw new HttpsError("invalid-argument", "Page size must be from 1 to 100");
+  let listRequest;
+  try {
+    listRequest = normalizeQuestionBankListRequest(req.data || {});
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
   }
-  const searchText = typeof data.search === "string" ? data.search.trim().slice(0, 120).toLocaleLowerCase() : "";
-  const filters = {};
-  for (const field of ["topic", "chapter", "folder"]) {
-    if (data[field] !== undefined && data[field] !== null && String(data[field]).trim()) {
-      const value = String(data[field]).trim();
-      const max = field === "topic" ? 80 : field === "chapter" ? 100 : 120;
-      if (value.length > max) throw new HttpsError("invalid-argument", "Invalid " + field + " filter");
-      filters[field] = value;
-    }
-  }
+  const { pageSize, searchText, filters } = listRequest;
   let query = db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc");
   if (data.cursor !== undefined && data.cursor !== null) {
     if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(data.cursor)) {
