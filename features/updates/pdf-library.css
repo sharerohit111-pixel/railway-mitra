@@ -1,0 +1,26 @@
+.rm-pdf-library{border:1px solid #2bd8f277;border-radius:22px;background:linear-gradient(135deg,#12213def,#241536ed);box-shadow:0 12px 34px #0003;padding:22px}
+.rm-pdf-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.rm-pdf-heading h2{margin:0;color:#fff;font-size:1.35rem}
+.rm-pdf-heading p,.rm-pdf-admin p{margin:5px 0 0;color:#bfd3e8;line-height:1.55}
+#pdfCount{color:#a9c3df;font-size:.85rem;white-space:nowrap}
+.rm-pdf-admin{border:1px solid #39d8ef88;border-radius:16px;padding:16px;margin:0 0 16px;background:#0c2036}
+.rm-pdf-admin h3{margin:0;color:#fff}
+#pdfUploadForm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+#pdfUploadForm label{display:grid;gap:6px;color:#dcecff;font-size:.9rem;font-weight:650}
+#pdfUploadForm input,#pdfUploadForm select{min-width:0;width:100%;box-sizing:border-box;border:1px solid #496b89;border-radius:10px;background:#07172b;color:#fff;padding:11px;font:inherit}
+#pdfUploadForm .rm-pdf-file{grid-column:1/-1}
+#pdfUploadForm button{justify-self:start;border:1px solid #3bdbf1;border-radius:11px;background:linear-gradient(110deg,#087ea9,#6c39c9);color:#fff;padding:11px 18px;font-weight:750}
+#pdfUploadForm button:disabled{opacity:.5}
+#pdfAdminStatus{min-height:1.3em;color:#8fe8f5;font-size:.88rem}
+.rm-pdf-list{display:grid;gap:10px}
+.rm-pdf-card{display:flex;align-items:flex-start;gap:13px;border:1px solid #355b79;border-radius:15px;padding:14px;background:#10223b}
+.rm-pdf-icon{font-size:1.6rem}
+.rm-pdf-content{min-width:0;flex:1;display:grid;gap:5px}
+.rm-pdf-content strong{color:#fff;overflow-wrap:anywhere}
+.rm-pdf-content small{color:#91b4d1}
+.rm-pdf-content p{margin:2px 0;color:#c2d5e9;font-size:.9rem}
+.rm-pdf-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px}
+.rm-pdf-actions a,.rm-pdf-actions button{border:1px solid #3bdbf1;border-radius:9px;padding:7px 12px;background:#153451;color:#e9fbff;text-decoration:none;font:inherit;font-size:.85rem;font-weight:700}
+.rm-pdf-actions .rm-pdf-delete{border-color:#bd7184;background:#422332;color:#ffe1e8}
+.rm-pdf-empty{border:1px dashed #53728c;border-radius:14px;padding:20px;color:#b9cde2;text-align:center}
+@media(max-width:650px){.rm-pdf-library{padding:16px}#pdfUploadForm{grid-template-columns:1fr}#pdfUploadForm .rm-pdf-file{grid-column:auto}.rm-pdf-heading{flex-direction:column}}
