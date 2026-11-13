@@ -441,6 +441,24 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     assert.equal(newEventRetry.duplicate, true);
     assert.equal((await replayEventRef.get()).data().status, "duplicate");
 
+    // An existing event ID is idempotent only while its complete payment and
+    // entitlement records remain present and consistent.
+    const originalEntitlement = (await entitlementRef.get()).data();
+    await entitlementRef.delete();
+    await assert.rejects(
+      applyCapturedPayment({ db, event, eventId }),
+      error => error.code === "event_ledger_inconsistent"
+    );
+    await entitlementRef.set(originalEntitlement);
+
+    const originalPayment = (await paymentRef.get()).data();
+    await paymentRef.delete();
+    await assert.rejects(
+      applyCapturedPayment({ db, event, eventId: "evt_ledger_replay" }),
+      error => error.code === "event_ledger_inconsistent"
+    );
+    await paymentRef.set(originalPayment);
+
     await assert.rejects(
       applyCapturedPayment({
         db,
