@@ -47,6 +47,13 @@ The Owner may change the configured free test only before the first student clai
 - Owner payment-reconciliation emulator fixtures use a separate `testSeriesPaymentReconciliationFixtures` collection. The queue scans at most 500 payment-request documents ordered by immutable `createdAt` (not mutable `updatedAt`), returns only `creating`/`unknown` rows, and exposes a continuation cursor when the bounded scan is full. `updatedAt` remains display metadata only, so status/provider updates cannot move a request across an already-issued page cursor. It does not mutate requests, retry provider calls, or grant/revoke entitlements; an Owner must reconcile the provider outcome before support tells a student to retry checkout.
 - These endpoints are code-only until separately configured and deployed. Paid tests must remain unavailable to real students until the secrets, provider dashboard webhook, client checkout flow, staging end-to-end test and operational refund/support process are configured and approved.
 
+
+### Student checkout request-ID persistence
+
+The student checkout stores its opaque payment request ID in browser `sessionStorage`, scoped to the test and current tab. A page reload in that tab therefore reuses the same UID/test/request reservation, allowing the server to replay a completed provider order or keep an ambiguous outcome locked for reconciliation. If session storage is unavailable or cannot be verified, checkout fails closed before calling the payment-order callable. The request ID is not a payment credential and contains no student or provider data.
+
+The client clears that stored ID only when the callable returns the explicit `details.retryableNewRequest === true` marker. The server emits this marker only after Razorpay returned a definite order-creation rejection; an unknown network/provider outcome never carries it and the client retains the original key. The student can then deliberately start a new attempt after a definite rejection. Do not clear browser session data or generate a new request ID to work around an unknown outcome: contact support and reconcile the provider order first. This is tab-scoped protection, not a cross-device or cross-tab payment lock; server-side reservation and payment-ledger checks remain authoritative.
+
 ### Required Secret Manager names
 Set secrets only in the intended Firebase staging project, using the Firebase CLI's interactive secret prompt (do not paste secret values into source code, GitHub, chat, or command-line arguments):
 - `RAZORPAY_KEY_ID` — Razorpay API Key ID for the selected test/live mode.
