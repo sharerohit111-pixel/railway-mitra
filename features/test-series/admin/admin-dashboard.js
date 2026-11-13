@@ -275,6 +275,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         negativeMarks: el("rm-test-negative").value,
         status: el("rm-test-status").value,
         questions,
+        sections: questionSections,
         scheduleStartAt: el("rm-test-start").value,
         scheduleEndAt: el("rm-test-end").value
       });
@@ -362,17 +363,24 @@ export function initOwnerAdminDashboard(auth, functions) {
     const list = el("rm-qb-sections-list"); list.replaceChildren();
     const select = document.createElement("select"); select.id = "rm-qb-active-section";
     select.add(new Option("बिना सेक्शन", ""));
-    questionSections.forEach(name => select.add(new Option(name, name)));
+    questionSections.forEach(section => select.add(new Option(section.name, section.name)));
     select.value = activeQuestionSection;
     select.addEventListener("change", () => { activeQuestionSection = select.value; });
     const label = document.createElement("label"); label.textContent = "प्रश्न जोड़ने का सक्रिय सेक्शन ";
     label.append(select); list.append(label);
-    questionSections.forEach(name => {
+    questionSections.forEach(section => {
       const row = document.createElement("div"); row.className = "rm-admin-payment-row";
-      const title = document.createElement("b"); title.textContent = name;
+      const title = document.createElement("b"); title.textContent = section.name;
       const count = document.createElement("small");
-      count.textContent = "इस सेक्शन में जोड़े गए प्रश्न Test JSON में section नाम के साथ सुरक्षित होंगे।";
-      row.append(title, count); list.append(row);
+      count.textContent = "जुड़े प्रश्न: " + questionBankItems.filter(item => item.question?.section === section.name).length + " · समय: " + (section.timeLimitMinutes ? section.timeLimitMinutes + " मिनट" : "अलग सीमा नहीं");
+      const time = document.createElement("input"); time.type = "number"; time.min = "0"; time.max = "240"; time.step = "1"; time.value = String(section.timeLimitMinutes); time.setAttribute("aria-label", section.name + " समय सीमा मिनट");
+      time.addEventListener("change", () => {
+        const value = Number(time.value);
+        if (!Number.isInteger(value) || value < 0 || value > 240) { time.value = String(section.timeLimitMinutes); el("rm-qb-sections-status").textContent = "सेक्शन समय 0 से 240 मिनट के बीच रखें।"; return; }
+        section.timeLimitMinutes = value;
+        renderQuestionSections();
+      });
+      row.append(title, count, time); list.append(row);
     });
     el("rm-qb-sections-status").textContent = questionSections.length
       ? questionSections.length + " सेक्शन बने हैं। प्रश्न जोड़ने से पहले सक्रिय सेक्शन चुनें।"
@@ -381,10 +389,12 @@ export function initOwnerAdminDashboard(auth, functions) {
   el("rm-qb-create-section").addEventListener("click", () => {
     const name = el("rm-qb-section-name").value.trim();
     if (!name || name.length > 80) { el("rm-qb-sections-status").textContent = "सेक्शन का नाम 1 से 80 अक्षरों का होना चाहिए।"; return; }
-    if (questionSections.some(item => item.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+    if (questionSections.some(item => item.name.toLocaleLowerCase() === name.toLocaleLowerCase())) {
       el("rm-qb-sections-status").textContent = "यह सेक्शन पहले से मौजूद है।"; return;
     }
-    questionSections.push(name); activeQuestionSection = name;
+    const timeLimitMinutes = Number(el("rm-qb-section-time").value);
+    if (!Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) { el("rm-qb-sections-status").textContent = "सेक्शन समय 0 से 240 मिनट के बीच रखें।"; return; }
+    questionSections.push({ name, timeLimitMinutes }); activeQuestionSection = name;
     el("rm-qb-section-name").value = "";
     renderQuestionSections();
   });
