@@ -65,7 +65,7 @@ function showConsentPrompt() {
   panel.innerHTML = `
     <div class="rm-analytics-consent__copy">
       <strong>Help improve Railway Mitra</strong>
-      <p>Allow anonymous usage measurement (such as page visits and feature opens)? We never send employee details, account identifiers or calculator inputs to Analytics. You can choose either option.</p>
+      <p>Allow usage measurement (such as page visits and feature opens)? We never send employee details, account identifiers or calculator inputs to Analytics. You can choose either option.</p>
       <a href="features/privacy/index.html" target="_blank" rel="noopener">Privacy Policy</a>
     </div>
     <div class="rm-analytics-consent__actions">
@@ -100,9 +100,15 @@ function startTracking() {
   });
 
   // Explicitly expose a small event helper for future isolated feature modules.
+  const allowedEvents = new Set(["feature_open"]);
   window.RailwayMitraAnalytics = Object.freeze({
-    trackFeature: (name) => track("feature_open", { feature_name: String(name).slice(0, 80) }),
-    trackEvent: (name, params = {}) => track(String(name).slice(0, 40), params)
+    trackFeature: (name) => track("feature_open", {
+      feature_name: String(name).replace(/[^a-zA-Z0-9 _-]/g, "").slice(0, 60)
+    }),
+    // Reject arbitrary event names and parameter objects from feature code.
+    trackEvent: (name) => {
+      if (allowedEvents.has(name)) track(name);
+    }
   });
 }
 
