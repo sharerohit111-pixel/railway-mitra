@@ -269,6 +269,30 @@ exports.rmGetOwnerAdminSession = onCall(CALLABLE_OPTIONS, async req => {
   return { authorized: true, uid, email: req.auth.token.email || null };
 });
 
+// Owner selects exactly one published zero-price test as the one-time free trial.
+exports.rmOwnerSetFreeTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = id(req.data && req.data.testId);
+  const configRef = db.doc("testSeriesConfig/freeTest");
+  const testRef = db.doc("testSeriesTests/" + testId);
+  await db.runTransaction(async tx => {
+    const testSnap = await tx.get(testRef);
+    if (!testSnap.exists || testSnap.data().status !== "published") {
+      throw new HttpsError("failed-precondition", "Only a published test can be selected as the free test");
+    }
+    if (Number(testSnap.data().price) !== 0) {
+      throw new HttpsError("failed-precondition", "The free test must have a zero price");
+    }
+    tx.set(configRef, {
+      enabled: true,
+      testId,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: req.auth.uid
+    });
+  });
+  return { saved: true, testId };
+});
+
 
 function ownerTestPayload(data) {
   const title = typeof data.title === "string" ? data.title.trim() : "";
