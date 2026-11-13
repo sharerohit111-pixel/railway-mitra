@@ -24,5 +24,5 @@ test("test-wise print report escapes untrusted titles and marks bounded analytic
 
 test("empty analytics produces a safe empty report", () => {
   assert.match(testAnalyticsPrintHtml(null), /<tbody><\/tbody>/);
-  assert.equal(testAnalyticsCsv(null).split("\\r\\n").length, 1);
+  assert.equal(testAnalyticsCsv(null).split("\r\n").length, 1);
 });
