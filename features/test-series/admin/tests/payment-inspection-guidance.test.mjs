@@ -56,3 +56,37 @@ test("failed attempts and empty attempts do not authorize lock removal", () => {
     assert.match(message, /failed प्रयास देखकर lock न हटाएँ/);
   }
 });
+
+test("unknown order statuses fail closed without suggesting retry", () => {
+  const message = getPaymentInspectionGuidance({
+    matchesRequest: true,
+    orderStatus: "cancelled",
+    payments: []
+  });
+  assert.match(message, /अपरिचित या अधूरा/);
+  assert.match(message, /मैन्युअल समीक्षा/);
+  assert.match(message, /retry न सुझाएँ/);
+});
+
+test("unknown payment statuses fail closed without suggesting retry", () => {
+  const message = getPaymentInspectionGuidance({
+    matchesRequest: true,
+    orderStatus: "attempted",
+    payments: [{ status: "pending" }]
+  });
+  assert.match(message, /अपरिचित या अधूरा/);
+  assert.match(message, /मैन्युअल समीक्षा/);
+  assert.match(message, /retry न सुझाएँ/);
+});
+
+test("malformed payment collections fail closed", () => {
+  for (const payments of [undefined, null, {}, [null], ["failed"], [{ status: "captured" }, {}]]) {
+    const message = getPaymentInspectionGuidance({
+      matchesRequest: true,
+      orderStatus: "created",
+      payments
+    });
+    assert.match(message, /अपरिचित या अधूरा/);
+    assert.match(message, /lock न हटाएँ/);
+  }
+});
