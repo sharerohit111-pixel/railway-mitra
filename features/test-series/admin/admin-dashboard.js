@@ -792,7 +792,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   analyticsCsvButton.addEventListener("click", () => {
     if (!analyticsData?.tests?.length) return;
-    const blob = new Blob(["\\uFEFF", testAnalyticsCsv(analyticsData)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob(["\uFEFF", testAnalyticsCsv(analyticsData)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
