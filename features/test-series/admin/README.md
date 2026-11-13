@@ -77,3 +77,8 @@ The Question Bank UI supports selecting multiple questions from the currently lo
 
 
 The bulk-add controls can add every currently loaded question matching a selected topic, chapter, and/or folder to the Test Management JSON editor. The current loaded result pages are the selection scope; use Load More or narrow the Question Bank filters before adding if the target group is larger than the loaded pages. Duplicate IDs are skipped, and the test still requires the normal Owner review and Save Test action.
+
+
+### Test Section Builder
+
+The isolated Owner Question Bank module can define section labels (for example, General Awareness, Mathematics, and Technical Ability) and choose an active section before adding selected Question Bank items to the test editor. The selected section is stored as optional question metadata, validated on both client and server, and included in the public question set. The student CBT displays the section label with the current question. Questions without a section remain fully supported. This does not change answer-key privacy or scoring.
