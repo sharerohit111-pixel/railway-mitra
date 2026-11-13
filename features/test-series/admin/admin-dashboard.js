@@ -23,6 +23,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   const reconciliationMore = el("rm-admin-reconciliation-more");
   let reconciliationCursor = null;
   let reconciliationGeneration = 0;
+  let testManagementGeneration = 0;
   function clearPaymentHistory() {
     paymentsGeneration += 1;
     paymentsCursor = null;
@@ -59,6 +60,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     signOut: () => signOut(auth),
     onSignedOut: () => {
       clearPaymentHistory();
+      clearTestManagement();
       clearStudentActivity();
       clearAnalytics();
       clearQuestionBank();
@@ -99,10 +101,23 @@ export function initOwnerAdminDashboard(auth, functions) {
   el("rm-owner-logout").addEventListener("click", async () => { clearPaymentHistory(); await signOut(auth); home.hidden = true; login.hidden = false; });
   const testsPanel = el("rm-admin-tests-panel");
   const testsList = el("rm-admin-tests-list");
+  function clearTestManagement() {
+    testManagementGeneration += 1;
+    testsList.replaceChildren();
+    testsList.textContent = "Owner session समाप्त। दोबारा सुरक्षित Login करें।";
+    freeTestSelect.replaceChildren(new Option("पहले टेस्ट सूची Refresh करें", ""));
+    freeTestSelect.disabled = true;
+    el("rm-free-test-save").disabled = true;
+    testForm.reset();
+    el("rm-test-id").value = "";
+    el("rm-test-questions").value = "";
+  }
   async function refreshTests() {
+    const generation = ++testManagementGeneration;
     testsList.textContent = "Cloud से टेस्ट सूची लोड हो रही है…";
     try {
       const result = await httpsCallable(functions, "rmOwnerListTests")({});
+      if (generation !== testManagementGeneration) return;
       testsList.replaceChildren();
       freeTestSelect.replaceChildren();
       const freeEligible = result.data.tests.filter(test => test.status === "published" && Number(test.price) === 0);
@@ -132,7 +147,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         edit.addEventListener("click", () => loadTestForEdit(test.testId, test.status === "published"));
         card.append(heading, detail, edit); testsList.append(card);
       });
-    } catch (e) { testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
+    } catch (e) { if (generation === testManagementGeneration) testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
   }
   async function refreshPayments({ append = false } = {}) {
     if (append && !paymentsCursor) return;
@@ -315,8 +330,10 @@ export function initOwnerAdminDashboard(auth, functions) {
       "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
   }
   async function loadTestForEdit(testId, cloneAsDraft = false) {
+    const generation = testManagementGeneration;
     try {
       const result = await httpsCallable(functions, "rmOwnerGetTest")({ testId });
+      if (generation !== testManagementGeneration) return;
       const t = result.data;
       // Published tests are immutable on the server. Copy them into a new draft
       // instead of presenting an Edit action that the backend will reject.
@@ -337,13 +354,14 @@ export function initOwnerAdminDashboard(auth, functions) {
       el("rm-test-questions").value = JSON.stringify(t.questions, null, 2);
       status(cloneAsDraft ? "Published test की नई Draft copy तैयार है। मूल प्रकाशित टेस्ट सुरक्षित रहेगा।" : "Test Edit mode: " + t.testId);
       testForm.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (e) { status(e.message || "Test details नहीं मिले।"); }
+    } catch (e) { if (generation === testManagementGeneration) status(e.message || "Test details नहीं मिले।"); }
   }
   el("rm-admin-test-cancel").addEventListener("click", () => { testForm.reset(); el("rm-test-id").value = ""; });
   testForm.addEventListener("submit", async event => {
     event.preventDefault();
     const button = event.currentTarget.querySelector('button[type="submit"]');
     button.disabled = true;
+    const generation = testManagementGeneration;
     try {
       const questions = JSON.parse(el("rm-test-questions").value);
       const payload = validateOwnerTestDraft({
@@ -364,6 +382,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       const testId = el("rm-test-id").value;
       if (testId) payload.testId = testId;
       const saved = await httpsCallable(functions, "rmOwnerSaveTest")(payload);
+      if (generation !== testManagementGeneration) return;
       status("Test सेव हुआ: " + saved.data.testId);
       event.currentTarget.reset();
       el("rm-test-id").value = "";
