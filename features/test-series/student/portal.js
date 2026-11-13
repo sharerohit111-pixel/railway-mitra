@@ -39,7 +39,13 @@ async function showView(name) {
     if (!testId) throw new Error("Select a test before opening the exam.");
     const testMarkup = await (await fetch("./exam.html")).text();
     view.innerHTML = testMarkup;
-    const back = document.createElement("button");\n    back.type = "button";\n    back.className = "rm-portal-back";\n    back.textContent = "← Back to Available Tests";\n    back.addEventListener("click", () => showView("catalogue"));\n    view.prepend(back);\n    initStudentCbtExam({ app, testId, root: document });
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "rm-portal-back";
+    back.textContent = "← Back to Available Tests";
+    back.addEventListener("click", () => showView("catalogue"));
+    view.prepend(back);
+    initStudentCbtExam({ app, testId, root: document });
   }
 }
 async function showExam(test) {
