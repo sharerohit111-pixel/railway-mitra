@@ -339,7 +339,7 @@ export function initOwnerAdminDashboard(auth, functions) {
                 ? "Provider Order और स्थानीय request का मिलान सही है। "
                 : "चेतावनी: Provider Order और स्थानीय request का मिलान नहीं हुआ। ") +
                 "Order: " + (order.status || "unknown") + " · " + paymentSummary +
-                " · यह केवल read-only जाँच है; access या payment lock में कोई बदलाव नहीं हुआ।";
+                " · जाँच का audit record सुरक्षित हुआ; payment, entitlement या lock में कोई बदलाव नहीं हुआ।";
             } catch (error) {
               inspection.textContent = error.message || "Razorpay status जाँच नहीं हो सकी। कोई रिकॉर्ड नहीं बदला।";
             } finally {
