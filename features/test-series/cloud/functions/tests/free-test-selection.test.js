@@ -33,6 +33,13 @@ test("detects legacy claim documents when the new lock marker is absent", () => 
   }), /cannot be changed after a student has claimed/);
 });
 
+test("rejects a corrupt claim marker even when the requested test matches the current selection", () => {
+  assert.throws(() => assertFreeTestSelectionAllowed({
+    currentConfig: { enabled: true, testId: "free_test_1", hasClaims: "false" },
+    requestedTestId: "free_test_1"
+  }), /claim state is inconsistent/);
+});
+
 test("rejects a corrupt claim marker instead of assuming the selection is unlocked", () => {
   assert.throws(() => assertFreeTestSelectionAllowed({
     currentConfig: { enabled: true, testId: "free_test_1", hasClaims: "false" },

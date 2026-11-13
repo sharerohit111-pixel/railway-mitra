@@ -325,6 +325,7 @@ exports.rmOwnerSetFreeTest = onCall(CALLABLE_OPTIONS, async req => {
       updatedBy: req.auth.uid
     };
     if (currentConfig && currentConfig.firstClaimAt) nextConfig.firstClaimAt = currentConfig.firstClaimAt;
+    else if (legacyClaimExists) nextConfig.firstClaimAt = FieldValue.serverTimestamp();
     tx.set(configRef, nextConfig, { merge: true });
   });
   return { saved: true, testId };
