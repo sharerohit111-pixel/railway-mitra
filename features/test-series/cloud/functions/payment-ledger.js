@@ -139,6 +139,15 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
       const previousPayment = paymentSnap.data();
       const entitlementRef = db.doc("testSeriesEntitlements/" + duplicateValidation.uid + "_" + duplicateValidation.testId);
       const entitlementSnap = await tx.get(entitlementRef);
+      const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
+      const entitlementMatches = entitlement &&
+        entitlement.status === "active" &&
+        entitlement.uid === duplicateValidation.uid &&
+        entitlement.testId === duplicateValidation.testId &&
+        entitlement.paymentId === paymentId &&
+        entitlement.razorpayOrderId === orderId &&
+        entitlement.amount === duplicateValidation.amount &&
+        entitlement.currency === duplicateValidation.currency;
       if (!samePaymentRecord({
         paymentId: previousPayment.paymentId,
         razorpayOrderId: previousPayment.razorpayOrderId,
@@ -149,9 +158,7 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
       }, duplicateValidation) ||
           order.status !== "paid" ||
           order.paymentId !== paymentId ||
-          !entitlementSnap.exists ||
-          entitlementSnap.data().status !== "active" ||
-          entitlementSnap.data().paymentId !== paymentId) {
+          !entitlementMatches) {
         fail("payment_id_conflict", "Payment ID is already recorded against a different or incomplete purchase");
       }
       tx.create(eventRef, {
