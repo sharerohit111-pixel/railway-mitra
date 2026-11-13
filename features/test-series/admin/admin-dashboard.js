@@ -232,14 +232,15 @@ export function initOwnerAdminDashboard(auth, functions) {
       reconciliationCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
       reconciliationMore.hidden = !reconciliationCursor;
       reconciliationMore.disabled = false;
+      const scanNote = data.scanLimited === true ? " प्रत्येक जाँच-चक्र में अधिकतम 500 हालिया अनुरोध स्कैन होते हैं।" : "";
       if (!requests.length && data.hasMore) {
-        reconciliationStatus.textContent = "इस सीमित जाँच-खंड में कोई अस्पष्ट अनुरोध नहीं मिला। आगे जाँचने के लिए Load More दबाएँ।";
+        reconciliationStatus.textContent = "इस 500-अनुरोध जाँच-खंड में कोई अस्पष्ट अनुरोध नहीं मिला। आगे जाँचने के लिए Load More दबाएँ।" + scanNote;
       } else if (!requests.length && !append) {
-        reconciliationStatus.textContent = "अभी किसी भुगतान अनुरोध को reconciliation की आवश्यकता नहीं है।";
+        reconciliationStatus.textContent = "अभी किसी भुगतान अनुरोध को reconciliation की आवश्यकता नहीं है।" + scanNote;
       } else if (data.hasMore) {
-        reconciliationStatus.textContent = "अस्पष्ट अनुरोध दिखाए गए हैं। नया Checkout शुरू कराने से पहले प्रत्येक परिणाम की जाँच करें।";
+        reconciliationStatus.textContent = "अस्पष्ट अनुरोध दिखाए गए हैं। आगे के रिकॉर्ड के लिए Load More दबाएँ; नया Checkout शुरू कराने से पहले प्रत्येक परिणाम की जाँच करें।" + scanNote;
       } else {
-        reconciliationStatus.textContent = "सभी उपलब्ध अस्पष्ट भुगतान अनुरोध दिखाए गए हैं।";
+        reconciliationStatus.textContent = "सभी उपलब्ध अस्पष्ट भुगतान अनुरोध दिखाए गए हैं।" + scanNote;
       }
     } catch (error) {
       if (generation !== reconciliationGeneration) return;
