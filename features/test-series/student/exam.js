@@ -79,7 +79,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   function render(){
     const q=paper.questions[index]; el("rm-cbt-count").textContent="Question "+(index+1)+" of "+paper.questions.length;
     const sectionHeading = el("rm-cbt-section");
-    sectionHeading.textContent = q.section || "";
+    sectionHeading.querySelector("span").textContent = q.section || "";
     sectionHeading.hidden = !q.section;
     el("rm-cbt-question").textContent=q.text;
     const options=el("rm-cbt-options"); options.replaceChildren();
@@ -87,7 +87,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       const label=document.createElement("span");label.textContent=value;b.append(mark,label);b.addEventListener("click",()=>{answers[q.id]=String(i);render();queueSave(q.id,String(i)).catch(()=>{});});options.append(b);});
     el("rm-cbt-prev").disabled=index===0;el("rm-cbt-next").disabled=index===paper.questions.length-1;
     const palette=el("rm-cbt-palette");palette.replaceChildren();
-    paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(answers[item.id]!==undefined);b.addEventListener("click",()=>{index=i;render();});palette.append(b);});
+    paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(answers[item.id]!==undefined);b.addEventListener("click",()=>{activateQuestion(i).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});palette.append(b);});
     const sectionProgress = el("rm-cbt-section-progress");
     const sectionNames = [...new Set(paper.questions.map(item => typeof item.section === "string" ? item.section.trim() : "").filter(Boolean))];
     sectionProgress.replaceChildren();
