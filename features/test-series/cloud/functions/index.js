@@ -1,9 +1,12 @@
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { hasVerifiedPhoneMfa } = require("./owner-auth");
 const { defineSecret } = require("firebase-functions/params");
 const { createRazorpayOrder } = require("./razorpay-order");
+const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
+const { applyCapturedPayment } = require("./payment-ledger");
+const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
 initializeApp();
@@ -514,4 +517,65 @@ exports.rmCreatePaymentOrder = onCall({
     keyId: RAZORPAY_KEY_ID.value(),
     testId
   };
+});
+
+
+// Public provider callback: verify the HMAC against exact raw bytes before parsing
+// or touching the payment ledger. Unknown event types are acknowledged without grants.
+exports.rmRazorpayWebhook = onRequest({
+  region: REGION,
+  secrets: [RAZORPAY_WEBHOOK_SECRET]
+}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.set("Allow", "POST").status(405).send("Method not allowed");
+    return;
+  }
+  const rawBody = req.rawBody;
+  const signature = req.get("x-razorpay-signature");
+  if (!verifyRazorpayWebhookSignature({
+    rawBody,
+    signature,
+    secret: RAZORPAY_WEBHOOK_SECRET.value()
+  })) {
+    res.status(400).send("Invalid webhook signature");
+    return;
+  }
+
+  let event;
+  try {
+    event = req.body && typeof req.body === "object"
+      ? req.body
+      : JSON.parse(rawBody.toString("utf8"));
+  } catch {
+    res.status(400).send("Invalid webhook payload");
+    return;
+  }
+
+  if (!event || event.event !== "payment.captured") {
+    res.status(200).send("Event ignored");
+    return;
+  }
+  const eventId = req.get("x-razorpay-event-id");
+  if (typeof eventId !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(eventId)) {
+    res.status(400).send("Missing or invalid event ID");
+    return;
+  }
+
+  try {
+    const result = await applyCapturedPayment({ db, event, eventId });
+    res.status(200).json({ received: true, duplicate: Boolean(result.duplicate) });
+  } catch (error) {
+    console.error("Razorpay captured-payment ledger rejected event", {
+      eventId,
+      code: error && error.code ? error.code : "unknown"
+    });
+    // Permanent identity/validation conflicts are acknowledged to prevent endless
+    // provider retries; transient/ledger failures return 5xx for provider retry.
+    if (["event_id_conflict", "payment_id_conflict", "payment_not_captured",
+      "invalid_event_id", "invalid_payment_identity"].includes(error && error.code)) {
+      res.status(200).json({ received: true, rejected: true });
+      return;
+    }
+    res.status(500).send("Payment event could not be safely recorded");
+  }
 });
