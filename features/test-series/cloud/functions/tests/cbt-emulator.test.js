@@ -11,6 +11,7 @@ const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = requi
 const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
+const { hasVerifiedPhoneMfa } = require("../owner-auth");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
@@ -87,6 +88,15 @@ after(async () => {
   }
   if (clientApp) await deleteClientApp(clientApp);
   if (app) await deleteApp(app);
+});
+
+
+test("owner access accepts only a verified phone MFA factor", () => {
+  assert.equal(hasVerifiedPhoneMfa({ firebase: { sign_in_second_factor: "phone" } }), true);
+  assert.equal(hasVerifiedPhoneMfa({ firebase: { sign_in_second_factor: "totp" } }), false);
+  assert.equal(hasVerifiedPhoneMfa({ firebase: { sign_in_second_factor: null } }), false);
+  assert.equal(hasVerifiedPhoneMfa({ firebase: {} }), false);
+  assert.equal(hasVerifiedPhoneMfa(null), false);
 });
 
 test("student catalogue returns published metadata only and never answer keys", async () => {
