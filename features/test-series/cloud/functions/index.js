@@ -547,7 +547,7 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
   const questions = publicQuestions.map(question => {
     const answer = answerMap[question.id];
     const rawIndex = answer && answer.correctAnswer;
-    const correctIndex = typeof rawIndex === "string" && /^\\d+$/.test(rawIndex) ? Number(rawIndex) : NaN;
+    const correctIndex = typeof rawIndex === "string" && /^\d+$/.test(rawIndex) ? Number(rawIndex) : NaN;
     if (!Number.isInteger(correctIndex) || correctIndex < 0 || !Array.isArray(question.options) || correctIndex >= question.options.length) {
       throw new HttpsError("failed-precondition", "A question answer key is missing or inconsistent; editing is blocked");
     }
