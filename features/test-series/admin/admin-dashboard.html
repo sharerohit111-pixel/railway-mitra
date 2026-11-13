@@ -84,8 +84,9 @@
       </div>
       <section class="rm-admin-import" aria-labelledby="rm-qb-sections-title">
         <h4 id="rm-qb-sections-title">Test Section Builder</h4>
-        <p>टेस्ट के प्रश्न अलग-अलग सेक्शन में बाँटें, जैसे General Awareness, Mathematics और Technical.</p>
+        <p>टेस्ट के प्रश्न अलग-अलग सेक्शन में बाँटें। प्रत्येक सेक्शन का समय अलग निर्धारित करें; प्रश्न संख्या जुड़े हुए प्रश्नों से अपने आप गिनी जाएगी।</p>
         <label>सेक्शन का नाम<input id="rm-qb-section-name" maxlength="80" placeholder="जैसे Technical Ability"></label>
+        <label>सेक्शन समय सीमा (मिनट, 0 = कोई अलग सीमा नहीं)<input id="rm-qb-section-time" type="number" min="0" max="240" step="1" value="0"></label>
         <div class="rm-admin-form-grid">
           <button id="rm-qb-create-section" type="button">सेक्शन बनाएँ</button>
           <button id="rm-qb-clear-sections" type="button">सेक्शन हटाएँ</button>
