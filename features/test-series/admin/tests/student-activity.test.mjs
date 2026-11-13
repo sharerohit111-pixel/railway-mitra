@@ -28,3 +28,21 @@ test("handles empty and malformed input", () => {
   assert.deepEqual(summarizeStudentActivity(null), []);
   assert.equal(summarizeStudentActivity([{ studentUid: "uid", score: "bad" }])[0].averageScore, 0);
 });
+
+import { studentActivityCsv } from "../student-activity.mjs";
+
+test("CSV export allow-lists fields and quotes values", () => {
+  const csv = studentActivityCsv([{ studentUid: "uid-1", testId: "t1", testTitle: 'Civil, "JE"', score: 12, correct: 4, wrong: 2, unattempted: 1, totalQuestions: 7, timedOut: false, submittedAt: "2026-11-13T10:00:00Z", email: "private@example.com" }]);
+  assert.match(csv, /"Civil, ""JE"""/);
+  assert.doesNotMatch(csv, /private@example.com/);
+  assert.match(csv, /"No"/);
+});
+
+test("neutralizes spreadsheet formula prefixes", () => {
+  const csv = studentActivityCsv([{ studentUid: "=HYPERLINK(test)" }]);
+  assert.match(csv, /"'=HYPERLINK/);
+});
+
+test("empty export contains headers only", () => {
+  assert.equal(studentActivityCsv([]).split("\r\n").length, 1);
+});
