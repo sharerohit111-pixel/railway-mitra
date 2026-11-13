@@ -532,12 +532,27 @@ exports.rmOwnerSaveTest = onCall(CALLABLE_OPTIONS, async req => {
 exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
   const testId = id(req.data && req.data.testId);
-  const [testSnap, questionsSnap] = await Promise.all([
+  const [testSnap, questionsSnap, answerKeySnap] = await Promise.all([
     db.doc("testSeriesTests/" + testId).get(),
-    db.doc("testSeriesQuestionSets/" + testId).get()
+    db.doc("testSeriesQuestionSets/" + testId).get(),
+    db.doc("testSeriesAnswerKeys/" + testId).get()
   ]);
   if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
   const t = testSnap.data();
+  const publicQuestions = questionsSnap.exists ? questionsSnap.data().questions || [] : [];
+  const answerMap = answerKeySnap.exists ? answerKeySnap.data().questions || {} : {};
+  if (!Array.isArray(publicQuestions) || (publicQuestions.length && !answerKeySnap.exists)) {
+    throw new HttpsError("failed-precondition", "Test answer key is unavailable; editing is blocked to avoid losing correct answers");
+  }
+  const questions = publicQuestions.map(question => {
+    const answer = answerMap[question.id];
+    const rawIndex = answer && answer.correctAnswer;
+    const correctIndex = typeof rawIndex === "string" && /^\\d+$/.test(rawIndex) ? Number(rawIndex) : NaN;
+    if (!Number.isInteger(correctIndex) || correctIndex < 0 || !Array.isArray(question.options) || correctIndex >= question.options.length) {
+      throw new HttpsError("failed-precondition", "A question answer key is missing or inconsistent; editing is blocked");
+    }
+    return { ...question, correctIndex };
+  });
   return {
     testId, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
     durationMinutes: Number(t.durationMinutes || 30), price: Number(t.price || 0),
@@ -545,7 +560,7 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
     scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || "",
     scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || "",
     sections: Array.isArray(t.sections) ? t.sections : [],
-    questions: questionsSnap.exists ? questionsSnap.data().questions || [] : []
+    questions
   };
 });
 
