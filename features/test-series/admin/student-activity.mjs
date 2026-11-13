@@ -29,7 +29,7 @@ export function summarizeStudentActivity(rows, term = "") {
 
 function csvCell(value) {
   let text = value === null || value === undefined ? "" : String(value);
-  if (/^\\s*[=+@-]/.test(text)) text = "'" + text;
+  if (/^\s*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
@@ -37,7 +37,7 @@ export function studentActivityCsv(rows) {
   const columns = [["Student UID","studentUid"],["Test ID","testId"],["Test Name","testTitle"],["Score","score"],["Correct","correct"],["Wrong","wrong"],["Unattempted","unattempted"],["Total Questions","totalQuestions"],["Timed Out","timedOut"],["Submitted At","submittedAt"]];
   const lines = [columns.map(([label]) => csvCell(label)).join(",")];
   (Array.isArray(rows) ? rows : []).forEach(row => lines.push(columns.map(([,key]) => csvCell(key === "timedOut" ? (row?.[key] === true ? "Yes" : "No") : row?.[key])).join(",")));
-  return lines.join("\\r\\n");
+  return lines.join("\r\n");
 }
 
 function htmlCell(value) {
