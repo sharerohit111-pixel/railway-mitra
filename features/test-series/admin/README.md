@@ -19,8 +19,10 @@ Every future admin read/write must be authorized server-side: authenticated ID t
 ## Integration
 Load admin-dashboard.html into the Test Series route only after app Firebase Auth is initialized. Import admin-auth.js from a module script and wire the controls. Keep this folder isolated from existing app modules.
 
-## Not live yet
-Cards are navigation placeholders. Cloud CRUD, question import, payment verification, reports, backup/restore, owner UID provisioning, MFA enrollment UX, App Check, and restrictive Firestore rules remain to be implemented. No deployment or billing changes were made.
+## Deployment and production readiness
+The Owner portal now contains implemented Test Management, Question Bank, student activity, result analytics, payment history, and read-only payment reconciliation/inspection modules described below. These are code-level features on the development branch; their presence does not mean they are connected to a production Firebase project or ready for real students.
+
+Still required before production use: confirm the Firebase project and deploy the isolated Functions/rules deliberately; provision the exact server-side `OWNER_UID`; configure and verify Owner Phone MFA and App Check; configure Razorpay secrets and webhook endpoint; complete backup/restore and operational recovery procedures; review privacy, retention, billing and support processes; and run an approved production-readiness review. Student-safe question delivery and server-side scoring are implemented in the branch but still require deployment-specific verification. No deployment, live SMS, billing change, or production payment was performed.
 
 
 ## Test authoring validation
