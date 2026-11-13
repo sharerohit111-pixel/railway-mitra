@@ -371,7 +371,9 @@ function ownerTestPayload(data) {
     if (typeof q.text !== "string" || !q.text.trim() || q.text.length > 5000) throw new HttpsError("invalid-argument", "Each question needs text (max 5000 characters)");
     if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6 || q.options.some(x => typeof x !== "string" || !x.trim() || x.length > 1000)) throw new HttpsError("invalid-argument", "Each question needs 2–6 text options");
     if (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new HttpsError("invalid-argument", "Each question needs a valid correctIndex");
-    publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options });
+    const section = typeof q.section === "string" ? q.section.trim() : "";
+    if (section.length > 80) throw new HttpsError("invalid-argument", "Question section name is too long");
+    publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options, ...(section ? { section } : {}) });
     answerQuestions[qid] = { correctAnswer: String(q.correctIndex) };
   }
   return {
