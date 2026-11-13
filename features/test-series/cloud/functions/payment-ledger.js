@@ -162,17 +162,12 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
           !entitlementMatches) {
         fail("payment_id_conflict", "Payment ID is already recorded against a different or incomplete purchase");
       }
-      tx.create(eventRef, {
-        eventId,
-        paymentId,
-        razorpayOrderId: orderId,
-        uid: duplicateValidation.uid,
-        testId: duplicateValidation.testId,
-        amount: duplicateValidation.amount,
-        currency: duplicateValidation.currency,
-        status: "duplicate",
-        processedAt: FieldValue.serverTimestamp()
-      });
+      // The provider event ID is supplied in a header, outside the raw-body
+      // HMAC. Once this payment is already ledgered, do not create an audit
+      // document for each caller-selected replay ID: a captured signed payload
+      // could otherwise amplify Firestore writes without changing access.
+      // The complete payment/order/entitlement comparison above is still
+      // required before acknowledging the duplicate.
       return { granted: false, duplicate: true, paymentId, orderId };
     }
 
