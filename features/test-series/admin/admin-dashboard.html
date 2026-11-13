@@ -81,6 +81,17 @@
         <small>Columns: topic, chapter, folder, text/question, optionA–optionF या options JSON, correctIndex, explanation. एक बार में अधिकतम 100 प्रश्न।</small>
         <button id="rm-qb-bulk-import" type="button">Import Questions in Bulk</button>
       </div>
+      <section class="rm-admin-import" aria-labelledby="rm-qb-sections-title">
+        <h4 id="rm-qb-sections-title">Test Section Builder</h4>
+        <p>टेस्ट के प्रश्न अलग-अलग सेक्शन में बाँटें, जैसे General Awareness, Mathematics और Technical.</p>
+        <label>सेक्शन का नाम<input id="rm-qb-section-name" maxlength="80" placeholder="जैसे Technical Ability"></label>
+        <div class="rm-admin-form-grid">
+          <button id="rm-qb-create-section" type="button">सेक्शन बनाएँ</button>
+          <button id="rm-qb-clear-sections" type="button">सेक्शन हटाएँ</button>
+        </div>
+        <div id="rm-qb-sections-list" class="rm-admin-payments-list"></div>
+        <p id="rm-qb-sections-status" class="rm-admin-status" aria-live="polite">सेक्शन अभी नहीं बनाए गए हैं।</p>
+      </section>
       <div class="rm-admin-form-grid">
         <label>पूरे विषय के प्रश्न जोड़ें<select id="rm-qb-add-topic"><option value="">विषय चुनें</option></select></label>
         <label>अध्याय के प्रश्न जोड़ें<select id="rm-qb-add-chapter"><option value="">अध्याय चुनें</option></select></label>
