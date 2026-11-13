@@ -90,3 +90,8 @@ The Owner Students module includes a client-side search across the currently loa
 ### Student-level performance summaries
 
 Alongside the paginated attempt list, the Owner Students panel groups currently loaded result rows by student UID. It shows attempt count, distinct tests, average score, average correct percentage and most recent submission time. Selecting a summary filters the attempt list to that student. These are explicitly page-window summaries, not lifetime student records or a complete Firebase Authentication user directory. Pure aggregation and search behavior are covered by `node --test features/test-series/admin/tests/*.test.mjs`.
+
+
+### Export loaded student results
+
+The Owner Students panel exports only the currently loaded, search-filtered attempt rows as CSV. The export uses an explicit allow-list of result summary fields and excludes phone, email, authentication data, answer selections and answer keys. Spreadsheet formula prefixes are neutralized. Load More before exporting if older pages are required; this is not a lifetime or complete account export.
