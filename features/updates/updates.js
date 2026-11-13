@@ -20,7 +20,8 @@ async function loadNotices(){
   if(!response.ok)throw new Error("Feed request failed");
   const payload=await response.json();
   if(!payload||!Array.isArray(payload.notices))throw new Error("Invalid notice feed");
-  notices=payload.notices.filter(validNotice);\n  feedUpdatedAt=/^\\d{4}-\\d{2}-\\d{2}$/.test(payload.updatedAt||"")?new Date(payload.updatedAt+"T00:00:00").toLocaleDateString(language==="hi"?"hi-IN":"en-IN",{day:"numeric",month:"long",year:"numeric"}):"";
+  notices=payload.notices.filter(validNotice);
+  feedUpdatedAt=payload.updatedAt||"";
   notices.sort((a,b)=>(safeText(b.publishedAt)).localeCompare(safeText(a.publishedAt)));
  }catch(error){loadFailed=true;console.error("Railway Updates feed:",error);}
  renderNotices();
