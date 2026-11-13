@@ -356,7 +356,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     return { id: "bank_" + item.itemId, text: item.question?.text || "",
       options: Array.isArray(item.question?.options) ? item.question.options : [],
       correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "",
-      ...(activeQuestionSection ? { section: activeQuestionSection } : {}) };
+      ...((activeQuestionSection || item.question?.section) ? { section: activeQuestionSection || item.question.section } : {}) };
   }
   function renderQuestionSections() {
     const list = el("rm-qb-sections-list"); list.replaceChildren();
