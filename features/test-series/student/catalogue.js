@@ -1,4 +1,4 @@
-import { listAvailableCbtTests, claimFreeCbtAttempt } from "../cloud/student-client.js";
+import { listAvailableCbtTests, claimFreeCbtAttempt, startCbtExam } from "../cloud/student-client.js";
 import { startStudentTestCheckout } from "./payment-checkout.js";
 import "./catalogue.css";
 
@@ -26,19 +26,19 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
         test.mode === "scheduled" ? "Scheduled" : "Mock Test",
         (test.durationMinutes || 0) + " min",
         (test.questionCount || 0) + " questions",
-        test.accessType === "free_trial" ? "Free first attempt" : test.accessType === "paid" ? "₹" + test.price : "Access unavailable"
+        test.accessType === "free_trial" ? "Free first attempt" : test.accessType === "paid" ? "₹" + test.price : test.accessType === "unlocked" ? "Purchased - Unlocked" : "Access unavailable"
       ];
       if (test.mode === "scheduled" && test.scheduleStartAt) details.push("Starts " + new Date(test.scheduleStartAt).toLocaleString());
       details.forEach(value => { const tag = root.createElement("span"); tag.textContent = value; meta.append(tag); });
       const button = root.createElement("button");
       button.type = "button";
-      button.textContent = test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : "Not Available";
-      button.disabled = test.accessType !== "free_trial" && test.accessType !== "paid";
+      button.textContent = test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : test.accessType === "unlocked" ? "Start Test" : "Not Available";
+      button.disabled = test.accessType !== "free_trial" && test.accessType !== "paid" && test.accessType !== "unlocked";
       button.addEventListener("click", async () => {
         button.disabled = true;
-        status.textContent = test.accessType === "paid" ? "Opening secure payment…" : "Preparing your free attempt…";
+        status.textContent = test.accessType === "paid" ? "Opening secure payment…" : test.accessType === "unlocked" ? "Starting your purchased test…" : "Preparing your free attempt…";
         try {
-          if (test.accessType === "paid") {
+          if (test.accessType === "unlocked") {\n            const session = await startCbtExam(app, test.testId);\n            await onStart({ test, session });\n            return;\n          }\n          if (test.accessType === "paid") {
             await startStudentTestCheckout({
               app, test, root,
               onStatus: message => { status.textContent = message; }
