@@ -384,11 +384,35 @@ function ownerTestPayload(data) {
     publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options, ...(section ? { section } : {}) });
     answerQuestions[qid] = { correctAnswer: String(q.correctIndex) };
   }
+  const sectionNames = [...new Set(publicQuestions.map(question => question.section).filter(Boolean))];
+  const suppliedSections = Array.isArray(data.sections) ? data.sections : [];
+  if (suppliedSections.length > 50) throw new HttpsError("invalid-argument", "At most 50 sections are allowed");
+  const sectionConfig = new Map();
+  suppliedSections.forEach((section, index) => {
+    const name = section && typeof section.name === "string" ? section.name.trim() : "";
+    const timeLimitMinutes = Number(section && section.timeLimitMinutes !== undefined ? section.timeLimitMinutes : 0);
+    if (!name || name.length > 80 || !Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
+      throw new HttpsError("invalid-argument", "Invalid section configuration at index " + index);
+    }
+    const key = name.toLocaleLowerCase();
+    if (sectionConfig.has(key)) throw new HttpsError("invalid-argument", "Duplicate section name");
+    sectionConfig.set(key, { name, timeLimitMinutes });
+  });
+  sectionNames.forEach(name => {
+    const key = name.toLocaleLowerCase();
+    if (!sectionConfig.has(key)) sectionConfig.set(key, { name, timeLimitMinutes: 0 });
+  });
+  const sections = [...sectionConfig.values()].map(section => ({
+    ...section,
+    questionCount: publicQuestions.filter(question => question.section &&
+      question.section.toLocaleLowerCase() === section.name.toLocaleLowerCase()).length
+  })).filter(section => section.questionCount > 0);
+
   return {
     metadata: { title, category, folder: folderParts.join(" / "), mode, durationMinutes, price, marksPerQuestion, negativeMarks, status,
       scheduleStartAt: scheduleStartAt ? Timestamp.fromDate(scheduleStartAt) : null,
       scheduleEndAt: scheduleEndAt ? Timestamp.fromDate(scheduleEndAt) : null,
-      questionCount: publicQuestions.length, updatedAt: FieldValue.serverTimestamp() },
+      questionCount: publicQuestions.length, sections, updatedAt: FieldValue.serverTimestamp() },
     publicQuestions, answerQuestions
   };
 }
@@ -425,6 +449,7 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
     marksPerQuestion: Number(t.marksPerQuestion ?? 1), negativeMarks: Number(t.negativeMarks ?? 0),
     scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || "",
     scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || "",
+    sections: Array.isArray(t.sections) ? t.sections : [],
     questions: questionsSnap.exists ? questionsSnap.data().questions || [] : []
   };
 });
