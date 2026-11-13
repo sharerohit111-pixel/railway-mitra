@@ -132,7 +132,7 @@ async function main() {
       failures,
       elapsedMs,
       savesPerSecond: Number((successful / (elapsedMs / 1000)).toFixed(2)),
-      latencyMs: { p50: percentile(timings, 0.50), p95: percentile(timings, 0.95), p99: percentile(timings, 0.99), max: Math.max(0, ...timings) },
+      latencyMs: { p50: percentile(timings, 0.50), p95: percentile(timings, 0.95), p99: percentile(timings, 0.99), max: timings.reduce((maximum, value) => Math.max(maximum, value), 0) },
       note: "Firestore Emulator measurements are not production capacity or latency guarantees."
     }));
     if (failures) process.exitCode = 1;
