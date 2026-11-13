@@ -1,0 +1,116 @@
+import { app, auth } from "../../../assets/js/firebase.js";
+import "../../../features/test-series/cloud/firebase-app-check-init.js";
+import { RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { initStudentTestCatalogue } from "./catalogue.js";
+import { initStudentCbtExam } from "./exam.js";
+import { initStudentDashboard } from "./dashboard.js";
+
+const el = id => document.getElementById(id);
+const login = el("rm-portal-login"), workspace = el("rm-portal-app"), view = el("rm-portal-view");
+const authStatus = el("rm-portal-auth-status"), portalStatus = el("rm-portal-status");
+let confirmation = null, recaptcha = null, currentUser = null, currentTestId = null, activeView = "catalogue";
+
+function setBusy(button, busy, label) {
+  button.disabled = busy;
+  if (label) button.textContent = label;
+}
+function getRecaptcha() {
+  if (!recaptcha) recaptcha = new RecaptchaVerifier(auth, "rm-student-recaptcha", { size: "invisible" });
+  return recaptcha;
+}
+async function showView(name) {
+  activeView = name;
+  document.querySelectorAll("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === name));
+  view.replaceChildren();
+  portalStatus.textContent = "";
+  if (name === "catalogue") {
+    view.innerHTML = (await (await fetch("./catalogue.html")).text());
+    await initStudentTestCatalogue({ app, root: view, onStart: async ({ test }) => {
+      currentTestId = test.testId;
+      await showExam(test);
+    }});
+  } else if (name === "dashboard") {
+    view.innerHTML = await (await fetch("./dashboard.html")).text();
+    await initStudentDashboard({ app, root: view });
+    const refresh = el("rm-dashboard-refresh");
+    if (refresh) refresh.addEventListener("click", () => initStudentDashboard({ app, root: view }));
+  } else if (name === "exam") {
+    const testId = currentTestId;
+    if (!testId) throw new Error("Select a test before opening the exam.");
+    const testMarkup = await (await fetch("./exam.html")).text();
+    view.innerHTML = testMarkup;
+    initStudentCbtExam({ app, testId, root: view });
+  }
+}
+async function showExam(test) {
+  currentTestId = test.testId;
+  await showView("exam");
+}
+async function openWorkspace(user) {
+  currentUser = user;
+  login.hidden = true;
+  workspace.hidden = false;
+  el("rm-portal-logout").hidden = false;
+  el("rm-student-account").textContent = user.phoneNumber || "Verified student";
+  await showView("catalogue");
+}
+async function sendOtp() {
+  const button = el("rm-student-send-otp");
+  const phone = el("rm-student-phone").value.trim();
+  if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
+    authStatus.textContent = "Enter a valid phone number with country code, for example +91XXXXXXXXXX.";
+    return;
+  }
+  setBusy(button, true, "Sending OTP…");
+  try {
+    confirmation = await signInWithPhoneNumber(auth, phone, getRecaptcha());
+    el("rm-student-otp-panel").hidden = false;
+    authStatus.textContent = "OTP sent. Enter the 6-digit code to continue.";
+  } catch (error) {
+    authStatus.textContent = error.message || "OTP could not be sent. Please retry.";
+    if (recaptcha) { try { recaptcha.clear(); } catch (_) {} recaptcha = null; }
+  } finally {
+    setBusy(button, false, "Send OTP");
+  }
+}
+async function verifyOtp() {
+  const button = el("rm-student-verify-otp"), code = el("rm-student-otp").value.trim();
+  if (!confirmation || !/^\d{6}$/.test(code)) {
+    authStatus.textContent = "Enter the 6-digit OTP sent to your phone.";
+    return;
+  }
+  setBusy(button, true, "Verifying…");
+  try {
+    await confirmation.confirm(code);
+    authStatus.textContent = "Phone verified.";
+  } catch (error) {
+    authStatus.textContent = error.message || "OTP verification failed.";
+  } finally {
+    setBusy(button, false, "Verify & Sign in");
+  }
+}
+
+el("rm-student-send-otp").addEventListener("click", sendOtp);
+el("rm-student-verify-otp").addEventListener("click", verifyOtp);
+el("rm-portal-logout").addEventListener("click", async () => {
+  await signOut(auth);
+  currentUser = null;
+  currentTestId = null;
+  workspace.hidden = true;
+  login.hidden = false;
+  el("rm-portal-logout").hidden = true;
+  authStatus.textContent = "You have signed out.";
+});
+document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => {
+  showView(button.dataset.view).catch(error => { portalStatus.textContent = error.message; });
+}));
+
+onAuthStateChanged(auth, user => {
+  if (user) openWorkspace(user).catch(error => { portalStatus.textContent = error.message; });
+  else {
+    currentUser = null;
+    workspace.hidden = true;
+    login.hidden = false;
+    el("rm-portal-logout").hidden = true;
+  }
+});
