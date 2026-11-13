@@ -1,4 +1,5 @@
 import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt, enterCbtSection } from "../cloud/student-client.js";
+import { readPendingAnswerDraft, writePendingAnswerDraft } from "./answer-draft-store.mjs";
 
 export function initStudentCbtExam({ app, testId, root = document }) {
   const el = id => root.getElementById(id);
@@ -16,30 +17,18 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   function persistPending(){
     if(!attemptId)return;
-    try{
-      const key=draftKey();
-      if(pendingAnswers.size) localStorage.setItem(key,JSON.stringify([...pendingAnswers.entries()]));
-      else localStorage.removeItem(key);
-    }catch(_){status("स्थानीय Draft सुरक्षित नहीं हो सका। परीक्षा खुली रखें और सेव स्थिति जाँचें।");}
+    let storage;
+    try { storage=window.localStorage; } catch (_) {}
+    const saved=writePendingAnswerDraft({storage,key:draftKey(),entries:[...pendingAnswers.entries()]});
+    if(!saved)status("स्थानीय Draft सुरक्षित नहीं हो सका। परीक्षा खुली रखें और सेव स्थिति जाँचें।");
   }
   function restorePending(){
-    try{
-      const raw=localStorage.getItem(draftKey());
-      if(!raw)return;
-      const entries=JSON.parse(raw);
-      if(!Array.isArray(entries))return;
-      const validQuestions=new Map(paper.questions.map(q=>[q.id,q]));
-      let discarded=0;
-      for(const pair of entries){
-        if(!Array.isArray(pair)||pair.length!==2) { discarded++; continue; }
-        const [qid,value]=pair, question=validQuestions.get(qid);
-        const optionIndex=Number(value);
-        if(!question||!Number.isInteger(optionIndex)||optionIndex<0||optionIndex>=question.options.length) { discarded++; continue; }
-        pendingAnswers.set(qid,String(optionIndex));
-      }
-      if(discarded)status("कुछ पुराने/अमान्य Draft हटाए गए; सर्वर पर सेव उत्तर सुरक्षित हैं।");
-      if(!pendingAnswers.size)localStorage.removeItem(draftKey());
-    }catch(_){status("स्थानीय Draft पढ़ा नहीं जा सका। सर्वर पर सेव उत्तर उपलब्ध रहेंगे।");}
+    let storage;
+    try { storage=window.localStorage; } catch (_) {}
+    const restored=readPendingAnswerDraft({storage,key:draftKey(),questions:paper.questions});
+    for(const [qid,value] of restored.answers)pendingAnswers.set(qid,value);
+    if(restored.unavailable)status("स्थानीय Draft पढ़ा नहीं जा सका। सर्वर पर सेव उत्तर उपलब्ध रहेंगे।");
+    else if(restored.discarded)status("कुछ पुराने/अमान्य Draft हटाए गए; सर्वर पर सेव उत्तर सुरक्षित हैं।");
   }
   const remaining = () => Math.max(0, Math.ceil((expiresAt-Date.now())/1000));
   function isQuestionAvailable(question) {
