@@ -126,3 +126,49 @@ test("rejects invalid page sizes and unknown or unsafe cursors", async () => {
     error => error.code === "invalid_cursor"
   );
 });
+
+test("continues beyond a 500-document scan window without skipping older unresolved requests", async () => {
+  const scanIds = Array.from({ length: 501 }, (_, index) =>
+    "request_scan_" + String(index).padStart(3, "0"));
+  const base = Date.parse("2026-11-12T00:00:00.000Z");
+
+  try {
+    for (let offset = 0; offset < scanIds.length; offset += 400) {
+      const batch = db.batch();
+      scanIds.slice(offset, offset + 400).forEach((id, localIndex) => {
+        const index = offset + localIndex;
+        const updatedAt = new Date(base + index * 1000);
+        batch.set(db.doc(collectionName + "/" + id), {
+          uid: "student_scan_fixture",
+          testId: "scan_boundary_test",
+          amount: 10000,
+          currency: "INR",
+          status: index === 0 ? "unknown" : "created",
+          createdAt: updatedAt,
+          updatedAt
+        });
+      });
+      await batch.commit();
+    }
+
+    const first = await listOwnerPaymentReconciliation({ db, pageSize: 25, collectionName });
+    assert.deepEqual(first.requests, []);
+    assert.equal(first.scanLimited, true);
+    assert.equal(first.hasMore, true);
+    assert.equal(first.nextCursor, scanIds[1]);
+
+    const second = await listOwnerPaymentReconciliation({
+      db, pageSize: 25, cursor: first.nextCursor, collectionName
+    });
+    assert.deepEqual(second.requests.map(item => item.requestRecordId), [scanIds[0]]);
+    assert.equal(second.requests[0].status, "unknown");
+    assert.equal(second.hasMore, false);
+    assert.equal(second.nextCursor, null);
+  } finally {
+    for (let offset = 0; offset < scanIds.length; offset += 400) {
+      const batch = db.batch();
+      scanIds.slice(offset, offset + 400).forEach(id => batch.delete(db.doc(collectionName + "/" + id)));
+      await batch.commit();
+    }
+  }
+});
