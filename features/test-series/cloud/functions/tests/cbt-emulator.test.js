@@ -8,7 +8,7 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
-const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signOut } = require("firebase/auth");
+const { getAuth: getClientAuth, connectAuthEmulator, signInWithPhoneNumber, signInWithEmailAndPassword, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
 const crypto = require("node:crypto");
@@ -17,8 +17,20 @@ const { hasVerifiedPhoneMfa } = require("../owner-auth");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
-let app, db, uid, clientApp, clientAuth, functions, claimedAttemptId;
+let app, db, uid, studentPhoneNumber, clientApp, clientAuth, functions, claimedAttemptId;
 const testId = "emulator-cbt-test";
+
+async function signInAsPhone(phoneNumber) {
+  const verifier = { type: "recaptcha", verify: async () => "emulator-test-recaptcha-token" };
+  const confirmation = await signInWithPhoneNumber(clientAuth, phoneNumber, verifier);
+  const response = await fetch("http://127.0.0.1:9099/emulator/v1/projects/" + PROJECT + "/verificationCodes");
+  if (!response.ok) throw new Error("Could not read Firebase Auth Emulator SMS codes: " + response.status);
+  const payload = await response.json();
+  const code = [...(payload.verificationCodes || [])].reverse()
+    .find(item => item.phoneNumber === phoneNumber)?.sessionCode;
+  if (!code) throw new Error("No emulator SMS verification code found for " + phoneNumber);
+  await confirmation.confirm(code);
+}
 
 async function callable(name, data = {}) {
   const response = await httpsCallable(functions, name)(data);
@@ -38,12 +50,10 @@ before(async () => {
   functions = getFunctions(clientApp, REGION);
   connectFunctionsEmulator(functions, "127.0.0.1", 5001);
 
-  const user = await getAuth(app).createUser({
-    phoneNumber: "+1555" + String(Date.now()).slice(-7)
-  });
+  studentPhoneNumber = "+1555" + String(Date.now()).slice(-7);
+  const user = await getAuth(app).createUser({ phoneNumber: studentPhoneNumber });
   uid = user.uid;
-  const customToken = await getAuth(app).createCustomToken(uid);
-  await signInWithCustomToken(clientAuth, customToken);
+  await signInAsPhone(studentPhoneNumber);
 
   await db.doc("testSeriesConfig/freeTest").set({ enabled: true, testId });
   await db.doc(`testSeriesTests/${testId}`).set({
@@ -207,6 +217,28 @@ test("an unconfigured zero-price test is not advertised as the free trial or sta
   }
 });
 
+test("email/password sessions cannot access student CBT callables", async () => {
+  const email = "non-phone-" + Date.now() + "@example.test";
+  const password = "Emulator-Test-Password-123!";
+  const nonPhoneUser = await getAuth(app).createUser({ email, password });
+  try {
+    await signOut(clientAuth);
+    await signInWithEmailAndPassword(clientAuth, email, password);
+    await assert.rejects(
+      callable("rmListAvailableTests"),
+      error => error.code === "functions/permission-denied"
+    );
+    await assert.rejects(
+      callable("rmClaimFreeAttempt"),
+      error => error.code === "functions/permission-denied"
+    );
+  } finally {
+    await signOut(clientAuth).catch(() => {});
+    await signInAsPhone(studentPhoneNumber);
+    await getAuth(app).deleteUser(nonPhoneUser.uid).catch(() => {});
+  }
+});
+
 test("student can claim one free test attempt only once", async () => {
   const claim = await callable("rmClaimFreeAttempt");
   assert.equal(claim.testId, testId);
@@ -226,13 +258,12 @@ test("student can claim one free test attempt only once", async () => {
   );
 
   const firstClaimAtMillis = lockedConfig.firstClaimAt.toMillis();
-  const secondStudent = await getAuth(app).createUser({
-    phoneNumber: "+1555" + String(Date.now() + 12345).slice(-7)
-  });
+  const secondStudentPhone = "+1555" + String(Date.now() + 12345).slice(-7);
+  const secondStudent = await getAuth(app).createUser({ phoneNumber: secondStudentPhone });
   let secondClaim = null;
   try {
     await signOut(clientAuth);
-    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(secondStudent.uid));
+    await signInAsPhone(secondStudentPhone);
     secondClaim = await callable("rmClaimFreeAttempt");
     assert.ok(secondClaim.attemptId);
     const laterConfig = (await db.doc("testSeriesConfig/freeTest").get()).data();
@@ -245,7 +276,7 @@ test("student can claim one free test attempt only once", async () => {
     }
     await db.doc("testSeriesFreeAttempts/" + secondStudent.uid).delete().catch(() => {});
     await signOut(clientAuth).catch(() => {});
-    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+    await signInAsPhone(studentPhoneNumber);
     await getAuth(app).deleteUser(secondStudent.uid).catch(() => {});
   }
 });
@@ -520,7 +551,7 @@ test("a different authenticated student cannot read, save or submit another stud
       startedAt: new Date(), expiresAt: new Date(Date.now() + 60_000), answers: {}
     });
     await signOut(clientAuth);
-    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+    await signInAsPhone(studentPhoneNumber);
     await assert.rejects(
       callable("rmGetExamQuestions", { attemptId: foreignAttemptId }),
       error => error.code === "functions/permission-denied"
@@ -537,7 +568,7 @@ test("a different authenticated student cannot read, save or submit another stud
     await foreignAttemptRef.delete().catch(() => {});
     await getAuth(app).deleteUser(foreignUser.uid).catch(() => {});
     await signOut(clientAuth).catch(() => {});
-    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+    await signInAsPhone(studentPhoneNumber);
   }
 });
 
@@ -554,7 +585,7 @@ test("non-owner cannot read payment history", async () => {
   process.env.OWNER_UID = "different-owner-uid";
   // The preceding test intentionally signs out; restore a student token so
   // this assertion exercises the owner guard rather than unauthenticated access.
-  await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+  await signInAsPhone(studentPhoneNumber);
   try {
     await assert.rejects(
       callable("rmOwnerListPayments", {}),
@@ -570,7 +601,7 @@ test("non-owner cannot create a test", async () => {
   const originalOwnerUid = process.env.OWNER_UID;
   process.env.OWNER_UID = "some-other-owner";
   // Re-authenticate the ordinary student after the preceding anonymous-call test.
-  await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+  await signInAsPhone(studentPhoneNumber);
   try {
     await assert.rejects(
       callable("rmOwnerSaveTest", {
