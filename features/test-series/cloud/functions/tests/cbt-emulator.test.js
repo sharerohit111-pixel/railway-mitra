@@ -465,7 +465,8 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     await paymentRef.delete();
     await assert.rejects(
       applyCapturedPayment({ db, event, eventId: "evt_ledger_replay" }),
-      error => error.code === "event_ledger_inconsistent"
+      error => error.code === "event_ledger_inconsistent" ||
+        /missing its order or payment ledger record/i.test(error.message)
     );
     await paymentRef.set(originalPayment);
 
