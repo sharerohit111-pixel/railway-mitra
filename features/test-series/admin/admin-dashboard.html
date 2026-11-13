@@ -23,6 +23,12 @@
     </div>
     <section id="rm-admin-tests-panel" class="rm-admin-panel" hidden>
       <h3>Test Management</h3>
+      <div class="rm-admin-panel" aria-label="Free test configuration">
+        <h4>पहला निःशुल्क टेस्ट चुनें</h4>
+        <label>प्रकाशित और शून्य-कीमत वाला टेस्ट<select id="rm-free-test-select"><option value="">पहले टेस्ट सूची Refresh करें</option></select></label>
+        <button id="rm-free-test-save" type="button">निःशुल्क टेस्ट निर्धारित करें</button>
+        <small>केवल प्रकाशित और ₹0 मूल्य वाले टेस्ट को एक बार के निःशुल्क प्रयास के लिए चुना जा सकता है।</small>
+      </div>
       <form id="rm-admin-test-form">
         <input id="rm-test-id" type="hidden">
         <label>Test Title<input id="rm-test-title" required maxlength="160" placeholder="जैसे GDCE JE Civil Mock Test 01"></label>
