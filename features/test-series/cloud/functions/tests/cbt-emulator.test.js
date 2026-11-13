@@ -351,6 +351,13 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(Object.hasOwn(paper.questions[0], "correctIndex"), false);
   assert.ok(paper.expiresAt);
 
+  // A timed section cannot accept an answer before its server timer has started.
+  await assert.rejects(
+    callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "q1", answer: "0" }),
+    error => error.code === "functions/deadline-exceeded",
+    "timed-section answers must be blocked until the student enters that section"
+  );
+
   // Concurrent entry requests must establish one shared deadline, never restart it.
   const sectionEntries = await Promise.all([
     callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Technical Ability" }),
