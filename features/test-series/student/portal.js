@@ -25,21 +25,21 @@ async function showView(name) {
   portalStatus.textContent = "";
   if (name === "catalogue") {
     view.innerHTML = (await (await fetch("./catalogue.html")).text());
-    await initStudentTestCatalogue({ app, root: view, onStart: async ({ test }) => {
+    await initStudentTestCatalogue({ app, root: document, onStart: async ({ test }) => {
       currentTestId = test.testId;
       await showExam(test);
     }});
   } else if (name === "dashboard") {
     view.innerHTML = await (await fetch("./dashboard.html")).text();
-    await initStudentDashboard({ app, root: view });
+    await initStudentDashboard({ app, root: document });
     const refresh = el("rm-dashboard-refresh");
-    if (refresh) refresh.addEventListener("click", () => initStudentDashboard({ app, root: view }));
+    if (refresh) refresh.addEventListener("click", () => initStudentDashboard({ app, root: document }));
   } else if (name === "exam") {
     const testId = currentTestId;
     if (!testId) throw new Error("Select a test before opening the exam.");
     const testMarkup = await (await fetch("./exam.html")).text();
     view.innerHTML = testMarkup;
-    initStudentCbtExam({ app, testId, root: view });
+    const back = document.createElement("button");\n    back.type = "button";\n    back.className = "rm-portal-back";\n    back.textContent = "← Back to Available Tests";\n    back.addEventListener("click", () => showView("catalogue"));\n    view.prepend(back);\n    initStudentCbtExam({ app, testId, root: document });
   }
 }
 async function showExam(test) {
