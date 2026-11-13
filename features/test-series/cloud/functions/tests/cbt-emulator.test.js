@@ -7,9 +7,6 @@ const assert = require("node:assert/strict");
 const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
-const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
-const { getAuth: getClientAuth, connectAuthEmulator, signInWithPhoneNumber, signInWithEmailAndPassword, signOut } = require("firebase/auth");
-const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
 const crypto = require("node:crypto");
 const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
@@ -17,39 +14,79 @@ const { hasVerifiedPhoneMfa } = require("../owner-auth");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
-let app, db, uid, studentPhoneNumber, clientApp, clientAuth, functions, claimedAttemptId;
+let app, db, uid, studentPhoneNumber, authToken = null, claimedAttemptId;
 const testId = "emulator-cbt-test";
 
+async function authRequest(method, body) {
+  const response = await fetch("http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/" + method + "?key=fake-api-key", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error?.message || "Firebase Auth Emulator request failed: " + response.status);
+  return payload;
+}
+
+function tokenClaims(token) {
+  return JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8"));
+}
+
 async function signInAsPhone(phoneNumber) {
-  const verifier = { type: "recaptcha", verify: async () => "emulator-test-recaptcha-token" };
-  const confirmation = await signInWithPhoneNumber(clientAuth, phoneNumber, verifier);
+  const sent = await authRequest("accounts:sendVerificationCode", {
+    phoneNumber,
+    recaptchaToken: "emulator-test-recaptcha-token"
+  });
   const response = await fetch("http://127.0.0.1:9099/emulator/v1/projects/" + PROJECT + "/verificationCodes");
   if (!response.ok) throw new Error("Could not read Firebase Auth Emulator SMS codes: " + response.status);
   const payload = await response.json();
   const code = [...(payload.verificationCodes || [])].reverse()
     .find(item => item.phoneNumber === phoneNumber)?.sessionCode;
   if (!code) throw new Error("No emulator SMS verification code found for " + phoneNumber);
-  await confirmation.confirm(code);
+  const signedIn = await authRequest("accounts:signInWithPhoneNumber", {
+    sessionInfo: sent.sessionInfo,
+    code,
+    returnSecureToken: true
+  });
+  authToken = signedIn.idToken;
+  if (tokenClaims(authToken).firebase?.sign_in_provider !== "phone") {
+    throw new Error("Auth Emulator did not issue a phone-provider ID token");
+  }
+}
+
+async function signInAsPassword(email, password) {
+  const signedIn = await authRequest("accounts:signInWithPassword", {
+    email, password, returnSecureToken: true
+  });
+  authToken = signedIn.idToken;
 }
 
 async function callable(name, data = {}) {
-  const response = await httpsCallable(functions, name)(data);
-  return response.data;
+  const headers = { "Content-Type": "application/json" };
+  if (authToken) headers.Authorization = "Bearer " + authToken;
+  const response = await fetch("http://127.0.0.1:5001/" + PROJECT + "/" + REGION + "/" + name, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ data })
+  });
+  const payload = await response.json();
+  if (payload.error) {
+    const status = String(payload.error.status || "internal").toLowerCase().replace(/_/g, "-");
+    const error = new Error(payload.error.message || "Callable request failed");
+    error.code = "functions/" + status;
+    throw error;
+  }
+  if (!response.ok) {
+    const error = new Error(payload.message || "Callable request failed: " + response.status);
+    error.code = "functions/internal";
+    throw error;
+  }
+  return payload.result ?? payload.data;
 }
 
 before(async () => {
   app = initializeApp({ projectId: PROJECT }, "cbt-emulator-tests");
   db = getFirestore(app);
-  clientApp = initializeClientApp({
-    apiKey: "fake-api-key",
-    projectId: PROJECT,
-    appId: "1:123456789:web:cbtemulator"
-  }, "cbt-client-tests");
-  clientAuth = getClientAuth(clientApp);
-  connectAuthEmulator(clientAuth, "http://127.0.0.1:9099", { disableWarnings: true });
-  functions = getFunctions(clientApp, REGION);
-  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
-
   studentPhoneNumber = "+1555" + String(Date.now()).slice(-7);
   const user = await getAuth(app).createUser({ phoneNumber: studentPhoneNumber });
   uid = user.uid;
@@ -98,7 +135,6 @@ after(async () => {
     await db.doc("testSeriesConfig/freeTest").delete();
     await getAuth(app).deleteUser(uid).catch(() => {});
   }
-  if (clientApp) await deleteClientApp(clientApp);
   if (app) await deleteApp(app);
 });
 
@@ -222,8 +258,8 @@ test("email/password sessions cannot access student CBT callables", async () => 
   const password = "Emulator-Test-Password-123!";
   const nonPhoneUser = await getAuth(app).createUser({ email, password });
   try {
-    await signOut(clientAuth);
-    await signInWithEmailAndPassword(clientAuth, email, password);
+    authToken = null;
+    await signInAsPassword(email, password);
     await assert.rejects(
       callable("rmListAvailableTests"),
       error => error.code === "functions/permission-denied"
@@ -233,7 +269,7 @@ test("email/password sessions cannot access student CBT callables", async () => 
       error => error.code === "functions/permission-denied"
     );
   } finally {
-    await signOut(clientAuth).catch(() => {});
+    authToken = null;
     await signInAsPhone(studentPhoneNumber);
     await getAuth(app).deleteUser(nonPhoneUser.uid).catch(() => {});
   }
@@ -262,7 +298,7 @@ test("student can claim one free test attempt only once", async () => {
   const secondStudent = await getAuth(app).createUser({ phoneNumber: secondStudentPhone });
   let secondClaim = null;
   try {
-    await signOut(clientAuth);
+    authToken = null;
     await signInAsPhone(secondStudentPhone);
     secondClaim = await callable("rmClaimFreeAttempt");
     assert.ok(secondClaim.attemptId);
@@ -275,7 +311,7 @@ test("student can claim one free test attempt only once", async () => {
       await db.doc("testSeriesAttempts/" + secondClaim.attemptId).delete().catch(() => {});
     }
     await db.doc("testSeriesFreeAttempts/" + secondStudent.uid).delete().catch(() => {});
-    await signOut(clientAuth).catch(() => {});
+    authToken = null;
     await signInAsPhone(studentPhoneNumber);
     await getAuth(app).deleteUser(secondStudent.uid).catch(() => {});
   }
@@ -550,7 +586,7 @@ test("a different authenticated student cannot read, save or submit another stud
       uid: foreignUser.uid, testId, status: "in_progress",
       startedAt: new Date(), expiresAt: new Date(Date.now() + 60_000), answers: {}
     });
-    await signOut(clientAuth);
+    authToken = null;
     await signInAsPhone(studentPhoneNumber);
     await assert.rejects(
       callable("rmGetExamQuestions", { attemptId: foreignAttemptId }),
@@ -567,13 +603,13 @@ test("a different authenticated student cannot read, save or submit another stud
   } finally {
     await foreignAttemptRef.delete().catch(() => {});
     await getAuth(app).deleteUser(foreignUser.uid).catch(() => {});
-    await signOut(clientAuth).catch(() => {});
+    authToken = null;
     await signInAsPhone(studentPhoneNumber);
   }
 });
 
 test("unauthenticated caller cannot start an exam", async () => {
-  await signOut(clientAuth);
+  authToken = null;
   await assert.rejects(
     callable("rmStartExam", { testId }),
     error => error.code === "functions/unauthenticated"
