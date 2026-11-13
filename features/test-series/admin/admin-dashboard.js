@@ -23,6 +23,11 @@ export function initOwnerAdminDashboard(auth, functions) {
   const reconciliationMore = el("rm-admin-reconciliation-more");
   let reconciliationCursor = null;
   let reconciliationGeneration = 0;
+  const paymentAuditList = el("rm-admin-payment-audit-list");
+  const paymentAuditStatus = el("rm-admin-payment-audit-status");
+  const paymentAuditMore = el("rm-admin-payment-audit-more");
+  let paymentAuditCursor = null;
+  let paymentAuditGeneration = 0;
   let testManagementGeneration = 0;
   let testEditGeneration = 0;
   function clearPaymentHistory() {
@@ -38,6 +43,12 @@ export function initOwnerAdminDashboard(auth, functions) {
     reconciliationStatus.textContent = "";
     reconciliationMore.hidden = true;
     reconciliationMore.disabled = false;
+    paymentAuditGeneration += 1;
+    paymentAuditCursor = null;
+    paymentAuditList.replaceChildren();
+    paymentAuditStatus.textContent = "";
+    paymentAuditMore.hidden = true;
+    paymentAuditMore.disabled = false;
   }
   const showOtp = verificationId => new Promise((resolve, reject) => {
     pendingVerification = { verificationId, resolve, reject };
@@ -272,6 +283,61 @@ export function initOwnerAdminDashboard(auth, functions) {
     }
   }
 
+  async function refreshPaymentAudit({ append = false } = {}) {
+    if (append && !paymentAuditCursor) return;
+    const generation = ++paymentAuditGeneration;
+    if (!append) {
+      paymentAuditCursor = null;
+      paymentAuditList.replaceChildren();
+      paymentAuditStatus.textContent = "Payment inspection audit history लोड हो रही है…";
+    } else {
+      paymentAuditMore.disabled = true;
+    }
+    try {
+      const response = await httpsCallable(functions, "rmOwnerListPaymentAudit")({
+        cursor: append ? paymentAuditCursor : null,
+        pageSize: 25
+      });
+      if (generation !== paymentAuditGeneration) return;
+      const data = response.data || {};
+      const records = Array.isArray(data.records) ? data.records : [];
+      records.forEach(record => {
+        const card = document.createElement("article");
+        card.className = "rm-admin-payment-row";
+        const heading = document.createElement("b");
+        const outcome = record.outcome === "success" ? "जाँच सफल" :
+          record.outcome === "provider_lookup_failed" ? "Provider जाँच विफल" : "समीक्षा आवश्यक";
+        heading.textContent = outcome + " · " + (record.orderStatus || "Order स्थिति अनुपलब्ध");
+        const detail = document.createElement("small");
+        const time = record.createdAt ? new Date(record.createdAt) : null;
+        const timeLabel = time && Number.isFinite(time.getTime()) ? time.toLocaleString() : "समय उपलब्ध नहीं";
+        const matchLabel = record.matchesRequest === true ? "Request मिलान सही" :
+          record.matchesRequest === false ? "Request मिलान में अंतर" : "मिलान उपलब्ध नहीं";
+        detail.textContent = [
+          "Owner " + (record.ownerUid || "unavailable"),
+          "Request " + (record.requestRecordId || "unavailable"),
+          matchLabel,
+          "Payment attempts " + (Number.isInteger(record.paymentCount) ? record.paymentCount : 0),
+          "Statuses " + (Array.isArray(record.paymentStatuses) && record.paymentStatuses.length ? record.paymentStatuses.join(", ") : "कोई attempt नहीं"),
+          timeLabel
+        ].join(" · ");
+        card.append(heading, detail);
+        paymentAuditList.append(card);
+      });
+      paymentAuditCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
+      paymentAuditMore.hidden = !paymentAuditCursor;
+      paymentAuditMore.disabled = false;
+      paymentAuditStatus.textContent = !records.length && !append
+        ? "अभी कोई Payment Inspection Audit Record नहीं है।"
+        : data.hasMore ? "Audit records दिखाए गए हैं। पुराने रिकॉर्ड के लिए Load More दबाएँ।"
+          : "सभी उपलब्ध Audit Records दिखाए गए हैं।";
+    } catch (error) {
+      if (generation !== paymentAuditGeneration) return;
+      paymentAuditStatus.textContent = error.message || "Payment Audit History लोड नहीं हुई।";
+      paymentAuditMore.disabled = false;
+    }
+  }
+
   async function refreshPaymentReconciliation({ append = false } = {}) {
     if (append && !reconciliationCursor) return;
     const generation = ++reconciliationGeneration;
@@ -378,6 +444,8 @@ export function initOwnerAdminDashboard(auth, functions) {
   el("rm-admin-refresh-payments").addEventListener("click", () => refreshPayments());
   paymentsMore.addEventListener("click", () => refreshPayments({ append: true }));
   el("rm-admin-refresh-reconciliation").addEventListener("click", () => refreshPaymentReconciliation());
+  el("rm-admin-refresh-payment-audit").addEventListener("click", () => refreshPaymentAudit());
+  paymentAuditMore.addEventListener("click", () => refreshPaymentAudit({ append: true }));
   reconciliationMore.addEventListener("click", () => refreshPaymentReconciliation({ append: true }));
   const freeTestSelect = el("rm-free-test-select");
   el("rm-free-test-save").addEventListener("click", async () => {
@@ -1114,7 +1182,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         : module === "questions" ? "विषय, अध्याय और फ़ोल्डर के अनुसार प्रश्न बैंक।"
         : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
     if (module === "tests") refreshTests();
-    if (module === "payments") { refreshPayments(); refreshPaymentReconciliation(); }
+    if (module === "payments") { refreshPayments(); refreshPaymentReconciliation(); refreshPaymentAudit(); }
     if (module === "students") refreshStudentActivity();
     if (module === "analytics") refreshAnalytics();
     if (module === "questions") refreshQuestionBank();
