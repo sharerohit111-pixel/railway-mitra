@@ -1,6 +1,10 @@
 # Owner Admin Dashboard — isolated module
 
-Mobile-first dashboard shell and Firebase Authentication MFA client helpers. Not yet wired into the main app; do not link until Firebase and backend authorization are configured.
+## Standalone Owner Portal
+
+Open `portal.html` to load the dedicated Owner Control Centre. `owner-portal.js` initializes the existing Firebase app, loads the isolated dashboard fragment, connects Cloud Functions in `asia-south1`, and imports the Test Series App Check bootstrap before any Owner callable is invoked. The portal remains separate from the Railway Mitra home navigation; it is not yet linked into the student portal or main app. The backend must have the exact `OWNER_UID` configured, Phone MFA enrolled, App Check configured, and the Test Series Functions deployed before Owner access can succeed. The browser page alone does not grant privileges.
+
+Mobile-first dashboard shell and Firebase Authentication MFA client helpers. The standalone portal route is available, but is not linked into the main app; do not link until Firebase and backend authorization are configured.
 
 ## Login methods
 - Google popup
