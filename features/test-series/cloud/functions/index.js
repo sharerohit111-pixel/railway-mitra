@@ -219,7 +219,7 @@ exports.rmEnterCbtSection = onCall(CALLABLE_OPTIONS, async req => {
     if (!limit) return { section: sectionName, startedAt: null, expiresAt: overallExpiry.toISOString(), timeLimitMinutes: 0, resumed: false };
     const startedAt = Timestamp.fromDate(now);
     const expiresAt = Timestamp.fromDate(new Date(Math.min(now.getTime() + limit * 60000, overallExpiry.getTime())));
-    tx.update(attemptRef, { ["sectionTimings." + sectionName]: { startedAt, expiresAt }, updatedAt: FieldValue.serverTimestamp() });
+    tx.update(attemptRef, { sectionTimings: { ...timings, [sectionName]: { startedAt, expiresAt } }, updatedAt: FieldValue.serverTimestamp() });
     return { section: sectionName, startedAt: startedAt.toDate().toISOString(), expiresAt: expiresAt.toDate().toISOString(), timeLimitMinutes: limit, resumed: false };
   });
 });
