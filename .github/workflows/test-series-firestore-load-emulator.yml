@@ -48,9 +48,9 @@ jobs:
 
       - name: Validate bounded workload inputs
         env:
-          LOAD_STUDENTS: ${{ github.event_name == 'push' && '250' || inputs.students || '50' }}
+          LOAD_STUDENTS: ${{ github.event_name == 'push' && '500' || inputs.students || '500' }}
           LOAD_WAVES: ${{ inputs.waves || '2' }}
-          LOAD_CONCURRENCY: ${{ github.event_name == 'push' && '50' || inputs.concurrency || '10' }}
+          LOAD_CONCURRENCY: ${{ github.event_name == 'push' && '500' || inputs.concurrency || '10' }}
         run: |
           node -e 'const limits = { LOAD_STUDENTS: [1, 500], LOAD_WAVES: [1, 20], LOAD_CONCURRENCY: [1, 500] }; for (const [key, [min, max]] of Object.entries(limits)) { const value = Number(process.env[key]); if (!Number.isInteger(value) || value < min || value > max) { console.error(key + " must be an integer from " + min + " to " + max); process.exit(1); } } if (Number(process.env.LOAD_CONCURRENCY) > Number(process.env.LOAD_STUDENTS)) { console.error("Concurrency cannot exceed student count"); process.exit(1); }'
 
@@ -61,8 +61,8 @@ jobs:
       - name: Run synthetic Firestore workload against local emulator
         env:
           GCLOUD_PROJECT: demo-railway-mitra-load
-          LOAD_STUDENTS: ${{ github.event_name == 'push' && '250' || inputs.students || '50' }}
+          LOAD_STUDENTS: ${{ github.event_name == 'push' && '500' || inputs.students || '500' }}
           LOAD_WAVES: ${{ inputs.waves || '2' }}
-          LOAD_CONCURRENCY: ${{ github.event_name == 'push' && '50' || inputs.concurrency || '10' }}
+          LOAD_CONCURRENCY: ${{ github.event_name == 'push' && '500' || inputs.concurrency || '10' }}
         run: |
           npx --yes firebase-tools@latest emulators:exec --project demo-railway-mitra-load --only firestore "npm --prefix features/test-series/cloud/functions run load:emulator"
