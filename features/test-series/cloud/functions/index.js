@@ -958,7 +958,9 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
 exports.rmGetStudentDashboard = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req);
   const resultsSnap = await db.collection("testSeriesResults")
-    .where("uid", "==", uid).limit(100).get();
+    .where("uid", "==", uid)
+    .orderBy("submittedAt", "desc")
+    .limit(100).get();
   const results = resultsSnap.docs.map(d => {
     const r = d.data();
     return {
