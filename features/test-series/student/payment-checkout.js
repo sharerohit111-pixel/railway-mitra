@@ -2,6 +2,7 @@ import { createPaymentRequestId, createStudentPaymentOrder } from "../cloud/stud
 
 const CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
 let checkoutScriptPromise = null;
+const paymentRequestIds = new Map();
 
 function loadCheckoutScript(root = document) {
   if (typeof globalThis.Razorpay === "function") return Promise.resolve();
@@ -35,9 +36,13 @@ export async function startStudentTestCheckout({ app, test, onStatus, root = doc
   if (typeof onStatus === "function") onStatus("Preparing secure payment…");
   await loadCheckoutScript(root);
 
-  // Keep one request ID for this deliberate checkout attempt. A retry after a
-  // lost response must reuse it; a new deliberate attempt gets a fresh ID.
-  const requestId = createPaymentRequestId();
+  // Reuse the same request ID for this test during this page session. If the
+  // order response is lost, the backend replays the original provider order.
+  let requestId = paymentRequestIds.get(test.testId);
+  if (!requestId) {
+    requestId = createPaymentRequestId();
+    paymentRequestIds.set(test.testId, requestId);
+  }
   const order = await createStudentPaymentOrder(app, test.testId, requestId);
   if (!order || !order.orderId || !order.keyId || !Number.isSafeInteger(order.amount) || order.amount <= 0 ||
       order.currency !== "INR" || order.testId !== test.testId) {
