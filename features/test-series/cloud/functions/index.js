@@ -1,6 +1,7 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
+const { hasVerifiedPhoneMfa } = require("./owner-auth");
 initializeApp();
 const db = getFirestore(), REGION = "asia-south1";
 // The Functions Emulator cannot provide production App Check attestation; keep enforcement enabled everywhere else.
@@ -16,7 +17,7 @@ function user(req) {
 function owner(req) {
   const uid = user(req);
   if (!process.env.OWNER_UID || uid !== process.env.OWNER_UID) throw new HttpsError("permission-denied", "Owner access denied");
-  if ((req.auth.token.firebase || {}).sign_in_second_factor !== "phone") throw new HttpsError("permission-denied", "Owner phone OTP verification required");
+  if (!hasVerifiedPhoneMfa(req.auth.token)) throw new HttpsError("permission-denied", "Owner phone OTP verification required");
   return uid;
 }
 function id(v) { if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(v)) throw new HttpsError("invalid-argument", "Invalid identifier"); return v; }
