@@ -1,5 +1,4 @@
 import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt } from "../cloud/student-client.js";
-import "./exam.css";
 
 export function initStudentCbtExam({ app, testId, root = document }) {
   const el = id => root.getElementById(id);
