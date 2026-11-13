@@ -21,9 +21,9 @@ export async function initStudentDashboard({ app, root = document }) {
       const correct = results.reduce((sum, item) => sum + Number(item.correct || 0), 0);
       const average = resultCount ? results.reduce((sum, item) => sum + Number(item.score || 0), 0) / resultCount : 0;
       const stats = [
-        ["Tests submitted", resultCount],
+        ["Results loaded (latest 100 max.)", resultCount],
         ["Questions attempted correctly", correct],
-        ["Average score", average.toFixed(2)]
+        ["Average score (loaded results)", average.toFixed(2)]
       ];
       stats.forEach(([label, value]) => {
         const card = root.createElement("div");
@@ -39,7 +39,7 @@ export async function initStudentDashboard({ app, root = document }) {
       if (!results.length) {
         status.textContent = "अभी आपके खाते में कोई जमा किया हुआ टेस्ट परिणाम नहीं है।";
       } else {
-        status.textContent = resultCount + " submitted result(s)";
+        status.textContent = "Showing your latest " + resultCount + " submitted result(s). This dashboard loads up to 100 recent results.";
         results.forEach(item => {
           const card = root.createElement("article");
           card.className = "rm-dashboard-result";
