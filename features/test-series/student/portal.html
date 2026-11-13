@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071326">
+  <title>Test Series | Railway Mitra</title>
+  <link rel="stylesheet" href="./portal.css">
+</head>
+<body>
+  <div class="rm-portal">
+    <header class="rm-portal-header">
+      <a class="rm-portal-brand" href="../../../index.html"><span class="rm-portal-mark">RM</span><span><strong>Railway Mitra</strong><small>Cloud Test Series</small></span></a>
+      <button id="rm-portal-logout" class="rm-portal-logout" type="button" hidden>Sign out</button>
+    </header>
+    <main>
+      <section id="rm-portal-login" class="rm-login-card">
+        <p class="rm-eyebrow">STUDENT ACCESS</p>
+        <h1>Welcome to Test Series</h1>
+        <p class="rm-muted">Sign in with your mobile number to access published Railway examinations.</p>
+        <label for="rm-student-phone">Mobile number with country code</label>
+        <input id="rm-student-phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+91XXXXXXXXXX">
+        <button id="rm-student-send-otp" class="rm-primary" type="button">Send OTP</button>
+        <div id="rm-student-otp-panel" hidden>
+          <label for="rm-student-otp">6-digit verification code</label>
+          <input id="rm-student-otp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Enter OTP">
+          <button id="rm-student-verify-otp" class="rm-primary" type="button">Verify &amp; Sign in</button>
+        </div>
+        <div id="rm-student-recaptcha"></div>
+        <p id="rm-portal-auth-status" class="rm-status" role="status" aria-live="polite"></p>
+      </section>
+      <section id="rm-portal-app" hidden>
+        <div class="rm-portal-welcome"><div><p class="rm-eyebrow">STUDENT WORKSPACE</p><h1>Your Test Series</h1><p class="rm-muted">Browse tests, continue exams and review your performance.</p></div><span id="rm-student-account" class="rm-account-chip"></span></div>
+        <nav class="rm-portal-nav" aria-label="Test Series navigation">
+          <button type="button" data-view="catalogue" class="active">Available Tests</button>
+          <button type="button" data-view="dashboard">My Results</button>
+        </nav>
+        <div id="rm-portal-view" class="rm-portal-view" aria-live="polite"></div>
+        <p id="rm-portal-status" class="rm-status" role="status"></p>
+      </section>
+    </main>
+    <footer class="rm-portal-footer">Railway Mitra · Your Railway Digital Companion</footer>
+  </div>
+  <script type="module" src="./portal.js"></script>
+</body>
+</html>
