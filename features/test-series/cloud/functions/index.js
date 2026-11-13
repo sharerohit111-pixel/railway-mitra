@@ -22,6 +22,7 @@ const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const { getCallableOptions } = require("./app-check-policy");
+const { normalizeQuestionBankItem } = require("./question-bank-validation");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -553,32 +554,18 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
 exports.rmOwnerSaveQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
   const data = req.data || {};
-  const question = data.question;
-  if (!question || typeof question !== "object" || Array.isArray(question)) {
-    throw new HttpsError("invalid-argument", "Question data is required");
+  let normalized;
+  try {
+    normalized = normalizeQuestionBankItem({
+      topic: data.topic, chapter: data.chapter, folder: data.folder, question: data.question
+    });
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
   }
-  const topic = String(data.topic || "").trim();
-  const chapter = String(data.chapter || "").trim();
-  const folder = String(data.folder || "").trim();
-  if (!topic || topic.length > 80 || !chapter || chapter.length > 100 || !folder || folder.length > 120) {
-    throw new HttpsError("invalid-argument", "Topic, chapter and folder are required and must be within limits");
-  }
-  const text = typeof question.text === "string" ? question.text.trim() : "";
-  const options = Array.isArray(question.options) ? question.options.map(value => String(value).trim()) : [];
-  const correctIndex = question.correctIndex;
-  if (!text || text.length > 4000 || options.length < 2 || options.length > 6 ||
-      options.some(option => !option || option.length > 1000) ||
-      !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
-    throw new HttpsError("invalid-argument", "Question text, 2–6 options and a valid correctIndex are required");
-  }
-  const section = typeof question.section === "string" ? question.section.trim() : "";
-  if (section.length > 80) throw new HttpsError("invalid-argument", "Question section name is too long");
   const itemId = data.itemId ? id(data.itemId) : db.collection("testSeriesQuestionBank").doc().id;
   const ref = db.doc("testSeriesQuestionBank/" + itemId);
   await ref.set({
-    topic, chapter, folder,
-    question: { text, options, ...(section ? { section } : {}), explanation: typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : "" },
-    correctIndex,
+    ...normalized,
     updatedAt: FieldValue.serverTimestamp(),
     ...(!data.itemId ? { createdAt: FieldValue.serverTimestamp() } : {})
   }, { merge: true });
@@ -591,32 +578,14 @@ exports.rmOwnerBulkSaveQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   if (!Array.isArray(items) || items.length < 1 || items.length > 100) {
     throw new HttpsError("invalid-argument", "Upload between 1 and 100 questions per batch");
   }
-  const normalized = items.map((item, index) => {
-    if (!item || typeof item !== "object" || Array.isArray(item)) {
-      throw new HttpsError("invalid-argument", "Invalid question at row " + (index + 1));
-    }
-    const topic = String(item.topic || "").trim();
-    const chapter = String(item.chapter || "").trim();
-    const folder = String(item.folder || "").trim();
-    const question = item.question;
-    const text = question && typeof question.text === "string" ? question.text.trim() : "";
-    const options = question && Array.isArray(question.options) ? question.options.map(value => String(value).trim()) : [];
-    const correctIndex = question && question.correctIndex;
-    if (!topic || topic.length > 80 || !chapter || chapter.length > 100 || !folder || folder.length > 120 ||
-        !text || text.length > 4000 || options.length < 2 || options.length > 6 ||
-        options.some(option => !option || option.length > 1000) ||
-        !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
-      throw new HttpsError("invalid-argument", "Invalid topic, chapter, folder or question at row " + (index + 1));
-    }
-    const section = question && typeof question.section === "string" ? question.section.trim() : "";
-    if (section.length > 80) throw new HttpsError("invalid-argument", "Invalid section at row " + (index + 1));
-    return { topic, chapter, folder, question: {
-      text, options, ...(section ? { section } : {}),
-      explanation: question && typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : ""
-    }, correctIndex };
-  });
+  let normalized;
+  try {
+    normalized = items.map((item, index) => normalizeQuestionBankItem(item, index + 1));
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
   const batch = db.batch();
-  const refs = normalized.map(item => db.collection("testSeriesQuestionBank").doc());
+  const refs = normalized.map(() => db.collection("testSeriesQuestionBank").doc());
   normalized.forEach((item, index) => batch.set(refs[index], {
     ...item,
     createdAt: FieldValue.serverTimestamp(),
