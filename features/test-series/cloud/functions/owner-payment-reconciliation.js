@@ -41,14 +41,17 @@ function serializeReconciliationRequest(document) {
   const failureCode = typeof record.failureCode === "string" &&
     /^[A-Za-z0-9_:-]{1,80}$/.test(record.failureCode) ? record.failureCode : null;
 
-  // Explicit allow-list: reservation tokens, request fingerprints, receipts,
-  // provider payloads, phone, email and arbitrary metadata never leave Firestore.
+  // Explicit allow-list: reservation tokens, request fingerprints, raw provider payloads, phone, email and
+  // arbitrary metadata never leave Firestore. Only a strict server-generated receipt
+  // reference is returned as a non-secret lookup key for the provider dashboard.
   return {
     requestRecordId: document.id,
     studentUid: safeDocumentId(record.uid) ? record.uid : null,
     testId: safeDocumentId(record.testId) ? record.testId : null,
     amountPaise,
     currency: record.currency === "INR" ? "INR" : null,
+    receiptRef: typeof record.receipt === "string" && /^rm_[A-Za-z0-9_-]{1,32}$/.test(record.receipt)
+      ? record.receipt : null,
     status,
     failureCode,
     providerOrderIdObserved: safeDocumentId(record.providerOrderIdObserved)
