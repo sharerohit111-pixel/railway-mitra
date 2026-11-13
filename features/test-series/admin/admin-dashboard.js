@@ -222,6 +222,7 @@ export function initOwnerAdminDashboard(auth, functions) {
           request.studentUid ? "Student UID " + request.studentUid : "Student unavailable",
           request.failureCode ? "Reason " + request.failureCode : "Reason not recorded",
           request.providerOrderIdObserved ? "Provider Order " + request.providerOrderIdObserved : "Provider Order not confirmed",
+          request.receiptRef ? "Razorpay Receipt " + request.receiptRef : "Receipt unavailable",
           "Reference " + (request.requestRecordId || "unavailable"),
           dateLabel
         ].join(" · ");
