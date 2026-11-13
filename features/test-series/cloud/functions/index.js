@@ -488,8 +488,15 @@ exports.rmCreatePaymentOrder = onCall({
         tx.get(db.doc("testSeriesTests/" + testId)),
         tx.get(entitlementRef)
       ]);
-      if (!latestTest.exists || latestTest.data().status !== "published" ||
-          rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }) !== amount) {
+      let latestAmount = null;
+      if (latestTest.exists && latestTest.data().status === "published") {
+        try {
+          latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 });
+        } catch {
+          // Treat a concurrently edited malformed price as a normal stale-price rejection.
+        }
+      }
+      if (latestAmount !== amount) {
         throw new HttpsError("failed-precondition", "Test price or availability changed. Refresh and try again.");
       }
       if (latestEntitlement.exists && latestEntitlement.data().uid === uid &&
