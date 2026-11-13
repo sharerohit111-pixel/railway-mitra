@@ -38,6 +38,28 @@ function paymentRequestFingerprint({ uid, testId, amount, currency = "INR" } = {
     .digest("hex");
 }
 
+function paymentStudentTestLockDocumentId({ uid, testId } = {}) {
+  if (typeof uid !== "string" || !uid.trim() || typeof testId !== "string" || !testId.trim()) {
+    throw new Error("Authenticated student and test identifiers are required");
+  }
+  return crypto.createHash("sha256")
+    .update(uid + "\\0" + testId, "utf8")
+    .digest("hex");
+}
+
+function inspectStudentTestPaymentLock(existing, { uid, testId, requestDocId } = {}) {
+  if (!existing) return { action: "reserve" };
+  if (existing.uid !== uid || existing.testId !== testId ||
+      !/^[a-f0-9]{64}$/.test(existing.requestDocId || "") ||
+      ![PAYMENT_REQUEST_STATES.CREATING, PAYMENT_REQUEST_STATES.CREATED, PAYMENT_REQUEST_STATES.UNKNOWN].includes(existing.status)) {
+    return { action: "reconcile", reason: "student_test_lock_inconsistent" };
+  }
+  if (existing.requestDocId !== requestDocId) {
+    return { action: "reject", reason: "another_payment_request_pending" };
+  }
+  return { action: "continue", status: existing.status };
+}
+
 function inspectPaymentRequest(existing, expectedFingerprint) {
   if (!existing || typeof existing !== "object") return { action: "reserve" };
   if (existing.fingerprint !== expectedFingerprint) {
@@ -64,6 +86,8 @@ module.exports = {
   PAYMENT_REQUEST_STATES,
   validatePaymentRequestId,
   paymentRequestDocumentId,
+  paymentStudentTestLockDocumentId,
+  inspectStudentTestPaymentLock,
   paymentRequestFingerprint,
   inspectPaymentRequest
 };
