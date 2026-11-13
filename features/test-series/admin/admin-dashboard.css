@@ -7,3 +7,7 @@
 .rm-admin-payment-row{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid #254967;border-radius:10px;background:#07182d;overflow-wrap:anywhere}
 .rm-admin-payment-row b{color:#70e7c0;font-size:14px}
 .rm-admin-payment-row small{color:#9bb8d0;font-size:11px;line-height:1.5}
+
+/* Unavailable Owner modules remain visibly disabled and cannot appear interactive. */
+.rm-admin .rm-admin-grid button:disabled{cursor:not-allowed;opacity:.55;border-style:dashed;filter:saturate(.55)}
+.rm-admin .rm-admin-grid button:disabled:focus-visible{outline:2px solid #70b8d8;outline-offset:3px}
