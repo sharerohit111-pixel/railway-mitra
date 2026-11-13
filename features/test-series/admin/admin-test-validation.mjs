@@ -89,6 +89,11 @@ export function validateOwnerTestDraft(draft) {
     const key = name.toLocaleLowerCase();
     if (!sectionConfig.has(key)) sectionConfig.set(key, { name, timeLimitMinutes: 0 });
   });
+  // Normalize each question to the canonical configured section spelling.
+  // The CBT section-entry callable uses exact names when selecting questions.
+  questions.forEach(question => {
+    if (question.section) question.section = sectionConfig.get(question.section.toLocaleLowerCase()).name;
+  });
   const sections = [...sectionConfig.values()].map(section => ({
     ...section,
     questionCount: questions.filter(question => question.section?.toLocaleLowerCase() === section.name.toLocaleLowerCase()).length
