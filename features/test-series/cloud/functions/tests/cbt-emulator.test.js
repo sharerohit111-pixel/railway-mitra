@@ -582,6 +582,32 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
     const submitted = await callable("rmSubmitExam", { attemptId: startedAttemptId });
     assert.equal(submitted.submitted, true);
     assert.equal(submitted.totalQuestions, 0);
+
+    // Completing one paid exam must release the student's active slot for another test.
+    const nextTestId = "emulator-next-paid-after-completion";
+    const nextTestRef = db.doc("testSeriesTests/" + nextTestId);
+    const nextEntitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + nextTestId);
+    let nextAttemptId = null;
+    try {
+      await nextTestRef.set({
+        title: "Next Paid Test", status: "published", price: 25,
+        mode: "mock", durationMinutes: 10, questionCount: 0
+      });
+      await nextEntitlementRef.set({ uid, testId: nextTestId, status: "active" });
+      const nextStarted = await callable("rmStartExam", { testId: nextTestId });
+      nextAttemptId = nextStarted.attemptId;
+      assert.ok(nextAttemptId);
+      assert.equal(nextStarted.resumed, false);
+      const nextActive = await callable("rmGetStudentActiveAttempt", { testId: nextTestId });
+      assert.equal(nextActive.found, true);
+      assert.equal(nextActive.status, "in_progress");
+      assert.equal(nextActive.attemptId, nextAttemptId);
+    } finally {
+      if (nextAttemptId) await db.doc("testSeriesAttempts/" + nextAttemptId).delete().catch(() => {});
+      await nextTestRef.delete().catch(() => {});
+      await nextEntitlementRef.delete().catch(() => {});
+      await db.doc("testSeriesActiveSessions/" + uid).delete().catch(() => {});
+    }
   } finally {
     if (startedAttemptId) {
       await db.doc("testSeriesAttempts/" + startedAttemptId).delete();
