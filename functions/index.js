@@ -1090,18 +1090,21 @@ exports.getOwnerAnalyticsSummary = onCall(
       });
       const metricValue = (report, index) =>
         Number(report?.rows?.[0]?.metricValues?.[index]?.value || 0);
+      const eventRows = (events.rows || []).map(row => ({
+        eventName: row.dimensionValues?.[0]?.value || "unknown",
+        eventCount: Number(row.metricValues?.[0]?.value || 0)
+      }));
+      const installPromptAccepted = eventRows.find(row => row.eventName === "pwa_install_accepted")?.eventCount || 0;
       return {
         propertyId: GA4_PROPERTY_ID,
         realtimeActiveUsers: metricValue(realtime, 0),
         last7Days: {
           activeUsers: metricValue(weekly, 0),
           sessions: metricValue(weekly, 1),
-          eventCount: metricValue(weekly, 2)
+          eventCount: metricValue(weekly, 2),
+          installPromptAccepted
         },
-        topEvents: (events.rows || []).map(row => ({
-          eventName: row.dimensionValues?.[0]?.value || "unknown",
-          eventCount: Number(row.metricValues?.[0]?.value || 0)
-        })),
+        topEvents: eventRows,
         generatedAt: new Date().toISOString()
       };
     } catch (error) {
