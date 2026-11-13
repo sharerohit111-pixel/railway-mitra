@@ -64,3 +64,8 @@ The Question Bank module stores reusable question records separately in `testSer
 ### Bulk import and adding bank items to a draft
 
 The Owner Question Bank supports XLSX, XLS, CSV and JSON bulk import (up to 100 records per request). Spreadsheet columns are `topic`, `chapter`, `folder`, `text` (or `question`), `optionA`–`optionF` or `options` as a JSON array, `correctIndex` (zero-based), and optional `explanation`. Blank or invalid correct indexes are rejected server-side. Each batch is validated before its Firestore batch write. The Question Bank list also offers **Add to Test**, which copies the selected question into the existing Test Management question editor; the Owner must still save the test through the normal draft/publish workflow. Direct browser Firestore access to `testSeriesQuestionBank` is denied.
+
+
+### Question Bank search, filters and pagination
+
+The Owner Question Bank list supports exact topic, chapter and folder filters, case-insensitive text search across question text and classification fields, and cursor-based pages of 25 records. The server scans a bounded window of up to 500 recently updated records per request and filters that window in memory, avoiding a proliferation of composite Firestore indexes. The UI shows a continuation control when more records remain in that scan window; very large libraries may require repeated scans and the report is intentionally bounded per request. Filter option lists are derived from the same recent 500-record window.
