@@ -4,9 +4,9 @@
 const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST || "";
 const functionsHost = process.env.FUNCTIONS_EMULATOR_HOST || "127.0.0.1:5001";
 const firestoreHost = process.env.FIRESTORE_EMULATOR_HOST || "";
-if (!/^(127\\.0\\.0\\.1|localhost):9099$/.test(authHost) ||
-    !/^(127\\.0\\.0\\.1|localhost):8080$/.test(firestoreHost) ||
-    !/^(127\\.0\\.0\\.1|localhost):5001$/.test(functionsHost)) {
+if (!/^(127\.0\.0\.1|localhost):9099$/.test(authHost) ||
+    !/^(127\.0\.0\.1|localhost):8080$/.test(firestoreHost) ||
+    !/^(127\.0\.0\.1|localhost):5001$/.test(functionsHost)) {
   console.error("Refusing to run: Auth, Firestore and Functions must all use local emulator hosts.");
   process.exit(1);
 }
