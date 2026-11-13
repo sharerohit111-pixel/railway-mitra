@@ -1,5 +1,5 @@
 import { summarizeStudentActivity, studentActivityCsv, studentActivityPrintHtml } from "./student-activity.mjs";
-import { testAnalyticsCsv, testAnalyticsPrintHtml } from "./result-analytics.mjs";
+import { testAnalyticsCsv, testAnalyticsPrintHtml, filterAndSortTestAnalytics } from "./result-analytics.mjs";
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
@@ -746,10 +746,33 @@ export function initOwnerAdminDashboard(auth, functions) {
   let analyticsData = null;
   const analyticsCsvButton = el("rm-admin-export-test-analytics");
   const analyticsPrintButton = el("rm-admin-print-test-analytics");
+  const analyticsSearch = el("rm-admin-analytics-search");
+  const analyticsSort = el("rm-admin-analytics-sort");
+  const analyticsFilterStatus = el("rm-admin-analytics-filter-status");
+  function visibleAnalyticsData() {
+    if (!analyticsData) return null;
+    return { ...analyticsData, tests: filterAndSortTestAnalytics(analyticsData.tests, analyticsSearch.value, analyticsSort.value) };
+  }
+  function renderAnalyticsTests() {
+    analyticsTests.replaceChildren();
+    const visible = visibleAnalyticsData()?.tests || [];
+    visible.forEach(item => {
+      const row = document.createElement("article"); row.className = "rm-admin-payment-row";
+      const heading = document.createElement("b"); heading.textContent = (item.title || item.testId || "Test") + " · " + item.attempts + " प्रयास";
+      const detail = document.createElement("small");
+      detail.textContent = ["औसत अंक " + item.averageScore, "औसत सही " + (item.averageCorrectPercent === null ? "—" : item.averageCorrectPercent + "%"), "समय समाप्त " + item.timedOut].join(" · ");
+      row.append(heading, detail); analyticsTests.append(row);
+    });
+    const total = Array.isArray(analyticsData?.tests) ? analyticsData.tests.length : 0;
+    analyticsFilterStatus.textContent = analyticsData ? visible.length + " / " + total + " टेस्ट दिखाए जा रहे हैं।" : "";
+  }
   function clearAnalytics() {
     analyticsGeneration += 1;
     analyticsSummary.replaceChildren();
     analyticsTests.replaceChildren();
+    analyticsSearch.value = "";
+    analyticsSort.value = "attempts";
+    analyticsFilterStatus.textContent = "";
     analyticsStatus.textContent = "";
     analyticsData = null;
     analyticsCsvButton.disabled = true;
@@ -763,6 +786,9 @@ export function initOwnerAdminDashboard(auth, functions) {
     analyticsPrintButton.disabled = true;
     analyticsSummary.replaceChildren();
     analyticsTests.replaceChildren();
+    analyticsSearch.value = "";
+    analyticsSort.value = "attempts";
+    analyticsFilterStatus.textContent = "";
     try {
       const response = await httpsCallable(functions, "rmOwnerGetResultAnalytics")({});
       if (generation !== analyticsGeneration) return;
@@ -780,13 +806,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         const detail = document.createElement("small"); detail.textContent = label;
         card.append(heading, detail); analyticsSummary.append(card);
       });
-      (Array.isArray(data.tests) ? data.tests : []).forEach(item => {
-        const row = document.createElement("article"); row.className = "rm-admin-payment-row";
-        const heading = document.createElement("b"); heading.textContent = (item.title || item.testId || "Test") + " · " + item.attempts + " प्रयास";
-        const detail = document.createElement("small");
-        detail.textContent = ["औसत अंक " + item.averageScore, "औसत सही " + (item.averageCorrectPercent === null ? "—" : item.averageCorrectPercent + "%"), "समय समाप्त " + item.timedOut].join(" · ");
-        row.append(heading, detail); analyticsTests.append(row);
-      });
+      renderAnalyticsTests();
       analyticsStatus.textContent = (data.window === "latest_500_submissions" ? "नवीनतम " : "") + data.sampledAttempts + " परिणामों का विश्लेषण।" + (data.hasMore ? " पुराने परिणाम इस सीमित रिपोर्ट में शामिल नहीं हैं।" : "");
     } catch (error) {
       if (generation !== analyticsGeneration) return;
@@ -804,14 +824,15 @@ export function initOwnerAdminDashboard(auth, functions) {
     URL.revokeObjectURL(url);
   });
   analyticsPrintButton.addEventListener("click", () => {
-    if (!analyticsData?.tests?.length) return;
+    const reportData = visibleAnalyticsData();
+    if (!reportData?.tests?.length) return;
     const reportWindow = window.open("", "_blank");
     if (!reportWindow) {
       analyticsStatus.textContent = "रिपोर्ट विंडो ब्राउज़र ने रोकी। इस साइट के लिए pop-ups अनुमति दें।";
       return;
     }
     reportWindow.document.open();
-    reportWindow.document.write(testAnalyticsPrintHtml(analyticsData));
+    reportWindow.document.write(testAnalyticsPrintHtml(reportData));
     reportWindow.document.close();
     const printReport = () => { reportWindow.focus(); reportWindow.print(); };
     if (reportWindow.document.readyState === "complete") printReport();
