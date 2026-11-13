@@ -134,7 +134,6 @@ test("student dashboard caps its response at the newest 100 results", async () =
   );
   const base = Date.now();
   try {
-    const batchSize = 400;
     const batch = db.batch();
     refs.forEach((ref, index) => batch.set(ref, {
       uid,
