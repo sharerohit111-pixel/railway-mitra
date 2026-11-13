@@ -11,6 +11,8 @@ const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = requi
 const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
+const crypto = require("node:crypto");
+const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
 const { hasVerifiedPhoneMfa } = require("../owner-auth");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
@@ -510,6 +512,100 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     await Promise.all([
       testRef, orderRef, secondOrderRef, paymentRef, eventRef, replayEventRef, entitlementRef,
       db.doc("testSeriesPaymentEvents/evt_ledger_payment_reuse")
+    ].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
+
+test("verified Razorpay webhook reaches the Firestore ledger exactly once", async () => {
+  const paidTestId = "emulator-webhook-integration-test";
+  const orderId = "order_webhook_integration";
+  const paymentId = "pay_webhook_integration";
+  const eventId = "evt_webhook_integration";
+  const webhookSecret = "emulator-only-webhook-secret";
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const event = {
+    event: "payment.captured",
+    payload: { payment: { entity: {
+      id: paymentId, order_id: orderId, amount: 12550,
+      currency: "INR", status: "captured",
+      notes: { uid: "attacker-controlled-uid", testId: "attacker-controlled-test" }
+    } } }
+  };
+  const rawBody = Buffer.from(JSON.stringify(event));
+  const signature = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
+
+  function makeRequest(sig = signature) {
+    return {
+      method: "POST", rawBody, body: event,
+      get(name) {
+        if (name === "x-razorpay-signature") return sig;
+        if (name === "x-razorpay-event-id") return eventId;
+        return undefined;
+      }
+    };
+  }
+  function makeResponse() {
+    return {
+      code: null, body: null,
+      set() { return this; },
+      status(code) { this.code = code; return this; },
+      send(body) { this.body = body; return this; },
+      json(body) { this.body = body; return this; }
+    };
+  }
+
+  try {
+    await db.doc("testSeriesTests/" + paidTestId).set({
+      title: "Webhook Integration Paid Test", status: "published", price: 125.5,
+      mode: "mock", durationMinutes: 10, questionCount: 1
+    });
+    await orderRef.set({
+      uid, testId: paidTestId, razorpayOrderId: orderId,
+      amount: 12550, currency: "INR", status: "created"
+    });
+
+    const invalidResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest("0".repeat(64)), res: invalidResponse,
+      secret: webhookSecret, db, applyPayment: applyCapturedPayment
+    });
+    assert.equal(invalidResponse.code, 400);
+    assert.equal((await orderRef.get()).data().status, "created");
+    assert.equal((await entitlementRef.get()).exists, false);
+
+    const firstResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(), res: firstResponse,
+      secret: webhookSecret, db, applyPayment: applyCapturedPayment
+    });
+    assert.equal(firstResponse.code, 200);
+    assert.deepEqual(firstResponse.body, { received: true, duplicate: false });
+
+    const grant = (await entitlementRef.get()).data();
+    assert.equal(grant.uid, uid);
+    assert.equal(grant.testId, paidTestId);
+    assert.equal(grant.paymentId, paymentId);
+    assert.equal((await orderRef.get()).data().status, "paid");
+    assert.equal((await paymentRef.get()).exists, true);
+
+    const replayResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(), res: replayResponse,
+      secret: webhookSecret, db, applyPayment: applyCapturedPayment
+    });
+    assert.equal(replayResponse.code, 200);
+    assert.deepEqual(replayResponse.body, { received: true, duplicate: true });
+    assert.equal((await entitlementRef.get()).data().paymentId, paymentId);
+    assert.equal((await db.collection("testSeriesEntitlements")
+      .where("uid", "==", uid).where("testId", "==", paidTestId).get()).size, 1);
+  } finally {
+    await Promise.all([
+      orderRef, paymentRef, eventRef, entitlementRef,
+      db.doc("testSeriesTests/" + paidTestId)
     ].map(ref => ref.delete().catch(() => {})));
   }
 });
