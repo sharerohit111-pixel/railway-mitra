@@ -1061,7 +1061,7 @@ exports.getOwnerAnalyticsSummary = onCall(
 
     try {
       const propertyId = GA4_PROPERTY_ID.value().trim();
-      if (!/^\\d{5,20}$/.test(propertyId)) {
+      if (!/^[0-9]{5,20}$/.test(propertyId)) {
         throw new HttpsError("failed-precondition", "Google Analytics property ID is not configured correctly.");
       }
       const client = new BetaAnalyticsDataClient({
