@@ -101,6 +101,13 @@ test("owner access accepts only a verified phone MFA factor", () => {
   assert.equal(hasVerifiedPhoneMfa(null), false);
 });
 
+test("student accounts cannot call the Owner student activity report", async () => {
+  await assert.rejects(
+    callable("rmOwnerListStudentActivity"),
+    error => error.code === "functions/permission-denied"
+  );
+});
+
 test("student catalogue returns published metadata only and never answer keys", async () => {
   const catalogue = await callable("rmListAvailableTests");
   const listed = catalogue.tests.find(item => item.testId === testId);
