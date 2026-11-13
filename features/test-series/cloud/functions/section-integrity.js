@@ -52,7 +52,7 @@ function getExamSectionConfig(test, questions) {
       fail("Question section must be text");
     }
     const name = question.section.trim();
-    if (!name || name.length > 80 || hasControlCharacters(name)) {
+    if (!name || question.section !== name || name.length > 80 || hasControlCharacters(name)) {
       fail("Invalid question section at index " + index);
     }
     const config = sections.get(name.toLocaleLowerCase());
