@@ -351,12 +351,16 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(Object.hasOwn(paper.questions[0], "correctIndex"), false);
   assert.ok(paper.expiresAt);
 
-  const sectionStart = await callable("rmEnterCbtSection", {
-    attemptId: started.attemptId, section: "Technical Ability"
-  });
+  // Concurrent entry requests must establish one shared deadline, never restart it.
+  const sectionEntries = await Promise.all([
+    callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Technical Ability" }),
+    callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Technical Ability" })
+  ]);
+  const sectionStart = sectionEntries[0];
   assert.equal(sectionStart.section, "Technical Ability");
   assert.equal(sectionStart.timeLimitMinutes, 1);
   assert.ok(sectionStart.expiresAt);
+  assert.equal(sectionEntries[1].expiresAt, sectionStart.expiresAt);
   const sectionResume = await callable("rmEnterCbtSection", {
     attemptId: started.attemptId, section: "Technical Ability"
   });
