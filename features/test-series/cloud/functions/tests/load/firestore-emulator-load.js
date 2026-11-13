@@ -63,7 +63,7 @@ async function main() {
   const startedAt = Date.now();
 
   console.log("Railway Mitra emulator-only Firestore workload");
-  console.log(JSON.stringify({ emulatorHost, projectId: PROJECT_ID, students: STUDENTS, waves: WAVES, questions: QUESTIONS, concurrency: CONCURRENCY, writes: STUDENTS * WAVES }));
+  console.log(JSON.stringify({ emulatorHost, projectId: PROJECT_ID, students: STUDENTS, waves: WAVES, questions: QUESTIONS, concurrency: CONCURRENCY, writes: STUDENTS * WAVES * QUESTIONS }));
 
   try {
     await questionSetRef.set({ questions: questionRows });
@@ -86,31 +86,35 @@ async function main() {
     for (let wave = 0; wave < WAVES; wave++) {
       const waveStarted = Date.now();
       await runPool(attemptRefs, CONCURRENCY, async (attemptRef, studentIndex) => {
-        const question = questionRows[(studentIndex + wave) % QUESTIONS];
-        const began = Date.now();
-        try {
-          await db.runTransaction(async tx => {
-            const [attemptSnap, questionSnap] = await Promise.all([
-              tx.get(attemptRef),
-              tx.get(questionSetRef)
-            ]);
-            if (!attemptSnap.exists) throw new Error("Attempt fixture missing");
-            const attempt = attemptSnap.data();
-            if (attempt.status !== "in_progress" || attempt.expiresAt.toMillis() <= Date.now()) {
-              throw new Error("Attempt is not writable");
-            }
-            const exists = (questionSnap.data()?.questions || []).some(item => item.id === question.id);
-            if (!exists) throw new Error("Question is not in the paper");
-            tx.update(attemptRef, {
-              ["answers." + question.id]: String((studentIndex + wave) % 4),
-              updatedAt: FieldValue.serverTimestamp()
+        // Each synthetic student saves every question in the paper, not just one
+        // answer per wave. Saves for one student are sequential; students run concurrently.
+        for (let questionIndex = 0; questionIndex < questionRows.length; questionIndex++) {
+          const question = questionRows[questionIndex];
+          const began = Date.now();
+          try {
+            await db.runTransaction(async tx => {
+              const [attemptSnap, questionSnap] = await Promise.all([
+                tx.get(attemptRef),
+                tx.get(questionSetRef)
+              ]);
+              if (!attemptSnap.exists) throw new Error("Attempt fixture missing");
+              const attempt = attemptSnap.data();
+              if (attempt.status !== "in_progress" || attempt.expiresAt.toMillis() <= Date.now()) {
+                throw new Error("Attempt is not writable");
+              }
+              const exists = (questionSnap.data()?.questions || []).some(item => item.id === question.id);
+              if (!exists) throw new Error("Question is not in the paper");
+              tx.update(attemptRef, {
+                ["answers." + question.id]: String((studentIndex + questionIndex + wave) % 4),
+                updatedAt: FieldValue.serverTimestamp()
+              });
             });
-          });
-        } catch (error) {
-          failures++;
-          console.error("Save failed", { studentIndex, wave, code: error.code || null, message: error.message });
-        } finally {
-          timings.push(Date.now() - began);
+          } catch (error) {
+            failures++;
+            console.error("Save failed", { studentIndex, questionId: question.id, wave, code: error.code || null, message: error.message });
+          } finally {
+            timings.push(Date.now() - began);
+          }
         }
       });
       console.log(JSON.stringify({ wave: wave + 1, elapsedMs: Date.now() - waveStarted, completedSaves: timings.length, failures }));
@@ -122,7 +126,7 @@ async function main() {
       runId: RUN_ID,
       students: STUDENTS,
       waves: WAVES,
-      totalSaveAttempts: timings.length,
+      questionsPerStudentPerWave: QUESTIONS,\n      totalSaveAttempts: timings.length,
       successfulSaves: successful,
       failures,
       elapsedMs,
