@@ -109,7 +109,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         card.className = "rm-admin-test-row";
         const heading = document.createElement("b"); heading.textContent = test.title;
         const detail = document.createElement("small");
-        detail.textContent = [test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
+        detail.textContent = [test.category || "General", test.folder || "General", test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
         const edit = document.createElement("button");
         edit.type = "button";
         edit.textContent = test.status === "published" ? "Copy to Draft" : "Edit";
@@ -237,6 +237,8 @@ export function initOwnerAdminDashboard(auth, functions) {
       // instead of presenting an Edit action that the backend will reject.
       el("rm-test-id").value = cloneAsDraft ? "" : t.testId;
       el("rm-test-title").value = t.title;
+      el("rm-test-category").value = t.category || "General";
+      el("rm-test-folder").value = t.folder || "General";
       el("rm-test-mode").value = t.mode;
       el("rm-test-duration").value = t.durationMinutes;
       el("rm-test-price").value = t.price;
@@ -261,6 +263,8 @@ export function initOwnerAdminDashboard(auth, functions) {
       const questions = JSON.parse(el("rm-test-questions").value);
       const payload = validateOwnerTestDraft({
         title: el("rm-test-title").value,
+        category: el("rm-test-category").value,
+        folder: el("rm-test-folder").value,
         mode: el("rm-test-mode").value,
         durationMinutes: el("rm-test-duration").value,
         price: el("rm-test-price").value,
