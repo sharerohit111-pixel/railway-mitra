@@ -103,6 +103,14 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) { status("Import असफल: " + (e.message || "File format जाँचें।")); }
     finally { button.disabled = false; }
   });
+  function toLocalDateTimeInput(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return "";
+    const pad = number => String(number).padStart(2, "0");
+    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) +
+      "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
+  }
   async function loadTestForEdit(testId, cloneAsDraft = false) {
     try {
       const result = await httpsCallable(functions, "rmOwnerGetTest")({ testId });
@@ -117,8 +125,10 @@ export function initOwnerAdminDashboard(auth, functions) {
       el("rm-test-marks").value = t.marksPerQuestion;
       el("rm-test-negative").value = t.negativeMarks;
       el("rm-test-status").value = cloneAsDraft ? "draft" : t.status;
-      el("rm-test-start").value = t.scheduleStartAt ? new Date(t.scheduleStartAt).toISOString().slice(0,16) : "";
-      el("rm-test-end").value = t.scheduleEndAt ? new Date(t.scheduleEndAt).toISOString().slice(0,16) : "";
+      // datetime-local inputs represent the user's local wall-clock time;
+      // do not slice an ISO UTC string, which silently shifts scheduled exams.
+      el("rm-test-start").value = toLocalDateTimeInput(t.scheduleStartAt);
+      el("rm-test-end").value = toLocalDateTimeInput(t.scheduleEndAt);
       el("rm-test-questions").value = JSON.stringify(t.questions, null, 2);
       status(cloneAsDraft ? "Published test की नई Draft copy तैयार है। मूल प्रकाशित टेस्ट सुरक्षित रहेगा।" : "Test Edit mode: " + t.testId);
       testForm.scrollIntoView({ behavior: "smooth", block: "start" });
