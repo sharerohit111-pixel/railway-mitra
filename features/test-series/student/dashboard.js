@@ -1,5 +1,4 @@
 import { getStudentCbtDashboard } from "../cloud/student-client.js";
-import "./dashboard.css";
 
 export async function initStudentDashboard({ app, root = document }) {
   const status = root.getElementById("rm-dashboard-status");
