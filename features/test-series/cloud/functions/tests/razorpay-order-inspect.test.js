@@ -76,12 +76,12 @@ test("reads and allow-lists order plus payment status from Razorpay", async () =
 test("rejects malformed provider responses and cross-order payment rows", async () => {
   await assert.rejects(inspectRazorpayOrder({
     keyId: "key", keySecret: "secret", orderId: "order_123456",
-    fetchImpl: async () => response({ id: "order_other", status: "paid", amount: 1, currency: "INR" })
+    fetchImpl: async () => response({ id: "order_654321", status: "paid", amount: 1, currency: "INR" })
   }), /invalid order record/);
   await assert.rejects(inspectRazorpayOrder({
     keyId: "key", keySecret: "secret", orderId: "order_123456",
     fetchImpl: async url => url.endsWith("/payments")
-      ? response({ items: [{ id: "pay_123456", status: "captured", amount: 100, currency: "INR", order_id: "order_other" }] })
+      ? response({ items: [{ id: "pay_123456", status: "captured", amount: 100, currency: "INR", order_id: "order_654321" }] })
       : response({ id: "order_123456", status: "paid", amount: 100, currency: "INR" })
   }), /different order/);
 });
