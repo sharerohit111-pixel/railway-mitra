@@ -450,6 +450,11 @@ function ownerTestPayload(data) {
     const key = name.toLocaleLowerCase();
     if (!sectionConfig.has(key)) sectionConfig.set(key, { name, timeLimitMinutes: 0 });
   });
+  // Keep question section values identical to canonical section names. CBT
+  // section entry validates exact question.section matches against this list.
+  publicQuestions.forEach(question => {
+    if (question.section) question.section = sectionConfig.get(question.section.toLocaleLowerCase()).name;
+  });
   const sections = [...sectionConfig.values()].map(section => ({
     ...section,
     questionCount: publicQuestions.filter(question => question.section &&
