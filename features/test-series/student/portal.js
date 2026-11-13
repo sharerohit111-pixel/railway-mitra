@@ -47,9 +47,9 @@ async function showView(name) {
     if (!response.ok) throw new Error("Student results could not be loaded.");
     if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
     view.innerHTML = markup;
+    // initStudentDashboard owns the single refresh listener; do not attach a
+    // second handler here or each click will issue duplicate dashboard requests.
     await initStudentDashboard({ app, root: document });
-    const refresh = el("rm-dashboard-refresh");
-    if (refresh) refresh.addEventListener("click", () => initStudentDashboard({ app, root: document }));
   } else if (name === "exam") {
     const testId = currentTestId;
     if (!testId) throw new Error("Select a test before opening the exam.");
