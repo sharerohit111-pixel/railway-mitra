@@ -7,7 +7,7 @@
 <title>Railway Updates | Railway Mitra</title>
 <link rel="manifest" href="../../manifest.json">
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="./updates.css?v=3">
+<link rel="stylesheet" href="./updates.css?v=3">\n<link rel="stylesheet" href="./gdce-directory.css?v=1">
 </head>
 <body class="rm-updates-page">
 <header class="rm-updates-header"><a href="../../index.html">← Railway Mitra</a><button id="updatesLanguage" type="button" class="rm-language">हिन्दी</button></header>
@@ -37,6 +37,24 @@
  <div id="noticeList" class="rm-notice-list" aria-live="polite"></div>
  <div id="emptyState" class="rm-empty" hidden><span>📭</span><h3 data-i18n="emptyTitle">No matching news</h3><p data-i18n="emptyText">Try another search or category.</p></div>
 </section>
+<section id="gdceDirectory" class="gdce-directory" aria-labelledby="gdceTitle">
+ <span class="rm-kicker">GDCE · EXAM CANDIDATE LIST</span>
+ <h2 id="gdceTitle">GDCE Exam 04/2023 — Candidate Search</h2>
+ <p class="gdce-intro">Search the 483 entries transcribed from the 17-page candidate list. Search by name, roll number or father’s name; filter by division, exam date and city.</p>
+ <p id="gdceDataStatus" class="gdce-status" aria-live="polite">Loading candidate data…</p>
+ <div class="gdce-controls">
+  <input id="gdceSearch" type="search" placeholder="Search name, roll number or father’s name…" aria-label="Search candidates">
+  <select id="gdceDivision" aria-label="Filter by division"><option value="">All divisions</option></select>
+  <select id="gdceDate" aria-label="Filter by exam date"><option value="">All exam dates</option></select>
+  <select id="gdceCity" aria-label="Filter by exam city"><option value="">All cities</option></select>
+ </div>
+ <button id="gdceClear" class="gdce-clear" type="button">Clear filters</button>
+ <p id="gdceCount" class="gdce-status" aria-live="polite"></p>
+ <div id="gdceResults" class="gdce-results"></div>
+ <div id="gdceEmpty" class="gdce-empty" hidden>No matching candidate found. Try a different search or filter.</div>
+ <div class="gdce-pagination"><button id="gdcePrev" class="gdce-page-btn" type="button" disabled>Previous</button><span id="gdcePage">Page 1</span><button id="gdceNext" class="gdce-page-btn" type="button" disabled>Next</button></div>
+ <p class="gdce-status">Source: user-provided North Western Railway document dated 13.11.2026. JE/TM values and spellings are transcribed as printed; verify against the original notice. This is an informational transcription, not a fresh official verification.</p>
+</section>
 <section class="rm-source-panel">
  <span class="rm-kicker" data-i18n="sourceKicker">CHECK THE ORIGINAL NOTICE</span><h2 data-i18n="sourceTitle">Official news sources</h2>
  <p data-i18n="sourceText">Open the issuing authority’s original release or order before relying on any information.</p>
@@ -49,6 +67,6 @@
 </section>
 </main>
 <footer class="rm-updates-footer"><a href="../../index.html">Railway Mitra Home</a> · <a href="../privacy/index.html">Privacy Policy</a></footer>
-<script type="module" src="./updates.js?v=3"></script>
+<script type="module" src="./updates.js?v=3"></script>\n<script src="./gdce-directory.js?v=1" defer></script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}</script>
 </body></html>
