@@ -1,5 +1,4 @@
 import { getCbtTestLeaderboard } from "../cloud/student-client.js";
-import "./leaderboard.css";
 
 export async function initStudentLeaderboard({ app, testId, root = document }) {
   const status = root.getElementById("rm-leaderboard-status");
