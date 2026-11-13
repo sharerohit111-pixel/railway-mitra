@@ -128,6 +128,32 @@ test("student dashboard returns the latest 100 submitted results first", async (
   }
 });
 
+test("student dashboard never includes another student's result", async () => {
+  const ownRef = db.doc("testSeriesResults/emulator-dashboard-private-own");
+  const foreignRef = db.doc("testSeriesResults/emulator-dashboard-private-foreign");
+  const submittedAt = new Date(Date.now() + 60_000);
+  try {
+    await Promise.all([
+      ownRef.set({
+        uid, testId: "emulator-dashboard-private-test",
+        score: 8, correct: 8, wrong: 0, unattempted: 0,
+        totalQuestions: 8, submittedAt
+      }),
+      foreignRef.set({
+        uid: uid + "-different-student", testId: "emulator-dashboard-private-test",
+        score: 100, correct: 100, wrong: 0, unattempted: 0,
+        totalQuestions: 100, submittedAt
+      })
+    ]);
+    const result = await callable("rmGetStudentDashboard");
+    const ids = result.results.map(row => row.attemptId);
+    assert.equal(ids.includes(ownRef.id), true);
+    assert.equal(ids.includes(foreignRef.id), false);
+  } finally {
+    await Promise.all([ownRef.delete(), foreignRef.delete()]);
+  }
+});
+
 test("student dashboard caps its response at the newest 100 results", async () => {
   const refs = Array.from({ length: 105 }, (_, index) =>
     db.doc("testSeriesResults/emulator-dashboard-cap-" + String(index).padStart(3, "0"))
