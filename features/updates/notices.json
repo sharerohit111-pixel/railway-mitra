@@ -1,7 +1,20 @@
 {
   "version": 2,
-  "updatedAt": "2026-11-12",
+  "updatedAt": "2026-11-13",
   "notices": [
+    {
+      "id": "gdce-04-2023-exam-schedule",
+      "category": "exam",
+      "verified": false,
+      "userProvided": true,
+      "publishedAt": "2026-11-13",
+      "titleEn": "GDCE Notice 04/2023: Exam dates and centres",
+      "titleHi": "GDCE अधिसूचना 04/2023: परीक्षा तिथियाँ एवं केंद्र",
+      "summaryEn": "The supplied notice lists examination dates as 22 November, 3 December, 7 December and 10 December 2026. The examination cities shown are Jaipur and Jodhpur. The table identifies division codes AII, BKN, JP and JU and includes JE and TM examination columns. No candidate names, roll numbers or other personal details are published in this update.",
+      "summaryHi": "उपलब्ध कराई गई सूचना में परीक्षा की तिथियाँ 22 नवंबर, 3 दिसंबर, 7 दिसंबर और 10 दिसंबर 2026 दी गई हैं। परीक्षा शहर जयपुर और जोधपुर दर्शाए गए हैं। तालिका में मंडल कोड AII, BKN, JP और JU तथा JE और TM परीक्षा के कॉलम दिए गए हैं। इस अपडेट में किसी अभ्यर्थी का नाम, रोल नंबर या अन्य व्यक्तिगत विवरण प्रकाशित नहीं किया गया है।",
+      "sourceName": "User-provided 17-page PDF; original issuing URL not supplied",
+      "keywords": "GDCE 04/2023 departmental competitive examination JE TM Jaipur Jodhpur AII BKN JP JU 22 November 3 December 7 December 10 December 2026"
+    },
     {
       "id": "rb-campaign6-2026",
       "category": "rbe",
