@@ -1,3 +1,3 @@
-Trigger the next isolated local Firestore Emulator load test.
-Workload: 100 synthetic students, 2 waves, 25 concurrent workers, 50 synthetic questions.
-The workflow uses only the GitHub-hosted local Firestore Emulator; no production Firebase project, real SMS, or payment system is used.
+Trigger next isolated local Firestore Emulator load test.
+Workload: 250 synthetic students, 2 waves, 50 concurrent workers, 50 synthetic questions.
+Local GitHub-hosted Firestore Emulator only. No production Firebase, SMS, or payments.
