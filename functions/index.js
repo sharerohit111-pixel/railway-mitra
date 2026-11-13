@@ -1042,8 +1042,8 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
 
 
 // Owner-only Google Analytics Data API report.
-// Configure GA_SERVICE_ACCOUNT_JSON as a Firebase Functions secret. The service
-// account must have Viewer access to GA4 property 564314853.
+// Configure GA_SERVICE_ACCOUNT_JSON and GA4_PROPERTY_ID as Firebase Functions
+// secrets. The service account must have Viewer access to the configured property.
 const GA_SERVICE_ACCOUNT_JSON = defineSecret("GA_SERVICE_ACCOUNT_JSON");
 const GA4_PROPERTY_ID = defineSecret("GA4_PROPERTY_ID");
 
@@ -1125,6 +1125,7 @@ exports.getOwnerAnalyticsSummary = onCall(
         generatedAt: new Date().toISOString()
       };
     } catch (error) {
+      if (error instanceof HttpsError) throw error;
       console.error("Owner Analytics API error:", error);
       throw new HttpsError("unavailable", "Google Analytics report could not be loaded. Check the service account property access and API setup.");
     }
