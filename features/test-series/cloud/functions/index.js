@@ -460,6 +460,56 @@ exports.rmOwnerListPayments = onCall(CALLABLE_OPTIONS, async req => {
   }
 });
 
+// Owner-only, read-only student exam activity. Returns result summaries only;
+// phone, email, answers, answer keys and raw attempt documents remain private.
+exports.rmOwnerListStudentActivity = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const pageSize = req.data && req.data.pageSize !== undefined ? req.data.pageSize : 25;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 50) {
+    throw new HttpsError("invalid-argument", "Page size must be from 1 to 50");
+  }
+  const cursor = req.data && req.data.cursor;
+  let query = db.collection("testSeriesResults").orderBy("submittedAt", "desc");
+  if (cursor !== undefined && cursor !== null) {
+    if (typeof cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid activity cursor");
+    }
+    const cursorSnap = await db.doc("testSeriesResults/" + cursor).get();
+    if (!cursorSnap.exists || !date(cursorSnap.data().submittedAt)) {
+      throw new HttpsError("invalid-argument", "Activity cursor not found");
+    }
+    query = query.startAfter(cursorSnap);
+  }
+  const snap = await query.limit(pageSize + 1).get();
+  const hasMore = snap.docs.length > pageSize;
+  const page = snap.docs.slice(0, pageSize);
+  const rows = page.map(doc => {
+    const r = doc.data();
+    return {
+      attemptId: doc.id,
+      studentUid: typeof r.uid === "string" ? r.uid : null,
+      testId: typeof r.testId === "string" ? r.testId : null,
+      score: Number(r.score || 0),
+      correct: Number(r.correct || 0),
+      wrong: Number(r.wrong || 0),
+      unattempted: Number(r.unattempted || 0),
+      totalQuestions: Number(r.totalQuestions || 0),
+      timedOut: Boolean(r.timedOut),
+      submittedAt: date(r.submittedAt)?.toISOString() || null
+    };
+  });
+  const testIds = [...new Set(rows.map(row => row.testId).filter(Boolean))];
+  const testSnaps = await Promise.all(testIds.map(testId => db.doc("testSeriesTests/" + testId).get()));
+  const titles = {};
+  testSnaps.forEach(doc => { if (doc.exists) titles[doc.id] = doc.data().title || ""; });
+  rows.forEach(row => { row.testTitle = titles[row.testId] || "Test"; });
+  return {
+    activities: rows,
+    nextCursor: hasMore && page.length ? page[page.length - 1].id : null,
+    hasMore
+  };
+});
+
 // Student catalogue exposes published metadata only; question sets and answer keys stay private.
 exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   const uid = user(req);
