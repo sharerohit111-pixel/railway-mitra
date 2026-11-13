@@ -131,3 +131,17 @@ test("acknowledges permanent conflicts but asks the provider to retry transient 
   });
   assert.equal(transientRes.code, 500);
 });
+
+test("keeps inconsistent replay ledgers retryable instead of acknowledging a damaged grant", async () => {
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request(), res, secret, db: {},
+    applyPayment: async () => {
+      const error = new Error("previously processed event is missing a matching ledger record");
+      error.code = "event_ledger_inconsistent";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});
