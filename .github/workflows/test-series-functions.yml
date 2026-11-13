@@ -6,6 +6,7 @@ on:
       - "features/test-series/cloud/functions/**"
       - "features/test-series/cloud/student-client.js"
       - "features/test-series/student/**"
+      - "features/test-series/admin/**"
       - "firebase.json"
       - ".github/workflows/test-series-functions.yml"
   push:
@@ -15,6 +16,7 @@ on:
       - "features/test-series/cloud/functions/**"
       - "features/test-series/cloud/student-client.js"
       - "features/test-series/student/**"
+      - "features/test-series/admin/**"
       - "firebase.json"
       - ".github/workflows/test-series-functions.yml"
 
@@ -34,6 +36,12 @@ jobs:
       - name: Check JavaScript syntax
         working-directory: features/test-series/cloud/functions
         run: npm run lint
+      - name: Check isolated Owner Admin module syntax
+        run: |
+          node --check --input-type=module < features/test-series/admin/admin-dashboard.js
+          node --check --input-type=module < features/test-series/admin/admin-test-validation.mjs
+      - name: Test Owner Admin draft validation
+        run: node --test features/test-series/admin/tests/*.test.mjs
       - name: Check isolated student module syntax
         run: |
           node --check --input-type=module < features/test-series/cloud/student-client.js
