@@ -80,6 +80,23 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     el("rm-cbt-prev").disabled=index===0;el("rm-cbt-next").disabled=index===paper.questions.length-1;
     const palette=el("rm-cbt-palette");palette.replaceChildren();
     paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(answers[item.id]!==undefined);b.addEventListener("click",()=>{index=i;render();});palette.append(b);});
+    const sectionProgress = el("rm-cbt-section-progress");
+    const sectionNames = [...new Set(paper.questions.map(item => typeof item.section === "string" ? item.section.trim() : "").filter(Boolean))];
+    sectionProgress.replaceChildren();
+    sectionProgress.hidden = sectionNames.length === 0;
+    sectionNames.forEach(name => {
+      const indices = paper.questions.map((item, i) => item.section === name ? i : -1).filter(i => i >= 0);
+      const answeredCount = indices.filter(i => answers[paper.questions[i].id] !== undefined).length;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "rm-cbt-section-chip";
+      button.setAttribute("aria-current", String(paper.questions[index]?.section === name));
+      const label = document.createElement("span"); label.textContent = name;
+      const count = document.createElement("small"); count.textContent = answeredCount + "/" + indices.length + " हल";
+      button.append(label, count);
+      button.addEventListener("click", () => { index = indices[0]; render(); });
+      sectionProgress.append(button);
+    });
   }
   async function finish(auto=false){
     if(finished)return;finished=true;clearInterval(timer);el("rm-cbt-submit").disabled=true;
