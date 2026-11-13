@@ -6,6 +6,7 @@ const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
 const { createRazorpayOrder } = require("./razorpay-order");
 const { inspectRazorpayOrder } = require("./razorpay-order-inspect");
+const { recordPaymentInspectionAudit } = require("./payment-reconciliation-audit");
 const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
 const { applyCapturedPayment } = require("./payment-ledger");
 const { handleRazorpayWebhook } = require("./razorpay-webhook-handler");
@@ -712,11 +713,13 @@ exports.rmOwnerListPaymentReconciliation = onCall(CALLABLE_OPTIONS, async req =>
 
 // Owner-only, read-only live lookup of a known provider order. This never changes
 // payment requests, locks, entitlements or the captured-payment ledger.
+// Owner-only live lookup of a known provider order. Financial state and access
+// are never changed; every successful or failed inspection is recorded separately.
 exports.rmOwnerInspectPaymentOrder = onCall({
   ...CALLABLE_OPTIONS,
   secrets: [RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET]
 }, async req => {
-  owner(req);
+  const ownerUid = owner(req);
   const requestRecordId = req.data && req.data.requestRecordId;
   if (typeof requestRecordId !== "string" || !/^[a-f0-9]{64}$/.test(requestRecordId)) {
     throw new HttpsError("invalid-argument", "Invalid payment request reference");
@@ -732,8 +735,10 @@ exports.rmOwnerInspectPaymentOrder = onCall({
       typeof record.providerOrderIdObserved !== "string") {
     throw new HttpsError("failed-precondition", "This request has no safely inspectable provider order ID");
   }
+
+  let inspection;
   try {
-    return await inspectRazorpayOrder({
+    inspection = await inspectRazorpayOrder({
       keyId: RAZORPAY_KEY_ID.value(),
       keySecret: RAZORPAY_KEY_SECRET.value(),
       orderId: record.providerOrderIdObserved,
@@ -743,11 +748,38 @@ exports.rmOwnerInspectPaymentOrder = onCall({
       expectedTestId: record.testId
     });
   } catch (error) {
+    try {
+      await recordPaymentInspectionAudit({
+        db, serverTimestamp: () => FieldValue.serverTimestamp(),
+        ownerUid, requestRecordId, outcome: "provider_lookup_failed"
+      });
+    } catch (auditError) {
+      console.error("Owner payment inspection failure audit could not be recorded", {
+        requestRecordId, message: auditError.message
+      });
+      throw new HttpsError("unavailable", "Razorpay lookup failed and its audit record could not be saved. No payment or access records were changed.");
+    }
     console.error("Owner Razorpay order inspection failed", {
       requestRecordId, message: error.message
     });
     throw new HttpsError("unavailable", "Razorpay status lookup failed. No payment or access records were changed.");
   }
+
+  try {
+    await recordPaymentInspectionAudit({
+      db, serverTimestamp: () => FieldValue.serverTimestamp(),
+      ownerUid, requestRecordId, outcome: "success",
+      matchesRequest: inspection.matchesRequest,
+      orderStatus: inspection.order.status,
+      paymentStatuses: inspection.payments.map(payment => payment.status)
+    });
+  } catch (error) {
+    console.error("Owner payment inspection audit could not be recorded", {
+      requestRecordId, message: error.message
+    });
+    throw new HttpsError("unavailable", "Inspection could not be saved to the audit trail. No payment or access records were changed.");
+  }
+  return inspection;
 });
 
 // Owner-only, read-only student exam activity. Returns result summaries only;
