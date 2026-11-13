@@ -2,6 +2,10 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { hasVerifiedPhoneMfa } = require("./owner-auth");
+const { defineSecret } = require("firebase-functions/params");
+const { createRazorpayOrder } = require("./razorpay-order");
+const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
+const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
 initializeApp();
 const db = getFirestore(), REGION = "asia-south1";
 // The Functions Emulator cannot provide production App Check attestation; keep enforcement enabled everywhere else.
@@ -425,5 +429,88 @@ exports.rmGetTestLeaderboard = onCall(CALLABLE_OPTIONS, async req => {
     myRank: mine ? mine.rank : null,
     myScore: mine ? mine.score : null,
     top: ranked.slice(0, 20).map(row => ({ rank: row.rank, score: row.score, label: "Candidate " + String(row.rank).padStart(2, "0") }))
+  };
+});
+
+
+// Creates a provider order only from the authenticated student's published test.
+// The browser never supplies price, currency, UID or provider credentials.
+exports.rmCreatePaymentOrder = onCall({
+  ...CALLABLE_OPTIONS,
+  secrets: [RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET]
+}, async req => {
+  const uid = user(req);
+  const testId = id(req.data && req.data.testId);
+  const testSnap = await db.doc("testSeriesTests/" + testId).get();
+  if (!testSnap.exists || testSnap.data().status !== "published") {
+    throw new HttpsError("not-found", "Published test not found");
+  }
+  const test = testSnap.data();
+  const price = Number(test.price);
+  if (!Number.isFinite(price) || price <= 0 || price > 100000 ||
+      !Number.isSafeInteger(Math.round(price * 100)) || Math.round(price * 100) <= 0) {
+    throw new HttpsError("failed-precondition", "This test does not have a valid paid price");
+  }
+
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + testId);
+  const existingEntitlement = await entitlementRef.get();
+  if (existingEntitlement.exists && existingEntitlement.data().uid === uid &&
+      existingEntitlement.data().testId === testId && existingEntitlement.data().status === "active") {
+    throw new HttpsError("already-exists", "You already have access to this test");
+  }
+
+  const orderRef = db.collection("testSeriesPaymentOrders").doc();
+  const amount = Math.round(price * 100);
+  let providerOrder;
+  try {
+    providerOrder = await createRazorpayOrder({
+      keyId: RAZORPAY_KEY_ID.value(),
+      keySecret: RAZORPAY_KEY_SECRET.value(),
+      amount,
+      currency: "INR",
+      receipt: "rm_" + orderRef.id,
+      notes: { uid, testId }
+    });
+  } catch (error) {
+    console.error("Razorpay order creation failed", { uid, testId, message: error.message });
+    throw new HttpsError("unavailable", "Payment order could not be created. Please try again.");
+  }
+
+  try {
+    await db.runTransaction(async tx => {
+      const [latestTest, latestEntitlement] = await Promise.all([
+        tx.get(db.doc("testSeriesTests/" + testId)),
+        tx.get(entitlementRef)
+      ]);
+      if (!latestTest.exists || latestTest.data().status !== "published" ||
+          Number(latestTest.data().price) !== price) {
+        throw new HttpsError("failed-precondition", "Test price or availability changed. Refresh and try again.");
+      }
+      if (latestEntitlement.exists && latestEntitlement.data().uid === uid &&
+          latestEntitlement.data().testId === testId && latestEntitlement.data().status === "active") {
+        throw new HttpsError("already-exists", "You already have access to this test");
+      }
+      tx.create(orderRef, {
+        uid,
+        testId,
+        razorpayOrderId: providerOrder.id,
+        amount: providerOrder.amount,
+        currency: providerOrder.currency,
+        status: "created",
+        createdAt: FieldValue.serverTimestamp()
+      });
+    });
+  } catch (error) {
+    // A provider order without a matching trusted Firestore order is never payable by our webhook.
+    console.error("Razorpay order ledger write failed", { uid, testId, providerOrderId: providerOrder.id });
+    throw new HttpsError("internal", "Payment order could not be registered. Please contact support before retrying.");
+  }
+
+  return {
+    orderId: providerOrder.id,
+    amount: providerOrder.amount,
+    currency: providerOrder.currency,
+    keyId: RAZORPAY_KEY_ID.value(),
+    testId
   };
 });
