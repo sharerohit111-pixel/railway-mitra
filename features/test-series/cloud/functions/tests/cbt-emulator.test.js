@@ -149,6 +149,30 @@ test("student can claim one free test attempt only once", async () => {
     true,
     "a rejected duplicate claim must not clear or alter the free-test lock"
   );
+
+  const firstClaimAtMillis = lockedConfig.firstClaimAt.toMillis();
+  const secondStudent = await getAuth(app).createUser({
+    phoneNumber: "+1555" + String(Date.now() + 12345).slice(-7)
+  });
+  let secondClaim = null;
+  try {
+    await signOut(clientAuth);
+    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(secondStudent.uid));
+    secondClaim = await callable("rmClaimFreeAttempt");
+    assert.ok(secondClaim.attemptId);
+    const laterConfig = (await db.doc("testSeriesConfig/freeTest").get()).data();
+    assert.equal(laterConfig.hasClaims, true);
+    assert.equal(laterConfig.firstClaimAt.toMillis(), firstClaimAtMillis,
+      "later student claims must not rewrite the first-claim timestamp");
+  } finally {
+    if (secondClaim && secondClaim.attemptId) {
+      await db.doc("testSeriesAttempts/" + secondClaim.attemptId).delete().catch(() => {});
+    }
+    await db.doc("testSeriesFreeAttempts/" + secondStudent.uid).delete().catch(() => {});
+    await signOut(clientAuth).catch(() => {});
+    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+    await getAuth(app).deleteUser(secondStudent.uid).catch(() => {});
+  }
 });
 
 test("student can start, save answers and submit with server-side scoring", async () => {

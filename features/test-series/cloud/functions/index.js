@@ -55,10 +55,11 @@ exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
     tx.create(attemptRef, { uid, testId, mode: test.data().mode || "mock", status: "created", createdAt: FieldValue.serverTimestamp() });
     // Lock the selected free test in the same transaction as the first claim.
     // This serializes safely against an Owner trying to change the selection.
-    tx.update(configRef, {
-      hasClaims: true,
-      firstClaimAt: FieldValue.serverTimestamp()
-    });
+    const claimLockUpdate = {};
+    if (config.data().hasClaims !== true) claimLockUpdate.hasClaims = true;
+    if (!config.data().firstClaimAt) claimLockUpdate.firstClaimAt = FieldValue.serverTimestamp();
+    // Later claims only read this marker; they do not rewrite the shared config document.
+    if (Object.keys(claimLockUpdate).length) tx.update(configRef, claimLockUpdate);
     return { attemptId: attemptRef.id, testId };
   });
 });

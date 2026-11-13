@@ -30,7 +30,7 @@ No Firebase configuration or project files were found in the inspected repositor
 
 ## Free-trial selection consistency
 
-The configured free test is mutable only before the first student claim. `rmClaimFreeAttempt` writes the claim, initial attempt, and `testSeriesConfig/freeTest.hasClaims` marker in one Firestore transaction. `rmOwnerSetFreeTest` reads and writes that same config document, serializing a concurrent first claim against a selection change. If a legacy config has no marker, the Owner callable checks for existing claim documents before permitting a change. Re-selecting the current test is safe and idempotent; changing it after a claim is rejected to prevent already-claimed students from being stranded.
+The configured free test is mutable only before the first student claim. `rmClaimFreeAttempt` writes the claim, initial attempt, and `testSeriesConfig/freeTest.hasClaims` marker in one Firestore transaction. Later claims read the lock without rewriting the shared config or moving `firstClaimAt`. `rmOwnerSetFreeTest` reads and writes that same config document, serializing a concurrent first claim against a selection change. If a legacy config has no marker, the Owner callable checks for existing claim documents before permitting a change. Re-selecting the current test is safe and idempotent; changing it after a claim is rejected to prevent already-claimed students from being stranded.
 
 ## Razorpay signature verification boundary
 
