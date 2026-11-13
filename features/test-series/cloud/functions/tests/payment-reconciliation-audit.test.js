@@ -50,6 +50,20 @@ test("records provider lookup failures without copying error text", async () => 
   assert.deepEqual(db.writes[0].paymentStatuses, []);
 });
 
+
+test("accepts the full bounded 500-payment inspection history", async () => {
+  const db = fakeDb();
+  const statuses = Array(500).fill("failed");
+  await recordPaymentInspectionAudit({
+    db, serverTimestamp: () => "SERVER_TIME",
+    ownerUid: "owner_123", requestRecordId: "d".repeat(64),
+    outcome: "success", matchesRequest: true,
+    orderStatus: "attempted", paymentStatuses: statuses
+  });
+  assert.equal(db.writes[0].paymentCount, 500);
+  assert.equal(db.writes[0].paymentStatuses.length, 500);
+});
+
 test("rejects invalid identities, statuses and oversized payment lists", async () => {
   const db = fakeDb();
   const base = {
@@ -59,6 +73,6 @@ test("rejects invalid identities, statuses and oversized payment lists", async (
   };
   await assert.rejects(recordPaymentInspectionAudit({ ...base, outcome: "paid" }), /outcome/);
   await assert.rejects(recordPaymentInspectionAudit({ ...base, orderStatus: "cancelled" }), /order status/);
-  await assert.rejects(recordPaymentInspectionAudit({ ...base, paymentStatuses: Array(101).fill("failed") }), /payment status/);
+  await assert.rejects(recordPaymentInspectionAudit({ ...base, paymentStatuses: Array(501).fill("failed") }), /payment status/);
   await assert.rejects(recordPaymentInspectionAudit({ ...base, requestRecordId: "bad" }), /identifiers/);
 });
