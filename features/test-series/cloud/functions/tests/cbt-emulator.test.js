@@ -273,6 +273,40 @@ test("student can claim one free test attempt only once", async () => {
     await signInAsTestStudent(uid);
     await getAuth(app).deleteUser(secondStudent.uid).catch(() => {});
   }
+
+  // Two simultaneous claim requests from one fresh student must create one claim only.
+  const concurrentPhone = "+1555" + String(Date.now() + 24680).slice(-7);
+  const concurrentStudent = await getAuth(app).createUser({ phoneNumber: concurrentPhone });
+  let concurrentClaim = null;
+  try {
+    await signOut(clientAuth);
+    await signInAsTestStudent(concurrentStudent.uid);
+    const outcomes = await Promise.allSettled([
+      callable("rmClaimFreeAttempt"),
+      callable("rmClaimFreeAttempt")
+    ]);
+    const fulfilled = outcomes.filter(item => item.status === "fulfilled");
+    const rejected = outcomes.filter(item => item.status === "rejected");
+    assert.equal(fulfilled.length, 1, "exactly one concurrent free claim must succeed");
+    assert.equal(rejected.length, 1, "the duplicate concurrent claim must be rejected");
+    assert.equal(rejected[0].reason.code, "functions/already-exists");
+    concurrentClaim = fulfilled[0].value;
+    const storedClaim = (await db.doc("testSeriesFreeAttempts/" + concurrentStudent.uid).get()).data();
+    assert.equal(storedClaim.attemptId, concurrentClaim.attemptId);
+    assert.equal(
+      (await db.collection("testSeriesAttempts").where("uid", "==", concurrentStudent.uid).get()).size,
+      1,
+      "concurrent claim requests must create exactly one attempt"
+    );
+  } finally {
+    if (concurrentClaim?.attemptId) {
+      await db.doc("testSeriesAttempts/" + concurrentClaim.attemptId).delete().catch(() => {});
+    }
+    await db.doc("testSeriesFreeAttempts/" + concurrentStudent.uid).delete().catch(() => {});
+    await signOut(clientAuth);
+    await signInAsTestStudent(uid);
+    await getAuth(app).deleteUser(concurrentStudent.uid).catch(() => {});
+  }
 });
 
 test("student can start, save answers and submit with server-side scoring", async () => {
