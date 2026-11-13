@@ -8,6 +8,7 @@ const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature
 const { applyCapturedPayment } = require("./payment-ledger");
 const { handleRazorpayWebhook } = require("./razorpay-webhook-handler");
 const { rupeesToPaise } = require("./payment-price");
+const { validateOwnerPrice } = require("./owner-price");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -262,16 +263,10 @@ function ownerTestPayload(data) {
   const durationMinutes = Number(data.durationMinutes);
   if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 240) throw new HttpsError("invalid-argument", "Duration must be 1–240 minutes");
   const rawPrice = data.price ?? 0;
-  const price = Number(rawPrice), marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
-  if (!Number.isFinite(price) || price < 0 || price > 100000 ||
-      typeof rawPrice !== "number" && typeof rawPrice !== "string" ||
-      !/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(String(rawPrice))) {
-    throw new HttpsError("invalid-argument", "Test price must be a valid amount with at most two decimal places");
-  }
-  if (price > 0) {
-    try { rupeesToPaise(rawPrice, { maxRupees: 100000 }); }
-    catch { throw new HttpsError("invalid-argument", "Invalid test price"); }
-  }
+  let price;
+  try { price = validateOwnerPrice(rawPrice); }
+  catch (error) { throw new HttpsError("invalid-argument", error.message); }
+  const marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
   if (!Number.isFinite(marksPerQuestion) || marksPerQuestion <= 0 || marksPerQuestion > 100) throw new HttpsError("invalid-argument", "Invalid marks per question");
   if (!Number.isFinite(negativeMarks) || negativeMarks < 0 || negativeMarks > 100) throw new HttpsError("invalid-argument", "Invalid negative marks");
   const status = data.status === "published" ? "published" : "draft";
