@@ -22,6 +22,8 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
       const meta = root.createElement("div");
       meta.className = "rm-catalogue-meta";
       const details = [
+        test.category || "General",
+        test.folder || "General",
         test.mode === "scheduled" ? "Scheduled" : "Mock Test",
         (test.durationMinutes || 0) + " min",
         (test.questionCount || 0) + " questions",
