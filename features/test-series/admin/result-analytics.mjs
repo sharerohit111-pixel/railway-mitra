@@ -1,6 +1,6 @@
 function csvCell(value) {
   let text = value === null || value === undefined ? "" : String(value);
-  if (/^\\s*[=+@-]/.test(text)) text = "'" + text;
+  if (/^\s*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
@@ -15,7 +15,7 @@ export function testAnalyticsCsv(data) {
   return [
     TEST_COLUMNS.map(([label]) => csvCell(label)).join(","),
     ...tests.map(item => TEST_COLUMNS.map(([, key]) => csvCell(item?.[key] === null ? "" : item?.[key])).join(","))
-  ].join("\\r\\n");
+  ].join("\r\n");
 }
 
 function htmlCell(value) {
