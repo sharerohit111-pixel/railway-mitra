@@ -41,7 +41,7 @@ async function loadOwnerReport(){
   if(cards[0]) cards[0].querySelector("strong").textContent=String(data.realtimeActiveUsers ?? "—");
   if(cards[1]) cards[1].querySelector("strong").textContent=String(data.last7Days?.activeUsers ?? "—");
   if(cards[2]) cards[2].querySelector("strong").textContent=String(data.last7Days?.sessions ?? "—");
-  if(cards[3]) cards[3].querySelector("strong").textContent=String(data.last7Days?.eventCount ?? "—");
+  if(cards[3]) cards[3].querySelector("strong").textContent=String(data.last7Days?.installPromptAccepted ?? "—");
   connection.textContent="GA4 Property "+data.propertyId+" से रिपोर्ट प्राप्त हुई। पिछले 7 दिनों के आँकड़े; अपडेट: "+new Date(data.generatedAt).toLocaleString();
   const list=document.createElement("ul");
   (data.topEvents||[]).forEach(item=>{const li=document.createElement("li");li.textContent=item.eventName+": "+item.eventCount;list.appendChild(li);});
