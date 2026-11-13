@@ -508,6 +508,7 @@ exports.rmCreatePaymentOrder = onCall({
   } catch (error) {
     // A provider order without a matching trusted Firestore order is never payable by our webhook.
     console.error("Razorpay order ledger write failed", { uid, testId, providerOrderId: providerOrder.id });
+    if (error instanceof HttpsError) throw error;
     throw new HttpsError("internal", "Payment order could not be registered. Please contact support before retrying.");
   }
 
