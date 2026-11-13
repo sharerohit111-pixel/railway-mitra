@@ -81,6 +81,12 @@
         <small>Columns: topic, chapter, folder, text/question, optionA–optionF या options JSON, correctIndex, explanation. एक बार में अधिकतम 100 प्रश्न।</small>
         <button id="rm-qb-bulk-import" type="button">Import Questions in Bulk</button>
       </div>
+      <div class="rm-admin-form-grid">
+        <button id="rm-qb-select-visible" type="button">दिख रहे सभी प्रश्न चुनें</button>
+        <button id="rm-qb-clear-selection" type="button">चयन हटाएँ</button>
+        <button id="rm-qb-add-selected" class="rm-admin-primary" type="button">चुने हुए प्रश्न टेस्ट में जोड़ें</button>
+      </div>
+      <p id="rm-qb-selection-status" class="rm-admin-status" aria-live="polite">कोई प्रश्न चयनित नहीं है।</p>
       <div class="rm-admin-form-grid"><button id="rm-admin-refresh-question-bank" type="button">Refresh Question Bank</button><button id="rm-qb-load-more" type="button" hidden disabled>और प्रश्न लोड करें</button></div>
       <div id="rm-admin-question-bank-status" class="rm-admin-status" role="status" aria-live="polite">Question Bank अभी लोड नहीं हुआ।</div>
       <div id="rm-admin-question-bank-list" class="rm-admin-payments-list"></div>
