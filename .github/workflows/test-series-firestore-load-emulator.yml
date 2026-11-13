@@ -58,11 +58,12 @@ jobs:
         working-directory: features/test-series/cloud/functions
         run: npm install --no-audit --no-fund
 
-      - name: Run synthetic Firestore workload against local emulator
+      - name: Run synthetic Firestore workload against local emulators
         env:
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
           GCLOUD_PROJECT: demo-railway-mitra-load
           LOAD_STUDENTS: ${{ github.event_name == 'push' && '500' || inputs.students || '500' }}
           LOAD_WAVES: ${{ github.event_name == 'push' && '1' || inputs.waves || '2' }}
           LOAD_CONCURRENCY: ${{ github.event_name == 'push' && '500' || inputs.concurrency || '10' }}
         run: |
-          npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-load --only firestore "node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:emulator"
+          npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-load --only auth,firestore "node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:emulator"
