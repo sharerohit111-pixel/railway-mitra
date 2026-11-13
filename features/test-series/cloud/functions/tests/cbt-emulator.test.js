@@ -1,4 +1,4 @@
-// Point Admin SDK clients and custom-token signing at local emulators before initialization.
+// Point Admin SDK clients and Auth Emulator REST requests at local emulators before initialization.
 process.env.FIREBASE_AUTH_EMULATOR_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST || "127.0.0.1:9099";
 process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || "127.0.0.1:8080";
 
@@ -37,12 +37,19 @@ async function signInAsPhone(phoneNumber) {
     phoneNumber,
     recaptchaToken: "emulator-test-recaptcha-token"
   });
-  const response = await fetch("http://127.0.0.1:9099/emulator/v1/projects/" + PROJECT + "/verificationCodes");
-  if (!response.ok) throw new Error("Could not read Firebase Auth Emulator SMS codes: " + response.status);
-  const payload = await response.json();
-  const code = [...(payload.verificationCodes || [])].reverse()
-    .find(item => item.phoneNumber === phoneNumber)?.sessionCode;
-  if (!code) throw new Error("No emulator SMS verification code found for " + phoneNumber);
+  let code = null;
+  let observedNumbers = [];
+  for (let attempt = 0; attempt < 20 && !code; attempt++) {
+    const response = await fetch("http://127.0.0.1:9099/emulator/v1/projects/" + encodeURIComponent(PROJECT) + "/verificationCodes");
+    if (!response.ok) throw new Error("Could not read Firebase Auth Emulator SMS codes: " + response.status);
+    const payload = await response.json();
+    const codes = payload.verificationCodes || [];
+    observedNumbers = codes.map(item => item.phoneNumber);
+    const matching = [...codes].reverse().find(item => item.phoneNumber === phoneNumber);
+    code = matching && (matching.sessionCode || matching.code);
+    if (!code) await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  if (!code) throw new Error("No emulator SMS verification code found for " + phoneNumber + "; observed numbers: " + observedNumbers.join(", "));
   const signedIn = await authRequest("accounts:signInWithPhoneNumber", {
     sessionInfo: sent.sessionInfo,
     code,
