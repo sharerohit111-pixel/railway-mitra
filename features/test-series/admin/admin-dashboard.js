@@ -105,8 +105,69 @@ export function initOwnerAdminDashboard(auth, functions) {
   el("rm-owner-logout").addEventListener("click", async () => { clearPaymentHistory(); await signOut(auth); home.hidden = true; login.hidden = false; });
   const testsPanel = el("rm-admin-tests-panel");
   const testsList = el("rm-admin-tests-list");
+  const testsMore = el("rm-admin-tests-more");
+  const testsSearch = el("rm-admin-test-search");
+  const testsFolderFilter = el("rm-admin-test-folder-filter");
+  let testsCursor = null;
+  let testsRows = [];
+  function renderTestRows() {
+    const term = testsSearch.value.trim().toLocaleLowerCase();
+    const folder = testsFolderFilter.value;
+    const visible = testsRows.filter(test => {
+      const searchable = [test.title, test.testId, test.category, test.folder].join(" ").toLocaleLowerCase();
+      return (!term || searchable.includes(term)) && (!folder || (test.folder || "General") === folder);
+    });
+    testsList.replaceChildren();
+    if (!visible.length) {
+      testsList.textContent = testsRows.length ? "इस खोज / Folder में कोई टेस्ट नहीं मिला।" : "अभी कोई टेस्ट नहीं है।";
+      return;
+    }
+    visible.forEach(test => {
+      const card = document.createElement("article");
+      card.className = "rm-admin-test-row";
+      const heading = document.createElement("b"); heading.textContent = test.title;
+      const detail = document.createElement("small");
+      detail.textContent = [test.category || "General", test.folder || "General", test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.textContent = test.status === "published" ? "Copy to Draft" : "Edit";
+      edit.addEventListener("click", () => loadTestForEdit(test.testId, test.status === "published"));
+      card.append(heading, detail, edit); testsList.append(card);
+    });
+  }
+  function updateTestListFilters() {
+    const selectedFolder = testsFolderFilter.value;
+    const folders = [...new Set(testsRows.map(test => test.folder || "General"))].sort();
+    testsFolderFilter.replaceChildren(new Option("सभी फ़ोल्डर", ""));
+    folders.forEach(folder => testsFolderFilter.add(new Option(folder, folder)));
+    testsFolderFilter.value = folders.includes(selectedFolder) ? selectedFolder : "";
+    renderTestRows();
+  }
+  function updateFreeTestOptions(data) {
+    freeTestSelect.replaceChildren();
+    const freeEligible = testsRows.filter(test => test.status === "published" && Number(test.price) === 0);
+    if (!freeEligible.length) freeTestSelect.add(new Option("लोड किए गए टेस्ट में कोई पात्र प्रकाशित ₹0 टेस्ट नहीं", ""));
+    else freeEligible.forEach(test => freeTestSelect.add(new Option(test.title + " · " + test.testId, test.testId)));
+    const currentFreeTestId = data.freeTestId || "";
+    if (currentFreeTestId && !Array.from(freeTestSelect.options).some(option => option.value === currentFreeTestId)) {
+      const currentOption = new Option("वर्तमान चयन (सूची में अभी लोड नहीं): " + currentFreeTestId, currentFreeTestId);
+      currentOption.disabled = true;
+      freeTestSelect.add(currentOption);
+    }
+    freeTestSelect.value = currentFreeTestId;
+    const freeTestLocked = data.freeTestLocked === true;
+    freeTestSelect.disabled = freeTestLocked;
+    el("rm-free-test-save").disabled = freeTestLocked;
+    if (freeTestLocked) status("पहला विद्यार्थी निःशुल्क प्रयास ले चुका है। अब निःशुल्क टेस्ट का चयन स्थायी रूप से लॉक है।");
+  }
   function clearTestManagement() {
     testManagementGeneration += 1;
+    testsCursor = null;
+    testsRows = [];
+    testsMore.hidden = true;
+    testsMore.disabled = true;
+    testsSearch.value = "";
+    testsFolderFilter.replaceChildren(new Option("सभी फ़ोल्डर", ""));
     testsList.replaceChildren();
     testsList.textContent = "Owner session समाप्त। दोबारा सुरक्षित Login करें।";
     freeTestSelect.replaceChildren(new Option("पहले टेस्ट सूची Refresh करें", ""));
@@ -116,43 +177,46 @@ export function initOwnerAdminDashboard(auth, functions) {
     el("rm-test-id").value = "";
     el("rm-test-questions").value = "";
   }
-  async function refreshTests() {
+  async function refreshTests({ append = false } = {}) {
+    if (append && !testsCursor) return;
     const generation = ++testManagementGeneration;
-    testsList.textContent = "Cloud से टेस्ट सूची लोड हो रही है…";
+    if (!append) {
+      testsCursor = null;
+      testsRows = [];
+      testsMore.hidden = true;
+      testsList.textContent = "Cloud से टेस्ट सूची लोड हो रही है…";
+    } else {
+      testsMore.disabled = true;
+      testsMore.textContent = "लोड हो रहा है…";
+    }
     try {
-      const result = await httpsCallable(functions, "rmOwnerListTests")({});
-      if (generation !== testManagementGeneration) return;
-      testsList.replaceChildren();
-      freeTestSelect.replaceChildren();
-      const freeEligible = result.data.tests.filter(test => test.status === "published" && Number(test.price) === 0);
-      if (!freeEligible.length) freeTestSelect.add(new Option("कोई पात्र प्रकाशित ₹0 टेस्ट नहीं", ""));
-      else freeEligible.forEach(test => freeTestSelect.add(new Option(test.title + " · " + test.testId, test.testId)));
-      const currentFreeTestId = result.data.freeTestId || "";
-      if (currentFreeTestId && !Array.from(freeTestSelect.options).some(option => option.value === currentFreeTestId)) {
-        const currentOption = new Option("वर्तमान चयन (अब पात्र सूची में नहीं): " + currentFreeTestId, currentFreeTestId);
-        currentOption.disabled = true;
-        freeTestSelect.add(currentOption);
-      }
-      freeTestSelect.value = currentFreeTestId;
-      const freeTestLocked = result.data.freeTestLocked === true;
-      freeTestSelect.disabled = freeTestLocked;
-      el("rm-free-test-save").disabled = freeTestLocked;
-      if (freeTestLocked) status("पहला विद्यार्थी निःशुल्क प्रयास ले चुका है। अब निःशुल्क टेस्ट का चयन स्थायी रूप से लॉक है।");
-      if (!result.data.tests.length) { testsList.textContent = "अभी कोई टेस्ट नहीं है।"; return; }
-      result.data.tests.forEach(test => {
-        const card = document.createElement("article");
-        card.className = "rm-admin-test-row";
-        const heading = document.createElement("b"); heading.textContent = test.title;
-        const detail = document.createElement("small");
-        detail.textContent = [test.category || "General", test.folder || "General", test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
-        const edit = document.createElement("button");
-        edit.type = "button";
-        edit.textContent = test.status === "published" ? "Copy to Draft" : "Edit";
-        edit.addEventListener("click", () => loadTestForEdit(test.testId, test.status === "published"));
-        card.append(heading, detail, edit); testsList.append(card);
+      const result = await httpsCallable(functions, "rmOwnerListTests")({
+        cursor: append ? testsCursor : null,
+        pageSize: 50
       });
-    } catch (e) { if (generation === testManagementGeneration) testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
+      if (generation !== testManagementGeneration) return;
+      const data = result.data || {};
+      const page = Array.isArray(data.tests) ? data.tests : [];
+      testsRows = append ? testsRows.concat(page) : page;
+      testsCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
+      updateFreeTestOptions(data);
+      updateTestListFilters();
+      testsMore.hidden = !testsCursor;
+      testsMore.disabled = !testsCursor;
+      testsMore.textContent = "Load More Tests";
+      if (data.hasMore && !testsCursor) status("अगले टेस्ट पेज का Cursor उपलब्ध नहीं हुआ। सूची Refresh करें।");
+    } catch (e) {
+      if (generation === testManagementGeneration) {
+        testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।";
+        testsMore.hidden = !append;
+        testsMore.disabled = false;
+        testsMore.textContent = "Retry Load More";
+      }
+    }
   }
+  testsMore.addEventListener("click", () => refreshTests({ append: true }));
+  testsSearch.addEventListener("input", renderTestRows);
+  testsFolderFilter.addEventListener("change", renderTestRows);
   async function refreshPayments({ append = false } = {}) {
     if (append && !paymentsCursor) return;
     const generation = ++paymentsGeneration;
