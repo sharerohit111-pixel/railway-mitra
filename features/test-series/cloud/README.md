@@ -15,12 +15,31 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmGetTestLeaderboard: returns anonymized leaderboard entries and the requesting student’s own rank.
 - rmGetOwnerAdminSession: checks server-configured OWNER_UID and Firebase second-factor claim.
 
-## Payment validation boundary (not live integration)
-- `functions/razorpay-signature.js` verifies Razorpay Checkout and webhook HMAC signatures.
-- `functions/payment-validation.js` accepts only a captured payment that exactly matches a trusted server-created order's provider order ID, amount and currency. Its UID/test ID are sourced only from that server order; client-supplied payment notes are ignored.
-- `functions/payment-ledger.js` atomically records a validated capture, marks the server order paid, stores provider event/payment records, and creates the matching student entitlement in one Firestore transaction. A repeated event ID is treated as a no-op only after the transaction rechecks the paid order, captured-payment record, event identity and active entitlement; missing or inconsistent ledger records are rejected instead of being silently accepted. Replays with a new event ID are also deduplicated by payment ID, and conflicting replays are rejected.
-- The ledger helper must be called only after the raw webhook body passes `razorpay-signature.js` verification. Its Firestore emulator test also starts a paid CBT attempt through `rmStartExam`, proving the resulting server-created entitlement is accepted.
-- Signature, validation and ledger tests run in the isolated Functions/CBT workflows. The helper is not yet called by an HTTP webhook: there is still no server-side order-creation endpoint or webhook HTTP route. Do not unlock paid tests until those endpoints are wired with Secret Manager secrets, raw-body signature verification and this transaction helper.
+## Razorpay payment integration — staging code only, not deployed
+- `functions/razorpay-order.js` creates Razorpay Orders through the provider API. It validates credentials, integer paise amount, INR currency, server-generated receipt and the provider response.
+- `rmCreatePaymentOrder` derives UID from Firebase Authentication and price/test metadata from a published Firestore test. The client cannot supply amount, currency, UID or provider credentials. It writes the trusted order record under `testSeriesPaymentOrders/{razorpayOrderId}` and returns only the public Key ID plus order details.
+- `functions/razorpay-webhook-signature.js` verifies HMAC-SHA256 against the exact raw HTTP body using constant-time comparison.
+- `functions/razorpay-webhook-handler.js` handles POST requests, verifies signature before JSON processing/ledger access, requires the provider event ID, acknowledges non-capture events, and distinguishes permanent conflicts from retryable failures.
+- `rmRazorpayWebhook` is the HTTP endpoint that invokes the isolated handler.
+- `functions/payment-validation.js` accepts only a captured payment that exactly matches the trusted server-created order's provider order ID, amount and currency. UID/test ID are sourced only from that order; client-supplied payment notes are ignored.
+- `functions/payment-ledger.js` atomically records a validated capture, marks the server order paid, stores provider event/payment records, and creates the matching student entitlement in one Firestore transaction. Repeated event IDs and payment IDs are checked against the complete original ledger before being acknowledged.
+- Unit tests cover provider order requests, raw-body signatures, HTTP webhook responses/retries, and payment ledger emulator flows. GitHub Actions validate the isolated Functions syntax and run CBT/GDCE regression tests.
+- These endpoints are code-only until separately configured and deployed. Paid tests must remain unavailable to real students until the secrets, provider dashboard webhook, client checkout flow, staging end-to-end test and operational refund/support process are configured and approved.
+
+### Required Secret Manager names
+Set secrets only in the intended Firebase staging project, using the Firebase CLI's interactive secret prompt (do not paste secret values into source code, GitHub, chat, or command-line arguments):
+- `RAZORPAY_KEY_ID` — Razorpay API Key ID for the selected test/live mode.
+- `RAZORPAY_KEY_SECRET` — matching Razorpay API Key Secret.
+- `RAZORPAY_WEBHOOK_SECRET` — independently configured webhook signing secret from the Razorpay Dashboard.
+
+Example interactive commands (run locally only after confirming the staging project ID and explicit approval):
+```bash
+firebase use <staging-project-id>
+firebase functions:secrets:set RAZORPAY_KEY_ID
+firebase functions:secrets:set RAZORPAY_KEY_SECRET
+firebase functions:secrets:set RAZORPAY_WEBHOOK_SECRET
+```
+Do not configure live-mode secrets or deploy these functions without explicit approval. Do not print or commit secret values. The public Key ID returned to the browser is not a private secret.
 
 ## Firestore rules — review required
 `firestore.rules` is a draft, NOT approved for deployment. It includes example employee paths and a default-deny rule that could block existing Railway Mitra collections if deployed as-is. Before any deployment, retrieve the current live Firestore Rules, merge the CBT deny-by-default paths without removing existing permissions, review the complete result, and obtain explicit approval. Do not overwrite production rules with this draft.
