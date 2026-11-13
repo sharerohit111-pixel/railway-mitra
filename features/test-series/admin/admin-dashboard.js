@@ -57,6 +57,13 @@ export function initOwnerAdminDashboard(auth, functions) {
       const freeEligible = result.data.tests.filter(test => test.status === "published" && Number(test.price) === 0);
       if (!freeEligible.length) freeTestSelect.add(new Option("कोई पात्र प्रकाशित ₹0 टेस्ट नहीं", ""));
       else freeEligible.forEach(test => freeTestSelect.add(new Option(test.title + " · " + test.testId, test.testId)));
+      const currentFreeTestId = result.data.freeTestId || "";
+      if (currentFreeTestId && !Array.from(freeTestSelect.options).some(option => option.value === currentFreeTestId)) {
+        const currentOption = new Option("वर्तमान चयन (अब पात्र सूची में नहीं): " + currentFreeTestId, currentFreeTestId);
+        currentOption.disabled = true;
+        freeTestSelect.add(currentOption);
+      }
+      freeTestSelect.value = currentFreeTestId;
       if (!result.data.tests.length) { testsList.textContent = "अभी कोई टेस्ट नहीं है।"; return; }
       result.data.tests.forEach(test => {
         const card = document.createElement("article");
@@ -81,6 +88,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     try {
       const result = await httpsCallable(functions, "rmOwnerSetFreeTest")({ testId });
       status("पहला निःशुल्क टेस्ट निर्धारित हुआ: " + result.data.testId);
+      await refreshTests();
     } catch (e) { status(e.message || "निःशुल्क टेस्ट निर्धारित नहीं हुआ।"); }
     finally { button.disabled = false; }
   });

@@ -17,6 +17,7 @@ const {
   inspectPaymentRequest
 } = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
+const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -52,6 +53,12 @@ exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
     const attemptRef = db.collection("testSeriesAttempts").doc();
     tx.create(claimRef, { uid, testId, attemptId: attemptRef.id, claimedAt: FieldValue.serverTimestamp() });
     tx.create(attemptRef, { uid, testId, mode: test.data().mode || "mock", status: "created", createdAt: FieldValue.serverTimestamp() });
+    // Lock the selected free test in the same transaction as the first claim.
+    // This serializes safely against an Owner trying to change the selection.
+    tx.update(configRef, {
+      hasClaims: true,
+      firstClaimAt: FieldValue.serverTimestamp()
+    });
     return { attemptId: attemptRef.id, testId };
   });
 });
@@ -275,20 +282,50 @@ exports.rmOwnerSetFreeTest = onCall(CALLABLE_OPTIONS, async req => {
   const testId = id(req.data && req.data.testId);
   const configRef = db.doc("testSeriesConfig/freeTest");
   const testRef = db.doc("testSeriesTests/" + testId);
+
+  // Older deployments may have claims without the hasClaims marker. Detect one
+  // legacy claim before the transaction; concurrent new claims are serialized
+  // by both operations reading and writing the same config document.
+  const configBefore = await configRef.get();
+  const configBeforeData = configBefore.exists ? configBefore.data() : null;
+  let legacyClaimExists = false;
+  if (!configBeforeData || configBeforeData.hasClaims !== true) {
+    const legacyClaims = await db.collection("testSeriesFreeAttempts").limit(1).get();
+    legacyClaimExists = !legacyClaims.empty;
+  }
+
   await db.runTransaction(async tx => {
-    const testSnap = await tx.get(testRef);
+    const [testSnap, configSnap] = await Promise.all([
+      tx.get(testRef),
+      tx.get(configRef)
+    ]);
     if (!testSnap.exists || testSnap.data().status !== "published") {
       throw new HttpsError("failed-precondition", "Only a published test can be selected as the free test");
     }
     if (Number(testSnap.data().price) !== 0) {
       throw new HttpsError("failed-precondition", "The free test must have a zero price");
     }
-    tx.set(configRef, {
+
+    const currentConfig = configSnap.exists ? configSnap.data() : null;
+    try {
+      assertFreeTestSelectionAllowed({
+        currentConfig,
+        legacyClaimExists,
+        requestedTestId: testId
+      });
+    } catch (error) {
+      throw new HttpsError("failed-precondition", error.message);
+    }
+
+    const nextConfig = {
       enabled: true,
       testId,
+      hasClaims: Boolean((currentConfig && currentConfig.hasClaims === true) || legacyClaimExists),
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: req.auth.uid
-    });
+    };
+    if (currentConfig && currentConfig.firstClaimAt) nextConfig.firstClaimAt = currentConfig.firstClaimAt;
+    tx.set(configRef, nextConfig, { merge: true });
   });
   return { saved: true, testId };
 });
@@ -376,14 +413,24 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
 
 exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
-  const snap = await db.collection("testSeriesTests").orderBy("updatedAt", "desc").limit(100).get();
-  return { tests: snap.docs.map(d => {
-    const t = d.data();
-    return { testId: d.id, title: t.title || "", mode: t.mode || "mock", status: t.status || "draft",
-      price: Number(t.price || 0), durationMinutes: Number(t.durationMinutes || 0),
-      questionCount: Number(t.questionCount || 0), scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
-      scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null };
-  }) };
+  const [snap, freeConfigSnap] = await Promise.all([
+    db.collection("testSeriesTests").orderBy("updatedAt", "desc").limit(100).get(),
+    db.doc("testSeriesConfig/freeTest").get()
+  ]);
+  const freeConfig = freeConfigSnap.exists ? freeConfigSnap.data() : null;
+  const freeTestId = freeConfig && freeConfig.enabled && typeof freeConfig.testId === "string"
+    ? freeConfig.testId
+    : null;
+  return {
+    freeTestId,
+    tests: snap.docs.map(d => {
+      const t = d.data();
+      return { testId: d.id, title: t.title || "", mode: t.mode || "mock", status: t.status || "draft",
+        price: Number(t.price || 0), durationMinutes: Number(t.durationMinutes || 0),
+        questionCount: Number(t.questionCount || 0), scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
+        scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null };
+    })
+  };
 });
 
 

@@ -26,6 +26,11 @@ No Firebase configuration or project files were found in the inspected repositor
 - testSeriesPayments/{paymentId}: unique captured-payment ledger record bound to one order, student and test.
 - testSeriesPaymentEvents/{eventId}: provider event audit record; duplicate deliveries are recorded as duplicates without granting another entitlement.
 - testSeriesFreeAttempts/{uid}: one-time free attempt claim.
+- testSeriesConfig/freeTest: enabled, testId, and a `hasClaims` lock marker set atomically with the first successful claim; `firstClaimAt` records when the lock was first established. Owner changes are blocked after a claim exists, while selecting the same test again is idempotent.
+
+## Free-trial selection consistency
+
+The configured free test is mutable only before the first student claim. `rmClaimFreeAttempt` writes the claim, initial attempt, and `testSeriesConfig/freeTest.hasClaims` marker in one Firestore transaction. `rmOwnerSetFreeTest` reads and writes that same config document, serializing a concurrent first claim against a selection change. If a legacy config has no marker, the Owner callable checks for existing claim documents before permitting a change. Re-selecting the current test is safe and idempotent; changing it after a claim is rejected to prevent already-claimed students from being stranded.
 
 ## Razorpay signature verification boundary
 

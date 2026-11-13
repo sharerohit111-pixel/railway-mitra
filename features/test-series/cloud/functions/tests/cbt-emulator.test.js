@@ -137,9 +137,17 @@ test("student can claim one free test attempt only once", async () => {
   assert.equal(claim.testId, testId);
   assert.ok(claim.attemptId);
   claimedAttemptId = claim.attemptId;
+  const lockedConfig = (await db.doc("testSeriesConfig/freeTest").get()).data();
+  assert.equal(lockedConfig.hasClaims, true);
+  assert.ok(lockedConfig.firstClaimAt);
   await assert.rejects(
     callable("rmClaimFreeAttempt"),
     error => error.code === "functions/already-exists" || /already claimed/i.test(error.message)
+  );
+  assert.equal(
+    (await db.doc("testSeriesConfig/freeTest").get()).data().hasClaims,
+    true,
+    "a rejected duplicate claim must not clear or alter the free-test lock"
   );
 });
 
@@ -455,6 +463,11 @@ test("non-owner cannot create a test", async () => {
       }),
       error => error.code === "functions/permission-denied"
     );
+    await assert.rejects(
+      callable("rmOwnerSetFreeTest", { testId }),
+      error => error.code === "functions/permission-denied"
+    );
+    assert.equal((await db.doc("testSeriesConfig/freeTest").get()).data().testId, testId);
   } finally {
     process.env.OWNER_UID = originalOwnerUid;
   }

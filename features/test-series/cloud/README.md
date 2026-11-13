@@ -3,7 +3,7 @@
 See ARCHITECTURE.md for target architecture, data model, budget guardrails and deployment prerequisites.
 
 ## Callable functions
-- rmClaimFreeAttempt: claims one free test attempt per authenticated UID.
+- rmClaimFreeAttempt: claims one free test attempt per authenticated UID. The first successful claim sets `testSeriesConfig/freeTest.hasClaims` in the same Firestore transaction, locking the selected free test so later Owner changes cannot strand existing claimants.
 - rmStartExam: creates or resumes a server-timed mock/scheduled attempt. A student with a valid active attempt cannot start a second test in parallel; stale session pointers are checked against the attempt record before resume. The one-time free-claim record is also used to recover the original attempt if the active-session pointer becomes stale. For paid tests, the server also verifies that the entitlement record's `uid` and `testId` match the authenticated student and requested test; an active status by itself is not sufficient.
 - rmSaveAnswer: saves a scalar answer only for the authenticated attempt owner.
 - rmSubmitExam: scores using private server-side answer keys and records the result.
@@ -14,6 +14,12 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmGetStudentDashboard: returns only the authenticated student’s submitted results.
 - rmGetTestLeaderboard: returns anonymized leaderboard entries and the requesting student’s own rank.
 - rmGetOwnerAdminSession: checks server-configured OWNER_UID and Firebase second-factor claim.
+- rmOwnerListTests: returns the Owner test catalogue plus the currently configured `freeTestId`, allowing the dashboard to preserve the existing selection on refresh.
+- rmOwnerSetFreeTest: accepts only a published zero-price test and permits changing the selection only before the first free claim. Legacy claim documents are checked when the lock marker is absent; same-test re-selection remains idempotent.
+
+## Free-trial selection lifecycle
+
+The Owner may change the configured free test only before the first student claim. The first successful `rmClaimFreeAttempt` writes `hasClaims: true` and `firstClaimAt` to `testSeriesConfig/freeTest` in the same transaction that creates the student's claim and attempt. The Owner selection transaction reads and writes the same config document, so a concurrent first claim and selection change serialize instead of leaving a student with a claim for an obsolete test. Re-selecting the already configured test is idempotent. When the lock marker is absent (older data), the Owner callable checks for an existing legacy claim before allowing a change. The dashboard shows the current selection after each refresh.
 
 ## Razorpay payment integration — staging code only, not deployed
 - `functions/razorpay-order.js` creates Razorpay Orders through the provider API. It validates credentials, integer paise amount, INR currency, server-generated receipt and the provider response.
