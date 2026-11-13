@@ -23,6 +23,7 @@ const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliati
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const { getCallableOptions } = require("./app-check-policy");
 const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require("./question-bank-validation");
+const { getExamSectionConfig } = require("./section-integrity");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -53,6 +54,14 @@ function student(req) {
 }
 function id(v) { if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(v)) throw new HttpsError("invalid-argument", "Invalid identifier"); return v; }
 function date(v) { return v && v.toDate ? v.toDate() : (v ? new Date(v) : null); }
+function validatedExamSections(test, questions) {
+  try {
+    return getExamSectionConfig(test, questions);
+  } catch (error) {
+    console.error("CBT section integrity check failed", { message: error.message });
+    throw new HttpsError("failed-precondition", "Exam section configuration is inconsistent");
+  }
+}
 
 exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req), claimRef = db.doc("testSeriesFreeAttempts/" + uid), configRef = db.doc("testSeriesConfig/freeTest");
@@ -185,10 +194,11 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   if (!testSnap.exists || !questionsSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
   const test = testSnap.data(), questions = questionsSnap.data().questions || [];
   if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
+  const sections = validatedExamSections(test, questions);
   return {
     test: { testId: attempt.testId, title: test.title || "", durationMinutes: Number(test.durationMinutes || 30),
       marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0),
-      sections: Array.isArray(test.sections) ? test.sections : [] },
+      sections },
     questions: questions.map(q => ({ id: q.id, text: q.text, options: q.options, ...(q.section ? { section: q.section } : {}) })),
     savedAnswers: attempt.answers || {},
     // Only section timing metadata is exposed; the answer key remains server-side.
@@ -214,10 +224,13 @@ exports.rmEnterCbtSection = onCall(CALLABLE_OPTIONS, async req => {
       tx.get(db.doc("testSeriesQuestionSets/" + attempt.testId))
     ]);
     if (!testSnap.exists || !paperSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
-    if (!(paperSnap.data().questions || []).some(item => item.section === sectionName)) throw new HttpsError("not-found", "Section not found in this exam");
-    const config = (testSnap.data().sections || []).find(item => item.name === sectionName);
-    const limit = Number(config?.timeLimitMinutes || 0);
-    if (!Number.isInteger(limit) || limit < 0 || limit > 240) throw new HttpsError("failed-precondition", "Invalid section time configuration");
+    const paperQuestions = paperSnap.data().questions || [];
+    const sections = validatedExamSections(testSnap.data(), paperQuestions);
+    const config = sections.find(item => item.name === sectionName);
+    if (!config || !paperQuestions.some(item => item.section === sectionName)) {
+      throw new HttpsError("not-found", "Section not found in this exam");
+    }
+    const limit = config.timeLimitMinutes;
     const timings = attempt.sectionTimings || {}, existing = timings[sectionName];
     if (existing) {
       const expiry = date(existing.expiresAt);
@@ -246,10 +259,13 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
     const question = (questionSet.data().questions || []).find(item => item.id === questionId);
     if (!question) throw new HttpsError("invalid-argument", "Question does not belong to this exam");
-    if (question.section) {
+    if (question.section !== undefined && question.section !== null) {
       const testSnap = await tx.get(db.doc("testSeriesTests/" + a.testId));
-      const config = (testSnap.data()?.sections || []).find(item => item.name === question.section);
-      if (Number(config?.timeLimitMinutes || 0) > 0) {
+      if (!testSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
+      const sections = validatedExamSections(testSnap.data(), questionSet.data().questions || []);
+      const config = sections.find(item => item.name === question.section);
+      if (!config) throw new HttpsError("failed-precondition", "Question section is not configured for this exam");
+      if (config.timeLimitMinutes > 0) {
         const expiry = date(a.sectionTimings?.[question.section]?.expiresAt);
         if (!expiry || expiry <= new Date()) throw new HttpsError("deadline-exceeded", "Section time has expired or has not started");
       }
