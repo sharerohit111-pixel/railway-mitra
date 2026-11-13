@@ -758,6 +758,9 @@ export function initOwnerAdminDashboard(auth, functions) {
   async function refreshAnalytics() {
     const generation = ++analyticsGeneration;
     analyticsStatus.textContent = "सर्वर से विश्लेषण लोड हो रहा है…";
+    analyticsData = null;
+    analyticsCsvButton.disabled = true;
+    analyticsPrintButton.disabled = true;
     analyticsSummary.replaceChildren();
     analyticsTests.replaceChildren();
     try {
