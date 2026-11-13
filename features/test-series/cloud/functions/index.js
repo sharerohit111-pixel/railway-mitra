@@ -265,7 +265,7 @@ function ownerTestPayload(data) {
   const price = Number(rawPrice), marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
   if (!Number.isFinite(price) || price < 0 || price > 100000 ||
       typeof rawPrice !== "number" && typeof rawPrice !== "string" ||
-      !/^(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?$/.test(String(rawPrice))) {
+      !/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(String(rawPrice))) {
     throw new HttpsError("invalid-argument", "Test price must be a valid amount with at most two decimal places");
   }
   if (price > 0) {
