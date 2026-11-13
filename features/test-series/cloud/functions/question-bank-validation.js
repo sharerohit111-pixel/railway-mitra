@@ -10,6 +10,12 @@ function hasControlCharacters(value) {
   });
 }
 
+function hasDisallowedQuestionControls(value) {
+  // Preserve ordinary multiline question formatting (LF, CR and TAB), but
+  // reject NUL and other non-printing controls from imported question text.
+  return /[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/.test(value);
+}
+
 function requiredLabel(value, field, maxLength, rowNumber) {
   if (typeof value !== "string") fail(field + " must be text", rowNumber);
   const normalized = value.trim();
@@ -40,8 +46,9 @@ function normalizeQuestionBankItem(item, rowNumber) {
     ? question.options.map(value => typeof value === "string" ? value.trim() : "")
     : [];
   const correctIndex = question.correctIndex;
-  if (!text || text.length > 4000 || options.length < 2 || options.length > 6 ||
-      options.some(option => !option || option.length > 1000) ||
+  if (!text || text.length > 4000 || hasDisallowedQuestionControls(text) ||
+      options.length < 2 || options.length > 6 ||
+      options.some(option => !option || option.length > 1000 || hasDisallowedQuestionControls(option)) ||
       !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
     fail("question text, 2–6 text options and a valid correctIndex are required", rowNumber);
   }
@@ -55,6 +62,9 @@ function normalizeQuestionBankItem(item, rowNumber) {
   }
   if (question.explanation !== undefined && question.explanation !== null && typeof question.explanation !== "string") {
     fail("explanation must be text", rowNumber);
+  }
+  if (typeof question.explanation === "string" && hasDisallowedQuestionControls(question.explanation)) {
+    fail("explanation contains unsupported control characters", rowNumber);
   }
 
   return {
