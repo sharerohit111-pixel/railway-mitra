@@ -7,6 +7,7 @@ const { defineSecret } = require("firebase-functions/params");
 const { createRazorpayOrder } = require("./razorpay-order");
 const { inspectRazorpayOrder } = require("./razorpay-order-inspect");
 const { recordPaymentInspectionAudit } = require("./payment-reconciliation-audit");
+const { listOwnerPaymentAudit } = require("./owner-payment-audit-history");
 const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
 const { applyCapturedPayment } = require("./payment-ledger");
 const { handleRazorpayWebhook } = require("./razorpay-webhook-handler");
@@ -780,6 +781,23 @@ exports.rmOwnerInspectPaymentOrder = onCall({
     throw new HttpsError("unavailable", "Inspection could not be saved to the audit trail. No payment or access records were changed.");
   }
   return inspection;
+});
+
+// Owner-only, read-only, cursor-paginated inspection audit history.
+exports.rmOwnerListPaymentAudit = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  try {
+    return await listOwnerPaymentAudit({
+      db,
+      cursor: req.data && req.data.cursor,
+      pageSize: req.data && req.data.pageSize
+    });
+  } catch (error) {
+    if (error && (error.code === "invalid_page_size" || error.code === "invalid_cursor")) {
+      throw new HttpsError("invalid-argument", error.message);
+    }
+    throw error;
+  }
 });
 
 // Owner-only, read-only student exam activity. Returns result summaries only;
