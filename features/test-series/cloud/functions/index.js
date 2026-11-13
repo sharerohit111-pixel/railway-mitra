@@ -2,6 +2,7 @@ const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https")
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { hasVerifiedPhoneMfa } = require("./owner-auth");
+const { hasStudentPhoneSignIn } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
 const { createRazorpayOrder } = require("./razorpay-order");
 const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
@@ -40,11 +41,18 @@ function owner(req) {
   if (!hasVerifiedPhoneMfa(req.auth.token)) throw new HttpsError("permission-denied", "Owner phone OTP verification required");
   return uid;
 }
+function student(req) {
+  const uid = user(req);
+  if (!hasStudentPhoneSignIn(req.auth.token)) {
+    throw new HttpsError("permission-denied", "Student access requires phone OTP sign-in");
+  }
+  return uid;
+}
 function id(v) { if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(v)) throw new HttpsError("invalid-argument", "Invalid identifier"); return v; }
 function date(v) { return v && v.toDate ? v.toDate() : (v ? new Date(v) : null); }
 
 exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), claimRef = db.doc("testSeriesFreeAttempts/" + uid), configRef = db.doc("testSeriesConfig/freeTest");
+  const uid = student(req), claimRef = db.doc("testSeriesFreeAttempts/" + uid), configRef = db.doc("testSeriesConfig/freeTest");
   return db.runTransaction(async tx => {
     const [claim, config] = await Promise.all([tx.get(claimRef), tx.get(configRef)]);
     if (claim.exists) throw new HttpsError("already-exists", "Free attempt already claimed");
@@ -66,7 +74,7 @@ exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
 });
 
 exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), testId = id(req.data && req.data.testId), testRef = db.doc("testSeriesTests/" + testId);
+  const uid = student(req), testId = id(req.data && req.data.testId), testRef = db.doc("testSeriesTests/" + testId);
   return db.runTransaction(async tx => {
     const testSnap = await tx.get(testRef);
     if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
@@ -160,7 +168,7 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
 });
 
 exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), attemptId = id(req.data && req.data.attemptId);
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId);
   const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
   if (!attemptSnap.exists || attemptSnap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
   const attempt = attemptSnap.data();
@@ -184,7 +192,7 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
 });
 
 exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), attemptId = id(req.data && req.data.attemptId), questionId = id(req.data && req.data.questionId), answer = req.data && req.data.answer;
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId), questionId = id(req.data && req.data.questionId), answer = req.data && req.data.answer;
   if (!(typeof answer === "string" || typeof answer === "number" || typeof answer === "boolean" || answer === null)) throw new HttpsError("invalid-argument", "Answer must be scalar");
   const ref = db.doc("testSeriesAttempts/" + attemptId);
   await db.runTransaction(async tx => {
@@ -206,7 +214,7 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
 });
 
 exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), attemptId = id(req.data && req.data.attemptId), ref = db.doc("testSeriesAttempts/" + attemptId);
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId), ref = db.doc("testSeriesAttempts/" + attemptId);
   return db.runTransaction(async tx => {
     const snap = await tx.get(ref);
     if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
@@ -237,7 +245,7 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
 });
 
 exports.rmGetStudentActiveAttempt = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), testId = id(req.data && req.data.testId);
+  const uid = student(req), testId = id(req.data && req.data.testId);
   const snap = await db.doc("testSeriesActiveSessions/" + uid).get();
   if (!snap.exists) return { found: false };
   const session = snap.data();
@@ -257,7 +265,7 @@ exports.rmGetStudentActiveAttempt = onCall(CALLABLE_OPTIONS, async req => {
 });
 
 exports.rmGetCbtAttemptResult = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), attemptId = id(req.data && req.data.attemptId);
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId);
   const snap = await db.doc("testSeriesAttempts/" + attemptId).get();
   if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
   const attempt = snap.data();
@@ -705,7 +713,7 @@ exports.rmOwnerGetResultAnalytics = onCall(CALLABLE_OPTIONS, async req => {
 
 // Student catalogue exposes published metadata only; question sets and answer keys stay private.
 exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req);
+  const uid = student(req);
   const [snap, freeConfig] = await Promise.all([
     db.collection("testSeriesTests").where("status", "==", "published").limit(100).get(),
     db.doc("testSeriesConfig/freeTest").get()
@@ -743,7 +751,7 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
 // Student dashboard is strictly scoped to the authenticated UID. It returns only
 // submitted results belonging to that student and safe test metadata.
 exports.rmGetStudentDashboard = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req);
+  const uid = student(req);
   const resultsSnap = await db.collection("testSeriesResults")
     .where("uid", "==", uid).limit(100).get();
   const results = resultsSnap.docs.map(d => {
@@ -773,7 +781,7 @@ exports.rmGetStudentDashboard = onCall(CALLABLE_OPTIONS, async req => {
 // Privacy-safe per-test leaderboard. Only aggregate rank, score and anonymous
 // display labels are returned; student UID, phone, email and attempt IDs stay private.
 exports.rmGetTestLeaderboard = onCall(CALLABLE_OPTIONS, async req => {
-  const uid = user(req), testId = id(req.data && req.data.testId);
+  const uid = student(req), testId = id(req.data && req.data.testId);
   const testSnap = await db.doc("testSeriesTests/" + testId).get();
   if (!testSnap.exists || testSnap.data().status !== "published") {
     throw new HttpsError("not-found", "Published test not found");
@@ -813,7 +821,7 @@ exports.rmCreatePaymentOrder = onCall({
   ...CALLABLE_OPTIONS,
   secrets: [RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET]
 }, async req => {
-  const uid = user(req);
+  const uid = student(req);
   const testId = id(req.data && req.data.testId);
   let requestId;
   try { requestId = validatePaymentRequestId(req.data && req.data.requestId); }
