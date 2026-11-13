@@ -346,6 +346,27 @@ export function initOwnerAdminDashboard(auth, functions) {
   let questionBankCursor = null;
   let questionBankFilters = { topic: "", chapter: "", folder: "" };
   let questionBankItems = [];
+  const selectedQuestionBankIds = new Set();
+  function updateQuestionBankSelectionStatus() {
+    el("rm-qb-selection-status").textContent = selectedQuestionBankIds.size + " प्रश्न चयनित हैं।";
+  }
+  function questionBankItemAsTestQuestion(item) {
+    return { id: "bank_" + item.itemId, text: item.question?.text || "",
+      options: Array.isArray(item.question?.options) ? item.question.options : [],
+      correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "" };
+  }
+  function addQuestionBankItemsToTest(items) {
+    const target = el("rm-test-questions");
+    let current;
+    try { current = target.value.trim() ? JSON.parse(target.value) : []; }
+    catch { questionBankStatus.textContent = "पहले Test Management में प्रश्न JSON ठीक करें।"; return; }
+    if (!Array.isArray(current)) { questionBankStatus.textContent = "Test प्रश्न सूची Array होनी चाहिए।"; return; }
+    const known = new Set(current.map(question => question.id));
+    const additions = items.map(questionBankItemAsTestQuestion).filter(question => !known.has(question.id));
+    if (!additions.length) { questionBankStatus.textContent = "चयनित प्रश्न पहले से इस टेस्ट में मौजूद हैं।"; return; }
+    target.value = JSON.stringify(current.concat(additions), null, 2);
+    questionBankStatus.textContent = additions.length + " प्रश्न Test Management के प्रश्न बॉक्स में जोड़ दिए गए। टेस्ट सुरक्षित करने के लिए Save Test दबाएँ।";
+  }
   function resetQuestionBankForm() {
     questionBankForm.reset();
     el("rm-qb-item-id").value = "";
@@ -356,6 +377,8 @@ export function initOwnerAdminDashboard(auth, functions) {
     questionBankGeneration += 1;
     questionBankCursor = null;
     questionBankItems = [];
+    selectedQuestionBankIds.clear();
+    updateQuestionBankSelectionStatus();
     questionBankList.replaceChildren();
     questionBankStatus.textContent = "";
     questionBankMore.hidden = true;
@@ -366,6 +389,15 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (!append) questionBankList.replaceChildren();
     items.forEach(item => {
       const card = document.createElement("article"); card.className = "rm-admin-payment-row";
+      const selectLabel = document.createElement("label");
+      const selectBox = document.createElement("input"); selectBox.type = "checkbox";
+      selectBox.checked = selectedQuestionBankIds.has(item.itemId);
+      selectBox.addEventListener("change", () => {
+        if (selectBox.checked) selectedQuestionBankIds.add(item.itemId);
+        else selectedQuestionBankIds.delete(item.itemId);
+        updateQuestionBankSelectionStatus();
+      });
+      selectLabel.append(selectBox, document.createTextNode(" टेस्ट में जोड़ने हेतु चुनें"));
       const heading = document.createElement("b"); heading.textContent = item.question?.text || "प्रश्न";
       const detail = document.createElement("small");
       detail.textContent = [item.topic, item.chapter, item.folder, "विकल्प " + (item.question?.options?.length || 0), "सही उत्तर " + (Number(item.correctIndex) + 1)].join(" · ");
@@ -408,7 +440,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         } catch (error) { questionBankStatus.textContent = error.message || "प्रश्न हटाया नहीं जा सका।"; remove.disabled = false; }
       });
       actions.append(edit, addToTest, remove);
-      card.append(heading, detail, actions); questionBankList.append(card);
+      card.append(selectLabel, heading, detail, actions); questionBankList.append(card);
     });
   }
   function updateQuestionBankFilterOptions(facets) {
@@ -470,6 +502,21 @@ export function initOwnerAdminDashboard(auth, functions) {
     finally { submit.disabled = false; }
   });
   el("rm-qb-cancel-edit").addEventListener("click", resetQuestionBankForm);
+  el("rm-qb-select-visible").addEventListener("click", () => {
+    questionBankItems.forEach(item => selectedQuestionBankIds.add(item.itemId));
+    questionBankList.querySelectorAll("input[type=checkbox]").forEach(box => { box.checked = true; });
+    updateQuestionBankSelectionStatus();
+  });
+  el("rm-qb-clear-selection").addEventListener("click", () => {
+    selectedQuestionBankIds.clear();
+    questionBankList.querySelectorAll("input[type=checkbox]").forEach(box => { box.checked = false; });
+    updateQuestionBankSelectionStatus();
+  });
+  el("rm-qb-add-selected").addEventListener("click", () => {
+    const selected = questionBankItems.filter(item => selectedQuestionBankIds.has(item.itemId));
+    if (!selected.length) { questionBankStatus.textContent = "पहले प्रश्न चुनें।"; return; }
+    addQuestionBankItemsToTest(selected);
+  });
   el("rm-admin-refresh-question-bank").addEventListener("click", () => refreshQuestionBank());
   questionBankMore.addEventListener("click", () => refreshQuestionBank({ append: true }));
   el("rm-qb-apply-filters").addEventListener("click", () => {
