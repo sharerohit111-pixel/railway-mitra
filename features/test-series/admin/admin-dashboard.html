@@ -54,6 +54,16 @@
       <h3>Cloud Tests</h3><button id="rm-admin-refresh-tests" type="button">Refresh Test List</button>
       <div id="rm-admin-tests-list" class="rm-admin-tests-list">अभी सूची लोड नहीं हुई।</div>
     </section>
+    <section id="rm-admin-payments-panel" class="rm-admin-panel" hidden>
+      <h3>Payment History</h3>
+      <p>यहाँ केवल server-verified captured payments दिखते हैं। Phone, email और provider notes प्रदर्शित नहीं किए जाते।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-admin-refresh-payments" type="button">Refresh Payments</button>
+        <button id="rm-admin-payments-more" type="button" hidden disabled>Load More</button>
+      </div>
+      <div id="rm-admin-payments-status" class="rm-admin-status" role="status" aria-live="polite">Payments सूची अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-payments-list" class="rm-admin-payments-list"></div>
+    </section>
     <p id="rm-admin-module-status" class="rm-admin-status">Test Management का पहला Cloud module जोड़ा गया है। बाकी modules अगले चरणों में आएँगे।</p>
   </div>
 </section><link rel="stylesheet" href="./admin-dashboard.css">

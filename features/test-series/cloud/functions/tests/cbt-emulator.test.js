@@ -490,6 +490,20 @@ test("unauthenticated caller cannot start an exam", async () => {
   );
 });
 
+test("non-owner cannot read payment history", async () => {
+  const originalOwnerUid = process.env.OWNER_UID;
+  process.env.OWNER_UID = "different-owner-uid";
+  try {
+    await assert.rejects(
+      callable("rmOwnerListPayments", {}),
+      error => error.code === "functions/permission-denied"
+    );
+  } finally {
+    if (originalOwnerUid === undefined) delete process.env.OWNER_UID;
+    else process.env.OWNER_UID = originalOwnerUid;
+  }
+});
+
 test("non-owner cannot create a test", async () => {
   const originalOwnerUid = process.env.OWNER_UID;
   process.env.OWNER_UID = "some-other-owner";

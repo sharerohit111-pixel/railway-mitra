@@ -37,3 +37,10 @@ node --test features/test-series/admin/tests/*.test.mjs
 The standalone portal observes Firebase Auth state on every load. A persisted user is never treated as an authorized Owner merely because the browser restored a session or the account has a locally enrolled phone factor. The portal calls `rmGetOwnerAdminSession` again and reveals the dashboard only after the backend confirms the configured Owner UID, Firebase phone second-factor claim, and App Check. If server authorization fails, the portal signs the session out. Pending authorization results are ignored after sign-out or portal teardown.
 
 The session observer is isolated in `owner-session.mjs` and covered by Node tests for restored sessions, missing phone MFA, server rejection, sign-out races, and teardown. This does not replace backend authorization and does not make the portal production-ready before the required Firebase configuration and deployment.
+
+
+## Owner payment history
+
+The Payments module calls the owner-only `rmOwnerListPayments` callable. The backend checks the configured `OWNER_UID` and verified phone MFA claim before reading the captured-payment ledger; App Check is required outside the Functions Emulator. Results are paginated newest-first (25 by default, maximum 50) using a document cursor. The response is an explicit allow-list containing payment ID, provider order ID, student Firebase UID, test ID, amount in paise, INR currency, captured/review-required status, and recorded timestamp. Phone numbers, email addresses, provider notes, receipt payloads and arbitrary ledger fields are never returned. The browser clears rendered payment data when the Owner session is lost or logged out.
+
+The screen shows only records in `testSeriesPayments`, which are written by the verified captured-payment webhook. It is not a refund, dispute, failed-checkout, or reconciliation console; those workflows require separate audited server actions and must not be inferred from the absence of a captured-payment record.

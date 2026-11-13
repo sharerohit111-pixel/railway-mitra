@@ -10,6 +10,20 @@ export function initOwnerAdminDashboard(auth, functions) {
   const login = el("rm-admin-login"), setup = el("rm-admin-mfa-setup"), otpPanel = el("rm-admin-otp"), home = el("rm-admin-home");
   let pendingVerification = null;
   const status = message => { el("rm-owner-login-status").textContent = message; };
+  const paymentsPanel = el("rm-admin-payments-panel");
+  const paymentsList = el("rm-admin-payments-list");
+  const paymentsStatus = el("rm-admin-payments-status");
+  const paymentsMore = el("rm-admin-payments-more");
+  let paymentsCursor = null;
+  let paymentsGeneration = 0;
+  function clearPaymentHistory() {
+    paymentsGeneration += 1;
+    paymentsCursor = null;
+    paymentsList.replaceChildren();
+    paymentsStatus.textContent = "";
+    paymentsMore.hidden = true;
+    paymentsMore.disabled = false;
+  }
   const showOtp = verificationId => new Promise((resolve, reject) => {
     pendingVerification = { verificationId, resolve, reject };
     otpPanel.hidden = false;
@@ -31,11 +45,13 @@ export function initOwnerAdminDashboard(auth, functions) {
     verifyOwner: async () => (await verifyOwnerSession({})).data,
     signOut: () => signOut(auth),
     onSignedOut: () => {
+      clearPaymentHistory();
       home.hidden = true;
       setup.hidden = true;
       login.hidden = false;
     },
     onMfaRequired: () => {
+      clearPaymentHistory();
       home.hidden = true;
       login.hidden = true;
       setup.hidden = false;
@@ -64,7 +80,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       await signOut(auth); setup.hidden = true; login.hidden = false;
     } catch (e) { status(e.message || "OTP enrollment असफल।"); }
   });
-  el("rm-owner-logout").addEventListener("click", async () => { await signOut(auth); home.hidden = true; login.hidden = false; });
+  el("rm-owner-logout").addEventListener("click", async () => { clearPaymentHistory(); await signOut(auth); home.hidden = true; login.hidden = false; });
   const testsPanel = el("rm-admin-tests-panel");
   const testsList = el("rm-admin-tests-list");
   async function refreshTests() {
@@ -102,7 +118,62 @@ export function initOwnerAdminDashboard(auth, functions) {
       });
     } catch (e) { testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
   }
+  async function refreshPayments({ append = false } = {}) {
+    if (append && !paymentsCursor) return;
+    const generation = ++paymentsGeneration;
+    if (!append) {
+      paymentsCursor = null;
+      paymentsList.replaceChildren();
+      paymentsStatus.textContent = "सत्यापित भुगतान लोड हो रहे हैं…";
+    } else {
+      paymentsMore.disabled = true;
+    }
+    try {
+      const response = await httpsCallable(functions, "rmOwnerListPayments")({
+        cursor: append ? paymentsCursor : null,
+        pageSize: 25
+      });
+      if (generation !== paymentsGeneration) return;
+      const data = response.data || {};
+      const payments = Array.isArray(data.payments) ? data.payments : [];
+      if (!append) paymentsList.replaceChildren();
+      payments.forEach(payment => {
+        const card = document.createElement("article");
+        card.className = "rm-admin-payment-row";
+        const heading = document.createElement("b");
+        const amountLabel = Number.isSafeInteger(payment.amountPaise)
+          ? "₹" + (payment.amountPaise / 100).toFixed(2)
+          : "राशि की समीक्षा आवश्यक";
+        heading.textContent = amountLabel + " · " + (payment.status === "captured" ? "Captured" : "Review required");
+        const detail = document.createElement("small");
+        const date = payment.recordedAt ? new Date(payment.recordedAt) : null;
+        const dateLabel = date && Number.isFinite(date.getTime()) ? date.toLocaleString() : "समय उपलब्ध नहीं";
+        detail.textContent = [
+          payment.testId ? "Test " + payment.testId : "Test unavailable",
+          payment.studentUid ? "Student UID " + payment.studentUid : "Student unavailable",
+          "Payment " + payment.paymentId,
+          payment.orderId ? "Order " + payment.orderId : "Order unavailable",
+          dateLabel
+        ].join(" · ");
+        card.append(heading, detail);
+        paymentsList.append(card);
+      });
+      paymentsCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
+      paymentsMore.hidden = !paymentsCursor;
+      paymentsMore.disabled = false;
+      if (!payments.length && !append) paymentsStatus.textContent = "अभी कोई captured payment दर्ज नहीं है।";
+      else if (data.hasMore) paymentsStatus.textContent = "हाल के captured payments दिखाए गए हैं।";
+      else paymentsStatus.textContent = "सभी उपलब्ध captured payments दिखाए गए हैं।";
+    } catch (error) {
+      if (generation !== paymentsGeneration) return;
+      paymentsStatus.textContent = error.message || "Payment history लोड नहीं हुई।";
+      paymentsMore.disabled = false;
+    }
+  }
+
   el("rm-admin-refresh-tests").addEventListener("click", refreshTests);
+  el("rm-admin-refresh-payments").addEventListener("click", () => refreshPayments());
+  paymentsMore.addEventListener("click", () => refreshPayments({ append: true }));
   const freeTestSelect = el("rm-free-test-select");
   el("rm-free-test-save").addEventListener("click", async () => {
     const testId = freeTestSelect.value;
@@ -213,9 +284,14 @@ export function initOwnerAdminDashboard(auth, functions) {
   document.querySelectorAll("[data-admin-module]").forEach(button => button.addEventListener("click", () => {
     const module = button.dataset.adminModule;
     testsPanel.hidden = module !== "tests";
+    paymentsPanel.hidden = module !== "payments";
     el("rm-admin-module-status").textContent = module === "tests"
-      ? "Test Management खुला है।" : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
+      ? "Test Management खुला है।"
+      : module === "payments"
+        ? "केवल server-verified captured payment ledger दिखाया जाता है।"
+        : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
     if (module === "tests") refreshTests();
+    if (module === "payments") refreshPayments();
   }));
   return { destroy() { stopOwnerSessionWatch(); } };
 }

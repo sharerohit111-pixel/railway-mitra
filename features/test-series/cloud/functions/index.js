@@ -17,6 +17,7 @@ const {
   inspectPaymentRequest
 } = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
+const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
@@ -436,6 +437,23 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
   };
 });
 
+
+// Owner-only, read-only payment history. Authorization runs before any ledger read.
+exports.rmOwnerListPayments = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  try {
+    return await listOwnerPaymentHistory({
+      db,
+      cursor: req.data && req.data.cursor,
+      pageSize: req.data && req.data.pageSize
+    });
+  } catch (error) {
+    if (error && (error.code === "invalid_page_size" || error.code === "invalid_cursor")) {
+      throw new HttpsError("invalid-argument", error.message);
+    }
+    throw error;
+  }
+});
 
 // Student catalogue exposes published metadata only; question sets and answer keys stay private.
 exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {

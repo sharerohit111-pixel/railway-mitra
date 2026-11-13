@@ -2,3 +2,8 @@
 .rm-admin-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.rm-admin select,.rm-admin textarea{display:block;width:100%;margin-top:6px;padding:12px;border-radius:10px;border:1px solid #315778;background:#07182d;color:#fff;font:inherit}.rm-admin textarea{resize:vertical;min-height:140px;font-family:ui-monospace,monospace;font-size:12px}.rm-admin-hint{font-size:11px;color:#9bb8d0}.rm-admin-tests-list{display:grid;gap:8px;margin-top:12px}.rm-admin-test-row{display:flex;flex-direction:column;gap:5px;padding:12px;border:1px solid #254967;border-radius:10px;background:#07182d}.rm-admin-test-row small{color:#9bb8d0;font-size:11px}@media(max-width:420px){.rm-admin-form-grid{grid-template-columns:1fr}}
 
 .rm-admin-import{border:1px dashed #34769a;background:#081c32;border-radius:12px;padding:12px;margin:12px 0}.rm-admin-import small{display:block;color:#9bb8d0;font-size:11px;line-height:1.5;margin-top:8px}.rm-admin-import button{width:100%;margin-top:8px}
+
+.rm-admin-payments-list{display:grid;gap:8px;margin-top:12px}
+.rm-admin-payment-row{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid #254967;border-radius:10px;background:#07182d;overflow-wrap:anywhere}
+.rm-admin-payment-row b{color:#70e7c0;font-size:14px}
+.rm-admin-payment-row small{color:#9bb8d0;font-size:11px;line-height:1.5}
