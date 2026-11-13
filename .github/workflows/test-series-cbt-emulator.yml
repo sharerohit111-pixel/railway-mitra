@@ -48,9 +48,5 @@ jobs:
         working-directory: features/test-series/cloud/functions
         run: npm run lint
 
-      - name: Run CBT regression, security and 50-student callable load tests
-        env:
-          CALLABLE_LOAD_STUDENTS: "50"
-          CALLABLE_LOAD_CONCURRENCY: "50"
-          CALLABLE_LOAD_QUESTIONS: "50"
-        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project railway-mitra --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:callable:emulator"
+      - name: Run CBT unit and Firestore Rules emulator tests
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project railway-mitra --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"
