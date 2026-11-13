@@ -431,7 +431,8 @@ export function initOwnerAdminDashboard(auth, functions) {
     } else questionBankMore.disabled = true;
     try {
       const response = await httpsCallable(functions, "rmOwnerListQuestionBank")({
-        pageSize: 25, cursor: append ? questionBankCursor : null, ...questionBankFilters
+        pageSize: 25, cursor: append ? questionBankCursor : null, ...questionBankFilters,
+        search: el("rm-qb-search").value.trim()
       });
       if (generation !== questionBankGeneration) return;
       const data = response.data || {};
@@ -479,8 +480,12 @@ export function initOwnerAdminDashboard(auth, functions) {
     };
     refreshQuestionBank();
   });
+  el("rm-qb-search").addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); refreshQuestionBank(); }
+  });
   el("rm-qb-clear-filters").addEventListener("click", () => {
     questionBankFilters = { topic: "", chapter: "", folder: "" };
+    el("rm-qb-search").value = "";
     ["topic", "chapter", "folder"].forEach(field => { el("rm-qb-filter-" + field).value = ""; });
     refreshQuestionBank();
   });
