@@ -383,6 +383,15 @@ test("student can start, save answers and submit with server-side scoring", asyn
   });
   assert.equal(saved.saved, true);
 
+  // Section deadlines are enforced independently of the overall exam deadline.
+  await db.doc("testSeriesAttempts/" + started.attemptId).update({
+    ["sectionTimings.Technical Ability.expiresAt"]: new Date(Date.now() - 1000)
+  });
+  await assert.rejects(
+    callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "q1", answer: "1" }),
+    error => error.code === "functions/deadline-exceeded"
+  );
+
   await assert.rejects(
     callable("rmGetCbtAttemptResult", { attemptId: started.attemptId }),
     error => error.code === "functions/failed-precondition"
