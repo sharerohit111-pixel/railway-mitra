@@ -87,12 +87,40 @@ test("passes verified captured events to the payment ledger and reports duplicat
   assert.deepEqual(received.event, event);
 });
 
+test("processes only the JSON payload covered by the verified raw-body signature", async () => {
+  const signedEvent = {
+    ...event,
+    payload: { payment: { entity: {
+      id: "pay_signed_body", order_id: "order_handler_1",
+      amount: 49900, currency: "INR", status: "captured"
+    } } }
+  };
+  const untrustedParsedBody = {
+    ...event,
+    payload: { payment: { entity: {
+      id: "pay_untrusted_parsed_body", order_id: "order_handler_1",
+      amount: 1, currency: "USD", status: "captured"
+    } } }
+  };
+  const rawBody = Buffer.from(JSON.stringify(signedEvent));
+  const res = response();
+  let received;
+  await handleRazorpayWebhook({
+    req: request({ body: untrustedParsedBody, rawBody }),
+    res, secret, db: {},
+    applyPayment: async args => { received = args.event; return { granted: true, duplicate: false }; }
+  });
+  assert.equal(res.code, 200);
+  assert.deepEqual(received, signedEvent);
+  assert.notDeepEqual(received, untrustedParsedBody);
+});
+
 test("rejects malformed payload and missing event IDs before ledger access", async () => {
   let calls = 0;
   const malformedBytes = Buffer.from("{not-json");
   const malformedRes = response();
   await handleRazorpayWebhook({
-    req: request({ body: null, rawBody: malformedBytes }),
+    req: request({ body: event, rawBody: malformedBytes }),
     res: malformedRes, secret, db: {},
     applyPayment: async () => { calls++; }
   });
