@@ -182,7 +182,8 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     const snap = await tx.get(ref);
     if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
     const a = snap.data();
-    if (a.status !== "in_progress" || date(a.expiresAt) <= new Date()) throw new HttpsError("failed-precondition", "Exam is closed");
+    const expiresAt = date(a.expiresAt);
+    if (!expiresAt || !Number.isFinite(expiresAt.getTime()) || a.status !== "in_progress" || expiresAt <= new Date()) throw new HttpsError("failed-precondition", "Exam is closed or has an invalid deadline");
     const questionSet = await tx.get(db.doc("testSeriesQuestionSets/" + a.testId));
     if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
     const question = (questionSet.data().questions || []).find(item => item.id === questionId);
@@ -203,12 +204,14 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const a = snap.data();
     if (a.status === "submitted") return { submitted: true, timedOut: Boolean(a.timedOut), score: a.score, correct: a.correct, wrong: a.wrong, unattempted: a.unattempted, totalQuestions: a.totalQuestions };
     if (a.status !== "in_progress") throw new HttpsError("failed-precondition", "Attempt cannot be submitted");
+    const expiresAt = date(a.expiresAt);
+    if (!expiresAt || !Number.isFinite(expiresAt.getTime())) throw new HttpsError("failed-precondition", "Attempt deadline is missing or invalid");
     const [testSnap, keySnap] = await Promise.all([tx.get(db.doc("testSeriesTests/" + a.testId)), tx.get(db.doc("testSeriesAnswerKeys/" + a.testId))]);
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
     const test = testSnap.data(), keys = keySnap.data().questions || {}, answers = a.answers || {};
     // Once the server deadline passes, accept only the answers already persisted by rmSaveAnswer.
     // This preserves a result when the client submits at the timer boundary or reconnects late.
-    const timedOut = Boolean(date(a.expiresAt) && date(a.expiresAt) <= new Date());
+    const timedOut = expiresAt <= new Date();
     let correct = 0, wrong = 0, unattempted = 0;
     for (const qid of Object.keys(keys)) {
       const given = answers[qid];
