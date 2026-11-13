@@ -61,8 +61,9 @@ export function initOwnerAdminDashboard(auth, functions) {
         const detail = document.createElement("small");
         detail.textContent = [test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
         const edit = document.createElement("button");
-        edit.type = "button"; edit.textContent = "Edit";
-        edit.addEventListener("click", () => loadTestForEdit(test.testId));
+        edit.type = "button";
+        edit.textContent = test.status === "published" ? "Copy to Draft" : "Edit";
+        edit.addEventListener("click", () => loadTestForEdit(test.testId, test.status === "published"));
         card.append(heading, detail, edit); testsList.append(card);
       });
     } catch (e) { testsList.textContent = e.message || "टेस्ट सूची लोड नहीं हुई।"; }
@@ -102,22 +103,24 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) { status("Import असफल: " + (e.message || "File format जाँचें।")); }
     finally { button.disabled = false; }
   });
-  async function loadTestForEdit(testId) {
+  async function loadTestForEdit(testId, cloneAsDraft = false) {
     try {
       const result = await httpsCallable(functions, "rmOwnerGetTest")({ testId });
       const t = result.data;
-      el("rm-test-id").value = t.testId;
+      // Published tests are immutable on the server. Copy them into a new draft
+      // instead of presenting an Edit action that the backend will reject.
+      el("rm-test-id").value = cloneAsDraft ? "" : t.testId;
       el("rm-test-title").value = t.title;
       el("rm-test-mode").value = t.mode;
       el("rm-test-duration").value = t.durationMinutes;
       el("rm-test-price").value = t.price;
       el("rm-test-marks").value = t.marksPerQuestion;
       el("rm-test-negative").value = t.negativeMarks;
-      el("rm-test-status").value = t.status;
+      el("rm-test-status").value = cloneAsDraft ? "draft" : t.status;
       el("rm-test-start").value = t.scheduleStartAt ? new Date(t.scheduleStartAt).toISOString().slice(0,16) : "";
       el("rm-test-end").value = t.scheduleEndAt ? new Date(t.scheduleEndAt).toISOString().slice(0,16) : "";
       el("rm-test-questions").value = JSON.stringify(t.questions, null, 2);
-      status("Test Edit mode: " + t.testId);
+      status(cloneAsDraft ? "Published test की नई Draft copy तैयार है। मूल प्रकाशित टेस्ट सुरक्षित रहेगा।" : "Test Edit mode: " + t.testId);
       testForm.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (e) { status(e.message || "Test details नहीं मिले।"); }
   }
