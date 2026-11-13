@@ -1,4 +1,4 @@
-import { summarizeStudentActivity } from "./student-activity.mjs";
+import { summarizeStudentActivity, studentActivityCsv } from "./student-activity.mjs";
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
@@ -296,6 +296,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   const studentsMore = el("rm-admin-students-more");
   const studentsSearch = el("rm-admin-students-search");
   const studentSummaries = el("rm-admin-student-summaries");
+  const studentsExport = el("rm-admin-export-students");
   let studentsCursor = null;
   let studentsGeneration = 0;
   let studentActivityRows = [];
@@ -335,6 +336,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       card.append(heading, detail);
       studentsList.append(card);
     });
+    studentsExport.disabled = visibleRows.length === 0;
     studentsStatus.textContent = term
       ? visibleRows.length + " परिणाम मिले · कुल " + studentActivityRows.length + " लोड हुए"
       : studentActivityRows.length ? studentActivityRows.length + " परीक्षा परिणाम लोड हुए।" : "अभी कोई जमा परीक्षा परिणाम नहीं है।";
@@ -378,6 +380,21 @@ export function initOwnerAdminDashboard(auth, functions) {
     }
   }
   studentsSearch.addEventListener("input", renderStudentActivity);
+  studentsExport.addEventListener("click", () => {
+    const term = studentsSearch.value.trim().toLocaleLowerCase();
+    const rows = studentActivityRows.filter(activity => !term || [activity.studentUid, activity.testId, activity.testTitle].some(value => String(value || "").toLocaleLowerCase().includes(term)));
+    if (!rows.length) return;
+    const blob = new Blob(["\uFEFF", studentActivityCsv(rows)], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "railway-mitra-student-results-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    studentsStatus.textContent = rows.length + " लोड हुए परिणाम CSV में निर्यात हुए।";
+  });
   el("rm-admin-refresh-students").addEventListener("click", () => refreshStudentActivity());
   studentsMore.addEventListener("click", () => refreshStudentActivity({ append: true }));
   const questionBankPanel = el("rm-admin-question-bank-panel");
