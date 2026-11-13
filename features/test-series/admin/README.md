@@ -105,3 +105,8 @@ The Students module provides **Print / Save Loaded Report as PDF** for the curre
 ## Test-wise performance exports
 
 The Results & Ranking module can export its per-test aggregates as CSV or open a print-friendly report that the Owner can save as PDF. The report uses only test ID/title, attempts, average score, average correct percentage and timeout count. It inherits the server's bounded analytics window (latest 500 submitted results) and explicitly labels sampled data; it is not a lifetime report. The report escapes test titles and excludes student identifiers and contact data.
+
+
+### Test-wise report search and sorting
+
+The Owner Results & Ranking screen can filter the loaded per-test aggregates by test ID or title and sort by attempts, average score, average correct-answer percentage, or test name. CSV and print/PDF exports use the currently visible filtered and sorted test rows, while the report continues to label the bounded server-side sample. The filter is client-side over the returned analytics snapshot and does not expand the latest-500 server query.
