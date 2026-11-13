@@ -66,6 +66,17 @@
       <div id="rm-admin-payments-status" class="rm-admin-status" role="status" aria-live="polite">Payments सूची अभी लोड नहीं हुई।</div>
       <div id="rm-admin-payments-list" class="rm-admin-payments-list"></div>
     </section>
+    <section id="rm-admin-payments-panel" class="rm-admin-panel" hidden>
+      <h3>Verified Payment History</h3>
+      <p>केवल server ledger में दर्ज भुगतान दिखेंगे। Razorpay webhook से सत्यापित रिकॉर्ड ही Captured माने जाएँगे।</p>
+      <div class="rm-admin-form-grid">
+        <label>प्रति पृष्ठ<select id="rm-payment-page-size"><option value="25">25</option><option value="50">50</option></select></label>
+        <button id="rm-admin-refresh-payments" type="button">Refresh Payments</button>
+      </div>
+      <div id="rm-admin-payments-status" class="rm-admin-status" role="status" aria-live="polite"></div>
+      <div class="rm-admin-tests-list" id="rm-admin-payments-list">भुगतान सूची लोड नहीं हुई।</div>
+      <button id="rm-admin-payments-next" type="button" disabled>अगले भुगतान</button>
+    </section>
     <p id="rm-admin-module-status" class="rm-admin-status">Test Management का पहला Cloud module जोड़ा गया है। बाकी modules अगले चरणों में आएँगे।</p>
   </div>
 </section><link rel="stylesheet" href="./admin-dashboard.css">
