@@ -38,7 +38,12 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
         button.disabled = true;
         status.textContent = test.accessType === "paid" ? "Opening secure payment…" : test.accessType === "unlocked" ? "Starting your purchased test…" : "Preparing your free attempt…";
         try {
-          if (test.accessType === "unlocked") {\n            const session = await startCbtExam(app, test.testId);\n            await onStart({ test, session });\n            return;\n          }\n          if (test.accessType === "paid") {
+          if (test.accessType === "unlocked") {
+            const session = await startCbtExam(app, test.testId);
+            await onStart({ test, session });
+            return;
+          }
+          if (test.accessType === "paid") {
             await startStudentTestCheckout({
               app, test, root,
               onStatus: message => { status.textContent = message; }
