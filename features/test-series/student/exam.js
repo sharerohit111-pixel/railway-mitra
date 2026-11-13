@@ -1,9 +1,9 @@
-import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt } from "../cloud/student-client.js";
+import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt, enterCbtSection } from "../cloud/student-client.js";
 
 export function initStudentCbtExam({ app, testId, root = document }) {
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
-  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, timer=null, saving=Promise.resolve(), finished=false;
+  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), finished=false;
   const status = message => { el("rm-cbt-status").textContent=message; };
   const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
@@ -41,7 +41,15 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     }catch(_){status("स्थानीय Draft पढ़ा नहीं जा सका। सर्वर पर सेव उत्तर उपलब्ध रहेंगे।");}
   }
   const remaining = () => Math.max(0, Math.ceil((expiresAt-Date.now())/1000));
-  function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); if(!s&&!finished) finish(true); }
+  async function activateQuestion(nextIndex){
+    const question = paper.questions[nextIndex];
+    if (question?.section) {
+      const timing = await enterCbtSection(app, attemptId, question.section);
+      sectionExpiresAt = timing.timeLimitMinutes ? new Date(timing.expiresAt).getTime() : 0;
+    } else sectionExpiresAt = 0;
+    index = nextIndex; render(); tick();
+  }
+  function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-Date.now())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left) sectionClock.textContent="सेक्शन समय समाप्त"; } if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
     pendingAnswers.set(qid,value);
     persistPending();
@@ -94,7 +102,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       const label = document.createElement("span"); label.textContent = name;
       const count = document.createElement("small"); count.textContent = answeredCount + "/" + indices.length + " हल";
       button.append(label, count);
-      button.addEventListener("click", () => { index = indices[0]; render(); });
+      button.addEventListener("click", () => { activateQuestion(indices[0]).catch(error => status(error.message || "सेक्शन नहीं खुला।")); });
       sectionProgress.append(button);
     });
   }
@@ -163,14 +171,14 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       }
       answers={...paper.savedAnswers};restorePending();
       for(const [qid,value] of pendingAnswers)answers[qid]=value;
-      expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;render();
+      expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;await activateQuestion(0);
       if(pendingAnswers.size)retryPending().catch(()=>{});
       tick();timer=setInterval(tick,1000);
     }catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
   });
   el("rm-cbt-retry").addEventListener("click",async()=>{const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){status(e.message||"Retry असफल।");}finally{b.disabled=false;}});
-  el("rm-cbt-prev").addEventListener("click",()=>{if(index>0){index--;render();}});
-  el("rm-cbt-next").addEventListener("click",()=>{if(index<paper.questions.length-1){index++;render();}});
+  el("rm-cbt-prev").addEventListener("click",()=>{if(index>0)activateQuestion(index-1).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
+  el("rm-cbt-next").addEventListener("click",()=>{if(index<paper.questions.length-1)activateQuestion(index+1).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
   el("rm-cbt-submit").addEventListener("click",()=>{if(confirm("क्या आप परीक्षा Submit करना चाहते हैं?"))finish(false);});
   const onOnline=()=>{if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>{});}};
   if(typeof window!=="undefined")window.addEventListener("online",onOnline);
