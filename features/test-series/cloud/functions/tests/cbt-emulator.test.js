@@ -453,6 +453,37 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     assert.equal(newEventRetry.duplicate, true);
     assert.equal((await replayEventRef.get()).data().status, "duplicate");
 
+    // A new provider event ID for an already-recorded payment is still a replay.
+    // It must not be acknowledged when any identity/value in the entitlement
+    // document has drifted from the authoritative order and payment ledger.
+    const originalEntitlementForReplay = (await entitlementRef.get()).data();
+    const corruptedEntitlements = [
+      ["uid", { ...originalEntitlementForReplay, uid: "another_student" }],
+      ["testId", { ...originalEntitlementForReplay, testId: "another_test" }],
+      ["razorpayOrderId", { ...originalEntitlementForReplay, razorpayOrderId: "order_other" }],
+      ["amount", { ...originalEntitlementForReplay, amount: 1 }],
+      ["currency", { ...originalEntitlementForReplay, currency: "USD" }]
+    ];
+    for (const [field, corrupted] of corruptedEntitlements) {
+      await entitlementRef.set(corrupted);
+      const corruptedEventId = "evt_ledger_corrupt_" + field;
+      await assert.rejects(
+        applyCapturedPayment({ db, event, eventId: corruptedEventId }),
+        error => error.code === "payment_id_conflict",
+        "replay must reject an entitlement with mismatched " + field
+      );
+      assert.equal(
+        (await db.doc("testSeriesPaymentEvents/" + corruptedEventId).get()).exists,
+        false
+      );
+    }
+    await entitlementRef.set(originalEntitlementForReplay);
+    const repairedReplay = await applyCapturedPayment({
+      db, event, eventId: "evt_ledger_replay_repaired"
+    });
+    assert.equal(repairedReplay.granted, false);
+    assert.equal(repairedReplay.duplicate, true);
+
     // An existing event ID is idempotent only while its complete payment and
     // entitlement records remain present and consistent.
     const originalEntitlement = (await entitlementRef.get()).data();
@@ -511,6 +542,7 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     await db.doc("testSeriesActiveSessions/" + uid).delete().catch(() => {});
     await Promise.all([
       testRef, orderRef, secondOrderRef, paymentRef, eventRef, replayEventRef, entitlementRef,
+      db.doc("testSeriesPaymentEvents/evt_ledger_replay_repaired"),
       db.doc("testSeriesPaymentEvents/evt_ledger_payment_reuse")
     ].map(ref => ref.delete().catch(() => {})));
   }
