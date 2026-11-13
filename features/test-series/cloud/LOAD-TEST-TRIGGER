@@ -7,3 +7,5 @@ Retry after correcting the harness output formatting syntax.
 Retry after latency-summary hardening; run 500 students × 50 answers on local emulator only.
 
 Security Rules loaded explicitly; rerun full-paper emulator load with deny smoke checks.
+
+Payload-estimate rerun: 500 synthetic students, 1 wave, 500 concurrent workers; capture per-attempt and shared question-set UTF-8 JSON payload estimates. Emulator only.
