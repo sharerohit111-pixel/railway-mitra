@@ -4,12 +4,17 @@ function validOrderId(value) {
   return typeof value === "string" && /^order_[A-Za-z0-9]{6,40}$/.test(value);
 }
 
+const PAYMENT_STATUSES = new Set(["created", "authorized", "captured", "refunded", "failed"]);
+const CAPTURED_PAYMENT_STATUSES = new Set(["captured", "refunded"]);
+
 function safePayment(row) {
+  const capturedStatus = Boolean(row && CAPTURED_PAYMENT_STATUSES.has(row.status));
   if (!row || typeof row !== "object" ||
       typeof row.id !== "string" || !/^pay_[A-Za-z0-9]{6,40}$/.test(row.id) ||
-      typeof row.status !== "string" ||
-      !Number.isSafeInteger(row.amount) || row.amount < 0 ||
-      row.currency !== "INR" || row.order_id === undefined) {
+      !PAYMENT_STATUSES.has(row.status) ||
+      !Number.isSafeInteger(row.amount) || row.amount <= 0 ||
+      row.currency !== "INR" || !validOrderId(row.order_id) ||
+      typeof row.captured !== "boolean" || row.captured !== capturedStatus) {
     throw new Error("Razorpay returned an invalid payment record");
   }
   return {

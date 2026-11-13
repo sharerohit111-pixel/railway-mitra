@@ -8,6 +8,28 @@ function response(payload, ok = true) {
   return { ok, json: async () => payload };
 }
 
+function inspectWithPayments(items) {
+  return inspectRazorpayOrder({
+    keyId: "rzp_test_key",
+    keySecret: "secret",
+    orderId: "order_123456",
+    expectedReceipt: "rm_receipt_123",
+    expectedAmountPaise: 49900,
+    expectedUid: "student_uid",
+    expectedTestId: "gdce_test",
+    fetchImpl: async url => url.endsWith("/payments")
+      ? response({ items })
+      : response({
+        id: "order_123456",
+        status: "paid",
+        amount: 49900,
+        currency: "INR",
+        receipt: "rm_receipt_123",
+        notes: { uid: "student_uid", testId: "gdce_test" }
+      })
+  });
+}
+
 test("validates provider order IDs", () => {
   assert.equal(validOrderId("order_123456"), true);
   assert.equal(validOrderId("order_bad-id"), false);
@@ -72,4 +94,47 @@ test("rejects missing credentials and invalid order IDs before network access", 
     fetchImpl: async () => { called = true; }
   }), /valid Razorpay order ID/);
   assert.equal(called, false);
+});
+
+test("accepts documented payment states only with a consistent captured flag", async () => {
+  const states = [
+    ["created", false],
+    ["authorized", false],
+    ["captured", true],
+    ["refunded", true],
+    ["failed", false]
+  ];
+  const rows = states.map(([status, captured], index) => ({
+    id: "pay_12345" + index,
+    status,
+    amount: 49900,
+    currency: "INR",
+    order_id: "order_123456",
+    captured
+  }));
+  const result = await inspectWithPayments(rows);
+  assert.deepEqual(result.payments.map(payment => [payment.status, payment.captured]), states);
+});
+
+test("fails closed for unknown or inconsistent provider payment rows", async () => {
+  const valid = {
+    id: "pay_123456",
+    status: "captured",
+    amount: 49900,
+    currency: "INR",
+    order_id: "order_123456",
+    captured: true
+  };
+  const invalidRows = [
+    { ...valid, status: "pending", captured: false },
+    { ...valid, status: "captured", captured: false },
+    { ...valid, status: "refunded", captured: false },
+    { ...valid, status: "authorized", captured: true },
+    { ...valid, amount: 0 },
+    { ...valid, order_id: "not-an-order" },
+    { ...valid, captured: "true" }
+  ];
+  for (const payment of invalidRows) {
+    await assert.rejects(inspectWithPayments([payment]), /invalid payment record/);
+  }
 });
