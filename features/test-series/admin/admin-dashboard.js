@@ -346,6 +346,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     studentActivityRows = [];
     studentsSearch.value = "";
     studentsList.replaceChildren();
+    studentSummaries.replaceChildren();
     studentsStatus.textContent = "";
     studentsMore.hidden = true;
     studentsMore.disabled = false;
@@ -357,6 +358,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       studentsCursor = null;
       studentActivityRows = [];
       studentsList.replaceChildren();
+      studentSummaries.replaceChildren();
       studentsStatus.textContent = "विद्यार्थी परीक्षा गतिविधि लोड हो रही है…";
     } else studentsMore.disabled = true;
     try {
