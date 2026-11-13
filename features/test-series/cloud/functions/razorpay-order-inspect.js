@@ -26,7 +26,11 @@ async function inspectRazorpayOrder({
   fetchImpl = globalThis.fetch,
   keyId,
   keySecret,
-  orderId
+  orderId,
+  expectedReceipt,
+  expectedAmountPaise,
+  expectedUid,
+  expectedTestId
 } = {}) {
   if (typeof keyId !== "string" || !keyId.trim() ||
       typeof keySecret !== "string" || !keySecret.trim()) {
@@ -69,7 +73,13 @@ async function inspectRazorpayOrder({
     throw new Error("Razorpay returned a payment linked to a different order");
   }
 
+  const notes = order.notes && typeof order.notes === "object" ? order.notes : {};
+  const matchesRequest = order.receipt === expectedReceipt &&
+    order.amount === expectedAmountPaise && order.currency === "INR" &&
+    notes.uid === expectedUid && notes.testId === expectedTestId;
+
   return {
+    matchesRequest,
     order: {
       orderId: order.id,
       status: order.status,
