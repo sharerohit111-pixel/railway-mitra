@@ -17,7 +17,7 @@ function validateOrderInput({ keyId, keySecret, amount, currency = "INR", receip
   }
 }
 
-async function createRazorpayOrder({
+class RazorpayOrderRejectedError extends Error {\n  constructor(message) { super(message); this.name = "RazorpayOrderRejectedError"; }\n}\n\nasync function createRazorpayOrder({
   fetchImpl = globalThis.fetch,
   keyId,
   keySecret,
@@ -44,7 +44,7 @@ async function createRazorpayOrder({
 
   if (!response.ok) {
     const message = payload && payload.error && payload.error.description;
-    throw new Error(typeof message === "string" ? message : "Razorpay order creation failed");
+    throw new RazorpayOrderRejectedError(typeof message === "string" ? message : "Razorpay order creation failed");
   }
   if (!payload || typeof payload.id !== "string" || !/^order_[A-Za-z0-9]+$/.test(payload.id) ||
       payload.amount !== amount || payload.currency !== currency || payload.status !== "created") {
@@ -53,4 +53,4 @@ async function createRazorpayOrder({
   return { id: payload.id, amount: payload.amount, currency: payload.currency, status: payload.status };
 }
 
-module.exports = { createRazorpayOrder };
+module.exports = { createRazorpayOrder, RazorpayOrderRejectedError };
