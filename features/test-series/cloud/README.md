@@ -105,3 +105,11 @@ Install dependencies for local validation from `features/test-series/cloud/funct
 ## CI and load-test safety
 
 The normal Test Series CBT push/pull-request workflow runs the isolated unit, callable-emulator and Firestore Rules checks; it does not run either synthetic load harness. The Firestore load-test workflow is manual-only and its job remains skipped unless the required `confirm_load_test` checkbox is explicitly selected (default: false). Do not dispatch it without explicit project-owner approval. See `PERFORMANCE-LOAD-TEST.md` for bounded settings and interpretation limits.
+
+### Student-test pending payment lock
+
+The server now maintains one deterministic `testSeriesPaymentLocks/{sha256(uid,testId)}` record per student and test. The lock is reserved in the same Firestore transaction as the payment request, before the Razorpay API call. A different request ID from another tab or device is rejected while the lock points to a `creating`, `created`, or `unknown` request. The same request ID can wait or replay its existing order only when the lock and request record agree.
+
+A definite provider rejection marks that request failed and deletes only its matching lock. A network/provider ambiguity, or a Firestore failure after provider success, retains or repairs the matching lock as `unknown`; a later request must not create another provider order. A signature-verified captured-payment webhook creates the payment ledger and entitlement and deletes the matching student-test lock in the same transaction. If a lock exists but does not match the trusted order's `paymentRequestId`, capture processing fails closed.
+
+There is deliberately no automatic lock expiry. A stale `creating` or `unknown` lock requires Owner/support reconciliation using the payment request record and Razorpay Dashboard before a safe release procedure is implemented. Do not delete a lock manually merely to let a student retry: the provider may already have created an order. This is a server-side one-pending-order guard, not proof of payment. Only the verified capture ledger grants paid access.
