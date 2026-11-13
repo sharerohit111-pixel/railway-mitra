@@ -37,7 +37,7 @@ async function recordPaymentInspectionAudit({
   if (orderStatus !== null && !ALLOWED_ORDER_STATUSES.has(orderStatus)) {
     throw new TypeError("Invalid provider order status");
   }
-  if (!Array.isArray(paymentStatuses) || paymentStatuses.length > 100 ||
+  if (!Array.isArray(paymentStatuses) || paymentStatuses.length > 500 ||
       paymentStatuses.some(status => !ALLOWED_PAYMENT_STATUSES.has(status))) {
     throw new TypeError("Invalid provider payment status list");
   }
