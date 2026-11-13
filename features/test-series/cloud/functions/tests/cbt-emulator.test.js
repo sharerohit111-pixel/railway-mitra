@@ -118,6 +118,16 @@ test("student accounts cannot delete from the Owner question bank", async () => 
   );
 });
 
+test("student accounts cannot search or filter the Owner question bank", async () => {
+  await assert.rejects(
+    callable("rmOwnerListQuestionBank", {
+      pageSize: 25, topic: "Civil Engineering", chapter: "Soil Mechanics",
+      folder: "JE/Practice", search: "bearing capacity"
+    }),
+    error => error.code === "functions/permission-denied"
+  );
+});
+
 test("student accounts cannot list the Owner question bank", async () => {
   await assert.rejects(
     callable("rmOwnerListQuestionBank"),
