@@ -504,10 +504,26 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
 
 exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
+  const data = req.data || {};
+  const pageSize = data.pageSize === undefined ? 50 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new HttpsError("invalid-argument", "Page size must be from 1 to 100");
+  }
+  let query = db.collection("testSeriesTests").orderBy("updatedAt", "desc");
+  if (data.cursor !== undefined && data.cursor !== null) {
+    if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(data.cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid test list cursor");
+    }
+    const cursorSnap = await db.doc("testSeriesTests/" + data.cursor).get();
+    if (!cursorSnap.exists) throw new HttpsError("invalid-argument", "Test list cursor not found");
+    query = query.startAfter(cursorSnap);
+  }
   const [snap, freeConfigSnap] = await Promise.all([
-    db.collection("testSeriesTests").orderBy("updatedAt", "desc").limit(100).get(),
+    query.limit(pageSize + 1).get(),
     db.doc("testSeriesConfig/freeTest").get()
   ]);
+  const hasMore = snap.docs.length > pageSize;
+  const page = snap.docs.slice(0, pageSize);
   const freeConfig = freeConfigSnap.exists ? freeConfigSnap.data() : null;
   const freeTestId = freeConfig && freeConfig.enabled && typeof freeConfig.testId === "string"
     ? freeConfig.testId
@@ -515,7 +531,9 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
   return {
     freeTestId,
     freeTestLocked: Boolean(freeConfig && freeConfig.hasClaims === true),
-    tests: snap.docs.map(d => {
+    nextCursor: hasMore ? page[page.length - 1].id : null,
+    hasMore,
+    tests: page.map(d => {
       const t = d.data();
       return { testId: d.id, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
         price: Number(t.price || 0), durationMinutes: Number(t.durationMinutes || 0),
