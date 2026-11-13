@@ -31,7 +31,7 @@ export function summarizeStudentActivity(rows, term = "") {
 
 function csvCell(value) {
   let text = value === null || value === undefined ? "" : String(value);
-  if (/^\\s*[=+@-]/.test(text)) text = "'" + text;
+  if (/^\s*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
