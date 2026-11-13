@@ -834,6 +834,10 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
   const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
   const replayEventRef = db.doc("testSeriesPaymentEvents/evt_ledger_replay");
   const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const { paymentRequestDocumentId, paymentStudentTestLockDocumentId } = require("../payment-order-request");
+  const paymentRequestId = "emulator-ledger-lock-request-0001";
+  const requestDocId = paymentRequestDocumentId({ uid, testId: paidTestId, requestId: paymentRequestId });
+  const paymentLockRef = db.doc("testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({ uid, testId: paidTestId }));
   let attemptId = null;
 
   const event = {
@@ -859,7 +863,11 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     });
     await orderRef.set({
       uid, testId: paidTestId, razorpayOrderId: orderId,
-      amount: 49900, currency: "INR", status: "created"
+      amount: 49900, currency: "INR", status: "created", paymentRequestId: requestDocId
+    });
+    await paymentLockRef.set({
+      uid, testId: paidTestId, requestDocId, status: "created",
+      createdAt: new Date(), updatedAt: new Date()
     });
 
     const first = await applyCapturedPayment({ db, event, eventId });
@@ -877,6 +885,8 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     assert.equal(entitlement.paymentId, paymentId);
     assert.equal((await paymentRef.get()).exists, true);
     assert.equal((await eventRef.get()).data().status, "processed");
+    assert.equal((await paymentLockRef.get()).exists, false,
+      "verified capture must atomically release the student-test payment lock");
 
     const sameEventRetry = await applyCapturedPayment({ db, event, eventId });
     assert.equal(sameEventRetry.granted, false);
