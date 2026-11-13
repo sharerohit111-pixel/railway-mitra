@@ -42,6 +42,7 @@ jobs:
           node --check --input-type=module < features/test-series/admin/owner-portal.js
           node --check --input-type=module < features/test-series/admin/owner-session.mjs
           node --check --input-type=module < features/test-series/admin/admin-test-validation.mjs
+          node --check --input-type=module < features/test-series/admin/payment-inspection-guidance.mjs
           node --check --input-type=module < features/test-series/cloud/app-check.js
           node --check --input-type=module < features/test-series/cloud/firebase-app-check-init.js
       - name: Test Owner Admin draft validation
