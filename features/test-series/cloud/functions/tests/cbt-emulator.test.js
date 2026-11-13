@@ -397,6 +397,10 @@ test("student can start, save answers and submit with server-side scoring", asyn
   });
   assert.equal(changedSave.saved, true);
   assert.equal((await db.doc("testSeriesAttempts/" + started.attemptId).get()).data().answers.q1, "1");
+  // Restore the correct option so the later server-scoring assertions remain meaningful.
+  await callable("rmSaveAnswer", {
+    attemptId: started.attemptId, questionId: "q1", answer: "0"
+  });
 
   // Section deadlines are enforced independently of the overall exam deadline.
   await db.doc("testSeriesAttempts/" + started.attemptId).update({
