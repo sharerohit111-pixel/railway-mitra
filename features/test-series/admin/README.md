@@ -74,3 +74,6 @@ The Owner Question Bank list supports exact topic, chapter and folder filters, c
 ### Bulk selection for test assembly
 
 The Question Bank UI supports selecting multiple questions from the currently loaded result pages and appending them to the Test Management question JSON editor in one action. Existing question IDs are skipped to prevent duplicate insertion. The Owner must still review and save the draft/published test through the existing Test Management workflow; selection does not publish or modify a test by itself.
+
+
+The bulk-add controls can add every currently loaded question matching a selected topic, chapter, and/or folder to the Test Management JSON editor. The current loaded result pages are the selection scope; use Load More or narrow the Question Bank filters before adding if the target group is larger than the loaded pages. Duplicate IDs are skipped, and the test still requires the normal Owner review and Save Test action.
