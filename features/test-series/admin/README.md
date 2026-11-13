@@ -54,3 +54,8 @@ The Students module calls `rmOwnerListStudentActivity`, an Owner-only, App-Check
 ## Owner result analytics
 
 The Results & Ranking module calls the Owner-only `rmOwnerGetResultAnalytics` callable. It aggregates only the latest 500 submitted result summaries and reports the sampled attempt count, average score, average correct-answer percentage, timeout count and per-test aggregates. The response contains no student identifiers or personal contact data. When 500 records are present, the UI explicitly indicates that older records are outside this bounded snapshot; these values must not be described as lifetime totals. The report is cleared when the Owner session is lost.
+
+
+## Owner Question Bank
+
+The Question Bank module stores reusable question records separately in `testSeriesQuestionBank`. Owner-only callable APIs support saving and listing records with topic, chapter and folder metadata. Question text, options, explanation and correct option are stored server-side; student clients cannot list or write these records. The dashboard displays up to the 100 most recently updated entries. The current first iteration adds records and lists them; editing, deletion, bulk import/export and attaching selected bank entries to a test are follow-on work. Existing test creation/import remains unchanged.
