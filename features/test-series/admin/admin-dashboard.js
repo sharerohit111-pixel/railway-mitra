@@ -70,6 +70,10 @@ export function initOwnerAdminDashboard(auth, functions) {
     },
     onMfaRequired: () => {
       clearPaymentHistory();
+      clearTestManagement();
+      clearStudentActivity();
+      clearAnalytics();
+      clearQuestionBank();
       home.hidden = true;
       login.hidden = true;
       setup.hidden = false;
