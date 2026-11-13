@@ -19,7 +19,7 @@ onAuthStateChanged(auth,async(user)=>{
  try{
   const token=await getIdTokenResult(user,true);
   if(token.claims.admin!==true){
-   message("प्रवेश की अनुमति नहीं है","इस खाते पर सर्वर द्वारा जारी owner=true अधिकार उपलब्ध नहीं है। सुरक्षा के लिए ईमेल या ब्राउज़र डेटा के आधार पर मालिकाना अधिकार नहीं दिया जाता।","error");
+   message("प्रवेश की अनुमति नहीं है","इस खाते पर सर्वर द्वारा जारी admin=true अधिकार उपलब्ध नहीं है। सुरक्षा के लिए ईमेल या ब्राउज़र डेटा के आधार पर मालिकाना अधिकार नहीं दिया जाता।","error");
    return;
   }
   state.hidden=true;
