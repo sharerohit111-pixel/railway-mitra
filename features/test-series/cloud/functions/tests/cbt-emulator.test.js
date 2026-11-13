@@ -385,6 +385,39 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
   }
 });
 
+test("a different authenticated student cannot read, save or submit another student's attempt", async () => {
+  const foreignUser = await getAuth(app).createUser({
+    phoneNumber: "+1666" + String(Date.now()).slice(-7)
+  });
+  const foreignAttemptId = "foreign-owner-boundary-attempt";
+  const foreignAttemptRef = db.doc("testSeriesAttempts/" + foreignAttemptId);
+  try {
+    await foreignAttemptRef.set({
+      uid: foreignUser.uid, testId, status: "in_progress",
+      startedAt: new Date(), expiresAt: new Date(Date.now() + 60_000), answers: {}
+    });
+    await signOut(clientAuth);
+    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+    await assert.rejects(
+      callable("rmGetExamQuestions", { attemptId: foreignAttemptId }),
+      error => error.code === "functions/permission-denied"
+    );
+    await assert.rejects(
+      callable("rmSaveAnswer", { attemptId: foreignAttemptId, questionId: "q1", answer: "0" }),
+      error => error.code === "functions/permission-denied"
+    );
+    await assert.rejects(
+      callable("rmSubmitExam", { attemptId: foreignAttemptId }),
+      error => error.code === "functions/permission-denied"
+    );
+  } finally {
+    await foreignAttemptRef.delete().catch(() => {});
+    await getAuth(app).deleteUser(foreignUser.uid).catch(() => {});
+    await signOut(clientAuth).catch(() => {});
+    await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
+  }
+});
+
 test("unauthenticated caller cannot start an exam", async () => {
   await signOut(clientAuth);
   await assert.rejects(
