@@ -1,48 +1,28 @@
-// IMPORTANT: This file currently contains ONLY the Railway Mitra exam-content rule.
-// Before deploying Storage rules, export the actual live Firebase Storage rules and
-// merge this match block into them. Deploying this file as-is would replace any
-// existing Storage rules for other app features.
+// IMPORTANT: This file currently contains the Railway Mitra exam-content rule
+// plus the Railway Updates PDF rule. Before deploying Storage rules, export the
+// actual live Firebase Storage rules and merge these blocks into them.
+// Deploying this file as-is may replace rules for other app features.
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-
-    // Railway Updates PDF library: public read, Owner Admin writes only.
+    // Railway Updates PDF library: public read; Owner Admin writes only.
     match /updates/{category}/{uid}/{fileName} {
-      allow read: if category.matches('^(rbe|pay|exam|transfer|medical|zone|other){uid}/{folderId}/{fileName} {
-      allow read: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid;
-      allow write: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid
-        && (request.resource == null || (
-          request.resource.size > 0
-          && request.resource.size <= 20 * 1024 * 1024
-          && request.resource.contentType == 'application/pdf'
-        ));
-    }
-  }
-});
-      allow write: if request.auth != null
+      allow read: if category.matches('^(rbe|pay|exam|transfer|medical|zone|other)$');
+      allow write: if category.matches('^(rbe|pay|exam|transfer|medical|zone|other)$')
+        && request.auth != null
         && request.auth.token.admin == true
-        && category.matches('^(rbe|pay|exam|transfer|medical|zone|other){uid}/{folderId}/{fileName} {
-      allow read: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid;
-      allow write: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid
-        && (request.resource == null || (
-          request.resource.size > 0
-          && request.resource.size <= 20 * 1024 * 1024
-          && request.resource.contentType == 'application/pdf'
-        ));
-    }
-  }
-})
+        && request.auth.uid == uid
         && (
           request.resource == null
           || (
-            uid == request.auth.uid
-            && request.resource.size > 0
+            request.resource.size > 0
             && request.resource.size <= 20 * 1024 * 1024
             && request.resource.contentType == 'application/pdf'
           )
         );
     }
 
+    // Existing exam-content access rule; preserve unchanged.
     match /exam-content/{uid}/{folderId}/{fileName} {
       allow read: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid;
       allow write: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid
