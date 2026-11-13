@@ -71,4 +71,40 @@ function normalizeQuestionBankItem(item, rowNumber) {
   };
 }
 
-module.exports = { normalizeQuestionBankItem };
+
+/**
+ * Validate list filters without silently coercing malformed client values.
+ * Cursor existence and Firestore pagination remain the callable's responsibility.
+ */
+function normalizeQuestionBankListRequest(data = {}) {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    fail("question bank list request must be an object");
+  }
+  const pageSize = data.pageSize === undefined ? 50 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    fail("Page size must be from 1 to 100");
+  }
+  let search = "";
+  if (data.search !== undefined && data.search !== null) {
+    if (typeof data.search !== "string") fail("Search must be text");
+    search = data.search.trim();
+    if (search.length > 120 || hasControlCharacters(search)) {
+      fail("Search must be within 120 characters and contain no control characters");
+    }
+  }
+  const filters = {};
+  for (const field of ["topic", "chapter", "folder"]) {
+    if (data[field] === undefined || data[field] === null) continue;
+    if (typeof data[field] !== "string") fail(field + " filter must be text");
+    const value = data[field].trim();
+    if (!value) continue;
+    const max = field === "topic" ? 80 : field === "chapter" ? 100 : 120;
+    if (value.length > max || hasControlCharacters(value)) {
+      fail("Invalid " + field + " filter");
+    }
+    filters[field] = value;
+  }
+  return { pageSize, searchText: search.toLocaleLowerCase(), filters };
+}
+
+module.exports = { normalizeQuestionBankItem, normalizeQuestionBankListRequest };
