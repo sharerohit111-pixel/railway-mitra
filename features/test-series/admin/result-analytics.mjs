@@ -34,3 +34,18 @@ export function testAnalyticsPrintHtml(data, generatedAt = new Date()) {
     @page{size:landscape;margin:12mm}@media print{body{margin:0}}
   </style></head><body><h1>Railway Mitra — टेस्ट के अनुसार प्रदर्शन</h1><p>जमा परिणाम: ${sampled} · रिपोर्ट समय: ${htmlCell(stamp)}</p>${bounded ? "<p><strong>सीमा:</strong> यह रिपोर्ट नवीनतम 500 उपलब्ध जमा परिणामों के नमूने पर आधारित है; इसे lifetime total न मानें।</p>" : ""}<table><thead><tr>${TEST_COLUMNS.map(([label]) => "<th>" + htmlCell(label) + "</th>").join("")}</tr></thead><tbody>${body}</tbody></table></body></html>`;
 }
+
+
+export function filterAndSortTestAnalytics(rows, term = "", sortBy = "attempts") {
+  const needle = String(term || "").trim().toLocaleLowerCase();
+  const filtered = (Array.isArray(rows) ? rows : []).filter(item =>
+    !needle || [item?.testId, item?.title].some(value => String(value || "").toLocaleLowerCase().includes(needle))
+  );
+  const numeric = value => Number.isFinite(Number(value)) ? Number(value) : -Infinity;
+  return filtered.sort((a, b) => {
+    if (sortBy === "title") return String(a?.title || a?.testId || "").localeCompare(String(b?.title || b?.testId || ""));
+    if (sortBy === "averageScore") return numeric(b?.averageScore) - numeric(a?.averageScore);
+    if (sortBy === "averageCorrectPercent") return numeric(b?.averageCorrectPercent) - numeric(a?.averageCorrectPercent);
+    return numeric(b?.attempts) - numeric(a?.attempts) || String(a?.title || "").localeCompare(String(b?.title || ""));
+  });
+}
