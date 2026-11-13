@@ -7,11 +7,12 @@
   },
   "main": "index.js",
   "scripts": {
-    "lint": "node --check index.js && node --check tests/load/firestore-emulator-load.js",
+    "lint": "node --check index.js && node --check tests/load/firestore-emulator-load.js && node --check tests/load/callable-emulator-load.js",
     "serve": "firebase emulators:start --only functions:test-series",
     "deploy": "firebase deploy --only functions:test-series",
     "test": "node --test tests/*.test.js",
-    "load:emulator": "node tests/load/firestore-emulator-load.js"
+    "load:emulator": "node tests/load/firestore-emulator-load.js",
+    "load:callable:emulator": "node tests/load/callable-emulator-load.js"
   },
   "dependencies": {
     "firebase-admin": "^14.2.0",
