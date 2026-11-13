@@ -71,6 +71,29 @@ export function validateOwnerTestDraft(draft) {
       ...(section ? { section } : {}) };
   });
 
+  const sectionNames = [...new Set(questions.map(question => question.section).filter(Boolean))];
+  const suppliedSections = Array.isArray(draft.sections) ? draft.sections : [];
+  if (suppliedSections.length > 50) throw new Error("अधिकतम 50 सेक्शन बनाए जा सकते हैं।");
+  const sectionConfig = new Map();
+  suppliedSections.forEach((section, index) => {
+    const name = typeof section?.name === "string" ? section.name.trim() : "";
+    const timeLimitMinutes = Number(section?.timeLimitMinutes ?? 0);
+    if (!name || name.length > 80 || !Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
+      throw new Error("सेक्शन " + (index + 1) + " का नाम या समय सीमा सही नहीं है।");
+    }
+    const key = name.toLocaleLowerCase();
+    if (sectionConfig.has(key)) throw new Error("सेक्शन का नाम दोहराया गया है।");
+    sectionConfig.set(key, { name, timeLimitMinutes });
+  });
+  sectionNames.forEach(name => {
+    const key = name.toLocaleLowerCase();
+    if (!sectionConfig.has(key)) sectionConfig.set(key, { name, timeLimitMinutes: 0 });
+  });
+  const sections = [...sectionConfig.values()].map(section => ({
+    ...section,
+    questionCount: questions.filter(question => question.section?.toLocaleLowerCase() === section.name.toLocaleLowerCase()).length
+  })).filter(section => section.questionCount > 0);
+
   const payload = {
     title,
     category,
@@ -80,6 +103,7 @@ export function validateOwnerTestDraft(draft) {
     price,
     marksPerQuestion,
     negativeMarks,
+    sections,
     status: draft.status === "published" ? "published" : "draft",
     questions
   };
