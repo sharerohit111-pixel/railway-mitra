@@ -1,8 +1,13 @@
 import { createPaymentRequestId, createStudentPaymentOrder } from "../cloud/student-client.js";
+import {
+  clearPaymentRequestId,
+  getOrCreatePaymentRequestId,
+  isDefiniteProviderOrderRejection,
+  requirePaymentSessionStorage
+} from "./payment-request-session.mjs";
 
 const CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
 let checkoutScriptPromise = null;
-const paymentRequestIds = new Map();
 
 function loadCheckoutScript(root = document) {
   if (typeof globalThis.Razorpay === "function") return Promise.resolve();
@@ -36,14 +41,21 @@ export async function startStudentTestCheckout({ app, test, onStatus, root = doc
   if (typeof onStatus === "function") onStatus("Preparing secure payment…");
   await loadCheckoutScript(root);
 
-  // Reuse the same request ID for this test during this page session. If the
-  // order response is lost, the backend replays the original provider order.
-  let requestId = paymentRequestIds.get(test.testId);
-  if (!requestId) {
-    requestId = createPaymentRequestId();
-    paymentRequestIds.set(test.testId, requestId);
+  // Persist the opaque idempotency key in this tab so a reload or lost
+  // callable response reuses the same server reservation instead of creating
+  // another provider order. Unknown outcomes deliberately retain this key.
+  const storage = requirePaymentSessionStorage(root);
+  const requestId = getOrCreatePaymentRequestId(storage, test.testId, createPaymentRequestId);
+  let order;
+  try {
+    order = await createStudentPaymentOrder(app, test.testId, requestId);
+  } catch (error) {
+    // The server sets this detail only after Razorpay explicitly rejected order
+    // creation. Network ambiguity never clears the key and remains locked for
+    // reconciliation.
+    if (isDefiniteProviderOrderRejection(error)) clearPaymentRequestId(storage, test.testId);
+    throw error;
   }
-  const order = await createStudentPaymentOrder(app, test.testId, requestId);
   if (!order || !order.orderId || !order.keyId || !Number.isSafeInteger(order.amount) || order.amount <= 0 ||
       order.currency !== "INR" || order.testId !== test.testId) {
     throw new Error("The payment order response could not be verified.");
