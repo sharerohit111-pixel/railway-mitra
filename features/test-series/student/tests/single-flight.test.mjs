@@ -56,3 +56,19 @@ test("a synchronous operation error also releases the key", async () => {
   }).catch(error => error.message), "sync failure");
   assert.equal(await runSingleFlight(key, () => "recovered"), "recovered");
 });
+
+test("a synchronous throw is shared by concurrent callers", async () => {
+  const key = {};
+  let calls = 0;
+  const operation = () => {
+    calls += 1;
+    throw new Error("shared sync failure");
+  };
+  const first = runSingleFlight(key, operation);
+  const second = runSingleFlight(key, operation);
+  assert.equal(first, second);
+  const outcomes = await Promise.allSettled([first, second]);
+  assert.equal(calls, 1);
+  assert.deepEqual(outcomes.map(item => item.status), ["rejected", "rejected"]);
+  assert.equal(outcomes[0].reason.message, "shared sync failure");
+});
