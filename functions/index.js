@@ -2,6 +2,8 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const { defineSecret } = require("firebase-functions/params");
+const { BetaAnalyticsDataClient } = require("@google-analytics/data");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 
@@ -1037,3 +1039,74 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
     deletedFeedbackThreads: feedback.size
   };
 });
+
+
+// Owner-only Google Analytics Data API report.
+// Configure GA_SERVICE_ACCOUNT_JSON as a Firebase Functions secret. The service
+// account must have Viewer access to GA4 property 564314853.
+const GA_SERVICE_ACCOUNT_JSON = defineSecret("GA_SERVICE_ACCOUNT_JSON");
+const GA4_PROPERTY_ID = "564314853";
+
+exports.getOwnerAnalyticsSummary = onCall(
+  { region: REGION, secrets: [GA_SERVICE_ACCOUNT_JSON], timeoutSeconds: 30 },
+  async request => {
+    requireAdmin(request);
+    let credentials;
+    try {
+      credentials = JSON.parse(GA_SERVICE_ACCOUNT_JSON.value());
+      if (!credentials.client_email || !credentials.private_key) throw new Error("Missing service account fields");
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Google Analytics reporting credentials are not configured.");
+    }
+
+    try {
+      const client = new BetaAnalyticsDataClient({
+        credentials: {
+          client_email: credentials.client_email,
+          private_key: credentials.private_key
+        }
+      });
+      const property = "properties/" + GA4_PROPERTY_ID;
+      const [realtime] = await client.runRealtimeReport({
+        property,
+        metrics: [{ name: "activeUsers" }]
+      });
+      const [weekly] = await client.runReport({
+        property,
+        dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+        metrics: [
+          { name: "activeUsers" },
+          { name: "sessions" },
+          { name: "eventCount" }
+        ]
+      });
+      const [events] = await client.runReport({
+        property,
+        dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+        dimensions: [{ name: "eventName" }],
+        metrics: [{ name: "eventCount" }],
+        limit: 20,
+        orderBys: [{ metric: { metricName: "eventCount" }, desc: true }]
+      });
+      const metricValue = (report, index) =>
+        Number(report?.rows?.[0]?.metricValues?.[index]?.value || 0);
+      return {
+        propertyId: GA4_PROPERTY_ID,
+        realtimeActiveUsers: metricValue(realtime, 0),
+        last7Days: {
+          activeUsers: metricValue(weekly, 0),
+          sessions: metricValue(weekly, 1),
+          eventCount: metricValue(weekly, 2)
+        },
+        topEvents: (events.rows || []).map(row => ({
+          eventName: row.dimensionValues?.[0]?.value || "unknown",
+          eventCount: Number(row.metricValues?.[0]?.value || 0)
+        })),
+        generatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error("Owner Analytics API error:", error);
+      throw new HttpsError("unavailable", "Google Analytics report could not be loaded. Check the service account property access and API setup.");
+    }
+  }
+);
