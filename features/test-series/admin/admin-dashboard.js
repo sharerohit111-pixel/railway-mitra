@@ -423,11 +423,25 @@ export function initOwnerAdminDashboard(auth, functions) {
       el("rm-test-start").value = toLocalDateTimeInput(t.scheduleStartAt);
       el("rm-test-end").value = toLocalDateTimeInput(t.scheduleEndAt);
       el("rm-test-questions").value = JSON.stringify(t.questions, null, 2);
+      // Restore this test's section timing configuration when editing or cloning.
+      // Otherwise the shared Question Bank section editor could overwrite it.
+      questionSections.splice(0, questionSections.length, ...(Array.isArray(t.sections)
+        ? t.sections.map(section => ({ name: section.name, timeLimitMinutes: Number(section.timeLimitMinutes || 0) }))
+        : []));
+      activeQuestionSection = "";
+      renderQuestionSections();
       status(cloneAsDraft ? "Published test की नई Draft copy तैयार है। मूल प्रकाशित टेस्ट सुरक्षित रहेगा।" : "Test Edit mode: " + t.testId);
       testForm.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (e) { if (generation === testManagementGeneration && editGeneration === testEditGeneration) status(e.message || "Test details नहीं मिले।"); }
   }
-  el("rm-admin-test-cancel").addEventListener("click", () => { testEditGeneration += 1; testForm.reset(); el("rm-test-id").value = ""; });
+  el("rm-admin-test-cancel").addEventListener("click", () => {
+    testEditGeneration += 1;
+    testForm.reset();
+    el("rm-test-id").value = "";
+    questionSections.splice(0);
+    activeQuestionSection = "";
+    renderQuestionSections();
+  });
   testForm.addEventListener("submit", async event => {
     event.preventDefault();
     const button = event.currentTarget.querySelector('button[type="submit"]');
@@ -457,6 +471,9 @@ export function initOwnerAdminDashboard(auth, functions) {
       status("Test सेव हुआ: " + saved.data.testId);
       event.currentTarget.reset();
       el("rm-test-id").value = "";
+      questionSections.splice(0);
+      activeQuestionSection = "";
+      renderQuestionSections();
       await refreshTests();
     } catch (e) { status(e.message || "Test सेव नहीं हुआ।"); }
     finally { button.disabled = false; }
@@ -724,7 +741,8 @@ export function initOwnerAdminDashboard(auth, functions) {
         if (!Array.isArray(current)) { questionBankStatus.textContent = "Test प्रश्न सूची Array होनी चाहिए।"; return; }
         const question = { id: "bank_" + item.itemId, text: item.question?.text || "",
           options: Array.isArray(item.question?.options) ? item.question.options : [],
-          correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "" };
+          correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "",
+          ...((activeQuestionSection || item.question?.section) ? { section: activeQuestionSection || item.question.section } : {}) };
         if (current.some(existing => existing.id === question.id)) { questionBankStatus.textContent = "यह प्रश्न इस टेस्ट में पहले से जोड़ा गया है।"; return; }
         current.push(question);
         target.value = JSON.stringify(current, null, 2);
