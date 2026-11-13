@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
+import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 
 export function initOwnerAdminDashboard(auth, functions) {
   const el = id => document.getElementById(id);
@@ -401,22 +402,11 @@ export function initOwnerAdminDashboard(auth, functions) {
               const paymentSummary = payments.length
                 ? payments.map(payment => payment.paymentId + ": " + payment.status + " · ₹" + (payment.amountPaise / 100).toFixed(2)).join(" | ")
                 : "Provider पर कोई payment attempt नहीं मिला";
-              const hasCapturedHistory = payments.some(payment =>
-                payment.status === "captured" || payment.status === "refunded"
-              );
-              const hasAuthorization = payments.some(payment => payment.status === "authorized");
-              let safetyGuidance;
-              if (result.matchesRequest !== true) {
-                safetyGuidance = "सुरक्षा निर्णय: स्थानीय request और Provider Order का मिलान नहीं हुआ। कोई कार्रवाई न करें; मैन्युअल समीक्षा आवश्यक है।";
-              } else if (order.status === "paid" && !hasCapturedHistory) {
-                safetyGuidance = "सुरक्षा निर्णय: Razorpay Order paid है, लेकिन भुगतान सूची में captured/refunded रिकॉर्ड नहीं मिला। यह असंगति है; Provider और स्थानीय payment ledger/entitlement की मैन्युअल समीक्षा करें। lock न हटाएँ।";
-              } else if (hasCapturedHistory) {
-                safetyGuidance = "सुरक्षा निर्णय: इस Order पर capture का इतिहास मिला है (रिफंड हुआ भुगतान भी पहले capture हुआ था)। भुगतान ledger और entitlement का मिलान करें; lock स्वयं न हटाएँ।";
-              } else if (hasAuthorization) {
-                safetyGuidance = "सुरक्षा निर्णय: कम-से-कम एक भुगतान authorized है। देर से capture या refund संभव है; lock न हटाएँ।";
-              } else {
-                safetyGuidance = "सुरक्षा निर्णय: Order अभी created/attempted है या प्रयास failed हैं। Razorpay Order पर दोबारा भुगतान संभव है; failed प्रयास देखकर lock न हटाएँ।";
-              }
+              const safetyGuidance = getPaymentInspectionGuidance({
+                matchesRequest: result.matchesRequest,
+                orderStatus: order.status,
+                payments
+              });
               inspection.textContent = (result.matchesRequest === true
                 ? "Provider Order और स्थानीय request का मिलान सही है। "
                 : "चेतावनी: Provider Order और स्थानीय request का मिलान नहीं हुआ। ") +
