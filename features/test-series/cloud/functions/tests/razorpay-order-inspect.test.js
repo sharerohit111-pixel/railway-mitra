@@ -17,7 +17,7 @@ function inspectWithPayments(items) {
     expectedAmountPaise: 49900,
     expectedUid: "student_uid",
     expectedTestId: "gdce_test",
-    fetchImpl: async url => url.endsWith("/payments")
+    fetchImpl: async url => url.includes("/payments?")
       ? response({ items })
       : response({
         id: "order_123456",
@@ -45,7 +45,7 @@ test("reads and allow-lists order plus payment status from Razorpay", async () =
     expectedAmountPaise: 49900, expectedUid: "student_uid", expectedTestId: "gdce_test",
     fetchImpl: async (url, options) => {
       calls.push({ url, options });
-      if (url.endsWith("/payments")) return response({ items: [{
+      if (url.includes("/payments?")) return response({ items: [{
         id: "pay_123456", status: "captured", amount: 49900, currency: "INR",
         order_id: "order_123456", captured: true, email: "private@example.com",
         contact: "9999999999"
@@ -137,4 +137,61 @@ test("fails closed for unknown or inconsistent provider payment rows", async () 
   for (const payment of invalidRows) {
     await assert.rejects(inspectWithPayments([payment]), /invalid payment record/);
   }
+});
+
+
+test("paginates beyond Razorpay's default page and inspects every payment attempt", async () => {
+  const calls = [];
+  const firstPage = Array.from({ length: 100 }, (_, index) => ({
+    id: "pay_page1" + String(index).padStart(6, "0"),
+    status: "failed", amount: 49900, currency: "INR",
+    order_id: "order_123456", captured: false
+  }));
+  const secondPage = [{
+    id: "pay_latecap123", status: "captured", amount: 49900,
+    currency: "INR", order_id: "order_123456", captured: true
+  }];
+  const result = await inspectRazorpayOrder({
+    keyId: "key", keySecret: "secret", orderId: "order_123456",
+    expectedReceipt: "rm_receipt_123", expectedAmountPaise: 49900,
+    expectedUid: "student_uid", expectedTestId: "gdce_test",
+    fetchImpl: async url => {
+      calls.push(url);
+      if (url.includes("/payments?")) {
+        return response({ items: url.includes("skip=0") ? firstPage : secondPage });
+      }
+      return response({
+        id: "order_123456", status: "paid", amount: 49900, currency: "INR",
+        receipt: "rm_receipt_123", notes: { uid: "student_uid", testId: "gdce_test" }
+      });
+    }
+  });
+  assert.equal(calls.filter(url => url.includes("/payments?")).length, 2);
+  assert.ok(calls.some(url => url.includes("count=100&skip=0")));
+  assert.ok(calls.some(url => url.includes("count=100&skip=100")));
+  assert.equal(result.payments.length, 101);
+  assert.equal(result.payments[100].status, "captured");
+});
+
+test("fails closed when the inspection safety ceiling cannot prove all payment attempts were read", async () => {
+  let paymentPage = 0;
+  await assert.rejects(inspectRazorpayOrder({
+    keyId: "key", keySecret: "secret", orderId: "order_123456",
+    fetchImpl: async url => {
+      if (url.includes("/payments?")) {
+        paymentPage += 1;
+        return response({ items: Array.from({ length: 100 }, (_, index) => ({
+          id: "pay_" + String(paymentPage).padStart(2, "0") + String(index).padStart(4, "0"),
+          status: "failed", amount: 100, currency: "INR",
+          order_id: "order_123456", captured: false
+        })) });
+      }
+      return response({
+        id: "order_123456", status: "attempted", amount: 100,
+        currency: "INR", receipt: "rm_receipt_123",
+        notes: { uid: "student_uid", testId: "gdce_test" }
+      });
+    }
+  }), /safe inspection limit/);
+  assert.equal(paymentPage, 5);
 });
