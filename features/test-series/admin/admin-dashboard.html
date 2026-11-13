@@ -134,6 +134,15 @@
       </div>
       <div id="rm-admin-reconciliation-status" class="rm-admin-status" role="status" aria-live="polite">Reconciliation Queue अभी लोड नहीं हुई।</div>
       <div id="rm-admin-reconciliation-list" class="rm-admin-payments-list"></div>
+
+      <h4>Payment Inspection Audit Trail</h4>
+      <p>Owner द्वारा की गई Razorpay Status जाँचों का सुरक्षित रिकॉर्ड। यह सूची केवल निरीक्षण इतिहास दिखाती है; इससे Payment Lock या Entitlement नहीं बदलते।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-admin-refresh-payment-audit" type="button">Refresh Audit History</button>
+        <button id="rm-admin-payment-audit-more" type="button" hidden disabled>Load More</button>
+      </div>
+      <div id="rm-admin-payment-audit-status" class="rm-admin-status" role="status" aria-live="polite">Audit History अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-payment-audit-list" class="rm-admin-payments-list"></div>
     </section>
 
     <section id="rm-admin-students-panel" class="rm-admin-panel" hidden>
