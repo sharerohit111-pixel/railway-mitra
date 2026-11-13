@@ -1,5 +1,4 @@
-import { app, auth } from "../../../assets/js/firebase.js";
-import "../../../features/test-series/cloud/firebase-app-check-init.js";
+import { app, auth } from "../cloud/firebase-app-check-init.js";
 import { getFunctions } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { initOwnerAdminDashboard } from "./admin-dashboard.js";
 
