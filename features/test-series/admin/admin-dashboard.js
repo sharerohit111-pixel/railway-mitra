@@ -785,6 +785,8 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (!append) {
       questionBankCursor = null;
       questionBankItems = [];
+      selectedQuestionBankIds.clear();
+      updateQuestionBankSelectionStatus();
       questionBankList.replaceChildren();
       questionBankStatus.textContent = "प्रश्न बैंक लोड हो रहा है…";
     } else questionBankMore.disabled = true;
