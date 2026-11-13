@@ -8,6 +8,14 @@ const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature
 const { applyCapturedPayment } = require("./payment-ledger");
 const { handleRazorpayWebhook } = require("./razorpay-webhook-handler");
 const { rupeesToPaise } = require("./payment-price");
+const crypto = require("node:crypto");
+const {
+  PAYMENT_REQUEST_STATES,
+  validatePaymentRequestId,
+  paymentRequestDocumentId,
+  paymentRequestFingerprint,
+  inspectPaymentRequest
+} = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
@@ -454,89 +462,120 @@ exports.rmCreatePaymentOrder = onCall({
 }, async req => {
   const uid = user(req);
   const testId = id(req.data && req.data.testId);
-  const testSnap = await db.doc("testSeriesTests/" + testId).get();
-  if (!testSnap.exists || testSnap.data().status !== "published") {
-    throw new HttpsError("not-found", "Published test not found");
-  }
-  const test = testSnap.data();
-  let amount;
-  try {
-    amount = rupeesToPaise(test.price, { maxRupees: 100000 });
-  } catch {
-    throw new HttpsError("failed-precondition", "This test does not have a valid paid price");
-  }
+  let requestId;
+  try { requestId = validatePaymentRequestId(req.data && req.data.requestId); }
+  catch (error) { throw new HttpsError("invalid-argument", error.message); }
 
+  const testRef = db.doc("testSeriesTests/" + testId);
   const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + testId);
-  const existingEntitlement = await entitlementRef.get();
-  if (existingEntitlement.exists && existingEntitlement.data().uid === uid &&
-      existingEntitlement.data().testId === testId && existingEntitlement.data().status === "active") {
-    throw new HttpsError("already-exists", "You already have access to this test");
+  const testSnap = await testRef.get();
+  if (!testSnap.exists || testSnap.data().status !== "published") throw new HttpsError("not-found", "Published test not found");
+  let amount;
+  try { amount = rupeesToPaise(testSnap.data().price, { maxRupees: 100000 }); }
+  catch { throw new HttpsError("failed-precondition", "This test does not have a valid paid price"); }
+
+  const requestDocId = paymentRequestDocumentId({ uid, testId, requestId });
+  const fingerprint = paymentRequestFingerprint({ uid, testId, amount, currency: "INR" });
+  const requestRef = db.doc("testSeriesPaymentRequests/" + requestDocId);
+  const reservationToken = crypto.randomUUID();
+  const reservation = await db.runTransaction(async tx => {
+    const [requestSnap, latestTest, entitlement] = await Promise.all([tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef)]);
+    let latestAmount = null;
+    if (latestTest.exists && latestTest.data().status === "published") {
+      try { latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }); } catch {}
+    }
+    if (latestAmount !== amount) throw new HttpsError("failed-precondition", "Test price or availability changed. Refresh and try again.");
+    const access = entitlement.exists ? entitlement.data() : null;
+    if (access && access.uid === uid && access.testId === testId && access.status === "active") {
+      throw new HttpsError("already-exists", "You already have access to this test");
+    }
+    const decision = inspectPaymentRequest(requestSnap.exists ? requestSnap.data() : null, fingerprint);
+    if (decision.action === "reject") throw new HttpsError("already-exists", "This payment request ID was already used with a different or failed request. Start a new checkout.");
+    if (decision.action === "wait") throw new HttpsError("unavailable", "This payment request is still processing. Retry with the same request ID shortly.");
+    if (decision.action === "reconcile") throw new HttpsError("failed-precondition", "The previous payment outcome needs support reconciliation. Do not start another checkout yet.");
+    if (decision.action === "replay") return { action: "replay", orderId: decision.orderId };
+    tx.create(requestRef, {
+      uid, testId, requestId, fingerprint, amount, currency: "INR",
+      status: PAYMENT_REQUEST_STATES.CREATING, reservationToken,
+      receipt: "rm_" + requestDocId.slice(0, 32),
+      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+    });
+    return { action: "create" };
+  });
+
+  if (reservation.action === "replay") {
+    const orderSnap = await db.doc("testSeriesPaymentOrders/" + reservation.orderId).get();
+    if (!orderSnap.exists) throw new HttpsError("failed-precondition", "The saved payment order needs support reconciliation.");
+    const order = orderSnap.data();
+    if (order.uid !== uid || order.testId !== testId || order.amount !== amount || order.currency !== "INR" || order.status !== "created") {
+      throw new HttpsError("failed-precondition", "The saved payment order is inconsistent and needs support reconciliation.");
+    }
+    return { orderId: reservation.orderId, amount: order.amount, currency: order.currency, keyId: RAZORPAY_KEY_ID.value(), testId };
   }
 
-  const receiptRef = db.collection("testSeriesOrderReceipts").doc();
+  const requestSnap = await requestRef.get();
   let providerOrder;
   try {
     providerOrder = await createRazorpayOrder({
-      keyId: RAZORPAY_KEY_ID.value(),
-      keySecret: RAZORPAY_KEY_SECRET.value(),
-      amount,
-      currency: "INR",
-      receipt: "rm_" + receiptRef.id,
-      notes: { uid, testId }
+      keyId: RAZORPAY_KEY_ID.value(), keySecret: RAZORPAY_KEY_SECRET.value(),
+      amount, currency: "INR", receipt: requestSnap.data().receipt, notes: { uid, testId }
     });
   } catch (error) {
-    console.error("Razorpay order creation failed", { uid, testId, message: error.message });
-    throw new HttpsError("unavailable", "Payment order could not be created. Please try again.");
+    const definiteFailure = error && error.name === "RazorpayOrderRejectedError";
+    await db.runTransaction(async tx => {
+      const current = await tx.get(requestRef);
+      if (current.exists && current.data().reservationToken === reservationToken && current.data().status === PAYMENT_REQUEST_STATES.CREATING) {
+        tx.update(requestRef, {
+          status: definiteFailure ? PAYMENT_REQUEST_STATES.FAILED : PAYMENT_REQUEST_STATES.UNKNOWN,
+          failureCode: definiteFailure ? "provider_rejected" : "provider_outcome_unknown",
+          updatedAt: FieldValue.serverTimestamp()
+        });
+      }
+    }).catch(markError => console.error("Payment request failure state update failed", { requestDocId, message: markError.message }));
+    console.error("Razorpay order creation failed", { uid, testId, definiteFailure, message: error.message });
+    throw new HttpsError(definiteFailure ? "unavailable" : "failed-precondition",
+      definiteFailure ? "Payment provider rejected this order. Start a new checkout if you want to try again."
+        : "Payment provider outcome is unknown. Do not start another checkout; contact support for reconciliation.");
   }
 
   const orderRef = db.doc("testSeriesPaymentOrders/" + providerOrder.id);
   try {
     await db.runTransaction(async tx => {
-      const [latestTest, latestEntitlement] = await Promise.all([
-        tx.get(db.doc("testSeriesTests/" + testId)),
-        tx.get(entitlementRef)
-      ]);
+      const [currentRequest, latestTest, latestEntitlement] = await Promise.all([tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef)]);
+      if (!currentRequest.exists || currentRequest.data().reservationToken !== reservationToken || currentRequest.data().status !== PAYMENT_REQUEST_STATES.CREATING) {
+        throw new HttpsError("failed-precondition", "Payment reservation changed; provider order requires reconciliation.");
+      }
       let latestAmount = null;
       if (latestTest.exists && latestTest.data().status === "published") {
-        try {
-          latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 });
-        } catch {
-          // Treat a concurrently edited malformed price as a normal stale-price rejection.
-        }
+        try { latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }); } catch {}
       }
-      if (latestAmount !== amount) {
-        throw new HttpsError("failed-precondition", "Test price or availability changed. Refresh and try again.");
-      }
-      if (latestEntitlement.exists && latestEntitlement.data().uid === uid &&
-          latestEntitlement.data().testId === testId && latestEntitlement.data().status === "active") {
-        throw new HttpsError("already-exists", "You already have access to this test");
-      }
+      if (latestAmount !== amount) throw new HttpsError("failed-precondition", "Test price or availability changed after order creation.");
+      const access = latestEntitlement.exists ? latestEntitlement.data() : null;
+      if (access && access.uid === uid && access.testId === testId && access.status === "active") throw new HttpsError("already-exists", "You already have access to this test.");
       tx.create(orderRef, {
-        uid,
-        testId,
-        razorpayOrderId: providerOrder.id,
-        amount: providerOrder.amount,
-        currency: providerOrder.currency,
-        status: "created",
+        uid, testId, razorpayOrderId: providerOrder.id, amount: providerOrder.amount,
+        currency: providerOrder.currency, status: "created", paymentRequestId: requestDocId,
         createdAt: FieldValue.serverTimestamp()
       });
+      tx.update(requestRef, { status: PAYMENT_REQUEST_STATES.CREATED, razorpayOrderId: providerOrder.id, updatedAt: FieldValue.serverTimestamp() });
     });
   } catch (error) {
-    // A provider order without a matching trusted Firestore order is never payable by our webhook.
+    await db.runTransaction(async tx => {
+      const current = await tx.get(requestRef);
+      if (current.exists && current.data().reservationToken === reservationToken && current.data().status === PAYMENT_REQUEST_STATES.CREATING) {
+        tx.update(requestRef, {
+          status: PAYMENT_REQUEST_STATES.UNKNOWN, failureCode: "firestore_commit_after_provider_success",
+          providerOrderIdObserved: providerOrder.id, updatedAt: FieldValue.serverTimestamp()
+        });
+      }
+    }).catch(markError => console.error("Payment request reconciliation marker failed", { requestDocId, message: markError.message }));
     console.error("Razorpay order ledger write failed", { uid, testId, providerOrderId: providerOrder.id });
     if (error instanceof HttpsError) throw error;
-    throw new HttpsError("internal", "Payment order could not be registered. Please contact support before retrying.");
+    throw new HttpsError("failed-precondition", "Provider order was created but its ledger needs support reconciliation. Do not retry with a new request.");
   }
 
-  return {
-    orderId: providerOrder.id,
-    amount: providerOrder.amount,
-    currency: providerOrder.currency,
-    keyId: RAZORPAY_KEY_ID.value(),
-    testId
-  };
+  return { orderId: providerOrder.id, amount: providerOrder.amount, currency: providerOrder.currency, keyId: RAZORPAY_KEY_ID.value(), testId };
 });
-
 
 // Public provider callback: verify the HMAC against exact raw bytes before parsing
 // or touching the payment ledger. Unknown event types are acknowledged without grants.
