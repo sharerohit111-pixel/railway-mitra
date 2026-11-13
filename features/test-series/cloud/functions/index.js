@@ -337,6 +337,11 @@ exports.rmOwnerSetFreeTest = onCall(CALLABLE_OPTIONS, async req => {
 function ownerTestPayload(data) {
   const title = typeof data.title === "string" ? data.title.trim() : "";
   if (!title || title.length > 160) throw new HttpsError("invalid-argument", "Test title is required (max 160 characters)");
+  const category = typeof data.category === "string" && data.category.trim() ? data.category.trim() : "General";
+  const folderRaw = typeof data.folder === "string" && data.folder.trim() ? data.folder.trim() : "General";
+  const folderParts = folderRaw.split("/").map(part => part.trim());
+  if (category.length > 60 || !/^[\\p{L}\\p{N} _-]+$/u.test(category)) throw new HttpsError("invalid-argument", "Category contains unsupported characters or is too long");
+  if (folderRaw.length > 120 || folderParts.length > 4 || folderParts.some(part => !part || part.length > 40 || !/^[\\p{L}\\p{N} _-]+$/u.test(part))) throw new HttpsError("invalid-argument", "Folder path must contain up to four safe levels");
   const mode = data.mode === "scheduled" ? "scheduled" : data.mode === "mock" ? "mock" : null;
   if (!mode) throw new HttpsError("invalid-argument", "Mode must be mock or scheduled");
   const durationMinutes = Number(data.durationMinutes);
@@ -370,7 +375,7 @@ function ownerTestPayload(data) {
     answerQuestions[qid] = { correctAnswer: String(q.correctIndex) };
   }
   return {
-    metadata: { title, mode, durationMinutes, price, marksPerQuestion, negativeMarks, status,
+    metadata: { title, category, folder: folderParts.join(" / "), mode, durationMinutes, price, marksPerQuestion, negativeMarks, status,
       scheduleStartAt: scheduleStartAt ? Timestamp.fromDate(scheduleStartAt) : null,
       scheduleEndAt: scheduleEndAt ? Timestamp.fromDate(scheduleEndAt) : null,
       questionCount: publicQuestions.length, updatedAt: FieldValue.serverTimestamp() },
@@ -405,7 +410,7 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
   if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
   const t = testSnap.data();
   return {
-    testId, title: t.title || "", mode: t.mode || "mock", status: t.status || "draft",
+    testId, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
     durationMinutes: Number(t.durationMinutes || 30), price: Number(t.price || 0),
     marksPerQuestion: Number(t.marksPerQuestion ?? 1), negativeMarks: Number(t.negativeMarks ?? 0),
     scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || "",
@@ -429,7 +434,7 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
     freeTestLocked: Boolean(freeConfig && freeConfig.hasClaims === true),
     tests: snap.docs.map(d => {
       const t = d.data();
-      return { testId: d.id, title: t.title || "", mode: t.mode || "mock", status: t.status || "draft",
+      return { testId: d.id, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
         price: Number(t.price || 0), durationMinutes: Number(t.durationMinutes || 0),
         questionCount: Number(t.questionCount || 0), scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
         scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null };
@@ -476,6 +481,8 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
     return {
       testId: d.id,
       title: t.title || "",
+      category: t.category || "General",
+      folder: t.folder || "General",
       mode: t.mode === "scheduled" ? "scheduled" : "mock",
       durationMinutes: Number(t.durationMinutes || 30),
       price,
