@@ -127,6 +127,62 @@ test("rejects invalid page sizes and unknown or unsafe cursors", async () => {
   );
 });
 
+test("keeps pagination stable when an unresolved request receives a newer updatedAt", async () => {
+  const stableCollection = collectionName + "_stable_cursor";
+  const stableIds = [
+    "request_stable_newest",
+    "request_stable_middle",
+    "request_stable_oldest"
+  ];
+  const createdTimes = [
+    "2026-11-13T12:00:00.000Z",
+    "2026-11-13T11:59:00.000Z",
+    "2026-11-13T11:58:00.000Z"
+  ];
+
+  try {
+    await Promise.all(stableIds.map((id, index) => {
+      const createdAt = new Date(createdTimes[index]);
+      return db.doc(stableCollection + "/" + id).set({
+        uid: "student_stable_cursor",
+        testId: "stable_cursor_test",
+        amount: 10000,
+        currency: "INR",
+        status: "unknown",
+        createdAt,
+        updatedAt: createdAt
+      });
+    }));
+
+    const first = await listOwnerPaymentReconciliation({
+      db, pageSize: 1, collectionName: stableCollection
+    });
+    assert.deepEqual(first.requests.map(item => item.requestRecordId), [stableIds[0]]);
+    assert.equal(first.hasMore, true);
+
+    // Simulate a webhook/support update after page one. A mutable updatedAt
+    // sort would move this older row ahead of the issued cursor and skip it.
+    await db.doc(stableCollection + "/" + stableIds[2]).update({
+      updatedAt: new Date("2026-11-13T12:05:00.000Z")
+    });
+
+    const second = await listOwnerPaymentReconciliation({
+      db, pageSize: 1, cursor: first.nextCursor, collectionName: stableCollection
+    });
+    assert.deepEqual(second.requests.map(item => item.requestRecordId), [stableIds[1]]);
+    assert.equal(second.hasMore, true);
+
+    const third = await listOwnerPaymentReconciliation({
+      db, pageSize: 1, cursor: second.nextCursor, collectionName: stableCollection
+    });
+    assert.deepEqual(third.requests.map(item => item.requestRecordId), [stableIds[2]]);
+    assert.equal(third.hasMore, false);
+    assert.equal(third.nextCursor, null);
+  } finally {
+    await Promise.all(stableIds.map(id => db.doc(stableCollection + "/" + id).delete().catch(() => {})));
+  }
+});
+
 test("continues beyond a 500-document scan window without skipping older unresolved requests", async () => {
   const scanCollection = collectionName + "_scan_window";
   const scanIds = Array.from({ length: 501 }, (_, index) =>
