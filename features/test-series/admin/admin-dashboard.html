@@ -147,6 +147,8 @@
       <div class="rm-admin-form-grid"><button id="rm-admin-export-test-analytics" type="button" disabled>Export Test-wise CSV</button><button id="rm-admin-print-test-analytics" type="button" disabled>Print / Save Test Report as PDF</button></div>
       <div id="rm-admin-analytics-status" class="rm-admin-status" role="status" aria-live="polite">Analytics अभी लोड नहीं हुई।</div>
       <div id="rm-admin-analytics-summary" class="rm-admin-grid"></div>
+      <div class="rm-admin-form-grid"><label>टेस्ट खोजें<input id="rm-admin-analytics-search" type="search" maxlength="120" placeholder="Test ID या नाम"></label><label>क्रमबद्ध करें<select id="rm-admin-analytics-sort"><option value="attempts">सबसे अधिक प्रयास</option><option value="averageScore">औसत अंक</option><option value="averageCorrectPercent">सही उत्तर प्रतिशत</option><option value="title">टेस्ट का नाम</option></select></label></div>
+      <div id="rm-admin-analytics-filter-status" class="rm-admin-hint" aria-live="polite"></div>
       <div id="rm-admin-analytics-tests" class="rm-admin-payments-list"></div>
     </section>
     <p id="rm-admin-module-status" class="rm-admin-status">Test Management का पहला Cloud module जोड़ा गया है। बाकी modules अगले चरणों में आएँगे।</p>
