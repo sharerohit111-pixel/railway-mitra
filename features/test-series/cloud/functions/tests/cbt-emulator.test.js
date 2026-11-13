@@ -771,8 +771,12 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
       scheduleStartAt: new Date(now + 60_000),
       scheduleEndAt: new Date(now + 10 * 60_000)
     });
-    await keyRef.set({ questions: {} });
-    await questionsRef.set({ questions: [] });
+    await keyRef.set({ questions: { scheduled_q1: { correctAnswer: "0" } } });
+    await questionsRef.set({
+      questions: [
+        { id: "scheduled_q1", text: "Scheduled question?", options: ["A", "B"] }
+      ]
+    });
 
     await assert.rejects(
       callable("rmStartExam", { testId: scheduledTestId }),
@@ -804,7 +808,7 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
     assert.ok(startedAttemptId);
     const submitted = await callable("rmSubmitExam", { attemptId: startedAttemptId });
     assert.equal(submitted.submitted, true);
-    assert.equal(submitted.totalQuestions, 0);
+    assert.equal(submitted.totalQuestions, 1);
 
     // Completing one paid exam must release the student's active slot for another test.
     const nextTestId = "emulator-next-paid-after-completion";
