@@ -13,7 +13,7 @@ function hasControlCharacters(value) {
 function hasDisallowedQuestionControls(value) {
   // Preserve ordinary multiline question formatting (LF, CR and TAB), but
   // reject NUL and other non-printing controls from imported question text.
-  return /[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]/.test(value);
+  return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value);
 }
 
 function requiredLabel(value, field, maxLength, rowNumber) {

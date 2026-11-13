@@ -108,25 +108,26 @@ test("accepts omitted and blank optional question-bank list filters", () => {
 });
 
 
-test("rejects non-printing control characters in question content while preserving normal line breaks", () => {
+test("rejects non-printing control characters while preserving normal question formatting", () => {
   const badControl = "bad" + String.fromCharCode(0) + "text";
-  assert.throws(() => normalizeQuestionBankItem(validItem({
-    question: { text: badControl }
-  })), /question text/);
-  assert.throws(() => normalizeQuestionBankItem(validItem({
-    question: { options: ["Safe", badControl] }
-  })), /text options/);
-  assert.throws(() => normalizeQuestionBankItem(validItem({
-    question: { explanation: badControl }
-  })), /unsupported control characters/);
-
+  assert.throws(() => normalizeQuestionBankItem(validItem({ question: { text: badControl } })), /question text/);
+  assert.throws(() => normalizeQuestionBankItem(validItem({ question: { options: ["Safe", badControl] } })), /text options/);
+  assert.throws(() => normalizeQuestionBankItem(validItem({ question: { explanation: badControl } })), /unsupported control characters/);
+  const rejectedCodes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127];
+  for (const code of rejectedCodes) {
+    const value = "bad" + String.fromCharCode(code) + "text";
+    assert.throws(() => normalizeQuestionBankItem(validItem({ question: { text: value } })), /question text/, "control code " + code + " must be rejected");
+  }
   const multiline = normalizeQuestionBankItem(validItem({
     question: {
-      text: "Question line 1\\nQuestion line 2",
-      options: ["Option\\tA", "Option B"],
-      explanation: "Reason\\ncontinued"
+      text: "Question line 1\nQuestion line 2",
+      options: ["Option\tA", "Option B"],
+      explanation: "Reason\r\ncontinued"
     }
   }));
-  assert.match(multiline.question.text, /\\n/);
-  assert.match(multiline.question.explanation, /\\n/);
+  assert.equal(multiline.question.text, "Question line 1\nQuestion line 2");
+  assert.equal(multiline.question.options[0], "Option\tA");
+  assert.equal(multiline.question.explanation, "Reason\r\ncontinued");
+  const ordinaryText = normalizeQuestionBankItem(validItem({ question: { text: "Unit 10, question 2026", options: ["Unsafe", "Option 2"] } }));
+  assert.equal(ordinaryText.question.options[0], "Unsafe");
 });
