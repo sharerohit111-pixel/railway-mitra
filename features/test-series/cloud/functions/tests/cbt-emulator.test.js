@@ -111,6 +111,27 @@ test("student catalogue returns published metadata only and never answer keys", 
   assert.equal(catalogue.tests.some(item => item.testId === "emulator-draft-test"), false);
 });
 
+test("an unconfigured zero-price test is not advertised as the free trial or startable", async () => {
+  const zeroPriceTestId = "emulator-unconfigured-zero-price";
+  const testRef = db.doc("testSeriesTests/" + zeroPriceTestId);
+  try {
+    await testRef.set({
+      title: "Unconfigured Zero Price", status: "published", price: 0,
+      mode: "mock", durationMinutes: 10, questionCount: 1
+    });
+    const catalogue = await callable("rmListAvailableTests");
+    const listed = catalogue.tests.find(item => item.testId === zeroPriceTestId);
+    assert.ok(listed);
+    assert.equal(listed.accessType, "unavailable");
+    await assert.rejects(
+      callable("rmStartExam", { testId: zeroPriceTestId }),
+      error => error.code === "functions/permission-denied"
+    );
+  } finally {
+    await testRef.delete().catch(() => {});
+  }
+});
+
 test("student can claim one free test attempt only once", async () => {
   const claim = await callable("rmClaimFreeAttempt");
   assert.equal(claim.testId, testId);
