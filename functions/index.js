@@ -1080,21 +1080,34 @@ exports.getOwnerAnalyticsSummary = onCall(
           { name: "eventCount" }
         ]
       });
-      const [events] = await client.runReport({
-        property,
-        dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
-        dimensions: [{ name: "eventName" }],
-        metrics: [{ name: "eventCount" }],
-        limit: 20,
-        orderBys: [{ metric: { metricName: "eventCount" }, desc: true }]
-      });
+      const [events, installEvents] = await Promise.all([
+        client.runReport({
+          property,
+          dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+          dimensions: [{ name: "eventName" }],
+          metrics: [{ name: "eventCount" }],
+          limit: 20,
+          orderBys: [{ metric: { metricName: "eventCount" }, desc: true }]
+        }),
+        client.runReport({
+          property,
+          dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+          metrics: [{ name: "eventCount" }],
+          dimensionFilter: {
+            filter: {
+              fieldName: "eventName",
+              stringFilter: { matchType: "EXACT", value: "pwa_install_accepted" }
+            }
+          }
+        })
+      ]);
       const metricValue = (report, index) =>
         Number(report?.rows?.[0]?.metricValues?.[index]?.value || 0);
       const eventRows = (events.rows || []).map(row => ({
         eventName: row.dimensionValues?.[0]?.value || "unknown",
         eventCount: Number(row.metricValues?.[0]?.value || 0)
       }));
-      const installPromptAccepted = eventRows.find(row => row.eventName === "pwa_install_accepted")?.eventCount || 0;
+      const installPromptAccepted = Number(installEvents.rows?.[0]?.metricValues?.[0]?.value || 0);
       return {
         propertyId: GA4_PROPERTY_ID,
         realtimeActiveUsers: metricValue(realtime, 0),
