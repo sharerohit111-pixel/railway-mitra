@@ -391,6 +391,11 @@ test("student can start, save answers and submit with server-side scoring", asyn
     callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "q1", answer: "1" }),
     error => error.code === "functions/deadline-exceeded"
   );
+  await assert.rejects(
+    callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Technical Ability" }),
+    error => error.code === "functions/deadline-exceeded",
+    "an expired section must not be reopened or receive a fresh timer"
+  );
 
   await assert.rejects(
     callable("rmGetCbtAttemptResult", { attemptId: started.attemptId }),
