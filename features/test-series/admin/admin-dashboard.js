@@ -48,6 +48,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       clearPaymentHistory();
       clearStudentActivity();
       clearAnalytics();
+      clearQuestionBank();
       home.hidden = true;
       setup.hidden = true;
       login.hidden = false;
@@ -336,6 +337,59 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   el("rm-admin-refresh-students").addEventListener("click", () => refreshStudentActivity());
   studentsMore.addEventListener("click", () => refreshStudentActivity({ append: true }));
+  const questionBankPanel = el("rm-admin-question-bank-panel");
+  const questionBankStatus = el("rm-admin-question-bank-status");
+  const questionBankList = el("rm-admin-question-bank-list");
+  let questionBankGeneration = 0;
+  function clearQuestionBank() {
+    questionBankGeneration += 1;
+    questionBankList.replaceChildren();
+    questionBankStatus.textContent = "";
+  }
+  async function refreshQuestionBank() {
+    const generation = ++questionBankGeneration;
+    questionBankStatus.textContent = "प्रश्न बैंक लोड हो रहा है…";
+    questionBankList.replaceChildren();
+    try {
+      const response = await httpsCallable(functions, "rmOwnerListQuestionBank")({ pageSize: 100 });
+      if (generation !== questionBankGeneration) return;
+      const items = Array.isArray(response.data?.items) ? response.data.items : [];
+      items.forEach(item => {
+        const card = document.createElement("article"); card.className = "rm-admin-payment-row";
+        const heading = document.createElement("b"); heading.textContent = item.question?.text || "प्रश्न";
+        const detail = document.createElement("small");
+        detail.textContent = [item.topic, item.chapter, item.folder, "विकल्प " + (item.question?.options?.length || 0), "सही उत्तर " + (Number(item.correctIndex) + 1)].join(" · ");
+        card.append(heading, detail); questionBankList.append(card);
+      });
+      questionBankStatus.textContent = items.length + " प्रश्न लोड हुए। अधिकतम 100 नवीनतम प्रश्न दिखाए जाते हैं।";
+    } catch (error) {
+      if (generation !== questionBankGeneration) return;
+      questionBankStatus.textContent = error.message || "Question Bank लोड नहीं हुआ।";
+    }
+  }
+  el("rm-admin-question-bank-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    const submit = event.submitter || event.currentTarget.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    questionBankStatus.textContent = "प्रश्न सुरक्षित किया जा रहा है…";
+    try {
+      let question;
+      try { question = JSON.parse(el("rm-qb-question").value); }
+      catch { throw new Error("प्रश्न JSON सही प्रारूप में नहीं है।"); }
+      await httpsCallable(functions, "rmOwnerSaveQuestionBankItem")({
+        topic: el("rm-qb-topic").value,
+        chapter: el("rm-qb-chapter").value,
+        folder: el("rm-qb-folder").value,
+        question
+      });
+      el("rm-qb-question").value = "";
+      questionBankStatus.textContent = "प्रश्न सुरक्षित हो गया।";
+      await refreshQuestionBank();
+    } catch (error) {
+      questionBankStatus.textContent = error.message || "प्रश्न सुरक्षित नहीं हुआ।";
+    } finally { submit.disabled = false; }
+  });
+  el("rm-admin-refresh-question-bank").addEventListener("click", refreshQuestionBank);
   const analyticsPanel = el("rm-admin-analytics-panel");
   const analyticsStatus = el("rm-admin-analytics-status");
   const analyticsSummary = el("rm-admin-analytics-summary");
@@ -389,17 +443,20 @@ export function initOwnerAdminDashboard(auth, functions) {
     paymentsPanel.hidden = module !== "payments";
     studentsPanel.hidden = module !== "students";
     analyticsPanel.hidden = module !== "analytics";
+    questionBankPanel.hidden = module !== "questions";
     el("rm-admin-module-status").textContent = module === "tests"
       ? "Test Management खुला है।"
       : module === "payments"
         ? "केवल server-verified captured payment ledger दिखाया जाता है।"
         : module === "students" ? "केवल server-verified परीक्षा परिणाम का सारांश दिखाया जाता है।"
         : module === "analytics" ? "नवीनतम 500 जमा परिणामों का server-side विश्लेषण।"
+        : module === "questions" ? "विषय, अध्याय और फ़ोल्डर के अनुसार प्रश्न बैंक।"
         : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
     if (module === "tests") refreshTests();
     if (module === "payments") refreshPayments();
     if (module === "students") refreshStudentActivity();
     if (module === "analytics") refreshAnalytics();
+    if (module === "questions") refreshQuestionBank();
   }));
   return { destroy() { stopOwnerSessionWatch(); } };
 }
