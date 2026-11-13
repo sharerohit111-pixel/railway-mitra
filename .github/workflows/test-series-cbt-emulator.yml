@@ -41,6 +41,9 @@ jobs:
         working-directory: features/test-series/cloud/functions
         run: npm install --no-audit --no-fund
 
+      - name: Install GDCE Functions dependencies for shared emulator config
+        run: npm --prefix functions install --no-audit --no-fund
+
       - name: Check CBT Functions syntax
         working-directory: features/test-series/cloud/functions
         run: npm run lint
