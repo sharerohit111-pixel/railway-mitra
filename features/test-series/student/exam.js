@@ -7,6 +7,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   const status = message => { el("rm-cbt-status").textContent=message; };
   const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
+  const positionKey = () => "rm-cbt-position:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
   function showResult(score, warning=""){
     clearInterval(timer);
     startPanel.hidden=true;workspace.hidden=true;resultPanel.hidden=false;
@@ -47,7 +48,9 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       const timing = await enterCbtSection(app, attemptId, question.section);
       sectionExpiresAt = timing.timeLimitMinutes ? new Date(timing.expiresAt).getTime() : 0;
     } else sectionExpiresAt = 0;
-    index = nextIndex; render(); tick();
+    index = nextIndex;
+    try { localStorage.setItem(positionKey(), String(index)); } catch (_) {}
+    render(); tick();
   }
   function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-Date.now())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left){ sectionClock.textContent="सेक्शन समय समाप्त"; if(!sectionTransitioning&&!finished){ sectionTransitioning=true; const currentSection=paper.questions[index]?.section; const nextIndex=paper.questions.findIndex((item,i)=>i>index&&item.section!==currentSection); if(nextIndex>=0){ status("इस सेक्शन का समय समाप्त। अगले सेक्शन में जा रहे हैं…"); activateQuestion(nextIndex).catch(error=>status(error.message||"अगला सेक्शन नहीं खुला।")).finally(()=>{sectionTransitioning=false;}); } else { status("इस सेक्शन का समय समाप्त। इस सेक्शन के उत्तर अब लॉक हैं।"); const options=el("rm-cbt-options"); options.querySelectorAll("button").forEach(button=>button.disabled=true); } } } } if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
@@ -171,7 +174,23 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       }
       answers={...paper.savedAnswers};restorePending();
       for(const [qid,value] of pendingAnswers)answers[qid]=value;
-      expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;await activateQuestion(0);
+      expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;
+      let resumeIndex=0;
+      try {
+        const savedIndex=Number(localStorage.getItem(positionKey()));
+        if(Number.isInteger(savedIndex)&&savedIndex>=0&&savedIndex<paper.questions.length)resumeIndex=savedIndex;
+      } catch (_) {}
+      const expiredSections=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=Date.now()).map(([name])=>name));
+      const candidates=[...Array(paper.questions.length).keys()].sort((a,b)=>((a-resumeIndex+paper.questions.length)%paper.questions.length)-((b-resumeIndex+paper.questions.length)%paper.questions.length));
+      const firstAvailable=candidates.find(i=>!paper.questions[i].section||!expiredSections.has(paper.questions[i].section));
+      if(firstAvailable===undefined)throw new Error("सभी सेक्शन का समय समाप्त हो चुका है।");
+      try { await activateQuestion(firstAvailable); }
+      catch (sectionError) {
+        const fallback=candidates.find(i=>i!==firstAvailable&&(!paper.questions[i].section||!expiredSections.has(paper.questions[i].section)));
+        if(fallback===undefined)throw sectionError;
+        await activateQuestion(fallback);
+        status("पिछला सेक्शन समय-सीमा पार कर चुका था। उपलब्ध अगले सेक्शन से परीक्षा जारी है।");
+      }
       if(pendingAnswers.size)retryPending().catch(()=>{});
       tick();timer=setInterval(tick,1000);
     }catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
