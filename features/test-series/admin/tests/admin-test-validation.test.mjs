@@ -5,6 +5,8 @@ import { validateOwnerTestDraft } from "../admin-test-validation.mjs";
 function validDraft(overrides = {}) {
   return {
     title: "  Civil JE Mock Test  ",
+    category: "GDCE JE",
+    folder: "Civil / Mock Tests",
     mode: "mock",
     durationMinutes: "30",
     price: "0",
@@ -19,6 +21,8 @@ function validDraft(overrides = {}) {
 test("normalizes a valid mock test into the server payload contract", () => {
   const payload = validateOwnerTestDraft(validDraft());
   assert.equal(payload.title, "Civil JE Mock Test");
+  assert.equal(payload.category, "GDCE JE");
+  assert.equal(payload.folder, "Civil / Mock Tests");
   assert.equal(payload.durationMinutes, 30);
   assert.equal(payload.price, 0);
   assert.equal(payload.negativeMarks, 0.25);
@@ -91,6 +95,18 @@ test("validates title, mode, duration, price and marking limits", () => {
   for (const negativeMarks of ["-1", "101", "abc"]) {
     assert.throws(() => validateOwnerTestDraft(validDraft({ negativeMarks })), /नकारात्मक अंक/);
   }
+});
+
+test("defaults blank category and folder and normalizes folder levels", () => {
+  const payload = validateOwnerTestDraft(validDraft({ category: " ", folder: "  " }));
+  assert.equal(payload.category, "General");
+  assert.equal(payload.folder, "General");
+  assert.equal(validateOwnerTestDraft(validDraft({ folder: " Civil / JE " })).folder, "Civil / JE");
+});
+
+test("rejects unsafe or oversized category and folder paths", () => {
+  for (const category of ["x".repeat(61), "../admin", "Civil/JE"]) assert.throws(() => validateOwnerTestDraft(validDraft({ category })), /Category/);
+  for (const folder of ["", "A//B", "../private", "A/B/C/D/E", "x".repeat(121), "A/" + "x".repeat(41)]) assert.throws(() => validateOwnerTestDraft(validDraft({ folder })), /Folder/);
 });
 
 test("validates scheduled windows and serializes local form times", () => {
