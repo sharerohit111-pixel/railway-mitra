@@ -1,4 +1,4 @@
-import { listAvailableCbtTests, claimFreeCbtAttempt, startCbtExam } from "../cloud/student-client.js";
+import { listAvailableCbtTests, claimFreeCbtAttempt } from "../cloud/student-client.js";
 import "./catalogue.css";
 
 export async function initStudentTestCatalogue({ app, root = document, onStart }) {
@@ -37,12 +37,15 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
         button.disabled = true;
         status.textContent = "Preparing your free attempt…";
         try {
-          try { await claimFreeCbtAttempt(app); }
+          let claim;
+          try { claim = await claimFreeCbtAttempt(app); }
           catch (error) {
             if (!String(error.code || "").includes("already-exists")) throw error;
+            // The one-time claim already exists. Start/resume the timed exam only
+            // after the student presses Start on the exam screen.
+            claim = { alreadyClaimed: true };
           }
-          const session = await startCbtExam(app, test.testId);
-          await onStart({ test, session });
+          await onStart({ test, session: claim });
         } catch (error) {
           status.textContent = error.message || "Test could not be started.";
           button.disabled = false;
