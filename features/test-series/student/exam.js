@@ -70,6 +70,9 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   function render(){
     const q=paper.questions[index]; el("rm-cbt-count").textContent="Question "+(index+1)+" of "+paper.questions.length;
+    const sectionHeading = el("rm-cbt-section");
+    sectionHeading.textContent = q.section || "";
+    sectionHeading.hidden = !q.section;
     el("rm-cbt-question").textContent=q.text;
     const options=el("rm-cbt-options"); options.replaceChildren();
     q.options.forEach((value,i)=>{const b=document.createElement("button");b.type="button";b.className="rm-cbt-option";b.setAttribute("aria-pressed",String(String(answers[q.id])===String(i)));const mark=document.createElement("b");mark.textContent=String.fromCharCode(65+i)+".";
