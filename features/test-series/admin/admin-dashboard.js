@@ -24,6 +24,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   let reconciliationCursor = null;
   let reconciliationGeneration = 0;
   let testManagementGeneration = 0;
+  let testEditGeneration = 0;
   function clearPaymentHistory() {
     paymentsGeneration += 1;
     paymentsCursor = null;
@@ -162,6 +163,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   function clearTestManagement() {
     testManagementGeneration += 1;
+    testEditGeneration += 1;
     testsCursor = null;
     testsRows = [];
     testsMore.hidden = true;
@@ -399,9 +401,10 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   async function loadTestForEdit(testId, cloneAsDraft = false) {
     const generation = testManagementGeneration;
+    const editGeneration = ++testEditGeneration;
     try {
       const result = await httpsCallable(functions, "rmOwnerGetTest")({ testId });
-      if (generation !== testManagementGeneration) return;
+      if (generation !== testManagementGeneration || editGeneration !== testEditGeneration) return;
       const t = result.data;
       // Published tests are immutable on the server. Copy them into a new draft
       // instead of presenting an Edit action that the backend will reject.
@@ -422,9 +425,9 @@ export function initOwnerAdminDashboard(auth, functions) {
       el("rm-test-questions").value = JSON.stringify(t.questions, null, 2);
       status(cloneAsDraft ? "Published test की नई Draft copy तैयार है। मूल प्रकाशित टेस्ट सुरक्षित रहेगा।" : "Test Edit mode: " + t.testId);
       testForm.scrollIntoView({ behavior: "smooth", block: "start" });
-    } catch (e) { if (generation === testManagementGeneration) status(e.message || "Test details नहीं मिले।"); }
+    } catch (e) { if (generation === testManagementGeneration && editGeneration === testEditGeneration) status(e.message || "Test details नहीं मिले।"); }
   }
-  el("rm-admin-test-cancel").addEventListener("click", () => { testForm.reset(); el("rm-test-id").value = ""; });
+  el("rm-admin-test-cancel").addEventListener("click", () => { testEditGeneration += 1; testForm.reset(); el("rm-test-id").value = ""; });
   testForm.addEventListener("submit", async event => {
     event.preventDefault();
     const button = event.currentTarget.querySelector('button[type="submit"]');
