@@ -81,7 +81,7 @@ test("rejects malformed provider responses and cross-order payment rows", async 
   await assert.rejects(inspectRazorpayOrder({
     keyId: "key", keySecret: "secret", orderId: "order_123456",
     fetchImpl: async url => url.endsWith("/payments")
-      ? response({ items: [{ id: "pay_123456", status: "captured", amount: 100, currency: "INR", order_id: "order_654321" }] })
+      ? response({ items: [{ id: "pay_123456", status: "captured", amount: 100, currency: "INR", order_id: "order_654321", captured: true }] })
       : response({ id: "order_123456", status: "paid", amount: 100, currency: "INR" })
   }), /different order/);
 });
