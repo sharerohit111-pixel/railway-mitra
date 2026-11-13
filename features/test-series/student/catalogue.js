@@ -1,6 +1,5 @@
 import { listAvailableCbtTests, claimFreeCbtAttempt, startCbtExam } from "../cloud/student-client.js";
 import { startStudentTestCheckout } from "./payment-checkout.js";
-import "./catalogue.css";
 
 export async function initStudentTestCatalogue({ app, root = document, onStart }) {
   const status = root.getElementById("rm-catalogue-status");
