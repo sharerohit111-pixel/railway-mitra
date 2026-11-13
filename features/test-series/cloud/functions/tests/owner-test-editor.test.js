@@ -28,6 +28,7 @@ test("rejects missing, malformed, negative and out-of-range answer indexes", () 
   for (const answerMap of [
     { q1: { correctAnswer: "0" } },
     { q1: { correctAnswer: "x" }, q2: { correctAnswer: "1" } },
+    { q1: { correctAnswer: "00" }, q2: { correctAnswer: "1" } },
     { q1: { correctAnswer: "-1" }, q2: { correctAnswer: "1" } },
     { q1: { correctAnswer: "2" }, q2: { correctAnswer: "1" } },
     { q1: { correctAnswer: "0" }, q2: { correctAnswer: "3" } }
