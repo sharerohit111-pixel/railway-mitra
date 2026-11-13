@@ -401,10 +401,25 @@ export function initOwnerAdminDashboard(auth, functions) {
               const paymentSummary = payments.length
                 ? payments.map(payment => payment.paymentId + ": " + payment.status + " · ₹" + (payment.amountPaise / 100).toFixed(2)).join(" | ")
                 : "Provider पर कोई payment attempt नहीं मिला";
+              const hasCapturedHistory = payments.some(payment =>
+                payment.status === "captured" || payment.status === "refunded"
+              );
+              const hasAuthorization = payments.some(payment => payment.status === "authorized");
+              let safetyGuidance;
+              if (result.matchesRequest !== true) {
+                safetyGuidance = "सुरक्षा निर्णय: स्थानीय request और Provider Order का मिलान नहीं हुआ। कोई कार्रवाई न करें; मैन्युअल समीक्षा आवश्यक है।";
+              } else if (hasCapturedHistory) {
+                safetyGuidance = "सुरक्षा निर्णय: इस Order पर capture का इतिहास मिला है (रिफंड हुआ भुगतान भी पहले capture हुआ था)। भुगतान ledger और entitlement का मिलान करें; lock स्वयं न हटाएँ।";
+              } else if (hasAuthorization) {
+                safetyGuidance = "सुरक्षा निर्णय: कम-से-कम एक भुगतान authorized है। देर से capture या refund संभव है; lock न हटाएँ।";
+              } else {
+                safetyGuidance = "सुरक्षा निर्णय: Order अभी created/attempted है या प्रयास failed हैं। Razorpay Order पर दोबारा भुगतान संभव है; failed प्रयास देखकर lock न हटाएँ।";
+              }
               inspection.textContent = (result.matchesRequest === true
                 ? "Provider Order और स्थानीय request का मिलान सही है। "
                 : "चेतावनी: Provider Order और स्थानीय request का मिलान नहीं हुआ। ") +
                 "Order: " + (order.status || "unknown") + " · " + paymentSummary +
+                " · " + safetyGuidance +
                 " · जाँच का audit record सुरक्षित हुआ; payment, entitlement या lock में कोई बदलाव नहीं हुआ।";
             } catch (error) {
               inspection.textContent = error.message || "Razorpay status जाँच नहीं हो सकी। कोई रिकॉर्ड नहीं बदला।";
