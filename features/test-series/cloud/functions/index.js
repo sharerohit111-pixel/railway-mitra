@@ -459,7 +459,7 @@ exports.rmCreatePaymentOrder = onCall({
     throw new HttpsError("already-exists", "You already have access to this test");
   }
 
-  const orderRef = db.collection("testSeriesPaymentOrders").doc();
+  const receiptRef = db.collection("testSeriesOrderReceipts").doc();
   const amount = Math.round(price * 100);
   let providerOrder;
   try {
@@ -468,7 +468,7 @@ exports.rmCreatePaymentOrder = onCall({
       keySecret: RAZORPAY_KEY_SECRET.value(),
       amount,
       currency: "INR",
-      receipt: "rm_" + orderRef.id,
+      receipt: "rm_" + receiptRef.id,
       notes: { uid, testId }
     });
   } catch (error) {
@@ -476,6 +476,7 @@ exports.rmCreatePaymentOrder = onCall({
     throw new HttpsError("unavailable", "Payment order could not be created. Please try again.");
   }
 
+  const orderRef = db.doc("testSeriesPaymentOrders/" + providerOrder.id);
   try {
     await db.runTransaction(async tx => {
       const [latestTest, latestEntitlement] = await Promise.all([
