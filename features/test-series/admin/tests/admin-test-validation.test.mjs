@@ -107,7 +107,7 @@ test("defaults blank category and folder and normalizes folder levels", () => {
 test("rejects unsafe or oversized category and folder paths", () => {
   assert.equal(validateOwnerTestDraft(validDraft({ category: "सिविल JE", folder: "रेलवे / मॉक टेस्ट" })).folder, "रेलवे / मॉक टेस्ट");
   for (const category of ["x".repeat(61), "../admin", "Civil/JE"]) assert.throws(() => validateOwnerTestDraft(validDraft({ category })), /Category/);
-  for (const folder of ["", "A//B", "../private", "A/B/C/D/E", "x".repeat(121), "A/" + "x".repeat(41)]) assert.throws(() => validateOwnerTestDraft(validDraft({ folder })), /Folder/);
+  for (const folder of ["A//B", "../private", "A/B/C/D/E", "x".repeat(121), "A/" + "x".repeat(41)]) assert.throws(() => validateOwnerTestDraft(validDraft({ folder })), /Folder/);
 });
 
 test("validates scheduled windows and serializes local form times", () => {
