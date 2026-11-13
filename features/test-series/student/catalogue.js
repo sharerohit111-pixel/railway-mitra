@@ -1,4 +1,5 @@
 import { listAvailableCbtTests, claimFreeCbtAttempt } from "../cloud/student-client.js";
+import { startStudentTestCheckout } from "./payment-checkout.js";
 import "./catalogue.css";
 
 export async function initStudentTestCatalogue({ app, root = document, onStart }) {
@@ -31,12 +32,21 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
       details.forEach(value => { const tag = root.createElement("span"); tag.textContent = value; meta.append(tag); });
       const button = root.createElement("button");
       button.type = "button";
-      button.textContent = test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Payment / Access Coming Soon" : "Not Available";
-      button.disabled = test.accessType !== "free_trial";
+      button.textContent = test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : "Not Available";
+      button.disabled = test.accessType !== "free_trial" && test.accessType !== "paid";
       button.addEventListener("click", async () => {
         button.disabled = true;
-        status.textContent = "Preparing your free attempt…";
+        status.textContent = test.accessType === "paid" ? "Opening secure payment…" : "Preparing your free attempt…";
         try {
+          if (test.accessType === "paid") {
+            await startStudentTestCheckout({
+              app, test, root,
+              onStatus: message => { status.textContent = message; }
+            });
+            button.textContent = "Payment Verification Pending";
+            button.disabled = true;
+            return;
+          }
           let claim;
           try { claim = await claimFreeCbtAttempt(app); }
           catch (error) {
