@@ -7,7 +7,7 @@ import { initStudentDashboard } from "./dashboard.js";
 const el = id => document.getElementById(id);
 const login = el("rm-portal-login"), workspace = el("rm-portal-app"), view = el("rm-portal-view");
 const authStatus = el("rm-portal-auth-status"), portalStatus = el("rm-portal-status");
-let confirmation = null, recaptcha = null, currentUser = null, currentTestId = null, activeView = "catalogue", authStateVersion = 0;
+let confirmation = null, recaptcha = null, currentUser = null, currentTestId = null, activeView = "catalogue", authStateVersion = 0, activeExamController = null;
 
 function setBusy(button, busy, label) {
   button.disabled = busy;
@@ -25,6 +25,8 @@ async function showView(name) {
   const sessionVersion = authStateVersion;
   const sessionUid = currentUser?.uid;
   if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
+  activeExamController?.destroy();
+  activeExamController = null;
   activeView = name;
   document.querySelectorAll("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === name));
   view.replaceChildren();
@@ -62,7 +64,7 @@ async function showView(name) {
     back.textContent = "← Back to Available Tests";
     back.addEventListener("click", () => showView("catalogue"));
     view.prepend(back);
-    initStudentCbtExam({ app, testId, root: document });
+    activeExamController = initStudentCbtExam({ app, testId, root: document });
   }
 }
 async function showExam(test) {
@@ -117,6 +119,8 @@ async function verifyOtp() {
 el("rm-student-send-otp").addEventListener("click", sendOtp);
 el("rm-student-verify-otp").addEventListener("click", verifyOtp);
 el("rm-portal-logout").addEventListener("click", async () => {
+  activeExamController?.destroy();
+  activeExamController = null;
   await signOut(auth);
   currentUser = null;
   currentTestId = null;
@@ -132,6 +136,8 @@ document.querySelectorAll("[data-view]").forEach(button => button.addEventListen
 onAuthStateChanged(auth, async user => {
   const version = ++authStateVersion;
   if (!user) {
+    activeExamController?.destroy();
+    activeExamController = null;
     currentUser = null;
     currentTestId = null;
     workspace.hidden = true;
