@@ -445,20 +445,28 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
     db.doc("testSeriesConfig/freeTest").get()
   ]);
   const freeTestId = freeConfig.exists && freeConfig.data().enabled ? freeConfig.data().testId : null;
-  const tests = snap.docs.map(d => {
-    const t = d.data();
+  const tests = await Promise.all(snap.docs.map(async d => {
+    const t = d.data(), price = Number(t.price || 0);
+    let accessType = d.id === freeTestId ? "free_trial" : (price > 0 ? "paid" : "unavailable");
+    if (price > 0 && accessType !== "free_trial") {
+      const entitlementSnap = await db.doc("testSeriesEntitlements/" + uid + "_" + d.id).get();
+      const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
+      if (entitlement && entitlement.uid === uid && entitlement.testId === d.id && entitlement.status === "active") {
+        accessType = "unlocked";
+      }
+    }
     return {
       testId: d.id,
       title: t.title || "",
       mode: t.mode === "scheduled" ? "scheduled" : "mock",
       durationMinutes: Number(t.durationMinutes || 30),
-      price: Number(t.price || 0),
-      accessType: d.id === freeTestId ? "free_trial" : (Number(t.price || 0) > 0 ? "paid" : "unavailable"),
+      price,
+      accessType,
       questionCount: Number(t.questionCount || 0),
       scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
       scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null
     };
-  });
+  }));
   tests.sort((a, b) => a.title.localeCompare(b.title));
   return { tests };
 });
