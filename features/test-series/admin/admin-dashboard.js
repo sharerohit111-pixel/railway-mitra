@@ -127,7 +127,32 @@ export function initOwnerAdminDashboard(auth, functions) {
     button.disabled = true;
     try {
       const questions = JSON.parse(el("rm-test-questions").value);
-      if (!Array.isArray(questions)) throw new Error("Questions JSON में Array होना चाहिए।");
+      if (!Array.isArray(questions) || questions.length < 1 || questions.length > 500) {
+        throw new Error("Questions JSON में 1 से 500 प्रश्नों की Array होनी चाहिए।");
+      }
+      const questionIds = new Set();
+      questions.forEach((question, index) => {
+        const number = index + 1;
+        if (!question || typeof question !== "object" || Array.isArray(question)) {
+          throw new Error("प्रश्न " + number + " का प्रारूप सही नहीं है।");
+        }
+        const id = typeof question.id === "string" ? question.id.trim() : "";
+        if (!id || questionIds.has(id)) {
+          throw new Error("प्रश्न " + number + " की ID खाली या दोहराई गई है।");
+        }
+        questionIds.add(id);
+        if (typeof question.text !== "string" || !question.text.trim()) {
+          throw new Error("प्रश्न " + number + का प्रश्न-पाठ खाली है।");
+        }
+        if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
+            question.options.some(option => typeof option !== "string" || !option.trim())) {
+          throw new Error("प्रश्न " + number + " में 2 से 6 वैध विकल्प होने चाहिए।");
+        }
+        if (!Number.isInteger(question.correctIndex) || question.correctIndex < 0 ||
+            question.correctIndex >= question.options.length) {
+          throw new Error("प्रश्न " + number + " का सही उत्तर (correctIndex) विकल्पों के अनुरूप नहीं है।");
+        }
+      });
       const mode = el("rm-test-mode").value;
       const payload = {
         title: el("rm-test-title").value, mode,
@@ -140,8 +165,18 @@ export function initOwnerAdminDashboard(auth, functions) {
       const testId = el("rm-test-id").value;
       if (testId) payload.testId = testId;
       if (mode === "scheduled") {
-        payload.scheduleStartAt = new Date(el("rm-test-start").value).toISOString();
-        payload.scheduleEndAt = new Date(el("rm-test-end").value).toISOString();
+        const startValue = el("rm-test-start").value;
+        const endValue = el("rm-test-end").value;
+        const startTime = Date.parse(startValue);
+        const endTime = Date.parse(endValue);
+        if (!startValue || !endValue || !Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+          throw new Error("कृपया Scheduled Test की प्रारंभ और समाप्ति तिथि/समय सही भरें।");
+        }
+        if (endTime <= startTime) {
+          throw new Error("टेस्ट समाप्ति का समय, प्रारंभ समय के बाद होना चाहिए।");
+        }
+        payload.scheduleStartAt = new Date(startTime).toISOString();
+        payload.scheduleEndAt = new Date(endTime).toISOString();
       }
       const saved = await httpsCallable(functions, "rmOwnerSaveTest")(payload);
       status("Test सेव हुआ: " + saved.data.testId);
