@@ -29,6 +29,7 @@ const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const { getCallableOptions } = require("./app-check-policy");
 const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require("./question-bank-validation");
 const { getExamSectionConfig } = require("./section-integrity");
+const { getExamScoringConfig } = require("./exam-scoring");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -296,6 +297,12 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const [testSnap, keySnap] = await Promise.all([tx.get(db.doc("testSeriesTests/" + a.testId)), tx.get(db.doc("testSeriesAnswerKeys/" + a.testId))]);
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
     const test = testSnap.data(), keys = keySnap.data().questions || {}, answers = a.answers || {};
+    let scoring;
+    try {
+      scoring = getExamScoringConfig(test);
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Exam scoring configuration is invalid");
+    }
     // Once the server deadline passes, accept only the answers already persisted by rmSaveAnswer.
     // This preserves a result when the client submits at the timer boundary or reconnects late.
     const timedOut = expiresAt <= new Date();
@@ -306,7 +313,7 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
       else if (String(given) === String(keys[qid].correctAnswer)) correct++;
       else wrong++;
     }
-    const score = correct * Number(test.marksPerQuestion ?? 1) - wrong * Number(test.negativeMarks ?? 0);
+    const score = correct * scoring.marksPerQuestion - wrong * scoring.negativeMarks;
     tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length });
     tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions: Object.keys(keys).length, submittedAt: FieldValue.serverTimestamp() });
     tx.set(db.doc("testSeriesActiveSessions/" + uid), { uid, status: "completed", attemptId, testId: a.testId, completedAt: FieldValue.serverTimestamp() });

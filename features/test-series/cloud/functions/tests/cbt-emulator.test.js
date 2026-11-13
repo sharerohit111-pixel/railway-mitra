@@ -391,6 +391,46 @@ test("student can claim one free test attempt only once", async () => {
   }
 });
 
+test("submission fails closed when persisted scoring configuration is invalid", async () => {
+  const invalidTestId = "emulator-invalid-scoring-config";
+  const attemptId = "emulator-invalid-scoring-attempt";
+  const testRef = db.doc("testSeriesTests/" + invalidTestId);
+  const keyRef = db.doc("testSeriesAnswerKeys/" + invalidTestId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  const resultRef = db.doc("testSeriesResults/" + attemptId);
+
+  try {
+    await testRef.set({
+      title: "Invalid Scoring Configuration",
+      status: "published",
+      marksPerQuestion: 0,
+      negativeMarks: 0
+    });
+    await keyRef.set({ questions: { q1: { correctAnswer: "0" } } });
+    await attemptRef.set({
+      uid,
+      testId: invalidTestId,
+      status: "in_progress",
+      startedAt: new Date(Date.now() - 60_000),
+      expiresAt: new Date(Date.now() - 1_000),
+      answers: { q1: "0" }
+    });
+
+    await assert.rejects(
+      callable("rmSubmitExam", { attemptId }),
+      error => error.code === "functions/failed-precondition"
+    );
+
+    const persistedAttempt = (await attemptRef.get()).data();
+    assert.equal(persistedAttempt.status, "in_progress",
+      "invalid scoring must not finalize the attempt");
+    assert.equal((await resultRef.get()).exists, false,
+      "invalid scoring must not create a student result");
+  } finally {
+    await Promise.all([testRef, keyRef, attemptRef, resultRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("student can start, save answers and submit with server-side scoring", async () => {
   // A stale server-side pointer must not cause a non-existent attempt to be resumed.
   await db.doc("testSeriesActiveSessions/" + uid).set({
