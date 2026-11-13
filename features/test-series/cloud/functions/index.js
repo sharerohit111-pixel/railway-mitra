@@ -533,15 +533,45 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
     throw new HttpsError("invalid-argument", "Page size must be from 1 to 100");
   }
-  const snap = await db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc").limit(pageSize).get();
-  const items = snap.docs.map(doc => {
+  const filters = {};
+  for (const field of ["topic", "chapter", "folder"]) {
+    if (data[field] !== undefined && data[field] !== null && String(data[field]).trim()) {
+      const value = String(data[field]).trim();
+      const max = field === "topic" ? 80 : field === "chapter" ? 100 : 120;
+      if (value.length > max) throw new HttpsError("invalid-argument", "Invalid " + field + " filter");
+      filters[field] = value;
+    }
+  }
+  let query = db.collection("testSeriesQuestionBank");
+  Object.entries(filters).forEach(([field, value]) => { query = query.where(field, "==", value); });
+  query = query.orderBy("updatedAt", "desc");
+  if (data.cursor !== undefined && data.cursor !== null) {
+    if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(data.cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid question bank cursor");
+    }
+    const cursorSnap = await db.doc("testSeriesQuestionBank/" + data.cursor).get();
+    if (!cursorSnap.exists) throw new HttpsError("invalid-argument", "Question bank cursor not found");
+    query = query.startAfter(cursorSnap);
+  }
+  const snap = await query.limit(pageSize + 1).get();
+  const hasMore = snap.docs.length > pageSize;
+  const page = snap.docs.slice(0, pageSize);
+  const items = page.map(doc => {
     const row = doc.data();
     return { itemId: doc.id, topic: row.topic, chapter: row.chapter, folder: row.folder,
       question: row.question, correctIndex: row.correctIndex,
       createdAt: date(row.createdAt)?.toISOString() || null,
       updatedAt: date(row.updatedAt)?.toISOString() || null };
   });
-  return { items };
+  const facets = await db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc").limit(500).get();
+  const unique = field => [...new Set(facets.docs.map(doc => doc.data()[field]).filter(value => typeof value === "string" && value))].sort();
+  return {
+    items,
+    nextCursor: hasMore && page.length ? page[page.length - 1].id : null,
+    hasMore,
+    filters: { topic: filters.topic || null, chapter: filters.chapter || null, folder: filters.folder || null },
+    facets: { topics: unique("topic"), chapters: unique("chapter"), folders: unique("folder") }
+  };
 });
 
 // Owner-only, read-only payment history. Authorization runs before any ledger read.
