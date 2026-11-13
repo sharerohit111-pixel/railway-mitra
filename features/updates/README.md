@@ -72,3 +72,19 @@ Open `publisher.html` from the deployed app or local preview to prepare a notice
 **Security limitation:** this is not an authenticated admin panel and it does not publish directly. Drafts remain in page memory until export; closing/reloading the page clears them. Do not rely on an unlinked URL as access control. Only an authorized repository maintainer should review the original source and merge verified records into `notices.json`.
 
 A truly authenticated live publisher requires a trusted sign-in integration and a server-side callable function enforcing the existing Firebase Admin custom claim `admin: true`. Do not add client-side admin flags, passwords, GitHub tokens or public write access. That backend and deployment are deliberately not part of this change.
+
+
+## Category PDF library
+
+The Updates page now includes a PDF library scoped to the seven existing notice categories. Public visitors can view/download uploaded PDFs. The upload panel is shown only after Firebase Auth confirms the signed-in user's refreshed ID token contains the server-issued `admin: true` claim.
+
+PDFs are stored under `updates/{category}/{uid}/{timestamp}-{filename}.pdf` in Firebase Storage. Uploads are limited to PDF MIME type and 20 MB. Each object stores a title, optional description, category, uploader UID and timestamp in custom metadata. The UI lists documents by the selected category; the owner admin can delete documents uploaded by their own UID.
+
+### Deployment prerequisites and security
+
+- Confirm the Firebase Storage bucket `railway-mitra.firebasestorage.app` exists and is enabled in the Firebase project.
+- Export/review the currently deployed Storage rules before deploying `storage.rules`. This repository's rules file previously documented that the live rules were not confirmed; do not overwrite live rules without merging every existing rule.
+- Merge the new `updates/{category}/{uid}/{fileName}` match block into the verified live rules and deploy Storage Rules.
+- Confirm the trusted server-side process has assigned the custom claim `admin: true` only to the owner account. A hidden panel is only a UI convenience; Storage Rules are the actual write boundary.
+- Public read access is intentional for PDFs published in Railway Updates. Do not upload private employee records, personal documents or confidential internal material.
+- Firebase Storage billing/availability may affect upload. The feature must be tested after bucket and rules deployment.
