@@ -1,5 +1,4 @@
-import { app, auth } from "../../../assets/js/firebase.js";
-import "../../../features/test-series/cloud/firebase-app-check-init.js";
+import { app, auth } from "../cloud/firebase-app-check-init.js";
 import { RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { initStudentTestCatalogue } from "./catalogue.js";
 import { initStudentCbtExam } from "./exam.js";
