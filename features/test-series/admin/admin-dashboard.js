@@ -340,11 +340,19 @@ export function initOwnerAdminDashboard(auth, functions) {
   const questionBankPanel = el("rm-admin-question-bank-panel");
   const questionBankStatus = el("rm-admin-question-bank-status");
   const questionBankList = el("rm-admin-question-bank-list");
+  const questionBankForm = el("rm-admin-question-bank-form");
   let questionBankGeneration = 0;
+  function resetQuestionBankForm() {
+    questionBankForm.reset();
+    el("rm-qb-item-id").value = "";
+    el("rm-qb-save").textContent = "प्रश्न सुरक्षित करें";
+    el("rm-qb-cancel-edit").hidden = true;
+  }
   function clearQuestionBank() {
     questionBankGeneration += 1;
     questionBankList.replaceChildren();
     questionBankStatus.textContent = "";
+    resetQuestionBankForm();
   }
   async function refreshQuestionBank() {
     const generation = ++questionBankGeneration;
@@ -359,7 +367,34 @@ export function initOwnerAdminDashboard(auth, functions) {
         const heading = document.createElement("b"); heading.textContent = item.question?.text || "प्रश्न";
         const detail = document.createElement("small");
         detail.textContent = [item.topic, item.chapter, item.folder, "विकल्प " + (item.question?.options?.length || 0), "सही उत्तर " + (Number(item.correctIndex) + 1)].join(" · ");
-        card.append(heading, detail); questionBankList.append(card);
+        const actions = document.createElement("div"); actions.className = "rm-admin-form-grid";
+        const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "Edit";
+        edit.addEventListener("click", () => {
+          el("rm-qb-item-id").value = item.itemId;
+          el("rm-qb-topic").value = item.topic || "";
+          el("rm-qb-chapter").value = item.chapter || "";
+          el("rm-qb-folder").value = item.folder || "General";
+          el("rm-qb-question").value = JSON.stringify({ ...item.question, correctIndex: item.correctIndex }, null, 2);
+          el("rm-qb-save").textContent = "बदलाव सुरक्षित करें";
+          el("rm-qb-cancel-edit").hidden = false;
+          questionBankForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Delete";
+        remove.addEventListener("click", async () => {
+          if (!window.confirm("क्या यह प्रश्न स्थायी रूप से हटाना चाहते हैं?")) return;
+          remove.disabled = true;
+          try {
+            await httpsCallable(functions, "rmOwnerDeleteQuestionBankItem")({ itemId: item.itemId });
+            if (el("rm-qb-item-id").value === item.itemId) resetQuestionBankForm();
+            questionBankStatus.textContent = "प्रश्न हटा दिया गया।";
+            await refreshQuestionBank();
+          } catch (error) {
+            questionBankStatus.textContent = error.message || "प्रश्न हटाया नहीं जा सका।";
+            remove.disabled = false;
+          }
+        });
+        actions.append(edit, remove);
+        card.append(heading, detail, actions); questionBankList.append(card);
       });
       questionBankStatus.textContent = items.length + " प्रश्न लोड हुए। अधिकतम 100 नवीनतम प्रश्न दिखाए जाते हैं।";
     } catch (error) {
@@ -367,28 +402,31 @@ export function initOwnerAdminDashboard(auth, functions) {
       questionBankStatus.textContent = error.message || "Question Bank लोड नहीं हुआ।";
     }
   }
-  el("rm-admin-question-bank-form").addEventListener("submit", async event => {
+  questionBankForm.addEventListener("submit", async event => {
     event.preventDefault();
-    const submit = event.submitter || event.currentTarget.querySelector('button[type="submit"]');
+    const submit = el("rm-qb-save");
     submit.disabled = true;
     questionBankStatus.textContent = "प्रश्न सुरक्षित किया जा रहा है…";
     try {
       let question;
       try { question = JSON.parse(el("rm-qb-question").value); }
       catch { throw new Error("प्रश्न JSON सही प्रारूप में नहीं है।"); }
+      const itemId = el("rm-qb-item-id").value;
       await httpsCallable(functions, "rmOwnerSaveQuestionBankItem")({
+        ...(itemId ? { itemId } : {}),
         topic: el("rm-qb-topic").value,
         chapter: el("rm-qb-chapter").value,
         folder: el("rm-qb-folder").value,
         question
       });
-      el("rm-qb-question").value = "";
-      questionBankStatus.textContent = "प्रश्न सुरक्षित हो गया।";
+      resetQuestionBankForm();
+      questionBankStatus.textContent = itemId ? "प्रश्न में बदलाव सुरक्षित हो गया।" : "प्रश्न सुरक्षित हो गया।";
       await refreshQuestionBank();
     } catch (error) {
       questionBankStatus.textContent = error.message || "प्रश्न सुरक्षित नहीं हुआ।";
     } finally { submit.disabled = false; }
   });
+  el("rm-qb-cancel-edit").addEventListener("click", resetQuestionBankForm);
   el("rm-admin-refresh-question-bank").addEventListener("click", refreshQuestionBank);
   const analyticsPanel = el("rm-admin-analytics-panel");
   const analyticsStatus = el("rm-admin-analytics-status");
