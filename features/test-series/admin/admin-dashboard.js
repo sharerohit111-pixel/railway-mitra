@@ -438,7 +438,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       selectLabel.append(selectBox, document.createTextNode(" टेस्ट में जोड़ने हेतु चुनें"));
       const heading = document.createElement("b"); heading.textContent = item.question?.text || "प्रश्न";
       const detail = document.createElement("small");
-      detail.textContent = [item.topic, item.chapter, item.folder, "विकल्प " + (item.question?.options?.length || 0), "सही उत्तर " + (Number(item.correctIndex) + 1)].join(" · ");
+      detail.textContent = [item.topic, item.chapter, item.folder, item.question?.section ? "सेक्शन: " + item.question.section : "", "विकल्प " + (item.question?.options?.length || 0), "सही उत्तर " + (Number(item.correctIndex) + 1)].filter(Boolean).join(" · ");
       const actions = document.createElement("div"); actions.className = "rm-admin-form-grid";
       const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "Edit";
       edit.addEventListener("click", () => {
@@ -628,6 +628,7 @@ export function initOwnerAdminDashboard(auth, functions) {
           chapter: String(normalized.chapter || el("rm-qb-chapter").value || "").trim(),
           folder: String(normalized.folder || el("rm-qb-folder").value || "General").trim(),
           question: { text: String(normalized.text ?? normalized.question ?? "").trim(),
+            ...(String(normalized.section || "").trim() ? { section: String(normalized.section).trim() } : {}),
             options: Array.isArray(options) ? options.map(value => String(value)) : [],
             correctIndex: rawIndex === undefined || rawIndex === null || String(rawIndex).trim() === "" ? NaN : Number(rawIndex),
             explanation: String(normalized.explanation || "") }
