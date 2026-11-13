@@ -76,3 +76,19 @@ test("surfaces provider errors without accepting an invalid order response", asy
     })
   }), /invalid order record/);
 });
+
+test("classifies explicit provider HTTP rejection as definite, unlike network ambiguity", async () => {
+  const { RazorpayOrderRejectedError } = require("../razorpay-order");
+  await assert.rejects(createRazorpayOrder({
+    ...input(),
+    fetchImpl: async () => ({
+      ok: false,
+      json: async () => ({ error: { description: "Invalid API credentials" } })
+    })
+  }), error => error instanceof RazorpayOrderRejectedError);
+
+  await assert.rejects(createRazorpayOrder({
+    ...input(),
+    fetchImpl: async () => { throw new Error("socket timeout"); }
+  }), error => !(error instanceof RazorpayOrderRejectedError) && /socket timeout/.test(error.message));
+});
