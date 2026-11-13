@@ -17,26 +17,44 @@ function getRecaptcha() {
   if (!recaptcha) recaptcha = new RecaptchaVerifier(auth, "rm-student-recaptcha", { size: "invisible" });
   return recaptcha;
 }
+function isCurrentStudentSession(version, uid) {
+  return version === authStateVersion && Boolean(uid) && auth.currentUser?.uid === uid && currentUser?.uid === uid;
+}
+
 async function showView(name) {
+  const sessionVersion = authStateVersion;
+  const sessionUid = currentUser?.uid;
+  if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
   activeView = name;
   document.querySelectorAll("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === name));
   view.replaceChildren();
   portalStatus.textContent = "";
   if (name === "catalogue") {
-    view.innerHTML = (await (await fetch("./catalogue.html")).text());
+    const response = await fetch("./catalogue.html");
+    const markup = await response.text();
+    if (!response.ok) throw new Error("Test catalogue could not be loaded.");
+    if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
+    view.innerHTML = markup;
     await initStudentTestCatalogue({ app, root: document, onStart: async ({ test }) => {
       currentTestId = test.testId;
       await showExam(test);
     }});
   } else if (name === "dashboard") {
-    view.innerHTML = await (await fetch("./dashboard.html")).text();
+    const response = await fetch("./dashboard.html");
+    const markup = await response.text();
+    if (!response.ok) throw new Error("Student results could not be loaded.");
+    if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
+    view.innerHTML = markup;
     await initStudentDashboard({ app, root: document });
     const refresh = el("rm-dashboard-refresh");
     if (refresh) refresh.addEventListener("click", () => initStudentDashboard({ app, root: document }));
   } else if (name === "exam") {
     const testId = currentTestId;
     if (!testId) throw new Error("Select a test before opening the exam.");
-    const testMarkup = await (await fetch("./exam.html")).text();
+    const response = await fetch("./exam.html");
+    const testMarkup = await response.text();
+    if (!response.ok) throw new Error("Exam screen could not be loaded.");
+    if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
     view.innerHTML = testMarkup;
     const back = document.createElement("button");
     back.type = "button";
@@ -58,6 +76,7 @@ async function openWorkspace(user) {
   el("rm-portal-logout").hidden = false;
   el("rm-student-account").textContent = user.phoneNumber || "Verified student";
   await showView("catalogue");
+  if (!isCurrentStudentSession(authStateVersion, user.uid)) return;
 }
 async function sendOtp() {
   const button = el("rm-student-send-otp");
