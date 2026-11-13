@@ -19,7 +19,8 @@ test("reads and allow-lists order plus payment status from Razorpay", async () =
   const result = await inspectRazorpayOrder({
     keyId: "rzp_test_key",
     keySecret: "secret",
-    orderId: "order_123456",
+    orderId: "order_123456", expectedReceipt: "rm_receipt_123",
+    expectedAmountPaise: 49900, expectedUid: "student_uid", expectedTestId: "gdce_test",
     fetchImpl: async (url, options) => {
       calls.push({ url, options });
       if (url.endsWith("/payments")) return response({ items: [{
@@ -30,11 +31,12 @@ test("reads and allow-lists order plus payment status from Razorpay", async () =
       return response({
         id: "order_123456", status: "paid", amount: 49900, currency: "INR",
         receipt: "rm_receipt_123", amount_paid: 49900, amount_due: 0,
-        notes: { private: "must not escape" }
+        notes: { uid: "student_uid", testId: "gdce_test", private: "must not escape" }
       });
     }
   });
   assert.equal(calls.length, 2);
+  assert.equal(result.matchesRequest, true);
   assert.match(calls[0].options.headers.Authorization, /^Basic /);
   assert.deepEqual(result.order, {
     orderId: "order_123456", status: "paid", amountPaise: 49900,
