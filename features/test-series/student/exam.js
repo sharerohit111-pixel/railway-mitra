@@ -214,7 +214,8 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   el("rm-cbt-prev").addEventListener("click",()=>{const target=findAvailableIndex(index-1,-1);if(target>=0)activateQuestion(target).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
   el("rm-cbt-next").addEventListener("click",()=>{const target=findAvailableIndex(index+1,1);if(target>=0)activateQuestion(target).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
   el("rm-cbt-submit").addEventListener("click",()=>{if(confirm("क्या आप परीक्षा Submit करना चाहते हैं?"))finish(false);});
-  const onOnline=()=>{if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>{});}};
-  if(typeof window!=="undefined")window.addEventListener("online",onOnline);
-  return { destroy(){clearInterval(timer);if(typeof window!=="undefined")window.removeEventListener("online",onOnline);} };
+  const onOffline=()=>{if(attemptId&&!finished){status("इंटरनेट कनेक्शन बंद है। उत्तर इस डिवाइस पर अस्थायी रूप से सुरक्षित होंगे; परीक्षा बंद न करें।");el("rm-cbt-saved").textContent="Offline · answers pending";}};
+  const onOnline=()=>{if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>status("कनेक्शन वापस आया है, लेकिन कुछ उत्तर अभी सेव नहीं हुए। Retry दबाएँ।"));}};
+  if(typeof window!=="undefined"){window.addEventListener("offline",onOffline);window.addEventListener("online",onOnline);if(window.navigator?.onLine===false)onOffline();}
+  return { destroy(){clearInterval(timer);if(typeof window!=="undefined"){window.removeEventListener("offline",onOffline);window.removeEventListener("online",onOnline);}} };
 }
