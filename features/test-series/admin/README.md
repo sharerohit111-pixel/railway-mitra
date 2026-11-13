@@ -95,3 +95,8 @@ Alongside the paginated attempt list, the Owner Students panel groups currently 
 ### Export loaded student results
 
 The Owner Students panel exports only the currently loaded, search-filtered attempt rows as CSV. The export uses an explicit allow-list of result summary fields and excludes phone, email, authentication data, answer selections and answer keys. Spreadsheet formula prefixes are neutralized. Load More before exporting if older pages are required; this is not a lifetime or complete account export.
+
+
+## Student results print / PDF report
+
+The Students module provides **Print / Save Loaded Report as PDF** for the currently loaded rows after applying the active search. It opens a print-friendly, landscape report containing only the same allow-listed result summary fields as the CSV export. Use the browser print dialog's **Save as PDF** destination to create a PDF. This is a bounded snapshot of loaded rows, not a lifetime student history. HTML values are escaped and contact details, answer selections and answer keys are excluded. The report opens only after an Owner-authorized session is active.
