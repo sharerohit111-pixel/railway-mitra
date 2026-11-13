@@ -142,7 +142,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         }
         questionIds.add(id);
         if (typeof question.text !== "string" || !question.text.trim()) {
-          throw new Error("प्रश्न " + number + का प्रश्न-पाठ खाली है।");
+          throw new Error("प्रश्न " + number + " का प्रश्न-पाठ खाली है।");
         }
         if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
             question.options.some(option => typeof option !== "string" || !option.trim())) {
