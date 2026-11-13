@@ -13,7 +13,11 @@ function hasControlCharacters(value) {
 function hasDisallowedQuestionControls(value) {
   // Preserve ordinary multiline question formatting (LF, CR and TAB), but
   // reject NUL and other non-printing controls from imported question text.
-  return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(value);
+  return Array.from(value).some(character => {
+    const code = character.charCodeAt(0);
+    return code === 0 || (code >= 1 && code <= 8) ||
+      code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127;
+  });
 }
 
 function requiredLabel(value, field, maxLength, rowNumber) {
