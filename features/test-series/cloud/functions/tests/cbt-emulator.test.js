@@ -61,7 +61,7 @@ before(async () => {
   });
   await db.doc(`testSeriesQuestionSets/${testId}`).set({
     questions: [
-      { id: "q1", text: "Question one?", options: ["A", "B"] },
+      { id: "q1", text: "Question one?", options: ["A", "B"], section: "Technical Ability" },
       { id: "q2", text: "Question two?", options: ["A", "B"] }
     ]
   });
@@ -321,6 +321,7 @@ test("student can start, save answers and submit with server-side scoring", asyn
   const paper = await callable("rmGetExamQuestions", { attemptId: started.attemptId });
   assert.equal(paper.questions.length, 2);
   assert.equal(paper.questions[0].id, "q1");
+  assert.equal(paper.questions[0].section, "Technical Ability");
   assert.equal(Object.hasOwn(paper.questions[0], "correctAnswer"), false);
   assert.equal(Object.hasOwn(paper.questions[0], "correctIndex"), false);
   assert.ok(paper.expiresAt);
