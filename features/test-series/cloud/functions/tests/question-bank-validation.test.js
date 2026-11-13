@@ -106,3 +106,27 @@ test("accepts omitted and blank optional question-bank list filters", () => {
     pageSize: 50, searchText: "", filters: {}
   });
 });
+
+
+test("rejects non-printing control characters in question content while preserving normal line breaks", () => {
+  const badControl = "bad" + String.fromCharCode(0) + "text";
+  assert.throws(() => normalizeQuestionBankItem(validItem({
+    question: { text: badControl }
+  })), /question text/);
+  assert.throws(() => normalizeQuestionBankItem(validItem({
+    question: { options: ["Safe", badControl] }
+  })), /text options/);
+  assert.throws(() => normalizeQuestionBankItem(validItem({
+    question: { explanation: badControl }
+  })), /unsupported control characters/);
+
+  const multiline = normalizeQuestionBankItem(validItem({
+    question: {
+      text: "Question line 1\\nQuestion line 2",
+      options: ["Option\\tA", "Option B"],
+      explanation: "Reason\\ncontinued"
+    }
+  }));
+  assert.match(multiline.question.text, /\\n/);
+  assert.match(multiline.question.explanation, /\\n/);
+});
