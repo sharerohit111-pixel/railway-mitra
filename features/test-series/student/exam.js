@@ -238,6 +238,20 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   const setConnectionState=online=>{if(!connection)return;connection.dataset.state=online?"online":"offline";connection.textContent=online?"Online · connected":"Offline · no connection";};
   const onOffline=()=>{setConnectionState(false);if(attemptId&&!finished){status("इंटरनेट कनेक्शन बंद है। उत्तर इस डिवाइस पर अस्थायी रूप से सुरक्षित होंगे; परीक्षा बंद न करें।");el("rm-cbt-saved").textContent="Offline · answers pending";}};
   const onOnline=()=>{setConnectionState(true);if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>status("कनेक्शन वापस आया है, लेकिन कुछ उत्तर अभी सेव नहीं हुए। Retry दबाएँ।"));}};
-  if(typeof window!=="undefined"){window.addEventListener("offline",onOffline);window.addEventListener("online",onOnline);setConnectionState(window.navigator?.onLine!==false);if(window.navigator?.onLine===false)onOffline();}
+  const onBeforeUnload=event=>{
+    if(!finished&&(pendingAnswers.size||inFlightSaves.size)){
+      event.preventDefault();
+      event.returnValue="";
+    }
+  };
+  const onPageHide=()=>{if(pendingAnswers.size)persistPending();};
+  if(typeof window!=="undefined"){
+    window.addEventListener("offline",onOffline);
+    window.addEventListener("online",onOnline);
+    window.addEventListener("beforeunload",onBeforeUnload);
+    window.addEventListener("pagehide",onPageHide);
+    setConnectionState(window.navigator?.onLine!==false);
+    if(window.navigator?.onLine===false)onOffline();
+  }
   return { destroy(){clearInterval(timer);if(typeof window!=="undefined"){window.removeEventListener("offline",onOffline);window.removeEventListener("online",onOnline);}} };
 }
