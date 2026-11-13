@@ -24,6 +24,11 @@ function loadCheckoutScript(root = document) {
         reject(new Error("Payment service could not be loaded. Please try again."));
       };
       root.head.append(script);
+    }).catch(error => {
+      // Do not cache a rejected promise: a transient script/CSP/load failure
+      // must not permanently disable checkout for the rest of this tab.
+      checkoutScriptPromise = null;
+      throw error;
     });
   }
   return checkoutScriptPromise;
