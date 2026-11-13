@@ -477,6 +477,16 @@ exports.rmOwnerSaveQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
   return { saved: true, itemId };
 });
 
+exports.rmOwnerDeleteQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const itemId = id(req.data && req.data.itemId);
+  const ref = db.doc("testSeriesQuestionBank/" + itemId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Question bank item not found");
+  await ref.delete();
+  return { deleted: true, itemId };
+});
+
 exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
   const data = req.data || {};
