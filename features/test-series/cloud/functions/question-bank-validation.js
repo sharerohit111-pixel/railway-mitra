@@ -3,10 +3,17 @@ function fail(message, rowNumber) {
   throw new Error(prefix + message);
 }
 
+function hasControlCharacters(value) {
+  return Array.from(value).some(character => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
+}
+
 function requiredLabel(value, field, maxLength, rowNumber) {
   if (typeof value !== "string") fail(field + " must be text", rowNumber);
   const normalized = value.trim();
-  if (!normalized || normalized.length > maxLength || /[\\u0000-\\u001F\\u007F]/.test(normalized)) {
+  if (!normalized || normalized.length > maxLength || hasControlCharacters(normalized)) {
     fail(field + " is required and must be within " + maxLength + " characters", rowNumber);
   }
   return normalized;
@@ -43,7 +50,7 @@ function normalizeQuestionBankItem(item, rowNumber) {
     fail("section must be text", rowNumber);
   }
   const section = typeof question.section === "string" ? question.section.trim() : "";
-  if (section.length > 80 || /[\\u0000-\\u001F\\u007F]/.test(section)) {
+  if (section.length > 80 || hasControlCharacters(section)) {
     fail("section must be within 80 characters and contain no control characters", rowNumber);
   }
   if (question.explanation !== undefined && question.explanation !== null && typeof question.explanation !== "string") {
