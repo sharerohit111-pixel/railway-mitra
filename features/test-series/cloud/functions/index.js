@@ -5,6 +5,7 @@ const { hasVerifiedPhoneMfa } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
 const { createRazorpayOrder } = require("./razorpay-order");
+const { inspectRazorpayOrder } = require("./razorpay-order-inspect");
 const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
 const { applyCapturedPayment } = require("./payment-ledger");
 const { handleRazorpayWebhook } = require("./razorpay-webhook-handler");
@@ -706,6 +707,46 @@ exports.rmOwnerListPaymentReconciliation = onCall(CALLABLE_OPTIONS, async req =>
       throw new HttpsError("invalid-argument", error.message);
     }
     throw error;
+  }
+});
+
+// Owner-only, read-only live lookup of a known provider order. This never changes
+// payment requests, locks, entitlements or the captured-payment ledger.
+exports.rmOwnerInspectPaymentOrder = onCall({
+  ...CALLABLE_OPTIONS,
+  secrets: [RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET]
+}, async req => {
+  owner(req);
+  const requestRecordId = req.data && req.data.requestRecordId;
+  if (typeof requestRecordId !== "string" || !/^[a-f0-9]{64}$/.test(requestRecordId)) {
+    throw new HttpsError("invalid-argument", "Invalid payment request reference");
+  }
+  const requestSnap = await db.doc("testSeriesPaymentRequests/" + requestRecordId).get();
+  if (!requestSnap.exists) throw new HttpsError("not-found", "Payment request not found");
+  const record = requestSnap.data() || {};
+  if (!["creating", "unknown"].includes(record.status) ||
+      typeof record.uid !== "string" || typeof record.testId !== "string" ||
+      !Number.isSafeInteger(record.amount) || record.amount <= 0 ||
+      record.currency !== "INR" ||
+      typeof record.receipt !== "string" ||
+      typeof record.providerOrderIdObserved !== "string") {
+    throw new HttpsError("failed-precondition", "This request has no safely inspectable provider order ID");
+  }
+  try {
+    return await inspectRazorpayOrder({
+      keyId: RAZORPAY_KEY_ID.value(),
+      keySecret: RAZORPAY_KEY_SECRET.value(),
+      orderId: record.providerOrderIdObserved,
+      expectedReceipt: record.receipt,
+      expectedAmountPaise: record.amount,
+      expectedUid: record.uid,
+      expectedTestId: record.testId
+    });
+  } catch (error) {
+    console.error("Owner Razorpay order inspection failed", {
+      requestRecordId, message: error.message
+    });
+    throw new HttpsError("unavailable", "Razorpay status lookup failed. No payment or access records were changed.");
   }
 });
 
