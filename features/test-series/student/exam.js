@@ -149,7 +149,9 @@ export function initStudentCbtExam({ app, testId, root = document }) {
         clearTimeout(graceTimer);
         if(pendingAnswers.size) timeoutWarning="Some unsaved answers were not included";
       }else{
-        await saving;
+        // A failed autosave must not short-circuit the explicit retry pass.
+        // Wait for the current queue to settle, then retry every still-pending answer.
+        await saving.catch(()=>{});
         await retryPending();
       }
       const score=await submitCbtExam(app,attemptId);
