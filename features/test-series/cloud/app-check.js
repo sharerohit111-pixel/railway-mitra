@@ -1,6 +1,6 @@
 // Railway Mitra — Firebase App Check initialization
 // Provider: reCAPTCHA Enterprise (Fraud Defense)
-// This module is imported by assets/js/firebase.js before Auth/Firestore are initialized.
+// Called by the isolated Test Series bootstrap immediately after initializeApp\n// and before its Auth, Firestore or Functions clients are created.
 import {
   initializeAppCheck,
   ReCaptchaEnterpriseProvider
