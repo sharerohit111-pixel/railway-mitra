@@ -386,6 +386,17 @@ test("student can start, save answers and submit with server-side scoring", asyn
     attemptId: started.attemptId, questionId: "q1", answer: "0"
   });
   assert.equal(saved.saved, true);
+  // Retrying the same answer is idempotent; a later changed selection replaces it.
+  const duplicateSave = await callable("rmSaveAnswer", {
+    attemptId: started.attemptId, questionId: "q1", answer: "0"
+  });
+  assert.equal(duplicateSave.saved, true);
+  assert.equal((await db.doc("testSeriesAttempts/" + started.attemptId).get()).data().answers.q1, "0");
+  const changedSave = await callable("rmSaveAnswer", {
+    attemptId: started.attemptId, questionId: "q1", answer: "1"
+  });
+  assert.equal(changedSave.saved, true);
+  assert.equal((await db.doc("testSeriesAttempts/" + started.attemptId).get()).data().answers.q1, "1");
 
   // Section deadlines are enforced independently of the overall exam deadline.
   await db.doc("testSeriesAttempts/" + started.attemptId).update({
