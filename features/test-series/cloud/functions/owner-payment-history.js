@@ -58,15 +58,18 @@ function serializePayment(document) {
   };
 }
 
-async function listOwnerPaymentHistory({ db, cursor = null, pageSize } = {}) {
+async function listOwnerPaymentHistory({ db, cursor = null, pageSize, collectionName = "testSeriesPayments" } = {}) {
   if (!db || typeof db.collection !== "function" || typeof db.doc !== "function") {
     throw new TypeError("A Firestore database instance is required");
   }
+  if (typeof collectionName !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(collectionName)) {
+    throw new TypeError("A valid payment collection name is required");
+  }
   const size = normalizePageSize(pageSize);
-  let query = db.collection("testSeriesPayments").orderBy("recordedAt", "desc");
+  let query = db.collection(collectionName).orderBy("recordedAt", "desc");
   if (cursor !== null) {
     if (!safeDocumentId(cursor)) throw inputError("invalid_cursor", "Payment history cursor is invalid");
-    const cursorSnapshot = await db.doc("testSeriesPayments/" + cursor).get();
+    const cursorSnapshot = await db.doc(collectionName + "/" + cursor).get();
     if (!cursorSnapshot.exists || !timestampToIso(cursorSnapshot.data().recordedAt)) {
       throw inputError("invalid_cursor", "Payment history cursor was not found");
     }

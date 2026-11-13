@@ -8,13 +8,14 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 const { listOwnerPaymentHistory } = require("../owner-payment-history");
 
+const collectionName = "testSeriesPaymentHistoryFixtures";
 const ids = ["pay_owner_history_latest","pay_owner_history_middle","pay_owner_history_oldest","pay_owner_history_corrupt"];
 let app;
 let db;
 
 async function clearFixtures() {
   if (!db) return;
-  await Promise.all(ids.map(id => db.doc("testSeriesPayments/" + id).delete().catch(() => {})));
+  await Promise.all(ids.map(id => db.doc(collectionName + "/" + id).delete().catch(() => {})));
 }
 
 before(async () => {
@@ -48,7 +49,7 @@ test("owner payment history paginates newest-first and returns only allow-listed
     ...record.data, recordedAt: new Date(record.at)
   })));
 
-  const first = await listOwnerPaymentHistory({ db, pageSize: 2 });
+  const first = await listOwnerPaymentHistory({ db, pageSize: 2, collectionName });
   assert.deepEqual(first.payments.map(item => item.paymentId), [ids[0], ids[1]]);
   assert.equal(first.hasMore, true);
   assert.equal(first.nextCursor, ids[1]);
@@ -60,7 +61,7 @@ test("owner payment history paginates newest-first and returns only allow-listed
   assert.equal(Object.hasOwn(first.payments[0], "email"), false);
   assert.equal(Object.hasOwn(first.payments[0], "notes"), false);
 
-  const second = await listOwnerPaymentHistory({ db, pageSize: 2, cursor: first.nextCursor });
+  const second = await listOwnerPaymentHistory({ db, pageSize: 2, cursor: first.nextCursor, collectionName });
   assert.deepEqual(second.payments.map(item => item.paymentId), [ids[2], ids[3]]);
   assert.equal(second.payments[1].status, "review_required");
   assert.equal(second.payments[1].amountPaise, null);
@@ -70,14 +71,14 @@ test("owner payment history paginates newest-first and returns only allow-listed
 
 test("owner payment history rejects invalid page sizes and unknown cursors", async () => {
   for (const pageSize of [0, -1, 1.5, 51, "25"]) {
-    await assert.rejects(listOwnerPaymentHistory({ db, pageSize }), error => error.code === "invalid_page_size");
+    await assert.rejects(listOwnerPaymentHistory({ db, pageSize, collectionName }), error => error.code === "invalid_page_size");
   }
   await assert.rejects(
-    listOwnerPaymentHistory({ db, cursor: "pay_owner_history_missing" }),
+    listOwnerPaymentHistory({ db, cursor: "pay_owner_history_missing", collectionName }),
     error => error.code === "invalid_cursor"
   );
   await assert.rejects(
-    listOwnerPaymentHistory({ db, cursor: "../not-a-payment" }),
+    listOwnerPaymentHistory({ db, cursor: "../not-a-payment", collectionName }),
     error => error.code === "invalid_cursor"
   );
 });
