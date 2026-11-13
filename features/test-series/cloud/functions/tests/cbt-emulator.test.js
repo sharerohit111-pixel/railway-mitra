@@ -204,10 +204,13 @@ test("CBT rejects a persisted question whose section has no canonical test confi
     sections: [{ name: "Technical Ability", timeLimitMinutes: 5, questionCount: 1 }]
   });
   await paperRef.set({
-    questions: [{
-      id: "q1", text: "Section mapping check?", options: ["A", "B"],
-      section: "General Ability"
-    }]
+    questions: [
+      {
+        id: "q1", text: "Section mapping check?", options: ["A", "B"],
+        section: "General Ability"
+      },
+      { id: "q2", text: "Unsectioned answer must also fail?", options: ["A", "B"] }
+    ]
   });
   await attemptRef.set({
     uid, testId: malformedTestId, status: "in_progress",
@@ -228,7 +231,13 @@ test("CBT rejects a persisted question whose section has no canonical test confi
       callable("rmSaveAnswer", { attemptId, questionId: "q1", answer: "0" }),
       error => error.code === "functions/failed-precondition"
     );
-    assert.equal((await attemptRef.get()).data().answers.q1, undefined);
+    await assert.rejects(
+      callable("rmSaveAnswer", { attemptId, questionId: "q2", answer: "0" }),
+      error => error.code === "functions/failed-precondition"
+    );
+    const savedAttempt = (await attemptRef.get()).data();
+    assert.equal(savedAttempt.answers.q1, undefined);
+    assert.equal(savedAttempt.answers.q2, undefined);
   } finally {
     await attemptRef.delete();
     await paperRef.delete();
