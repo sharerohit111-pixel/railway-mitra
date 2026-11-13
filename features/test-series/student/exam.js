@@ -3,7 +3,7 @@ import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbt
 export function initStudentCbtExam({ app, testId, root = document }) {
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
-  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), finished=false, sectionTransitioning=false;
+  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, finished=false, sectionTransitioning=false;
   const status = message => { el("rm-cbt-status").textContent=message; };
   const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
@@ -85,13 +85,20 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     return saving;
   }
   async function retryPending(){
-    const entries=[...pendingAnswers.entries()];
-    for(const [qid,value] of entries){
-      // A newer selection may have replaced this snapshot while retry was waiting.
-      if(pendingAnswers.get(qid)!==value) continue;
-      await queueSave(qid,value);
-    }
-    if(pendingAnswers.size) throw new Error("कुछ उत्तर अभी सर्वर पर सेव नहीं हुए हैं।");
+    // Online events, the Retry button, and refresh recovery can request a retry
+    // at nearly the same time. Share one in-flight pass to avoid duplicate writes.
+    if(retrying) return retrying;
+    retrying=(async()=>{
+      const entries=[...pendingAnswers.entries()];
+      for(const [qid,value] of entries){
+        // A newer selection may have replaced this snapshot while retry was waiting.
+        if(pendingAnswers.get(qid)!==value) continue;
+        await queueSave(qid,value);
+      }
+      if(pendingAnswers.size) throw new Error("कुछ उत्तर अभी सर्वर पर सेव नहीं हुए हैं।");
+    })();
+    try { return await retrying; }
+    finally { retrying=null; }
   }
   function render(){
     const q=paper.questions[index]; el("rm-cbt-count").textContent="Question "+(index+1)+" of "+paper.questions.length;
