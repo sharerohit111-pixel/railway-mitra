@@ -246,6 +246,21 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.ok(lateSave, "answers must not be changed after expiry");
   assert.ok(/closed|deadline|expired/i.test(lateSave.message));
 
+  // Missing/invalid server deadlines must never turn into an indefinitely writable
+  // attempt or a non-timeout submission.
+  await db.doc("testSeriesAttempts/" + started.attemptId).update({ expiresAt: null });
+  await assert.rejects(
+    callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "q2", answer: "1" }),
+    error => error.code === "functions/failed-precondition"
+  );
+  await assert.rejects(
+    callable("rmSubmitExam", { attemptId: started.attemptId }),
+    error => error.code === "functions/failed-precondition"
+  );
+  await db.doc("testSeriesAttempts/" + started.attemptId).update({
+    expiresAt: new Date(Date.now() - 1000)
+  });
+
   const result = await callable("rmSubmitExam", { attemptId: started.attemptId });
   assert.equal(result.submitted, true);
   assert.equal(result.timedOut, true);
