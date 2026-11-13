@@ -94,7 +94,7 @@ test("rejects malformed page sizes, non-text filters and oversized search terms"
     { pageSize: 0 }, { pageSize: 101 }, { pageSize: "25" },
     { topic: { value: "Civil" } }, { chapter: 12 }, { folder: ["Practice"] },
     { search: { query: "bearing" } }, { search: "x".repeat(121) },
-    { search: "bad\\nquery" }, { topic: "bad\\nfilter" }
+    { search: "bad" + String.fromCharCode(10) + "query" }, { topic: "bad" + String.fromCharCode(10) + "filter" }
   ]) {
     assert.throws(() => normalizeQuestionBankListRequest(input));
   }
