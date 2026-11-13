@@ -53,8 +53,13 @@
         <p class="rm-admin-hint">हर प्रश्न में id, text, options और correctIndex दें। सही उत्तर सर्वर पर अलग सुरक्षित रखा जाएगा।</p>
         <div class="rm-admin-form-grid"><button class="rm-admin-primary" type="submit">Save Test</button><button id="rm-admin-test-cancel" type="button">Clear / New Test</button></div>
       </form>
-      <h3>Cloud Tests</h3><button id="rm-admin-refresh-tests" type="button">Refresh Test List</button>
+      <h3>Cloud Tests</h3>
+      <button id="rm-admin-refresh-tests" type="button">Refresh Test List</button>
+      <label>टेस्ट खोजें<input id="rm-admin-test-search" type="search" maxlength="120" placeholder="नाम, Test ID, Category या Folder"></label>
+      <label>Folder फ़िल्टर<select id="rm-admin-test-folder-filter"><option value="">सभी फ़ोल्डर</option></select></label>
+      <p class="rm-admin-hint">सूची 50 टेस्ट प्रति पेज लोड होती है। खोज और Folder फ़िल्टर अब तक लोड हुए टेस्ट पर लागू होंगे। अधिक टेस्ट देखने के लिए Load More दबाएँ।</p>
       <div id="rm-admin-tests-list" class="rm-admin-tests-list">अभी सूची लोड नहीं हुई।</div>
+      <button id="rm-admin-tests-more" type="button" hidden>Load More Tests</button>
     </section>
     <section id="rm-admin-question-bank-panel" class="rm-admin-panel" hidden>
       <h3>Question Bank</h3>
