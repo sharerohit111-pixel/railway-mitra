@@ -50,7 +50,7 @@ jobs:
 
       - name: Run CBT tests and authenticated callable load against local emulators
         env:
-          CALLABLE_LOAD_STUDENTS: "20"
-          CALLABLE_LOAD_CONCURRENCY: "10"
+          CALLABLE_LOAD_STUDENTS: "50"
+          CALLABLE_LOAD_CONCURRENCY: "20"
           CALLABLE_LOAD_QUESTIONS: "50"
         run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project railway-mitra --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:callable:emulator"
