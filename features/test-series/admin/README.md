@@ -82,3 +82,7 @@ The bulk-add controls can add every currently loaded question matching a selecte
 ### Test Section Builder
 
 The isolated Owner Question Bank module can define section labels (for example, General Awareness, Mathematics, and Technical Ability) and choose an active section before adding selected Question Bank items to the test editor. The selected section is stored as optional question metadata, validated on both client and server, and included in the public question set. The student CBT displays the section label with the current question. Questions without a section remain fully supported. This does not change answer-key privacy or scoring.
+
+### Student activity search
+
+The Owner Students module includes a client-side search across the currently loaded result pages. It matches the full student Firebase UID, test ID, and test title while displaying only a shortened UID. Use Load More to fetch older pages; the search automatically includes those newly loaded rows. This is an activity/result lookup, not a full student account directory: it does not expose phone numbers, email addresses, authentication records, or answer selections.
