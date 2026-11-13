@@ -75,3 +75,34 @@ test("includes the source row in bulk-import validation errors", () => {
     /row 7/
   );
 });
+
+
+test("validates question-bank list filters without coercing malformed values", () => {
+  const { normalizeQuestionBankListRequest } = require("../question-bank-validation");
+  assert.deepEqual(normalizeQuestionBankListRequest({
+    pageSize: 25, search: "  Bearing  ", topic: " Civil ", chapter: " Soil ", folder: " Practice "
+  }), {
+    pageSize: 25,
+    searchText: "bearing",
+    filters: { topic: "Civil", chapter: "Soil", folder: "Practice" }
+  });
+});
+
+test("rejects malformed page sizes, non-text filters and oversized search terms", () => {
+  const { normalizeQuestionBankListRequest } = require("../question-bank-validation");
+  for (const input of [
+    { pageSize: 0 }, { pageSize: 101 }, { pageSize: "25" },
+    { topic: { value: "Civil" } }, { chapter: 12 }, { folder: ["Practice"] },
+    { search: { query: "bearing" } }, { search: "x".repeat(121) },
+    { search: "bad\\nquery" }, { topic: "bad\\nfilter" }
+  ]) {
+    assert.throws(() => normalizeQuestionBankListRequest(input));
+  }
+});
+
+test("accepts omitted and blank optional question-bank list filters", () => {
+  const { normalizeQuestionBankListRequest } = require("../question-bank-validation");
+  assert.deepEqual(normalizeQuestionBankListRequest({ search: "  ", topic: "  " }), {
+    pageSize: 50, searchText: "", filters: {}
+  });
+});
