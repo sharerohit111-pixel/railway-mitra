@@ -293,11 +293,41 @@ export function initOwnerAdminDashboard(auth, functions) {
   const studentsList = el("rm-admin-students-list");
   const studentsStatus = el("rm-admin-students-status");
   const studentsMore = el("rm-admin-students-more");
+  const studentsSearch = el("rm-admin-students-search");
   let studentsCursor = null;
   let studentsGeneration = 0;
+  let studentActivityRows = [];
+  function renderStudentActivity() {
+    const term = studentsSearch.value.trim().toLocaleLowerCase();
+    const visibleRows = studentActivityRows.filter(activity => {
+      if (!term) return true;
+      return [activity.studentUid, activity.testId, activity.testTitle]
+        .some(value => String(value || "").toLocaleLowerCase().includes(term));
+    });
+    studentsList.replaceChildren();
+    visibleRows.forEach(activity => {
+      const card = document.createElement("article");
+      card.className = "rm-admin-payment-row";
+      const heading = document.createElement("b");
+      heading.textContent = (activity.testTitle || activity.testId || "Test") + " · " + Number(activity.score || 0) + " अंक";
+      const detail = document.createElement("small");
+      const submitted = activity.submittedAt ? new Date(activity.submittedAt) : null;
+      const submittedLabel = submitted && Number.isFinite(submitted.getTime()) ? submitted.toLocaleString() : "समय उपलब्ध नहीं";
+      const uidLabel = activity.studentUid ? activity.studentUid.slice(0, 10) + "…" : "विद्यार्थी अज्ञात";
+      detail.textContent = [uidLabel, "सही " + activity.correct, "गलत " + activity.wrong, "छोड़े " + activity.unattempted, "कुल " + activity.totalQuestions, activity.timedOut ? "समय समाप्त" : "जमा", submittedLabel].join(" · ");
+      card.append(heading, detail);
+      studentsList.append(card);
+    });
+    studentsStatus.textContent = term
+      ? visibleRows.length + " परिणाम मिले · कुल " + studentActivityRows.length + " लोड हुए"
+      : studentActivityRows.length ? studentActivityRows.length + " परीक्षा परिणाम लोड हुए।" : "अभी कोई जमा परीक्षा परिणाम नहीं है।";
+    if (term && !visibleRows.length) studentsStatus.textContent = "इस खोज से कोई परिणाम नहीं मिला। Load More से पुराने परिणाम भी खोज सकते हैं।";
+  }
   function clearStudentActivity() {
     studentsGeneration += 1;
     studentsCursor = null;
+    studentActivityRows = [];
+    studentsSearch.value = "";
     studentsList.replaceChildren();
     studentsStatus.textContent = "";
     studentsMore.hidden = true;
@@ -306,36 +336,29 @@ export function initOwnerAdminDashboard(auth, functions) {
   async function refreshStudentActivity({ append = false } = {}) {
     if (append && !studentsCursor) return;
     const generation = ++studentsGeneration;
-    if (!append) { studentsCursor = null; studentsList.replaceChildren(); studentsStatus.textContent = "विद्यार्थी परीक्षा गतिविधि लोड हो रही है…"; }
-    else studentsMore.disabled = true;
+    if (!append) {
+      studentsCursor = null;
+      studentActivityRows = [];
+      studentsList.replaceChildren();
+      studentsStatus.textContent = "विद्यार्थी परीक्षा गतिविधि लोड हो रही है…";
+    } else studentsMore.disabled = true;
     try {
       const response = await httpsCallable(functions, "rmOwnerListStudentActivity")({ cursor: append ? studentsCursor : null, pageSize: 25 });
       if (generation !== studentsGeneration) return;
       const data = response.data || {};
       const rows = Array.isArray(data.activities) ? data.activities : [];
-      rows.forEach(activity => {
-        const card = document.createElement("article");
-        card.className = "rm-admin-payment-row";
-        const heading = document.createElement("b");
-        heading.textContent = (activity.testTitle || activity.testId || "Test") + " · " + Number(activity.score || 0) + " अंक";
-        const detail = document.createElement("small");
-        const submitted = activity.submittedAt ? new Date(activity.submittedAt) : null;
-        const submittedLabel = submitted && Number.isFinite(submitted.getTime()) ? submitted.toLocaleString() : "समय उपलब्ध नहीं";
-        const uidLabel = activity.studentUid ? activity.studentUid.slice(0, 10) + "…" : "विद्यार्थी अज्ञात";
-        detail.textContent = [uidLabel, "सही " + activity.correct, "गलत " + activity.wrong, "छोड़े " + activity.unattempted, "कुल " + activity.totalQuestions, activity.timedOut ? "समय समाप्त" : "जमा", submittedLabel].join(" · ");
-        card.append(heading, detail);
-        studentsList.append(card);
-      });
+      studentActivityRows = append ? studentActivityRows.concat(rows) : rows;
       studentsCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
       studentsMore.hidden = !studentsCursor;
       studentsMore.disabled = false;
-      studentsStatus.textContent = rows.length ? rows.length + " परीक्षा परिणाम लोड हुए।" : append ? "और परिणाम उपलब्ध नहीं हैं।" : "अभी कोई जमा परीक्षा परिणाम नहीं है।";
+      renderStudentActivity();
     } catch (error) {
       if (generation !== studentsGeneration) return;
       studentsStatus.textContent = error.message || "विद्यार्थी गतिविधि लोड नहीं हुई।";
       studentsMore.disabled = false;
     }
   }
+  studentsSearch.addEventListener("input", renderStudentActivity);
   el("rm-admin-refresh-students").addEventListener("click", () => refreshStudentActivity());
   studentsMore.addEventListener("click", () => refreshStudentActivity({ append: true }));
   const questionBankPanel = el("rm-admin-question-bank-panel");
