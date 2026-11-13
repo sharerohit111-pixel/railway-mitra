@@ -30,6 +30,19 @@ async function callable(name, data = {}) {
   return response.data;
 }
 
+async function seedPaidAccess({ testId, paymentId, orderId, amount }) {
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + testId);
+  const identity = { uid, testId, paymentId, razorpayOrderId: orderId, amount, currency: "INR" };
+  await Promise.all([
+    paymentRef.set({ ...identity, status: "captured" }),
+    orderRef.set({ ...identity, status: "paid" }),
+    entitlementRef.set({ ...identity, status: "active" })
+  ]);
+  return { paymentRef, orderRef, entitlementRef };
+}
+
 before(async () => {
   app = initializeApp({ projectId: PROJECT }, "cbt-emulator-tests");
   db = getFirestore(app);
@@ -659,40 +672,45 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(repairedActive.found, true);
   assert.equal(repairedActive.attemptId, started.attemptId);
 
-  // A valid active exam must prevent the same student from starting a different paid test.
+  // A valid paid ledger must pass entitlement verification before the active-session guard.
   const paidTestId = "emulator-paid-concurrent-test";
   await db.doc("testSeriesTests/" + paidTestId).set({
     title: "Paid Concurrent Test", status: "published", price: 50,
     mode: "mock", durationMinutes: 10, questionCount: 1
   });
-  const paidEntitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  let paidAccess;
   try {
-    // An active record at the expected document path is not sufficient: its owner and test
-    // fields must also match the authenticated student and requested paid test.
-    await paidEntitlementRef.set({
-      uid: "different-student-uid", testId: paidTestId, status: "active"
+    paidAccess = await seedPaidAccess({
+      testId: paidTestId, paymentId: "pay_paid_concurrent",
+      orderId: "order_paid_concurrent", amount: 5000
     });
+    const validEntitlement = (await paidAccess.entitlementRef.get()).data();
+    await paidAccess.entitlementRef.set({ ...validEntitlement, uid: "different-student-uid" });
     await assert.rejects(
       callable("rmStartExam", { testId: paidTestId }),
       error => error.code === "functions/permission-denied"
     );
 
-    await paidEntitlementRef.set({
-      uid, testId: "different-paid-test", status: "active"
-    });
+    await paidAccess.entitlementRef.set({ ...validEntitlement, testId: "different-paid-test" });
     await assert.rejects(
       callable("rmStartExam", { testId: paidTestId }),
       error => error.code === "functions/permission-denied"
     );
 
-    await paidEntitlementRef.set({ uid, testId: paidTestId, status: "active" });
+    await paidAccess.entitlementRef.set(validEntitlement);
     await assert.rejects(
       callable("rmStartExam", { testId: paidTestId }),
       error => error.code === "functions/already-exists"
     );
   } finally {
     await db.doc("testSeriesTests/" + paidTestId).delete();
-    await paidEntitlementRef.delete();
+    if (paidAccess) {
+      await Promise.all([
+        paidAccess.paymentRef.delete().catch(() => {}),
+        paidAccess.orderRef.delete().catch(() => {}),
+        paidAccess.entitlementRef.delete().catch(() => {})
+      ]);
+    }
   }
 
   const paper = await callable("rmGetExamQuestions", { attemptId: started.attemptId });
@@ -892,6 +910,7 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
   const keyRef = db.doc("testSeriesAnswerKeys/" + scheduledTestId);
   const questionsRef = db.doc("testSeriesQuestionSets/" + scheduledTestId);
   let startedAttemptId = null;
+  let scheduledAccess = null;
   try {
     const now = Date.now();
     await testRef.set({
@@ -921,7 +940,10 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
       error => error.code === "functions/permission-denied"
     );
 
-    await entitlementRef.set({ uid, testId: scheduledTestId, status: "active" });
+    scheduledAccess = await seedPaidAccess({
+      testId: scheduledTestId, paymentId: "pay_scheduled_test",
+      orderId: "order_scheduled_test", amount: 5000
+    });
     await testRef.update({ scheduleStartAt: new Date(Date.now() + 60_000) });
     await assert.rejects(
       callable("rmStartExam", { testId: scheduledTestId }),
@@ -942,14 +964,17 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
     // Completing one paid exam must release the student's active slot for another test.
     const nextTestId = "emulator-next-paid-after-completion";
     const nextTestRef = db.doc("testSeriesTests/" + nextTestId);
-    const nextEntitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + nextTestId);
+    let nextAccess = null;
     let nextAttemptId = null;
     try {
       await nextTestRef.set({
         title: "Next Paid Test", status: "published", price: 25,
         mode: "mock", durationMinutes: 10, questionCount: 0
       });
-      await nextEntitlementRef.set({ uid, testId: nextTestId, status: "active" });
+      nextAccess = await seedPaidAccess({
+        testId: nextTestId, paymentId: "pay_next_paid_test",
+        orderId: "order_next_paid_test", amount: 2500
+      });
       const nextStarted = await callable("rmStartExam", { testId: nextTestId });
       nextAttemptId = nextStarted.attemptId;
       assert.ok(nextAttemptId);
@@ -961,7 +986,13 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
     } finally {
       if (nextAttemptId) await db.doc("testSeriesAttempts/" + nextAttemptId).delete().catch(() => {});
       await nextTestRef.delete().catch(() => {});
-      await nextEntitlementRef.delete().catch(() => {});
+      if (nextAccess) {
+        await Promise.all([
+          nextAccess.paymentRef.delete().catch(() => {}),
+          nextAccess.orderRef.delete().catch(() => {}),
+          nextAccess.entitlementRef.delete().catch(() => {})
+        ]);
+      }
       await db.doc("testSeriesActiveSessions/" + uid).delete().catch(() => {});
     }
   } finally {
@@ -970,7 +1001,10 @@ test("paid and scheduled exams enforce entitlement and their server-side time wi
       await db.doc("testSeriesResults/" + startedAttemptId).delete();
     }
     await db.doc("testSeriesActiveSessions/" + uid).delete();
-    await Promise.all([testRef, entitlementRef, keyRef, questionsRef].map(ref => ref.delete().catch(() => {})));
+    await Promise.all([
+      testRef, entitlementRef, keyRef, questionsRef,
+      ...(scheduledAccess ? [scheduledAccess.paymentRef, scheduledAccess.orderRef] : [])
+    ].map(ref => ref.delete().catch(() => {})));
   }
 });
 
