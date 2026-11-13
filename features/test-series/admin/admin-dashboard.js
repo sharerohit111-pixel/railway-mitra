@@ -1,4 +1,4 @@
-import { summarizeStudentActivity, studentActivityCsv } from "./student-activity.mjs";
+import { summarizeStudentActivity, studentActivityCsv, studentActivityPrintHtml } from "./student-activity.mjs";
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
@@ -297,6 +297,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   const studentsSearch = el("rm-admin-students-search");
   const studentSummaries = el("rm-admin-student-summaries");
   const studentsExport = el("rm-admin-export-students");
+  const studentsPrint = el("rm-admin-print-students");
   let studentsCursor = null;
   let studentsGeneration = 0;
   let studentActivityRows = [];
@@ -337,11 +338,33 @@ export function initOwnerAdminDashboard(auth, functions) {
       studentsList.append(card);
     });
     studentsExport.disabled = visibleRows.length === 0;
+    studentsPrint.disabled = visibleRows.length === 0;
     studentsStatus.textContent = term
       ? visibleRows.length + " परिणाम मिले · कुल " + studentActivityRows.length + " लोड हुए"
       : studentActivityRows.length ? studentActivityRows.length + " परीक्षा परिणाम लोड हुए।" : "अभी कोई जमा परीक्षा परिणाम नहीं है।";
     if (term && !visibleRows.length) studentsStatus.textContent = "इस खोज से कोई परिणाम नहीं मिला। Load More से पुराने परिणाम भी खोज सकते हैं।";
   }
+  studentsPrint.addEventListener("click", () => {
+    const term = studentsSearch.value.trim().toLocaleLowerCase();
+    const visibleRows = studentActivityRows.filter(activity => !term ||
+      [activity.studentUid, activity.testId, activity.testTitle]
+        .some(value => String(value || "").toLocaleLowerCase().includes(term)));
+    if (!visibleRows.length) return;
+    const reportWindow = window.open("", "_blank");
+    if (!reportWindow) {
+      studentsStatus.textContent = "रिपोर्ट विंडो ब्राउज़र ने रोकी। इस साइट के लिए pop-ups अनुमति दें।";
+      return;
+    }
+    reportWindow.document.open();
+    reportWindow.document.write(studentActivityPrintHtml(visibleRows));
+    reportWindow.document.close();
+    const printReport = () => {
+      reportWindow.focus();
+      reportWindow.print();
+    };
+    if (reportWindow.document.readyState === "complete") printReport();
+    else reportWindow.addEventListener("load", printReport, { once: true });
+  });
   function clearStudentActivity() {
     studentsGeneration += 1;
     studentsCursor = null;
