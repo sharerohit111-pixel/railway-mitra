@@ -7,6 +7,7 @@ const { createRazorpayOrder } = require("./razorpay-order");
 const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
 const { applyCapturedPayment } = require("./payment-ledger");
 const { handleRazorpayWebhook } = require("./razorpay-webhook-handler");
+const { rupeesToPaise } = require("./payment-price");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -450,9 +451,10 @@ exports.rmCreatePaymentOrder = onCall({
     throw new HttpsError("not-found", "Published test not found");
   }
   const test = testSnap.data();
-  const price = Number(test.price);
-  if (!Number.isFinite(price) || price <= 0 || price > 100000 ||
-      !Number.isSafeInteger(Math.round(price * 100)) || Math.round(price * 100) <= 0) {
+  let amount;
+  try {
+    amount = rupeesToPaise(test.price, { maxRupees: 100000 });
+  } catch {
     throw new HttpsError("failed-precondition", "This test does not have a valid paid price");
   }
 
@@ -464,7 +466,6 @@ exports.rmCreatePaymentOrder = onCall({
   }
 
   const receiptRef = db.collection("testSeriesOrderReceipts").doc();
-  const amount = Math.round(price * 100);
   let providerOrder;
   try {
     providerOrder = await createRazorpayOrder({
@@ -488,7 +489,7 @@ exports.rmCreatePaymentOrder = onCall({
         tx.get(entitlementRef)
       ]);
       if (!latestTest.exists || latestTest.data().status !== "published" ||
-          Number(latestTest.data().price) !== price) {
+          rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }) !== amount) {
         throw new HttpsError("failed-precondition", "Test price or availability changed. Refresh and try again.");
       }
       if (latestEntitlement.exists && latestEntitlement.data().uid === uid &&
