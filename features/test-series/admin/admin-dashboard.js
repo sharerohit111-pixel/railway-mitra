@@ -215,8 +215,12 @@ export function initOwnerAdminDashboard(auth, functions) {
         const stateLabel = request.status === "creating" ? "Provider order लंबित" : "Outcome अस्पष्ट · जाँच आवश्यक";
         heading.textContent = amountLabel + " · " + stateLabel;
         const detail = document.createElement("small");
-        const date = request.updatedAt ? new Date(request.updatedAt) : null;
-        const dateLabel = date && Number.isFinite(date.getTime()) ? date.toLocaleString() : "समय उपलब्ध नहीं";
+        const formatRequestTime = value => {
+          const date = value ? new Date(value) : null;
+          return date && Number.isFinite(date.getTime()) ? date.toLocaleString() : "समय उपलब्ध नहीं";
+        };
+        const createdLabel = "Created " + formatRequestTime(request.createdAt);
+        const updatedLabel = "Last update " + formatRequestTime(request.updatedAt);
         detail.textContent = [
           request.testId ? "Test " + request.testId : "Test unavailable",
           request.studentUid ? "Student UID " + request.studentUid : "Student unavailable",
@@ -224,7 +228,8 @@ export function initOwnerAdminDashboard(auth, functions) {
           request.providerOrderIdObserved ? "Provider Order " + request.providerOrderIdObserved : "Provider Order not confirmed",
           request.receiptRef ? "Razorpay Receipt " + request.receiptRef : "Receipt unavailable",
           "Reference " + (request.requestRecordId || "unavailable"),
-          dateLabel
+          createdLabel,
+          updatedLabel
         ].join(" · ");
         card.append(heading, detail);
         reconciliationList.append(card);
