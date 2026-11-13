@@ -533,6 +533,7 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
     throw new HttpsError("invalid-argument", "Page size must be from 1 to 100");
   }
+  const searchText = typeof data.search === "string" ? data.search.trim().slice(0, 120).toLocaleLowerCase() : "";
   const filters = {};
   for (const field of ["topic", "chapter", "folder"]) {
     if (data[field] !== undefined && data[field] !== null && String(data[field]).trim()) {
@@ -556,7 +557,9 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   const snap = await query.limit(500).get();
   const matches = snap.docs.filter(doc => {
     const row = doc.data();
-    return Object.entries(filters).every(([field, value]) => row[field] === value);
+    const matchesFilters = Object.entries(filters).every(([field, value]) => row[field] === value);
+    const searchable = [row.question && row.question.text, row.topic, row.chapter, row.folder].filter(Boolean).join(" ").toLocaleLowerCase();
+    return matchesFilters && (!searchText || searchable.includes(searchText));
   });
   const page = matches.slice(0, pageSize);
   const hasMoreMatches = matches.length > pageSize;
@@ -575,7 +578,7 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
     items,
     nextCursor,
     hasMore: Boolean(nextCursor),
-    filters: { topic: filters.topic || null, chapter: filters.chapter || null, folder: filters.folder || null },
+    filters: { topic: filters.topic || null, chapter: filters.chapter || null, folder: filters.folder || null, search: searchText || null },
     facets: { topics: unique("topic"), chapters: unique("chapter"), folders: unique("folder") },
     scanLimited: snap.size === 500
   };
