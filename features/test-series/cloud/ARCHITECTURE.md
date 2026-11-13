@@ -32,6 +32,10 @@ No Firebase configuration or project files were found in the inspected repositor
 
 The configured free test is mutable only before the first student claim. `rmClaimFreeAttempt` writes the claim, initial attempt, and `testSeriesConfig/freeTest.hasClaims` marker in one Firestore transaction. Later claims read the lock without rewriting the shared config or moving `firstClaimAt`. `rmOwnerSetFreeTest` reads and writes that same config document, serializing a concurrent first claim against a selection change. If a legacy config has no marker, the Owner callable checks for existing claim documents before permitting a change. Re-selecting the current test is safe and idempotent; changing it after a claim is rejected to prevent already-claimed students from being stranded.
 
+## Owner payment-reconciliation pagination stability
+
+Payment request reservations set `createdAt` once when the reservation is created. The Owner reconciliation queue orders by this immutable field and uses the document snapshot as its continuation cursor. It must not order by mutable `updatedAt`: a provider response, support update or status transition can change that timestamp after page one and move an unresolved request ahead of the cursor, causing it to be skipped on a later page. The API still returns `updatedAt` for display, but it is not part of pagination order. The 500-document bounded scan advances its cursor to the last scanned document when the window is full, including windows with no visible unresolved rows. Any imported legacy payment-request records must have a valid immutable `createdAt` before they are included in this queue; do not perform a production backfill without a reviewed migration and approval.
+
 ## Razorpay signature verification boundary
 
 The isolated Functions package now includes two server-side HMAC verification helpers in `functions/razorpay-signature.js`:
