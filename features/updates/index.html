@@ -8,7 +8,6 @@
 <link rel="manifest" href="../../manifest.json">
 <link rel="stylesheet" href="../../assets/css/main.css">
 <link rel="stylesheet" href="./updates.css?v=3">
-<link rel="stylesheet" href="./pdf-library.css?v=1">
 </head>
 <body class="rm-updates-page">
 <header class="rm-updates-header"><a href="../../index.html">← Railway Mitra</a><button id="updatesLanguage" type="button" class="rm-language">हिन्दी</button></header>
@@ -38,20 +37,6 @@
  <div id="noticeList" class="rm-notice-list" aria-live="polite"></div>
  <div id="emptyState" class="rm-empty" hidden><span>📭</span><h3 data-i18n="emptyTitle">No matching news</h3><p data-i18n="emptyText">Try another search or category.</p></div>
 </section>
-<section class="rm-pdf-library" id="pdfLibrary">
- <div class="rm-pdf-heading"><div><span class="rm-kicker">DOCUMENT LIBRARY</span><h2>PDF दस्तावेज़</h2><p>चुनी हुई श्रेणी के परिपत्र, सूचियाँ और आधिकारिक PDF देखें।</p></div><span id="pdfCount">लोड हो रहा है…</span></div>
- <div id="pdfAdminPanel" class="rm-pdf-admin" hidden>
-  <h3>🔐 Admin PDF Upload</h3><p>केवल सत्यापित Owner Admin PDF अपलोड, बदल और हटा सकता है।</p>
-  <form id="pdfUploadForm">
-   <label>श्रेणी<select id="pdfCategory" required><option value="rbe">आधिकारिक घोषणाएँ</option><option value="pay">वेतन एवं कर्मचारी लाभ</option><option value="exam" selected>भर्ती एवं परीक्षाएँ</option><option value="transfer">सुरक्षा एवं परिचालन</option><option value="medical">यात्री एवं ट्रेन सेवाएँ</option><option value="zone">जोन एवं परियोजनाएँ</option><option value="other">अन्य अपडेट</option></select></label>
-   <label>PDF का नाम<input id="pdfTitle" required maxlength="140" placeholder="जैसे GDCE 04/2023 अभ्यर्थी सूची"></label>
-   <label>संक्षिप्त विवरण (वैकल्पिक)<input id="pdfDescription" maxlength="240" placeholder="परीक्षा सूचना / अभ्यर्थी सूची"></label>
-   <label class="rm-pdf-file">PDF फ़ाइल चुनें<input id="pdfFile" type="file" accept="application/pdf,.pdf" required></label>
-   <button type="submit" id="pdfUploadButton">Upload PDF</button>
-  </form><p id="pdfAdminStatus" role="status" aria-live="polite"></p>
- </div>
- <div id="pdfDocumentList" class="rm-pdf-list" aria-live="polite"><p>PDF दस्तावेज़ लोड हो रहे हैं…</p></div>
-</section>
 <section class="rm-source-panel">
  <span class="rm-kicker" data-i18n="sourceKicker">CHECK THE ORIGINAL NOTICE</span><h2 data-i18n="sourceTitle">Official news sources</h2>
  <p data-i18n="sourceText">Open the issuing authority’s original release or order before relying on any information.</p>
@@ -65,6 +50,5 @@
 </main>
 <footer class="rm-updates-footer"><a href="../../index.html">Railway Mitra Home</a> · <a href="../privacy/index.html">Privacy Policy</a></footer>
 <script type="module" src="./updates.js?v=3"></script>
-<script type="module" src="./pdf-library.js?v=1"></script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("../../service-worker.js").catch(e=>console.error("Service Worker:",e)));}</script>
 </body></html>
