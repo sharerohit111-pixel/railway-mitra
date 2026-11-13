@@ -347,14 +347,51 @@ export function initOwnerAdminDashboard(auth, functions) {
   let questionBankFilters = { topic: "", chapter: "", folder: "" };
   let questionBankItems = [];
   const selectedQuestionBankIds = new Set();
+  const questionSections = [];
+  let activeQuestionSection = "";
   function updateQuestionBankSelectionStatus() {
     el("rm-qb-selection-status").textContent = selectedQuestionBankIds.size + " प्रश्न चयनित हैं।";
   }
   function questionBankItemAsTestQuestion(item) {
     return { id: "bank_" + item.itemId, text: item.question?.text || "",
       options: Array.isArray(item.question?.options) ? item.question.options : [],
-      correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "" };
+      correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "",
+      ...(activeQuestionSection ? { section: activeQuestionSection } : {}) };
   }
+  function renderQuestionSections() {
+    const list = el("rm-qb-sections-list"); list.replaceChildren();
+    const select = document.createElement("select"); select.id = "rm-qb-active-section";
+    select.add(new Option("बिना सेक्शन", ""));
+    questionSections.forEach(name => select.add(new Option(name, name)));
+    select.value = activeQuestionSection;
+    select.addEventListener("change", () => { activeQuestionSection = select.value; });
+    const label = document.createElement("label"); label.textContent = "प्रश्न जोड़ने का सक्रिय सेक्शन ";
+    label.append(select); list.append(label);
+    questionSections.forEach(name => {
+      const row = document.createElement("div"); row.className = "rm-admin-payment-row";
+      const title = document.createElement("b"); title.textContent = name;
+      const count = document.createElement("small");
+      count.textContent = "इस सेक्शन में जोड़े गए प्रश्न Test JSON में section नाम के साथ सुरक्षित होंगे।";
+      row.append(title, count); list.append(row);
+    });
+    el("rm-qb-sections-status").textContent = questionSections.length
+      ? questionSections.length + " सेक्शन बने हैं। प्रश्न जोड़ने से पहले सक्रिय सेक्शन चुनें।"
+      : "सेक्शन अभी नहीं बनाए गए हैं।";
+  }
+  el("rm-qb-create-section").addEventListener("click", () => {
+    const name = el("rm-qb-section-name").value.trim();
+    if (!name || name.length > 80) { el("rm-qb-sections-status").textContent = "सेक्शन का नाम 1 से 80 अक्षरों का होना चाहिए।"; return; }
+    if (questionSections.some(item => item.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+      el("rm-qb-sections-status").textContent = "यह सेक्शन पहले से मौजूद है।"; return;
+    }
+    questionSections.push(name); activeQuestionSection = name;
+    el("rm-qb-section-name").value = "";
+    renderQuestionSections();
+  });
+  el("rm-qb-clear-sections").addEventListener("click", () => {
+    questionSections.splice(0); activeQuestionSection = ""; renderQuestionSections();
+  });
+  renderQuestionSections();
   function addQuestionBankItemsToTest(items) {
     const target = el("rm-test-questions");
     let current;
