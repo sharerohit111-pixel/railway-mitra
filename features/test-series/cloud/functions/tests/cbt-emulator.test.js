@@ -102,7 +102,8 @@ before(async () => {
   await db.doc("testSeriesConfig/freeTest").set({ enabled: true, testId });
   await db.doc(`testSeriesTests/${testId}`).set({
     title: "Emulator Free Test", status: "published", price: 0, mode: "mock",
-    durationMinutes: 30, marksPerQuestion: 2, negativeMarks: 0.5, questionCount: 2
+    durationMinutes: 30, marksPerQuestion: 2, negativeMarks: 0.5, questionCount: 2,
+    sections: [{ name: "Technical Ability", timeLimitMinutes: 1, questionCount: 1 }]
   });
   await db.doc("testSeriesTests/emulator-draft-test").set({
     title: "Hidden Draft", status: "draft", price: 0, mode: "mock", durationMinutes: 10, questionCount: 1
@@ -399,6 +400,22 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(Object.hasOwn(paper.questions[0], "correctAnswer"), false);
   assert.equal(Object.hasOwn(paper.questions[0], "correctIndex"), false);
   assert.ok(paper.expiresAt);
+
+  const sectionStart = await callable("rmEnterCbtSection", {
+    attemptId: started.attemptId, section: "Technical Ability"
+  });
+  assert.equal(sectionStart.section, "Technical Ability");
+  assert.equal(sectionStart.timeLimitMinutes, 1);
+  assert.ok(sectionStart.expiresAt);
+  const sectionResume = await callable("rmEnterCbtSection", {
+    attemptId: started.attemptId, section: "Technical Ability"
+  });
+  assert.equal(sectionResume.resumed, true);
+  assert.equal(sectionResume.expiresAt, sectionStart.expiresAt);
+  await assert.rejects(
+    callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Not a section" }),
+    error => error.code === "functions/not-found"
+  );
 
   await assert.rejects(
     callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "q1", answer: "9" }),
