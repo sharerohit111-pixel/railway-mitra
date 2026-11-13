@@ -67,6 +67,12 @@
         <label>प्रश्न (JSON)<textarea id="rm-qb-question" rows="7" required placeholder='{"text":"प्रश्न लिखें?","options":["विकल्प A","विकल्प B","विकल्प C","विकल्प D"],"correctIndex":0,"explanation":"समाधान"}'></textarea></label>
         <div class="rm-admin-form-grid"><button id="rm-qb-save" class="rm-admin-primary" type="submit">प्रश्न सुरक्षित करें</button><button id="rm-qb-cancel-edit" type="button" hidden>संपादन रद्द करें</button></div>
       </form>
+      <div class="rm-admin-import">
+        <h4>Bulk Import (Excel / CSV / JSON)</h4>
+        <label>Question File<input id="rm-qb-bulk-file" type="file" accept=".xlsx,.xls,.csv,.json,application/json"></label>
+        <small>Columns: topic, chapter, folder, text/question, optionA–optionF या options JSON, correctIndex, explanation. एक बार में अधिकतम 100 प्रश्न।</small>
+        <button id="rm-qb-bulk-import" type="button">Import Questions in Bulk</button>
+      </div>
       <div class="rm-admin-form-grid"><button id="rm-admin-refresh-question-bank" type="button">Refresh Question Bank</button></div>
       <div id="rm-admin-question-bank-status" class="rm-admin-status" role="status" aria-live="polite">Question Bank अभी लोड नहीं हुआ।</div>
       <div id="rm-admin-question-bank-list" class="rm-admin-payments-list"></div>
