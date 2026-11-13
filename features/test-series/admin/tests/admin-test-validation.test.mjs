@@ -127,3 +127,21 @@ test("validates scheduled windows and serializes local form times", () => {
     mode: "scheduled", scheduleStartAt: "2026-11-13T11:00", scheduleEndAt: "2026-11-13T10:00"
   })), /समाप्ति का समय/);
 });
+
+
+test("preserves safe section labels on questions", () => {
+  const payload = validateOwnerTestDraft(validDraft({
+    questions: [
+      { id: "q1", text: "First?", options: ["A", "B"], correctIndex: 0, section: "Technical Ability" },
+      { id: "q2", text: "Second?", options: ["A", "B"], correctIndex: 1 }
+    ]
+  }));
+  assert.equal(payload.questions[0].section, "Technical Ability");
+  assert.equal("section" in payload.questions[1], false);
+});
+
+test("rejects overlong question section labels", () => {
+  assert.throws(() => validateOwnerTestDraft(validDraft({
+    questions: [{ id: "q1", text: "Question?", options: ["A", "B"], correctIndex: 0, section: "x".repeat(81) }]
+  })), /सेक्शन नाम अधिकतम 80/);
+});
