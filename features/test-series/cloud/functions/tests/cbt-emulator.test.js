@@ -260,6 +260,11 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.deepEqual(repeatedResult, result, "repeated submit must return the original complete result");
   const recoveredResult = await callable("rmGetCbtAttemptResult", { attemptId: started.attemptId });
   assert.deepEqual(recoveredResult, result, "a submitted result must be recoverable after re-entry");
+  await assert.rejects(
+    callable("rmStartExam", { testId }),
+    error => error.code === "functions/already-exists",
+    "a submitted one-time free attempt must never be returned as a resumable exam"
+  );
   const completedSession = await callable("rmGetStudentActiveAttempt", { testId });
   assert.equal(completedSession.found, true);
   assert.equal(completedSession.status, "completed");
