@@ -439,7 +439,7 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
 
 // Student catalogue exposes published metadata only; question sets and answer keys stay private.
 exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
-  user(req);
+  const uid = user(req);
   const [snap, freeConfig] = await Promise.all([
     db.collection("testSeriesTests").where("status", "==", "published").limit(100).get(),
     db.doc("testSeriesConfig/freeTest").get()
