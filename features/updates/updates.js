@@ -30,7 +30,7 @@ function renderLanguage(){
  document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.dataset.i18n;if(dict[key])el.textContent=typeof dict[key]==="function"?dict[key](0):dict[key];});
  document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{const key=el.dataset.i18nPlaceholder;if(dict[key])el.placeholder=dict[key];});
  document.getElementById("updatesLanguage").textContent=language==="en"?"हिन्दी":"English";
- const feed=document.getElementById("feedUpdated");if(feed)feed.textContent=dict.feedUpdated+feedUpdatedAt;
+ const feed=document.getElementById("feedUpdated");if(feed){const date=feedUpdatedAt?new Date(feedUpdatedAt+"T00:00:00").toLocaleDateString(language==="hi"?"hi-IN":"en-IN",{day:"numeric",month:"long",year:"numeric"}):"";feed.textContent=dict.feedUpdated+date;}
  renderNotices();
 }
 function renderNotices(){
