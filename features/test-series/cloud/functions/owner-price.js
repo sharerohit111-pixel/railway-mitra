@@ -3,7 +3,7 @@
 /** Validate owner-entered rupee prices, including the explicit free-test value zero. */
 function validateOwnerPrice(rawPrice) {
   if ((typeof rawPrice !== "number" && typeof rawPrice !== "string") ||
-      !/^(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?$/.test(String(rawPrice))) {
+      !/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(String(rawPrice))) {
     throw new TypeError("Test price must be a valid amount with at most two decimal places");
   }
   const price = Number(rawPrice);
