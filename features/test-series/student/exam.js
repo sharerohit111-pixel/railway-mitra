@@ -53,15 +53,22 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     }
     return -1;
   }
+  let navigationRequest = 0;
   async function activateQuestion(nextIndex){
+    const request = ++navigationRequest;
     const question = paper.questions[nextIndex];
     if (!isQuestionAvailable(question)) throw new Error("इस सेक्शन का समय समाप्त हो चुका है।");
     if (question?.section) {
       const timing = await enterCbtSection(app, attemptId, question.section);
+      // A slower response from an earlier click must never override a newer navigation.
+      if(request !== navigationRequest) return;
       sectionExpiresAt = timing.timeLimitMinutes ? new Date(timing.expiresAt).getTime() : 0;
       paper.sectionTimings = paper.sectionTimings || {};
       if (timing.timeLimitMinutes) paper.sectionTimings[question.section] = { startedAt: timing.startedAt, expiresAt: timing.expiresAt };
-    } else sectionExpiresAt = 0;
+    } else {
+      if(request !== navigationRequest) return;
+      sectionExpiresAt = 0;
+    }
     index = nextIndex;
     try { localStorage.setItem(positionKey(), String(index)); } catch (_) {}
     render(); tick();
