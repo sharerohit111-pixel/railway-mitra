@@ -20,13 +20,13 @@ const {
 const { validateOwnerPrice } = require("./owner-price");
 const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
+const { getCallableOptions } = require("./app-check-policy");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
 initializeApp();
 const db = getFirestore(), REGION = "asia-south1";
-// The Functions Emulator cannot provide production App Check attestation; keep enforcement enabled everywhere else.
-const CALLABLE_OPTIONS = { region: REGION, enforceAppCheck: process.env.FUNCTIONS_EMULATOR !== "true" };
+const CALLABLE_OPTIONS = getCallableOptions(process.env);
 function user(req) {
   console.info("CBT auth context", {
     hasAuth: Boolean(req.auth),
