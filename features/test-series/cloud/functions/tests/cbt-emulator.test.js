@@ -154,6 +154,42 @@ test("student dashboard never includes another student's result", async () => {
   }
 });
 
+
+test("student dashboard exposes only the documented safe result fields", async () => {
+  const ref = db.doc("testSeriesResults/emulator-dashboard-safe-fields");
+  try {
+    await ref.set({
+      uid,
+      testId,
+      score: 7,
+      correct: 4,
+      wrong: 1,
+      unattempted: 1,
+      totalQuestions: 6,
+      timedOut: false,
+      submittedAt: new Date(),
+      phoneNumber: studentPhoneNumber,
+      email: "private@example.invalid",
+      answerKey: { q1: "0" },
+      answers: { q1: "0" }
+    });
+    const result = await callable("rmGetStudentDashboard");
+    const row = result.results.find(item => item.attemptId === ref.id);
+    assert.ok(row);
+    assert.deepEqual(Object.keys(row).sort(), [
+      "attemptId", "correct", "testId", "testTitle", "score",
+      "wrong", "unattempted", "timedOut", "totalQuestions", "submittedAt"
+    ].sort());
+    assert.equal("uid" in row, false);
+    assert.equal("phoneNumber" in row, false);
+    assert.equal("email" in row, false);
+    assert.equal("answers" in row, false);
+    assert.equal("answerKey" in row, false);
+  } finally {
+    await ref.delete().catch(() => {});
+  }
+});
+
 test("student dashboard caps its response at the newest 100 results", async () => {
   const refs = Array.from({ length: 105 }, (_, index) =>
     db.doc("testSeriesResults/emulator-dashboard-cap-" + String(index).padStart(3, "0"))
