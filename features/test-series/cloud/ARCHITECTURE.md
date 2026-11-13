@@ -89,3 +89,11 @@ The user's initial monthly target is ₹500. This is a target, not a guaranteed 
 - Free-attempt claim is one per Firebase UID, not fraud-proof against multiple phone numbers.
 - Payment verification, owner CRUD endpoints, question import, backup/restore and full MFA onboarding are pending.
 - Firestore rules deny all direct client access; server functions use Admin SDK and are unaffected.
+
+## One pending paid order per student and test
+
+`testSeriesPaymentLocks/{sha256(uid,testId)}` is a deterministic server-only coordination record. `rmCreatePaymentOrder` reads it and the UID/test/request-scoped payment request in one Firestore transaction. It creates the lock with the request before calling Razorpay, so a different request ID from another browser tab/device cannot initiate a second provider order while the first request is `creating`, `created`, or `unknown`. A same-key retry may wait or replay only when the lock and request records agree. The saved provider order replay also verifies `paymentRequestId`, `razorpayOrderId`, UID, test, amount, currency and status.
+
+Only a definite provider rejection removes the matching lock while marking its request `failed`. Ambiguous provider outcomes and post-provider Firestore failures retain/repair the lock as `unknown`. After the webhook signature and captured-payment/order validation succeed, the payment ledger atomically grants the entitlement, marks the order paid, and deletes the matching lock. A mismatched lock is a hard conflict and does not grant access.
+
+No TTL or automatic expiry is used: expiry could race a slow provider call and permit duplicate orders. Stale `creating`/`unknown` locks remain blocked pending a reviewed Owner/support reconciliation and a separately designed release action. Do not manually delete a lock or tell a student to start a new checkout while provider outcome is unresolved. Legacy orders without a lock remain eligible for the existing signature-verified ledger path; the lock is enforced for new reservations and any matching lock present at capture time.
