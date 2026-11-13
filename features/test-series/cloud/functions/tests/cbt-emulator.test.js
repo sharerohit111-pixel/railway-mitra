@@ -1081,6 +1081,8 @@ test("payment request reservation serializes concurrent same-ID requests and rep
   const {
     PAYMENT_REQUEST_STATES,
     paymentRequestDocumentId,
+    paymentStudentTestLockDocumentId,
+    inspectStudentTestPaymentLock,
     paymentRequestFingerprint,
     inspectPaymentRequest
   } = require("../payment-order-request");
@@ -1089,6 +1091,7 @@ test("payment request reservation serializes concurrent same-ID requests and rep
   const amount = 49900;
   const requestDocId = paymentRequestDocumentId({ uid, testId: paidTestId, requestId });
   const requestRef = db.doc("testSeriesPaymentRequests/" + requestDocId);
+  const lockRef = db.doc("testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({ uid, testId: paidTestId }));
   const testRef = db.doc("testSeriesTests/" + paidTestId);
   const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
   const orderId = "order_emulator_request_replay";
@@ -1097,18 +1100,26 @@ test("payment request reservation serializes concurrent same-ID requests and rep
 
   async function reserve(token) {
     return db.runTransaction(async tx => {
-      const [requestSnap, testSnap, entitlementSnap] = await Promise.all([
-        tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef)
+      const [requestSnap, testSnap, entitlementSnap, lockSnap] = await Promise.all([
+        tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef), tx.get(lockRef)
       ]);
       assert.equal(testSnap.exists, true);
       assert.equal(testSnap.data().status, "published");
       assert.equal(entitlementSnap.exists, false);
+      const lockDecision = inspectStudentTestPaymentLock(lockSnap.exists ? lockSnap.data() : null, {
+        uid, testId: paidTestId, requestDocId
+      });
+      if (lockDecision.action !== "reserve" && lockDecision.action !== "continue") return lockDecision;
       const decision = inspectPaymentRequest(requestSnap.exists ? requestSnap.data() : null, fingerprint);
       if (decision.action !== "reserve") return decision;
       tx.create(requestRef, {
         uid, testId: paidTestId, requestId, fingerprint, amount, currency: "INR",
         status: PAYMENT_REQUEST_STATES.CREATING, reservationToken: token,
         receipt: "rm_emulator_concurrent_request", createdAt: new Date()
+      });
+      if (!lockSnap.exists) tx.create(lockRef, {
+        uid, testId: paidTestId, requestDocId, status: PAYMENT_REQUEST_STATES.CREATING,
+        createdAt: new Date(), updatedAt: new Date()
       });
       return { action: "create", token };
     });
@@ -1129,6 +1140,13 @@ test("payment request reservation serializes concurrent same-ID requests and rep
       razorpayOrderId: orderId,
       updatedAt: new Date()
     });
+    await lockRef.update({ status: PAYMENT_REQUEST_STATES.CREATED, updatedAt: new Date() });
+
+    const otherTabRequestId = "emulator-other-tab-request-0001";
+    const otherTabRequestDocId = paymentRequestDocumentId({ uid, testId: paidTestId, requestId: otherTabRequestId });
+    assert.deepEqual(inspectStudentTestPaymentLock((await lockRef.get()).data(), {
+      uid, testId: paidTestId, requestDocId: otherTabRequestDocId
+    }), { action: "reject", reason: "another_payment_request_pending" });
 
     const savedRequest = (await requestRef.get()).data();
     const replay = inspectPaymentRequest(savedRequest, fingerprint);
@@ -1145,7 +1163,7 @@ test("payment request reservation serializes concurrent same-ID requests and rep
     });
     assert.equal(inspectPaymentRequest(savedRequest, conflictingFingerprint).action, "reject");
   } finally {
-    await Promise.all([requestRef, testRef, entitlementRef, orderRef].map(ref => ref.delete().catch(() => {})));
+    await Promise.all([requestRef, lockRef, testRef, entitlementRef, orderRef].map(ref => ref.delete().catch(() => {})));
   }
 });
 
