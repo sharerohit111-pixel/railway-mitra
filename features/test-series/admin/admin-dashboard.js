@@ -18,6 +18,11 @@ export function initOwnerAdminDashboard(auth, functions) {
   const paymentsMore = el("rm-admin-payments-more");
   let paymentsCursor = null;
   let paymentsGeneration = 0;
+  const reconciliationList = el("rm-admin-reconciliation-list");
+  const reconciliationStatus = el("rm-admin-reconciliation-status");
+  const reconciliationMore = el("rm-admin-reconciliation-more");
+  let reconciliationCursor = null;
+  let reconciliationGeneration = 0;
   function clearPaymentHistory() {
     paymentsGeneration += 1;
     paymentsCursor = null;
@@ -25,6 +30,12 @@ export function initOwnerAdminDashboard(auth, functions) {
     paymentsStatus.textContent = "";
     paymentsMore.hidden = true;
     paymentsMore.disabled = false;
+    reconciliationGeneration += 1;
+    reconciliationCursor = null;
+    reconciliationList.replaceChildren();
+    reconciliationStatus.textContent = "";
+    reconciliationMore.hidden = true;
+    reconciliationMore.disabled = false;
   }
   const showOtp = verificationId => new Promise((resolve, reject) => {
     pendingVerification = { verificationId, resolve, reject };
@@ -176,9 +187,71 @@ export function initOwnerAdminDashboard(auth, functions) {
     }
   }
 
+  async function refreshPaymentReconciliation({ append = false } = {}) {
+    if (append && !reconciliationCursor) return;
+    const generation = ++reconciliationGeneration;
+    if (!append) {
+      reconciliationCursor = null;
+      reconciliationList.replaceChildren();
+      reconciliationStatus.textContent = "अस्पष्ट भुगतान अनुरोध लोड हो रहे हैं…";
+    } else {
+      reconciliationMore.disabled = true;
+    }
+    try {
+      const response = await httpsCallable(functions, "rmOwnerListPaymentReconciliation")({
+        cursor: append ? reconciliationCursor : null,
+        pageSize: 25
+      });
+      if (generation !== reconciliationGeneration) return;
+      const data = response.data || {};
+      const requests = Array.isArray(data.requests) ? data.requests : [];
+      requests.forEach(request => {
+        const card = document.createElement("article");
+        card.className = "rm-admin-payment-row";
+        const heading = document.createElement("b");
+        const amountLabel = Number.isSafeInteger(request.amountPaise)
+          ? "₹" + (request.amountPaise / 100).toFixed(2)
+          : "राशि की समीक्षा आवश्यक";
+        const stateLabel = request.status === "creating" ? "Provider order लंबित" : "Outcome अस्पष्ट · जाँच आवश्यक";
+        heading.textContent = amountLabel + " · " + stateLabel;
+        const detail = document.createElement("small");
+        const date = request.updatedAt ? new Date(request.updatedAt) : null;
+        const dateLabel = date && Number.isFinite(date.getTime()) ? date.toLocaleString() : "समय उपलब्ध नहीं";
+        detail.textContent = [
+          request.testId ? "Test " + request.testId : "Test unavailable",
+          request.studentUid ? "Student UID " + request.studentUid : "Student unavailable",
+          request.failureCode ? "Reason " + request.failureCode : "Reason not recorded",
+          request.providerOrderIdObserved ? "Provider Order " + request.providerOrderIdObserved : "Provider Order not confirmed",
+          "Reference " + (request.requestRecordId || "unavailable"),
+          dateLabel
+        ].join(" · ");
+        card.append(heading, detail);
+        reconciliationList.append(card);
+      });
+      reconciliationCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
+      reconciliationMore.hidden = !reconciliationCursor;
+      reconciliationMore.disabled = false;
+      if (!requests.length && data.hasMore) {
+        reconciliationStatus.textContent = "इस सीमित जाँच-खंड में कोई अस्पष्ट अनुरोध नहीं मिला। आगे जाँचने के लिए Load More दबाएँ।";
+      } else if (!requests.length && !append) {
+        reconciliationStatus.textContent = "अभी किसी भुगतान अनुरोध को reconciliation की आवश्यकता नहीं है।";
+      } else if (data.hasMore) {
+        reconciliationStatus.textContent = "अस्पष्ट अनुरोध दिखाए गए हैं। नया Checkout शुरू कराने से पहले प्रत्येक परिणाम की जाँच करें।";
+      } else {
+        reconciliationStatus.textContent = "सभी उपलब्ध अस्पष्ट भुगतान अनुरोध दिखाए गए हैं।";
+      }
+    } catch (error) {
+      if (generation !== reconciliationGeneration) return;
+      reconciliationStatus.textContent = error.message || "Payment reconciliation सूची लोड नहीं हुई।";
+      reconciliationMore.disabled = false;
+    }
+  }
+
   el("rm-admin-refresh-tests").addEventListener("click", refreshTests);
   el("rm-admin-refresh-payments").addEventListener("click", () => refreshPayments());
   paymentsMore.addEventListener("click", () => refreshPayments({ append: true }));
+  el("rm-admin-refresh-reconciliation").addEventListener("click", () => refreshPaymentReconciliation());
+  reconciliationMore.addEventListener("click", () => refreshPaymentReconciliation({ append: true }));
   const freeTestSelect = el("rm-free-test-select");
   el("rm-free-test-save").addEventListener("click", async () => {
     const testId = freeTestSelect.value;
@@ -853,13 +926,13 @@ export function initOwnerAdminDashboard(auth, functions) {
     el("rm-admin-module-status").textContent = module === "tests"
       ? "Test Management खुला है।"
       : module === "payments"
-        ? "केवल server-verified captured payment ledger दिखाया जाता है।"
+        ? "सत्यापित भुगतान और अस्पष्ट Razorpay Order परिणामों की सुरक्षित Owner-only सूची।"
         : module === "students" ? "केवल server-verified परीक्षा परिणाम का सारांश दिखाया जाता है।"
         : module === "analytics" ? "नवीनतम 500 जमा परिणामों का server-side विश्लेषण।"
         : module === "questions" ? "विषय, अध्याय और फ़ोल्डर के अनुसार प्रश्न बैंक।"
         : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
     if (module === "tests") refreshTests();
-    if (module === "payments") refreshPayments();
+    if (module === "payments") { refreshPayments(); refreshPaymentReconciliation(); }
     if (module === "students") refreshStudentActivity();
     if (module === "analytics") refreshAnalytics();
     if (module === "questions") refreshQuestionBank();
