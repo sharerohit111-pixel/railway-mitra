@@ -2,6 +2,7 @@ import { getStudentCbtDashboard } from "../cloud/student-client.js";
 
 // Keep one click listener per refresh button even if the dashboard is mounted again.
 const refreshHandlers = new WeakMap();
+const activeLoads = new WeakMap();
 
 export async function initStudentDashboard({ app, root = document }) {
   const status = root.getElementById("rm-dashboard-status");
@@ -12,8 +13,11 @@ export async function initStudentDashboard({ app, root = document }) {
     throw new Error("Student dashboard markup is incomplete");
   }
 
-  async function load() {
+  function load() {
+    if (activeLoads.has(refresh)) return activeLoads.get(refresh);
+    const task = (async () => {
     refresh.disabled = true;
+    refresh.setAttribute("aria-busy", "true");
     status.textContent = "Loading your results…";
     summary.replaceChildren();
     summary.hidden = true;
@@ -70,7 +74,13 @@ export async function initStudentDashboard({ app, root = document }) {
       return { results: [], error };
     } finally {
       refresh.disabled = false;
+      refresh.setAttribute("aria-busy", "false");
     }
+    })();
+    activeLoads.set(refresh, task);
+    return task.finally(() => {
+      if (activeLoads.get(refresh) === task) activeLoads.delete(refresh);
+    });
   }
   refreshHandlers.set(refresh, load);
   if (!refresh.dataset.rmDashboardRefreshBound) {
