@@ -45,7 +45,7 @@ test("owner payment history paginates newest-first and returns only allow-listed
       data: { paymentId: "mismatched_payment_id", razorpayOrderId: "order_owner_history_corrupt",
         uid: "student_history_d", testId: "gdce_je_civil", amount: -1, currency: "USD", status: "created" } }
   ];
-  await Promise.all(records.map(record => db.doc("testSeriesPayments/" + record.id).set({
+  await Promise.all(records.map(record => db.doc(collectionName + "/" + record.id).set({
     ...record.data, recordedAt: new Date(record.at)
   })));
 
