@@ -49,3 +49,8 @@ The screen shows only records in `testSeriesPayments`, which are written by the 
 ## Owner student exam activity
 
 The Students module calls `rmOwnerListStudentActivity`, an Owner-only, App-Check-protected callable. It reads submitted result summaries newest-first with cursor pagination (25 per page, maximum 50). The response is limited to student Firebase UID, test ID/title, score, correct/wrong/unattempted counts, total questions, timeout flag and submission time. It does not expose phone numbers, email addresses, answer selections, answer keys or raw attempt documents. The module clears rendered records when the Owner session is lost or logged out. Emulator coverage verifies that a normal student account is denied access to the Owner report.
+
+
+## Owner result analytics
+
+The Results & Ranking module calls the Owner-only `rmOwnerGetResultAnalytics` callable. It aggregates only the latest 500 submitted result summaries and reports the sampled attempt count, average score, average correct-answer percentage, timeout count and per-test aggregates. The response contains no student identifiers or personal contact data. When 500 records are present, the UI explicitly indicates that older records are outside this bounded snapshot; these values must not be described as lifetime totals. The report is cleared when the Owner session is lost.
