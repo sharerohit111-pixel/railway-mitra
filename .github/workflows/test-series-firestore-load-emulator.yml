@@ -65,4 +65,4 @@ jobs:
           LOAD_WAVES: ${{ github.event_name == 'push' && '1' || inputs.waves || '2' }}
           LOAD_CONCURRENCY: ${{ github.event_name == 'push' && '500' || inputs.concurrency || '10' }}
         run: |
-          npx --yes firebase-tools@latest emulators:exec --project demo-railway-mitra-load --only firestore "npm --prefix features/test-series/cloud/functions run load:emulator"
+          npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-load --only firestore "node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:emulator"
