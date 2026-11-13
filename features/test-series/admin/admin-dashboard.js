@@ -793,6 +793,9 @@ export function initOwnerAdminDashboard(auth, functions) {
       const response = await httpsCallable(functions, "rmOwnerGetResultAnalytics")({});
       if (generation !== analyticsGeneration) return;
       const data = response.data || {};
+      analyticsData = data;
+      analyticsCsvButton.disabled = !Array.isArray(data.tests) || data.tests.length === 0;
+      analyticsPrintButton.disabled = !Array.isArray(data.tests) || data.tests.length === 0;
       const cards = [
         ["जमा परीक्षाएँ", data.sampledAttempts || 0],
         ["औसत अंक", data.averageScore ?? 0],
