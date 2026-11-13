@@ -124,3 +124,13 @@ Every Owner live Razorpay order inspection writes an append-only record to `test
 ### Owner Payment Inspection Audit History
 
 The Payments module now includes a separate, Owner-only audit history panel backed by `rmOwnerListPaymentAudit`. It is cursor-paginated (25 records by default, maximum 50) and returns only allow-listed inspection metadata: audit ID, Owner UID, payment request reference, lookup outcome, request-match result, order/payment statuses, payment count and server timestamp. The raw Razorpay response, receipt value, credentials, phone, email and arbitrary Firestore fields are excluded. The browser clears the audit list when the Owner session ends. The audit collection remains inaccessible to browser clients under the default-deny Firestore rules. Viewing audit history is read-only and does not resolve or release payment locks or change student entitlements.
+
+### Razorpay inspection decision guidance
+
+The reconciliation queue's read-only inspection now displays a status-specific safety message. A request/order mismatch requires manual review. A Razorpay order marked `paid` without any captured/refunded payment row is treated as an inconsistency and must be checked against the provider and local payment ledger/entitlement. Captured or refunded payment history requires ledger review; an authorized payment may still be captured later or refunded; and created/attempted orders or failed attempts may still permit another attempt on the same provider order. None of these inspection outcomes authorizes manual lock deletion. Only the verified `payment.captured` webhook transaction grants entitlement and clears the matching lock.
+
+The pure decision helper is isolated in `payment-inspection-guidance.mjs` and covered by `tests/payment-inspection-guidance.test.mjs`. Its tests run with the existing Owner Admin test command:
+
+```bash
+node --test features/test-series/admin/tests/*.test.mjs
+```
