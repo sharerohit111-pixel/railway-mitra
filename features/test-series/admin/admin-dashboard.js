@@ -897,6 +897,24 @@ export function initOwnerAdminDashboard(auth, functions) {
             explanation: String(normalized.explanation || "") }
         };
       });
+      // Reject malformed rows in the browser before sending a bulk write.
+      // Server validation remains authoritative; this gives the Owner a precise
+      // row-level error instead of a generic callable failure.
+      items.forEach((item, index) => {
+        const question = item.question;
+        if (!question.text) throw new Error("पंक्ति " + (index + 1) + ": प्रश्न का टेक्स्ट खाली है।");
+        if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
+            question.options.some(option => !String(option).trim())) {
+          throw new Error("पंक्ति " + (index + 1) + ": 2 से 6 गैर-खाली विकल्प आवश्यक हैं।");
+        }
+        if (!Number.isInteger(question.correctIndex) ||
+            question.correctIndex < 0 || question.correctIndex >= question.options.length) {
+          throw new Error("पंक्ति " + (index + 1) + ": सही उत्तर का क्रमांक विकल्पों की सीमा में होना चाहिए।");
+        }
+        if (!item.topic || !item.chapter || !item.folder) {
+          throw new Error("पंक्ति " + (index + 1) + ": विषय, अध्याय और फ़ोल्डर भरें।");
+        }
+      });
       const result = await httpsCallable(functions, "rmOwnerBulkSaveQuestionBank")({ items });
       questionBankStatus.textContent = result.data.saved + " प्रश्न सुरक्षित हुए।";
       el("rm-qb-bulk-file").value = "";
