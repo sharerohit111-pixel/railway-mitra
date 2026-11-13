@@ -64,6 +64,10 @@ export function initOwnerAdminDashboard(auth, functions) {
         freeTestSelect.add(currentOption);
       }
       freeTestSelect.value = currentFreeTestId;
+      const freeTestLocked = result.data.freeTestLocked === true;
+      freeTestSelect.disabled = freeTestLocked;
+      el("rm-free-test-save").disabled = freeTestLocked;
+      if (freeTestLocked) status("पहला विद्यार्थी निःशुल्क प्रयास ले चुका है। अब निःशुल्क टेस्ट का चयन स्थायी रूप से लॉक है।");
       if (!result.data.tests.length) { testsList.textContent = "अभी कोई टेस्ट नहीं है।"; return; }
       result.data.tests.forEach(test => {
         const card = document.createElement("article");
