@@ -120,6 +120,15 @@
       </div>
       <div id="rm-admin-payments-status" class="rm-admin-status" role="status" aria-live="polite">Payments सूची अभी लोड नहीं हुई।</div>
       <div id="rm-admin-payments-list" class="rm-admin-payments-list"></div>
+
+      <h4>Payment Reconciliation Queue</h4>
+      <p>जिन Razorpay Order अनुरोधों का परिणाम स्पष्ट नहीं है, वे यहाँ दिखेंगे। जाँच पूरी होने तक विद्यार्थी को नया Checkout शुरू करने के लिए न कहें।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-admin-refresh-reconciliation" type="button">Refresh Queue</button>
+        <button id="rm-admin-reconciliation-more" type="button" hidden disabled>Load More</button>
+      </div>
+      <div id="rm-admin-reconciliation-status" class="rm-admin-status" role="status" aria-live="polite">Reconciliation Queue अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-reconciliation-list" class="rm-admin-payments-list"></div>
     </section>
 
     <section id="rm-admin-students-panel" class="rm-admin-panel" hidden>
