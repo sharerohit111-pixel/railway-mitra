@@ -542,9 +542,7 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
       filters[field] = value;
     }
   }
-  let query = db.collection("testSeriesQuestionBank");
-  Object.entries(filters).forEach(([field, value]) => { query = query.where(field, "==", value); });
-  query = query.orderBy("updatedAt", "desc");
+  let query = db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc");
   if (data.cursor !== undefined && data.cursor !== null) {
     if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(data.cursor)) {
       throw new HttpsError("invalid-argument", "Invalid question bank cursor");
@@ -553,9 +551,18 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
     if (!cursorSnap.exists) throw new HttpsError("invalid-argument", "Question bank cursor not found");
     query = query.startAfter(cursorSnap);
   }
-  const snap = await query.limit(pageSize + 1).get();
-  const hasMore = snap.docs.length > pageSize;
-  const page = snap.docs.slice(0, pageSize);
+  // Filter the bounded scan in memory to avoid requiring composite indexes for
+  // every topic/chapter/folder filter combination.
+  const snap = await query.limit(500).get();
+  const matches = snap.docs.filter(doc => {
+    const row = doc.data();
+    return Object.entries(filters).every(([field, value]) => row[field] === value);
+  });
+  const page = matches.slice(0, pageSize);
+  const hasMoreMatches = matches.length > pageSize;
+  const nextCursor = hasMoreMatches
+    ? page[page.length - 1].id
+    : snap.size === 500 ? snap.docs[snap.docs.length - 1].id : null;
   const items = page.map(doc => {
     const row = doc.data();
     return { itemId: doc.id, topic: row.topic, chapter: row.chapter, folder: row.folder,
@@ -563,14 +570,14 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
       createdAt: date(row.createdAt)?.toISOString() || null,
       updatedAt: date(row.updatedAt)?.toISOString() || null };
   });
-  const facets = await db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc").limit(500).get();
-  const unique = field => [...new Set(facets.docs.map(doc => doc.data()[field]).filter(value => typeof value === "string" && value))].sort();
+  const unique = field => [...new Set(snap.docs.map(doc => doc.data()[field]).filter(value => typeof value === "string" && value))].sort();
   return {
     items,
-    nextCursor: hasMore && page.length ? page[page.length - 1].id : null,
-    hasMore,
+    nextCursor,
+    hasMore: Boolean(nextCursor),
     filters: { topic: filters.topic || null, chapter: filters.chapter || null, folder: filters.folder || null },
-    facets: { topics: unique("topic"), chapters: unique("chapter"), folders: unique("folder") }
+    facets: { topics: unique("topic"), chapters: unique("chapter"), folders: unique("folder") },
+    scanLimited: snap.size === 500
   };
 });
 
