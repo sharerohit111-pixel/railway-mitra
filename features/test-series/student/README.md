@@ -42,3 +42,10 @@ As soon as manual submission or the server-timeout finalizer begins, the CBT cli
 ## Student performance dashboard scope
 
 The Student Performance dashboard displays the latest 100 submitted results, ordered newest-first by the server. Its result count and average score describe only the results loaded in that bounded view; they are not lifetime totals. The server query uses the `uid` + `submittedAt` composite index in `firestore.indexes.json`.
+
+
+## Single-flight request guard
+
+- `single-flight.mjs` deduplicates concurrent operations for the same object key and returns the same pending promise to every caller.
+- The pending entry is cleared after success or failure, so a later refresh can retry; separate controls remain independent.
+- The student test suite covers shared concurrent calls, retry after failure, independent keys, and invalid arguments.
