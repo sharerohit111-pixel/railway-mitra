@@ -804,7 +804,11 @@ export function initOwnerAdminDashboard(auth, functions) {
       questionBankMore.hidden = !questionBankCursor;
       questionBankMore.disabled = false;
       updateQuestionBankFilterOptions(data.facets);
-      questionBankStatus.textContent = questionBankItems.length + " प्रश्न दिखाए जा रहे हैं।" + (data.hasMore ? " और प्रश्न उपलब्ध हैं।" : " सभी मेल खाते प्रश्न दिखा दिए गए हैं।");
+      const scanNote = data.scanLimited === true
+        ? " यह खोज प्रत्येक पेज में अधिकतम 500 नवीनतम रिकॉर्ड जाँचती है; पुराने रिकॉर्ड के लिए Load More दबाएँ।"
+        : "";
+      questionBankStatus.textContent = questionBankItems.length + " प्रश्न दिखाए जा रहे हैं।" +
+        (data.hasMore ? " और प्रश्न उपलब्ध हैं।" : " सभी स्कैन किए गए मेल खाते प्रश्न दिखा दिए गए हैं।") + scanNote;
     } catch (error) {
       if (generation !== questionBankGeneration) return;
       questionBankStatus.textContent = error.message || "Question Bank लोड नहीं हुआ।";
