@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Prepare the isolated CBT backend for the design target of 1,000 registered students and 500 simultaneous examinees. The checked-in harness measures the current Firestore attempt-document answer-save pattern under a synthetic emulator workload. It is a development diagnostic, not a production capacity certification.
+Prepare the isolated CBT backend for the design target of 1,000 registered students and 500 simultaneous examinees. The checked-in harness measures the current Firestore attempt-document answer-save pattern under a synthetic emulator workload. Each synthetic student now saves every question in the paper in each wave, with students running concurrently and each student's answers saved sequentially. It is a development diagnostic, not a production capacity certification.
 
 ## Safety boundary
 
@@ -26,7 +26,7 @@ GCLOUD_PROJECT=demo-railway-mitra-load \
 npm run load:emulator
 ```
 
-Defaults: 500 synthetic students, 5 save waves per student (2,500 save transactions), 50 questions, and concurrency 500. The emulator must already be running. The script prints per-wave duration, total successful saves, failures, throughput and p50/p95/p99/max transaction latency.
+Defaults: 500 synthetic students, 5 full-paper save waves per student (125,000 save transactions at 50 questions), 50 questions, and concurrency 500. The emulator must already be running. The script prints per-wave duration, total successful saves, failures, throughput and p50/p95/p99/max transaction latency.
 
 Optional bounded settings:
 
@@ -35,7 +35,7 @@ Optional bounded settings:
 - `LOAD_QUESTIONS`: 1–500 (default 50)
 - `LOAD_CONCURRENCY`: 1–`LOAD_STUDENTS` (default equal to student count)
 
-Start with a small run, e.g. `LOAD_STUDENTS=25 LOAD_WAVES=2 LOAD_CONCURRENCY=10`, then increase to the full emulator scenario. Do not treat a successful emulator run as permission to launch a real-user load test.
+Start with a small run, e.g. `LOAD_STUDENTS=25 LOAD_WAVES=1 LOAD_CONCURRENCY=10`, then increase to the full emulator scenario. Each wave now performs `students × questions` answer-save transactions. Do not treat a successful emulator run as permission to launch a real-user load test.
 
 ## Acceptance and interpretation
 
@@ -53,4 +53,4 @@ If attempt-document growth, contention, or p95/p99 latency is unacceptable, eval
 - Cost estimate and explicit approval before any billable deployment or load test.
 ## Run through GitHub Actions
 
-A manual-only workflow is available at **Actions → Test Series Firestore load test (local emulator only) → Run workflow**. It defaults to 25 students, 2 waves and 10 workers. Inputs are bounded (students 1–500, waves 1–20, concurrency 1–students). It starts only the GitHub-hosted local Firestore Emulator; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic. Start with the defaults, inspect the `LOAD_TEST_RESULT` output, then increase the emulator workload deliberately. The workflow is manual-only and does not run on every push or pull request.
+A manual-only workflow is available at **Actions → Test Series Firestore load test (local emulator only) → Run workflow**. It defaults to 25 students, 2 full-paper waves and 10 workers when manually dispatched. The marker-file push trigger runs 500 students, 1 full-paper wave and 500 workers. Inputs are bounded (students 1–500, waves 1–20, concurrency 1–students). It starts only the GitHub-hosted local Firestore Emulator; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic. Start with the defaults, inspect the `LOAD_TEST_RESULT` output, then increase the emulator workload deliberately. The workflow is manual-only and does not run on every push or pull request.
