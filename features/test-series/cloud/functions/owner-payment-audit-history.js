@@ -23,7 +23,7 @@ function serializeAudit(document) {
   const outcome = ["success", "provider_lookup_failed"].includes(row.outcome)
     ? row.outcome : "review_required";
   const statuses = Array.isArray(row.paymentStatuses)
-    ? row.paymentStatuses.filter(status => ["created", "authorized", "captured", "refunded", "failed"].includes(status)).slice(0, 100)
+    ? row.paymentStatuses.filter(status => ["created", "authorized", "captured", "refunded", "failed"].includes(status)).slice(0, 500)
     : [];
   return {
     auditId: document.id,
