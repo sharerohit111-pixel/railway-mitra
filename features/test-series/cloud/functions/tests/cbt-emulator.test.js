@@ -493,6 +493,9 @@ test("unauthenticated caller cannot start an exam", async () => {
 test("non-owner cannot read payment history", async () => {
   const originalOwnerUid = process.env.OWNER_UID;
   process.env.OWNER_UID = "different-owner-uid";
+  // The preceding test intentionally signs out; restore a student token so
+  // this assertion exercises the owner guard rather than unauthenticated access.
+  await signInWithCustomToken(clientAuth, await getAuth(app).createCustomToken(uid));
   try {
     await assert.rejects(
       callable("rmOwnerListPayments", {}),
