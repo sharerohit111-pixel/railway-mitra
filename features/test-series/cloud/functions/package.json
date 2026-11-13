@@ -7,7 +7,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "lint": "node --check index.js",
+    "lint": "node --check index.js && node --check tests/load/firestore-emulator-load.js",
     "serve": "firebase emulators:start --only functions:test-series",
     "deploy": "firebase deploy --only functions:test-series",
     "test": "node --test tests/*.test.js",
