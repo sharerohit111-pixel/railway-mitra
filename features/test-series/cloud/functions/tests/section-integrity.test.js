@@ -70,7 +70,7 @@ test("rejects malformed section configuration and time limits", () => {
 });
 
 test("rejects malformed question section values", () => {
-  for (const section of [42, "", "   ", "Technical\nAbility", "x".repeat(81)]) {
+  for (const section of [42, "", "   ", " Technical Ability ", "Technical\nAbility", "x".repeat(81)]) {
     assert.throws(
       () => getExamSectionConfig(
         { sections: [{ name: "Technical Ability", timeLimitMinutes: 0 }] },
