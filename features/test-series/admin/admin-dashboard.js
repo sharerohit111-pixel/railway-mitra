@@ -450,6 +450,11 @@ export function initOwnerAdminDashboard(auth, functions) {
       select.replaceChildren(new Option(field === "topic" ? "सभी विषय" : field === "chapter" ? "सभी अध्याय" : "सभी फ़ोल्डर", ""));
       (Array.isArray(facets?.[key]) ? facets[key] : []).forEach(value => select.add(new Option(value, value)));
       select.value = selected;
+      const bulkSelect = el("rm-qb-add-" + field);
+      const bulkValue = bulkSelect.value;
+      bulkSelect.replaceChildren(new Option(field === "topic" ? "विषय चुनें" : field === "chapter" ? "अध्याय चुनें" : "फ़ोल्डर चुनें", ""));
+      (Array.isArray(facets?.[key]) ? facets[key] : []).forEach(value => bulkSelect.add(new Option(value, value)));
+      bulkSelect.value = bulkValue;
     });
   }
   async function refreshQuestionBank({ append = false } = {}) {
@@ -502,6 +507,25 @@ export function initOwnerAdminDashboard(auth, functions) {
     finally { submit.disabled = false; }
   });
   el("rm-qb-cancel-edit").addEventListener("click", resetQuestionBankForm);
+  el("rm-qb-add-scope").addEventListener("click", () => {
+    const topic = el("rm-qb-add-topic").value;
+    const chapter = el("rm-qb-add-chapter").value;
+    const folder = el("rm-qb-add-folder").value;
+    if (!topic && !chapter && !folder) {
+      questionBankStatus.textContent = "पहले विषय, अध्याय या फ़ोल्डर चुनें।";
+      return;
+    }
+    const selected = questionBankItems.filter(item =>
+      (!topic || item.topic === topic) &&
+      (!chapter || item.chapter === chapter) &&
+      (!folder || item.folder === folder)
+    );
+    if (!selected.length) {
+      questionBankStatus.textContent = "वर्तमान में लोड प्रश्नों में इस समूह का कोई प्रश्न नहीं मिला। फ़िल्टर लगाकर या Load More से प्रश्न लाएँ।";
+      return;
+    }
+    addQuestionBankItemsToTest(selected);
+  });
   el("rm-qb-select-visible").addEventListener("click", () => {
     questionBankItems.forEach(item => selectedQuestionBankIds.add(item.itemId));
     questionBankList.querySelectorAll("input[type=checkbox]").forEach(box => { box.checked = true; });
