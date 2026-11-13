@@ -65,7 +65,10 @@ export function validateOwnerTestDraft(draft) {
       throw new Error("प्रश्न " + number + " का सही उत्तर (correctIndex) विकल्पों के अनुरूप नहीं है।");
     }
 
-    return { id, text: question.text.trim(), options: [...question.options], correctIndex: question.correctIndex };
+    const section = typeof question.section === "string" ? question.section.trim() : "";
+    if (section.length > 80) throw new Error("प्रश्न " + number + " का सेक्शन नाम अधिकतम 80 अक्षरों का हो सकता है।");
+    return { id, text: question.text.trim(), options: [...question.options], correctIndex: question.correctIndex,
+      ...(section ? { section } : {}) };
   });
 
   const payload = {
