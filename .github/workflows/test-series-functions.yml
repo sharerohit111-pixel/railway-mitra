@@ -40,6 +40,7 @@ jobs:
         run: |
           node --check --input-type=module < features/test-series/admin/admin-dashboard.js
           node --check --input-type=module < features/test-series/admin/owner-portal.js
+          node --check --input-type=module < features/test-series/admin/owner-session.mjs
           node --check --input-type=module < features/test-series/admin/admin-test-validation.mjs
       - name: Test Owner Admin draft validation
         run: node --test features/test-series/admin/tests/*.test.mjs

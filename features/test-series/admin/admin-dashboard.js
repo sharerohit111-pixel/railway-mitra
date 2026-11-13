@@ -1,5 +1,7 @@
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
 
@@ -19,23 +21,40 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (!pendingVerification || !/^\d{6}$/.test(code)) { status("कृपया 6 अंकों का OTP दर्ज करें।"); return; }
     const p = pendingVerification; pendingVerification = null; otpPanel.hidden = true; p.resolve(code);
   });
-  async function afterLogin(result) {
-    const user = result.user || auth.currentUser;
-    if (!hasPhoneMfa(user)) { login.hidden = true; setup.hidden = false; return; }
-    // Never reveal the owner dashboard until the backend validates UID + OTP claim + App Check.
-    const verify = httpsCallable(functions, "rmGetOwnerAdminSession");
-    const authorization = await verify({});
-    if (!authorization.data?.authorized) throw new Error("Owner authorization असफल।");
-    login.hidden = true; setup.hidden = true; home.hidden = false;
-    el("rm-admin-owner-email").textContent = authorization.data.email || user.email || "Owner";
-    el("rm-admin-module-status").textContent = "Login सफल। वास्तविक डेटा और बदलाव तभी उपलब्ध होंगे जब server-side Owner authorization तथा cloud modules deploy होंगे।";
-  }
+  const verifyOwnerSession = httpsCallable(functions, "rmGetOwnerAdminSession");
+  // Firebase may restore an existing Owner login after a page refresh. Every
+  // restored session must pass the same server-side UID + phone-MFA + App Check
+  // callable before the privileged dashboard is revealed.
+  const stopOwnerSessionWatch = watchOwnerSession({
+    subscribe: callback => onAuthStateChanged(auth, callback),
+    hasPhoneMfa,
+    verifyOwner: async () => (await verifyOwnerSession({})).data,
+    signOut: () => signOut(auth),
+    onSignedOut: () => {
+      home.hidden = true;
+      setup.hidden = true;
+      login.hidden = false;
+    },
+    onMfaRequired: () => {
+      home.hidden = true;
+      login.hidden = true;
+      setup.hidden = false;
+    },
+    onAuthorized: (user, authorization) => {
+      login.hidden = true;
+      setup.hidden = true;
+      home.hidden = false;
+      el("rm-admin-owner-email").textContent = authorization.email || user.email || "Owner";
+      el("rm-admin-module-status").textContent = "Login सफल। वास्तविक डेटा और बदलाव तभी उपलब्ध होंगे जब server-side Owner authorization तथा cloud modules deploy होंगे।";
+    },
+    onError: error => status(error.message || "Owner authorization असफल।")
+  });
   el("rm-owner-google").addEventListener("click", async () => {
-    try { status("Google Login…"); await afterLogin(await signInOwnerGoogle(auth, () => showOtp())); }
+    try { status("Google Login…"); await signInOwnerGoogle(auth, () => showOtp()); }
     catch (e) { status(e.message || "Login असफल।"); }
   });
   el("rm-owner-email-login").addEventListener("click", async () => {
-    try { status("Email Login…"); await afterLogin(await signInOwnerEmail(auth, el("rm-owner-email").value, el("rm-owner-password").value, () => showOtp())); }
+    try { status("Email Login…"); await signInOwnerEmail(auth, el("rm-owner-email").value, el("rm-owner-password").value, () => showOtp()); }
     catch (e) { status(e.message || "Login असफल।"); }
   });
   el("rm-owner-enroll-otp").addEventListener("click", async () => {
@@ -198,5 +217,5 @@ export function initOwnerAdminDashboard(auth, functions) {
       ? "Test Management खुला है।" : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
     if (module === "tests") refreshTests();
   }));
-  return { destroy() { /* host owns route lifecycle */ } };
+  return { destroy() { stopOwnerSessionWatch(); } };
 }
