@@ -431,6 +431,73 @@ test("submission fails closed when persisted scoring configuration is invalid", 
   }
 });
 
+test("submission fails closed when the persisted answer key does not match the question paper", async () => {
+  const cases = [
+    { suffix: "missing", answerQuestions: { q1: { correctAnswer: "0" } } },
+    {
+      suffix: "extra",
+      answerQuestions: {
+        q1: { correctAnswer: "0" },
+        q2: { correctAnswer: "1" },
+        q3: { correctAnswer: "0" }
+      }
+    },
+    {
+      suffix: "out-of-range",
+      answerQuestions: {
+        q1: { correctAnswer: "2" },
+        q2: { correctAnswer: "1" }
+      }
+    }
+  ];
+
+  for (const scenario of cases) {
+    const testId = "emulator-answer-key-" + scenario.suffix;
+    const attemptId = "emulator-answer-key-attempt-" + scenario.suffix;
+    const testRef = db.doc("testSeriesTests/" + testId);
+    const paperRef = db.doc("testSeriesQuestionSets/" + testId);
+    const keyRef = db.doc("testSeriesAnswerKeys/" + testId);
+    const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+    const resultRef = db.doc("testSeriesResults/" + attemptId);
+
+    try {
+      await testRef.set({
+        title: "Answer Key Integrity",
+        status: "published",
+        price: 0,
+        marksPerQuestion: 2,
+        negativeMarks: 0.5
+      });
+      await paperRef.set({
+        questions: [
+          { id: "q1", text: "Question one?", options: ["A", "B"] },
+          { id: "q2", text: "Question two?", options: ["A", "B", "C"] }
+        ]
+      });
+      await keyRef.set({ questions: scenario.answerQuestions });
+      await attemptRef.set({
+        uid,
+        testId,
+        status: "in_progress",
+        startedAt: new Date(Date.now() - 60_000),
+        expiresAt: new Date(Date.now() - 1_000),
+        answers: { q1: "0" }
+      });
+
+      await assert.rejects(
+        callable("rmSubmitExam", { attemptId }),
+        error => error.code === "functions/failed-precondition"
+      );
+      assert.equal((await attemptRef.get()).data().status, "in_progress",
+        "an inconsistent answer key must not finalize the attempt");
+      assert.equal((await resultRef.get()).exists, false,
+        "an inconsistent answer key must not create a result record");
+    } finally {
+      await Promise.all([testRef, paperRef, keyRef, attemptRef, resultRef].map(ref => ref.delete().catch(() => {})));
+    }
+  }
+});
+
 test("student can start, save answers and submit with server-side scoring", async () => {
   // A stale server-side pointer must not cause a non-existent attempt to be resumed.
   await db.doc("testSeriesActiveSessions/" + uid).set({

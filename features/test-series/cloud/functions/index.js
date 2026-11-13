@@ -30,6 +30,7 @@ const { getCallableOptions } = require("./app-check-policy");
 const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require("./question-bank-validation");
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
+const { getExamAnswerKey } = require("./exam-answer-key");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -294,28 +295,40 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     if (a.status !== "in_progress") throw new HttpsError("failed-precondition", "Attempt cannot be submitted");
     const expiresAt = date(a.expiresAt);
     if (!expiresAt || !Number.isFinite(expiresAt.getTime())) throw new HttpsError("failed-precondition", "Attempt deadline is missing or invalid");
-    const [testSnap, keySnap] = await Promise.all([tx.get(db.doc("testSeriesTests/" + a.testId)), tx.get(db.doc("testSeriesAnswerKeys/" + a.testId))]);
+    const [testSnap, keySnap, paperSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesTests/" + a.testId)),
+      tx.get(db.doc("testSeriesAnswerKeys/" + a.testId)),
+      tx.get(db.doc("testSeriesQuestionSets/" + a.testId))
+    ]);
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
-    const test = testSnap.data(), keys = keySnap.data().questions || {}, answers = a.answers || {};
+    if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+    const test = testSnap.data(), answers = a.answers || {};
     let scoring;
     try {
       scoring = getExamScoringConfig(test);
     } catch (_) {
       throw new HttpsError("failed-precondition", "Exam scoring configuration is invalid");
     }
+    let answerKey;
+    try {
+      answerKey = getExamAnswerKey(paperSnap.data().questions, keySnap.data().questions);
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Exam answer key is inconsistent with the question paper");
+    }
     // Once the server deadline passes, accept only the answers already persisted by rmSaveAnswer.
     // This preserves a result when the client submits at the timer boundary or reconnects late.
     const timedOut = expiresAt <= new Date();
     let correct = 0, wrong = 0, unattempted = 0;
-    for (const qid of Object.keys(keys)) {
-      const given = answers[qid];
+    for (const item of answerKey) {
+      const given = answers[item.questionId];
       if (given === undefined || given === null || given === "") unattempted++;
-      else if (String(given) === String(keys[qid].correctAnswer)) correct++;
+      else if (String(given) === item.correctAnswer) correct++;
       else wrong++;
     }
+    const totalQuestions = answerKey.length;
     const score = correct * scoring.marksPerQuestion - wrong * scoring.negativeMarks;
-    tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length });
-    tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions: Object.keys(keys).length, submittedAt: FieldValue.serverTimestamp() });
+    tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions });
+    tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions, submittedAt: FieldValue.serverTimestamp() });
     tx.set(db.doc("testSeriesActiveSessions/" + uid), { uid, status: "completed", attemptId, testId: a.testId, completedAt: FieldValue.serverTimestamp() });
     return { submitted: true, timedOut, correct, wrong, unattempted, score, totalQuestions: Object.keys(keys).length };
   });
