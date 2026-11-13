@@ -1045,10 +1045,10 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
 // Configure GA_SERVICE_ACCOUNT_JSON as a Firebase Functions secret. The service
 // account must have Viewer access to GA4 property 564314853.
 const GA_SERVICE_ACCOUNT_JSON = defineSecret("GA_SERVICE_ACCOUNT_JSON");
-const GA4_PROPERTY_ID = "564314853";
+const GA4_PROPERTY_ID = defineSecret("GA4_PROPERTY_ID");
 
 exports.getOwnerAnalyticsSummary = onCall(
-  { region: REGION, secrets: [GA_SERVICE_ACCOUNT_JSON], timeoutSeconds: 30 },
+  { region: REGION, secrets: [GA_SERVICE_ACCOUNT_JSON, GA4_PROPERTY_ID], timeoutSeconds: 30 },
   async request => {
     requireAdmin(request);
     let credentials;
@@ -1060,13 +1060,17 @@ exports.getOwnerAnalyticsSummary = onCall(
     }
 
     try {
+      const propertyId = GA4_PROPERTY_ID.value().trim();
+      if (!/^\\d{5,20}$/.test(propertyId)) {
+        throw new HttpsError("failed-precondition", "Google Analytics property ID is not configured correctly.");
+      }
       const client = new BetaAnalyticsDataClient({
         credentials: {
           client_email: credentials.client_email,
           private_key: credentials.private_key
         }
       });
-      const property = "properties/" + GA4_PROPERTY_ID;
+      const property = "properties/" + propertyId;
       const [realtime] = await client.runRealtimeReport({
         property,
         metrics: [{ name: "activeUsers" }]
@@ -1109,7 +1113,7 @@ exports.getOwnerAnalyticsSummary = onCall(
       }));
       const installPromptAccepted = Number(installEvents.rows?.[0]?.metricValues?.[0]?.value || 0);
       return {
-        propertyId: GA4_PROPERTY_ID,
+        propertyId,
         realtimeActiveUsers: metricValue(realtime, 0),
         last7Days: {
           activeUsers: metricValue(weekly, 0),
