@@ -14,7 +14,7 @@ The module provides server-timed countdown, question palette, Previous/Next, ans
 ## Student test catalogue
 
 - `catalogue.html` is the markup fragment and `catalogue.js` initializes the published-test list.
-- The host must inject the fragment after phone-OTP sign-in and initialize Firebase App Check/Functions.
+- The host must inject the fragment after phone-OTP sign-in and initialize Firebase App Check/Functions. Both the portal and every student callable verify the Firebase `sign_in_provider === "phone"` claim; a signed-in Google, email/password, or custom-token session cannot access student CBT APIs.
 - Call `initStudentTestCatalogue({ app, root, onStart })`; the host's `onStart({ test, session })` callback should switch to the CBT exam view. The catalogue only claims the configured one-time free attempt; it does not start the timed exam. The student starts or resumes the server-timed attempt only after pressing **Start Exam** on the exam screen. Re-selecting the catalogue after an existing claim does not create a second free attempt.
 - Only the configured free-trial test can be started without a paid entitlement. Paid tests are listed as payable until the verified server-side payment webhook creates the matching active entitlement. After Razorpay reports checkout submission, the catalogue offers **Check Payment Status**, which reloads access from the server; the browser checkout callback never grants access. Other zero-price tests are not automatically free.
 - The callable returns published metadata only. It never returns questions or answer keys.
