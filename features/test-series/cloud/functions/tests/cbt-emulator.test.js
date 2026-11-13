@@ -906,7 +906,15 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     const newEventRetry = await applyCapturedPayment({ db, event, eventId: "evt_ledger_replay" });
     assert.equal(newEventRetry.granted, false);
     assert.equal(newEventRetry.duplicate, true);
-    assert.equal((await replayEventRef.get()).data().status, "duplicate");
+    assert.equal((await replayEventRef.get()).exists, false,
+      "a new untrusted event ID must not create another event document for an already-ledgered payment");
+
+    const secondNewEventRetry = await applyCapturedPayment({
+      db, event, eventId: "evt_ledger_replay_second"
+    });
+    assert.equal(secondNewEventRetry.granted, false);
+    assert.equal(secondNewEventRetry.duplicate, true);
+    assert.equal((await db.doc("testSeriesPaymentEvents/evt_ledger_replay_second").get()).exists, false);
 
     // A new provider event ID for an already-recorded payment is still a replay.
     // It must not be acknowledged when any identity/value in the entitlement
@@ -952,7 +960,7 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     const originalPayment = (await paymentRef.get()).data();
     await paymentRef.delete();
     await assert.rejects(
-      applyCapturedPayment({ db, event, eventId: "evt_ledger_replay" }),
+      applyCapturedPayment({ db, event, eventId }),
       error => error.code === "event_ledger_inconsistent" ||
         /missing its order or payment ledger record/i.test(error.message)
     );
