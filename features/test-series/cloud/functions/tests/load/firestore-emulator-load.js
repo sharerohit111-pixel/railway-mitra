@@ -120,6 +120,29 @@ async function main() {
       console.log(JSON.stringify({ wave: wave + 1, elapsedMs: Date.now() - waveStarted, completedSaves: timings.length, failures }));
     }
 
+    // Estimate UTF-8 JSON payload sizes after all answers have been saved.
+    // This is an application-level estimate, not Firestore's encoded document size.
+    const attemptPayloadBytes = [];
+    for (let offset = 0; offset < attemptRefs.length; offset += 100) {
+      const snapshots = await db.getAll(...attemptRefs.slice(offset, offset + 100));
+      for (const snapshot of snapshots) {
+        if (snapshot.exists) attemptPayloadBytes.push(Buffer.byteLength(JSON.stringify(snapshot.data()), "utf8"));
+      }
+    }
+    const questionSetSnapshot = await questionSetRef.get();
+    const questionSetPayloadBytes = questionSetSnapshot.exists
+      ? Buffer.byteLength(JSON.stringify(questionSetSnapshot.data()), "utf8")
+      : 0;
+    const attemptPayloadTotalBytes = attemptPayloadBytes.reduce((sum, value) => sum + value, 0);
+    const attemptPayloadSize = {
+      measuredDocuments: attemptPayloadBytes.length,
+      averageJsonBytes: attemptPayloadBytes.length
+        ? Number((attemptPayloadTotalBytes / attemptPayloadBytes.length).toFixed(2)) : 0,
+      maxJsonBytes: attemptPayloadBytes.reduce((maximum, value) => Math.max(maximum, value), 0),
+      questionSetJsonBytes: questionSetPayloadBytes,
+      note: "UTF-8 JSON estimates only; not Firestore encoded document sizes or quota validation."
+    };
+
     const elapsedMs = Date.now() - startedAt;
     const successful = timings.length - failures;
     console.log("LOAD_TEST_RESULT " + JSON.stringify({
@@ -133,6 +156,7 @@ async function main() {
       elapsedMs,
       savesPerSecond: Number((successful / (elapsedMs / 1000)).toFixed(2)),
       latencyMs: { p50: percentile(timings, 0.50), p95: percentile(timings, 0.95), p99: percentile(timings, 0.99), max: timings.reduce((maximum, value) => Math.max(maximum, value), 0) },
+      payloadSizeEstimate: attemptPayloadSize,
       note: "Firestore Emulator measurements are not production capacity or latency guarantees."
     }));
     if (failures) process.exitCode = 1;
