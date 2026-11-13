@@ -1,3 +1,4 @@
+import { summarizeStudentActivity } from "./student-activity.mjs";
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
@@ -294,6 +295,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   const studentsStatus = el("rm-admin-students-status");
   const studentsMore = el("rm-admin-students-more");
   const studentsSearch = el("rm-admin-students-search");
+  const studentSummaries = el("rm-admin-student-summaries");
   let studentsCursor = null;
   let studentsGeneration = 0;
   let studentActivityRows = [];
@@ -303,6 +305,21 @@ export function initOwnerAdminDashboard(auth, functions) {
       if (!term) return true;
       return [activity.studentUid, activity.testId, activity.testTitle]
         .some(value => String(value || "").toLocaleLowerCase().includes(term));
+    });
+    studentSummaries.replaceChildren();
+    summarizeStudentActivity(studentActivityRows, term).forEach(summary => {
+      const card = document.createElement("article");
+      card.className = "rm-admin-payment-row";
+      const heading = document.createElement("b");
+      heading.textContent = "विद्यार्थी " + summary.studentUid.slice(0, 10) + "…";
+      const detail = document.createElement("small");
+      detail.textContent = [summary.attempts + " प्रयास", summary.testCount + " अलग टेस्ट", "औसत अंक " + summary.averageScore, summary.averageCorrectPercent === null ? "प्रतिशत उपलब्ध नहीं" : "औसत सही " + summary.averageCorrectPercent + "%", "अंतिम गतिविधि " + (summary.lastSubmittedAt ? new Date(summary.lastSubmittedAt).toLocaleString() : "अज्ञात")].join(" · ");
+      const open = document.createElement("button");
+      open.type = "button";
+      open.textContent = "इस विद्यार्थी के परिणाम देखें";
+      open.addEventListener("click", () => { studentsSearch.value = summary.studentUid; renderStudentActivity(); });
+      card.append(heading, detail, open);
+      studentSummaries.append(card);
     });
     studentsList.replaceChildren();
     visibleRows.forEach(activity => {
