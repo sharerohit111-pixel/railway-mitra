@@ -116,6 +116,14 @@ test("acknowledges permanent conflicts but asks the provider to retry transient 
   assert.equal(permanentRes.code, 200);
   assert.deepEqual(permanentRes.body, { received: true, rejected: true });
 
+  const invalidOrderRes = response();
+  await handleRazorpayWebhook({
+    req: request(), res: invalidOrderRes, secret, db: {},
+    applyPayment: async () => { const error = new Error("order missing"); error.code = "order_not_found"; throw error; }
+  });
+  assert.equal(invalidOrderRes.code, 200);
+  assert.deepEqual(invalidOrderRes.body, { received: true, rejected: true });
+
   const transientRes = response();
   await handleRazorpayWebhook({
     req: request(), res: transientRes, secret, db: {},
