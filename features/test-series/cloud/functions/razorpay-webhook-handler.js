@@ -15,11 +15,12 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment } = {}
     return;
   }
 
+  // The event must come from the exact bytes whose HMAC was verified above.
+  // Never prefer req.body: middleware or test adapters could expose a parsed
+  // object that is not the payload covered by the provider's signature.
   let event;
   try {
-    event = req.body && typeof req.body === "object"
-      ? req.body
-      : JSON.parse(rawBody.toString("utf8"));
+    event = JSON.parse(rawBody.toString("utf8"));
   } catch {
     res.status(400).send("Invalid webhook payload");
     return;
