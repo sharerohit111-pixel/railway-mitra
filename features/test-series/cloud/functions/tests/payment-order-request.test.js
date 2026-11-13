@@ -6,6 +6,8 @@ const {
   PAYMENT_REQUEST_STATES,
   validatePaymentRequestId,
   paymentRequestDocumentId,
+  paymentStudentTestLockDocumentId,
+  inspectStudentTestPaymentLock,
   paymentRequestFingerprint,
   inspectPaymentRequest
 } = require("../payment-order-request");
@@ -32,6 +34,26 @@ test("scopes deterministic request document IDs to student, test and request ID"
   assert.notEqual(paymentRequestDocumentId({ ...base, uid: "another_student" }), key);
   assert.notEqual(paymentRequestDocumentId({ ...base, testId: "another_test" }), key);
   assert.notEqual(paymentRequestDocumentId({ ...base, requestId: "e8a2f0c6-1c3b-4a75-9e2f-1b7a6c8d9e10" }), key);
+});
+
+test("student-test payment lock blocks a different tab request until explicit resolution", () => {
+  const requestDocId = paymentRequestDocumentId(base);
+  const lockId = paymentStudentTestLockDocumentId(base);
+  assert.match(lockId, /^[a-f0-9]{64}$/);
+  assert.equal(paymentStudentTestLockDocumentId(base), lockId);
+  assert.notEqual(paymentStudentTestLockDocumentId({ ...base, uid: "another_student" }), lockId);
+  assert.notEqual(paymentStudentTestLockDocumentId({ ...base, testId: "another_test" }), lockId);
+  assert.deepEqual(inspectStudentTestPaymentLock(null, { ...base, requestDocId }), { action: "reserve" });
+  const lock = { uid: base.uid, testId: base.testId, requestDocId, status: PAYMENT_REQUEST_STATES.CREATED };
+  assert.deepEqual(inspectStudentTestPaymentLock(lock, { ...base, requestDocId }), {
+    action: "continue", status: PAYMENT_REQUEST_STATES.CREATED
+  });
+  const anotherRequest = paymentRequestDocumentId({ ...base, requestId: "f8a2f0c6-1c3b-4a75-9e2f-1b7a6c8d9e10" });
+  assert.deepEqual(inspectStudentTestPaymentLock(lock, { ...base, requestDocId: anotherRequest }), {
+    action: "reject", reason: "another_payment_request_pending"
+  });
+  assert.equal(inspectStudentTestPaymentLock({ ...lock, status: "paid" }, { ...base, requestDocId }).action, "reconcile");
+  assert.equal(inspectStudentTestPaymentLock({ ...lock, uid: "other" }, { ...base, requestDocId }).action, "reconcile");
 });
 
 test("fingerprint binds request ID to authoritative identity, amount and currency", () => {
