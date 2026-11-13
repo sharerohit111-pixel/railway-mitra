@@ -47,6 +47,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     onSignedOut: () => {
       clearPaymentHistory();
       clearStudentActivity();
+      clearAnalytics();
       home.hidden = true;
       setup.hidden = true;
       login.hidden = false;
@@ -335,20 +336,70 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   el("rm-admin-refresh-students").addEventListener("click", () => refreshStudentActivity());
   studentsMore.addEventListener("click", () => refreshStudentActivity({ append: true }));
+  const analyticsPanel = el("rm-admin-analytics-panel");
+  const analyticsStatus = el("rm-admin-analytics-status");
+  const analyticsSummary = el("rm-admin-analytics-summary");
+  const analyticsTests = el("rm-admin-analytics-tests");
+  let analyticsGeneration = 0;
+  function clearAnalytics() {
+    analyticsGeneration += 1;
+    analyticsSummary.replaceChildren();
+    analyticsTests.replaceChildren();
+    analyticsStatus.textContent = "";
+  }
+  async function refreshAnalytics() {
+    const generation = ++analyticsGeneration;
+    analyticsStatus.textContent = "सर्वर से विश्लेषण लोड हो रहा है…";
+    analyticsSummary.replaceChildren();
+    analyticsTests.replaceChildren();
+    try {
+      const response = await httpsCallable(functions, "rmOwnerGetResultAnalytics")({});
+      if (generation !== analyticsGeneration) return;
+      const data = response.data || {};
+      const cards = [
+        ["जमा परीक्षाएँ", data.sampledAttempts || 0],
+        ["औसत अंक", data.averageScore ?? 0],
+        ["औसत सही उत्तर %", data.averageCorrectPercent === null ? "—" : data.averageCorrectPercent + "%"],
+        ["समय समाप्त", data.timedOut || 0]
+      ];
+      cards.forEach(([label, value]) => {
+        const card = document.createElement("article");
+        card.className = "rm-admin-payment-row";
+        const heading = document.createElement("b"); heading.textContent = String(value);
+        const detail = document.createElement("small"); detail.textContent = label;
+        card.append(heading, detail); analyticsSummary.append(card);
+      });
+      (Array.isArray(data.tests) ? data.tests : []).forEach(item => {
+        const row = document.createElement("article"); row.className = "rm-admin-payment-row";
+        const heading = document.createElement("b"); heading.textContent = (item.title || item.testId || "Test") + " · " + item.attempts + " प्रयास";
+        const detail = document.createElement("small");
+        detail.textContent = ["औसत अंक " + item.averageScore, "औसत सही " + (item.averageCorrectPercent === null ? "—" : item.averageCorrectPercent + "%"), "समय समाप्त " + item.timedOut].join(" · ");
+        row.append(heading, detail); analyticsTests.append(row);
+      });
+      analyticsStatus.textContent = (data.window === "latest_500_submissions" ? "नवीनतम " : "") + data.sampledAttempts + " परिणामों का विश्लेषण।" + (data.hasMore ? " पुराने परिणाम इस सीमित रिपोर्ट में शामिल नहीं हैं।" : "");
+    } catch (error) {
+      if (generation !== analyticsGeneration) return;
+      analyticsStatus.textContent = error.message || "विश्लेषण लोड नहीं हुआ।";
+    }
+  }
+  el("rm-admin-refresh-analytics").addEventListener("click", refreshAnalytics);
   document.querySelectorAll("[data-admin-module]").forEach(button => button.addEventListener("click", () => {
     const module = button.dataset.adminModule;
     testsPanel.hidden = module !== "tests";
     paymentsPanel.hidden = module !== "payments";
     studentsPanel.hidden = module !== "students";
+    analyticsPanel.hidden = module !== "analytics";
     el("rm-admin-module-status").textContent = module === "tests"
       ? "Test Management खुला है।"
       : module === "payments"
         ? "केवल server-verified captured payment ledger दिखाया जाता है।"
         : module === "students" ? "केवल server-verified परीक्षा परिणाम का सारांश दिखाया जाता है।"
+        : module === "analytics" ? "नवीनतम 500 जमा परिणामों का server-side विश्लेषण।"
         : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
     if (module === "tests") refreshTests();
     if (module === "payments") refreshPayments();
     if (module === "students") refreshStudentActivity();
+    if (module === "analytics") refreshAnalytics();
   }));
   return { destroy() { stopOwnerSessionWatch(); } };
 }
