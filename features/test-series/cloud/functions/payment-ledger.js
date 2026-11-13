@@ -59,13 +59,61 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
 
     if (eventSnap.exists) {
       const previousEvent = eventSnap.data();
-      if (previousEvent.paymentId === paymentId &&
-          previousEvent.razorpayOrderId === orderId &&
-          previousEvent.amount === paymentEntity.amount &&
-          previousEvent.currency === paymentEntity.currency) {
-        return { granted: false, duplicate: true, paymentId, orderId };
+      if (!orderSnap.exists || !paymentSnap.exists) {
+        fail("event_ledger_inconsistent", "Previously processed event is missing its order or payment ledger record");
       }
-      fail("event_id_conflict", "Provider event ID was already used for a different payment payload");
+
+      const order = orderSnap.data();
+      const duplicateOrder = order.status === "paid" && order.paymentId === paymentId
+        ? { ...order, status: "created" }
+        : order;
+      const duplicateValidation = validateCapturedPayment({ event, order: duplicateOrder });
+      if (!duplicateValidation.valid) {
+        fail("event_id_conflict", "Provider event ID was already used for a different payment payload");
+      }
+
+      const entitlementRef = db.doc("testSeriesEntitlements/" + duplicateValidation.uid + "_" + duplicateValidation.testId);
+      const entitlementSnap = await tx.get(entitlementRef);
+      const previousPayment = paymentSnap.data();
+      const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
+      const eventMatches = previousEvent.eventId === eventId &&
+        (previousEvent.status === "processed" || previousEvent.status === "duplicate") &&
+        previousEvent.paymentId === paymentId &&
+        previousEvent.razorpayOrderId === orderId &&
+        previousEvent.uid === duplicateValidation.uid &&
+        previousEvent.testId === duplicateValidation.testId &&
+        previousEvent.amount === duplicateValidation.amount &&
+        previousEvent.currency === duplicateValidation.currency;
+      const paymentMatches = previousPayment.status === "captured" && samePaymentRecord({
+        paymentId: previousPayment.paymentId,
+        razorpayOrderId: previousPayment.razorpayOrderId,
+        uid: previousPayment.uid,
+        testId: previousPayment.testId,
+        amount: previousPayment.amount,
+        currency: previousPayment.currency
+      }, duplicateValidation);
+      const orderMatches = order.status === "paid" &&
+        order.paymentId === paymentId &&
+        order.razorpayOrderId === duplicateValidation.orderId &&
+        order.uid === duplicateValidation.uid &&
+        order.testId === duplicateValidation.testId &&
+        order.amount === duplicateValidation.amount &&
+        order.currency === duplicateValidation.currency;
+      const entitlementMatches = entitlement &&
+        entitlement.status === "active" &&
+        entitlement.uid === duplicateValidation.uid &&
+        entitlement.testId === duplicateValidation.testId &&
+        entitlement.paymentId === paymentId &&
+        entitlement.razorpayOrderId === orderId &&
+        entitlement.amount === duplicateValidation.amount &&
+        entitlement.currency === duplicateValidation.currency;
+
+      // A replay is a no-op only while the complete original ledger and access
+      // grant still agree. Do not silently accept a damaged or partial record.
+      if (!eventMatches || !paymentMatches || !orderMatches || !entitlementMatches) {
+        fail("event_ledger_inconsistent", "Previously processed event is not backed by a complete matching payment ledger");
+      }
+      return { granted: false, duplicate: true, paymentId, orderId };
     }
 
     if (!orderSnap.exists) fail("order_not_found", "Server-created payment order was not found");
