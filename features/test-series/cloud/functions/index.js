@@ -443,6 +443,53 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
 });
 
 
+// Owner-managed reusable question bank. Stored separately from published test snapshots.
+exports.rmOwnerSaveQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  const question = data.question;
+  if (!question || typeof question !== "object" || Array.isArray(question)) {
+    throw new HttpsError("invalid-argument", "Question data is required");
+  }
+  const topic = String(data.topic || "").trim();
+  const chapter = String(data.chapter || "").trim();
+  const folder = String(data.folder || "").trim();
+  if (!topic || topic.length > 80 || !chapter || chapter.length > 100 || !folder || folder.length > 120) {
+    throw new HttpsError("invalid-argument", "Topic, chapter and folder are required and must be within limits");
+  }
+  const text = typeof question.text === "string" ? question.text.trim() : "";
+  const options = Array.isArray(question.options) ? question.options.map(value => String(value).trim()) : [];
+  const correctIndex = question.correctIndex;
+  if (!text || text.length > 4000 || options.length < 2 || options.length > 6 ||
+      options.some(option => !option || option.length > 1000) ||
+      !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
+    throw new HttpsError("invalid-argument", "Question text, 2–6 options and a valid correctIndex are required");
+  }
+  const itemId = data.itemId ? id(data.itemId) : db.collection("testSeriesQuestionBank").doc().id;
+  const ref = db.doc("testSeriesQuestionBank/" + itemId);
+  await ref.set({
+    topic, chapter, folder,
+    question: { text, options, explanation: typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : "" },
+    correctIndex,
+    updatedAt: FieldValue.serverTimestamp(),
+    createdAt: data.itemId ? undefined : FieldValue.serverTimestamp()
+  }, { merge: true });
+  return { saved: true, itemId };
+});
+
+exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  const pageSize = data.pageSize === undefined ? 50 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new HttpsError("invalid-argument", "Page size must be from 1 to 100");
+  }
+  let query = db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc");
+  if (data.topic) query = query.where("topic", "==", String(data.topic).slice(0, 80));
+  const snap = await query.limit(pageSize).get();
+  return { items: snap.docs.map(doc => ({ itemId: doc.id, ...doc.data(), createdAt: date(doc.data().createdAt)?.toISOString() || null, updatedAt: date(doc.data().updatedAt)?.toISOString() || null })) };
+});
+
 // Owner-only, read-only payment history. Authorization runs before any ledger read.
 exports.rmOwnerListPayments = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
