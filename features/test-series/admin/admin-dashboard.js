@@ -91,7 +91,8 @@ export function initOwnerAdminDashboard(auth, functions) {
           if (typeof options === "string" && options.trim().startsWith("[")) options = JSON.parse(options);
           if (!Array.isArray(options)) options = ["a", "b", "c", "d", "e", "f"].map(key => normalized["option" + key.toUpperCase()]).filter(v => v !== "");
           const rawIndex = normalized.correctindex ?? normalized.correct_index ?? normalized.answerindex;
-          const correctIndex = Number(rawIndex);
+          // A blank spreadsheet cell must not silently become option 0 (A).
+          const correctIndex = rawIndex === undefined || rawIndex === null || String(rawIndex).trim() === "" ? NaN : Number(rawIndex);
           return { id: String(normalized.id || "q" + (index + 1)).trim(), text: String(normalized.text ?? normalized.question ?? "").trim(),
             options: options.map(value => String(value)), correctIndex };
         });
