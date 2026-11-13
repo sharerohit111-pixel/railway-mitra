@@ -43,7 +43,11 @@ function owner(req) {
 }
 function student(req) {
   const uid = user(req);
-  if (!hasStudentPhoneSignIn(req.auth.token)) {
+  const token = req.auth.token || {};
+  const emulatorFixtureAllowed = process.env.FUNCTIONS_EMULATOR === "true" &&
+    process.env.TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR === "true" &&
+    token.firebase && token.firebase.sign_in_provider === "custom";
+  if (!hasStudentPhoneSignIn(token) && !emulatorFixtureAllowed) {
     throw new HttpsError("permission-denied", "Student access requires phone OTP sign-in");
   }
   return uid;
