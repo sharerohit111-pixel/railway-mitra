@@ -19,6 +19,7 @@ const {
 } = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
 const { listOwnerPaymentHistory } = require("./owner-payment-history");
+const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const { getCallableOptions } = require("./app-check-policy");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
@@ -675,6 +676,24 @@ exports.rmOwnerListPayments = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
   try {
     return await listOwnerPaymentHistory({
+      db,
+      cursor: req.data && req.data.cursor,
+      pageSize: req.data && req.data.pageSize
+    });
+  } catch (error) {
+    if (error && (error.code === "invalid_page_size" || error.code === "invalid_cursor")) {
+      throw new HttpsError("invalid-argument", error.message);
+    }
+    throw error;
+  }
+});
+
+// Owner-only, read-only queue for payment-order outcomes that need reconciliation.
+// The Owner guard runs before the helper performs any Firestore read.
+exports.rmOwnerListPaymentReconciliation = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  try {
+    return await listOwnerPaymentReconciliation({
       db,
       cursor: req.data && req.data.cursor,
       pageSize: req.data && req.data.pageSize
