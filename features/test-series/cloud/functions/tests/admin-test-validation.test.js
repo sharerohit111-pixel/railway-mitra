@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 
 let validateOwnerTestDraft;
 test.before(async () => {
-  ({ validateOwnerTestDraft } = await import("../../admin/admin-test-validation.mjs"));
+  ({ validateOwnerTestDraft } = await import("../../../admin/admin-test-validation.mjs"));
 });
 
 const question = (overrides = {}) => ({
