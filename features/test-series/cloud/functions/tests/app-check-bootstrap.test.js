@@ -49,6 +49,7 @@ test("every exported callable uses the shared fail-closed App Check options", ()
 test("App Check initializes on a dedicated Test Series app before Auth and Firestore clients", () => {
   const sharedConfig = readRepositoryFile("assets/js/firebase.js");
   const bootstrap = readRepositoryFile("features/test-series/cloud/firebase-app-check-init.js");
+  const provider = readRepositoryFile("features/test-series/cloud/app-check.js");
 
   for (const key of ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"]) {
     assert.equal(
@@ -64,6 +65,8 @@ test("App Check initializes on a dedicated Test Series app before Auth and Fires
   const firestorePosition = bootstrap.indexOf("getFirestore(app)");
   assert.ok(appCheckPosition >= 0 && authPosition > appCheckPosition && firestorePosition > appCheckPosition);
   assert.doesNotMatch(bootstrap, /assets\/js\/firebase\.js/);
+  assert.match(provider, /new ReCaptchaEnterpriseProvider\(SITE_KEY\)/);
+  assert.match(provider, /isTokenAutoRefreshEnabled:\s*true/);
 });
 
 test("Owner and Student portals consume the dedicated App Check bootstrap", () => {
