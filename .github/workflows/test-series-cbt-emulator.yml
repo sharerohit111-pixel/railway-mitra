@@ -46,4 +46,4 @@ jobs:
         run: npm run lint
 
       - name: Run CBT Auth, Firestore and Functions emulator tests
-        run: npx --yes firebase-tools@latest emulators:exec --project railway-mitra --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test"
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project railway-mitra --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"
