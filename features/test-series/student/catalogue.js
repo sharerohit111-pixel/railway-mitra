@@ -34,7 +34,13 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
       button.type = "button";
       button.textContent = test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : test.accessType === "unlocked" ? "Start Test" : "Not Available";
       button.disabled = test.accessType !== "free_trial" && test.accessType !== "paid" && test.accessType !== "unlocked";
+      let paymentSubmitted = false;
       button.addEventListener("click", async () => {
+        if (paymentSubmitted) {
+          status.textContent = "Checking verified payment status…";
+          await initStudentTestCatalogue({ app, root, onStart });
+          return;
+        }
         button.disabled = true;
         status.textContent = test.accessType === "paid" ? "Opening secure payment…" : test.accessType === "unlocked" ? "Starting your purchased test…" : "Preparing your free attempt…";
         try {
@@ -48,8 +54,9 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
               app, test, root,
               onStatus: message => { status.textContent = message; }
             });
-            button.textContent = "Payment Verification Pending";
-            button.disabled = true;
+            paymentSubmitted = true;
+            button.textContent = "Check Payment Status";
+            button.disabled = false;
             return;
           }
           let claim;
