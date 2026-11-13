@@ -1018,13 +1018,23 @@ exports.rmCreatePaymentOrder = onCall({
   } catch (error) {
     const definiteFailure = error && error.name === "RazorpayOrderRejectedError";
     await db.runTransaction(async tx => {
-      const current = await tx.get(requestRef);
+      const [current, lock] = await Promise.all([tx.get(requestRef), tx.get(lockRef)]);
       if (current.exists && current.data().reservationToken === reservationToken && current.data().status === PAYMENT_REQUEST_STATES.CREATING) {
         tx.update(requestRef, {
           status: definiteFailure ? PAYMENT_REQUEST_STATES.FAILED : PAYMENT_REQUEST_STATES.UNKNOWN,
           failureCode: definiteFailure ? "provider_rejected" : "provider_outcome_unknown",
           updatedAt: FieldValue.serverTimestamp()
         });
+        if (lock.exists && lock.data().requestDocId === requestDocId) {
+          if (definiteFailure) tx.delete(lockRef);
+          else tx.update(lockRef, { status: PAYMENT_REQUEST_STATES.UNKNOWN, updatedAt: FieldValue.serverTimestamp() });
+        } else if (!definiteFailure && !lock.exists) {
+          tx.create(lockRef, {
+            uid, testId, requestDocId, status: PAYMENT_REQUEST_STATES.UNKNOWN,
+            createdAt: current.data().createdAt || FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
       }
     }).catch(markError => console.error("Payment request failure state update failed", { requestDocId, message: markError.message }));
     console.error("Razorpay order creation failed", { uid, testId, definiteFailure, message: error.message });
@@ -1037,8 +1047,11 @@ exports.rmCreatePaymentOrder = onCall({
   const orderRef = db.doc("testSeriesPaymentOrders/" + providerOrder.id);
   try {
     await db.runTransaction(async tx => {
-      const [currentRequest, latestTest, latestEntitlement] = await Promise.all([tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef)]);
-      if (!currentRequest.exists || currentRequest.data().reservationToken !== reservationToken || currentRequest.data().status !== PAYMENT_REQUEST_STATES.CREATING) {
+      const [currentRequest, latestTest, latestEntitlement, currentLock] = await Promise.all([
+        tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef), tx.get(lockRef)
+      ]);
+      if (!currentRequest.exists || currentRequest.data().reservationToken !== reservationToken || currentRequest.data().status !== PAYMENT_REQUEST_STATES.CREATING ||
+          !currentLock.exists || currentLock.data().requestDocId !== requestDocId) {
         throw new HttpsError("failed-precondition", "Payment reservation changed; provider order requires reconciliation.");
       }
       let latestAmount = null;
@@ -1054,15 +1067,25 @@ exports.rmCreatePaymentOrder = onCall({
         createdAt: FieldValue.serverTimestamp()
       });
       tx.update(requestRef, { status: PAYMENT_REQUEST_STATES.CREATED, razorpayOrderId: providerOrder.id, updatedAt: FieldValue.serverTimestamp() });
+      tx.update(lockRef, { status: PAYMENT_REQUEST_STATES.CREATED, updatedAt: FieldValue.serverTimestamp() });
     });
   } catch (error) {
     await db.runTransaction(async tx => {
-      const current = await tx.get(requestRef);
+      const [current, lock] = await Promise.all([tx.get(requestRef), tx.get(lockRef)]);
       if (current.exists && current.data().reservationToken === reservationToken && current.data().status === PAYMENT_REQUEST_STATES.CREATING) {
         tx.update(requestRef, {
           status: PAYMENT_REQUEST_STATES.UNKNOWN, failureCode: "firestore_commit_after_provider_success",
           providerOrderIdObserved: providerOrder.id, updatedAt: FieldValue.serverTimestamp()
         });
+        if (lock.exists && lock.data().requestDocId === requestDocId) {
+          tx.update(lockRef, { status: PAYMENT_REQUEST_STATES.UNKNOWN, updatedAt: FieldValue.serverTimestamp() });
+        } else if (!lock.exists) {
+          tx.create(lockRef, {
+            uid, testId, requestDocId, status: PAYMENT_REQUEST_STATES.UNKNOWN,
+            createdAt: current.data().createdAt || FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
       }
     }).catch(markError => console.error("Payment request reconciliation marker failed", { requestDocId, message: markError.message }));
     console.error("Razorpay order ledger write failed", { uid, testId, providerOrderId: providerOrder.id });
