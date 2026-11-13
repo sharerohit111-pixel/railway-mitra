@@ -14,6 +14,8 @@ const {
   PAYMENT_REQUEST_STATES,
   validatePaymentRequestId,
   paymentRequestDocumentId,
+  paymentStudentTestLockDocumentId,
+  inspectStudentTestPaymentLock,
   paymentRequestFingerprint,
   inspectPaymentRequest
 } = require("./payment-order-request");
@@ -930,9 +932,12 @@ exports.rmCreatePaymentOrder = onCall({
   const requestDocId = paymentRequestDocumentId({ uid, testId, requestId });
   const fingerprint = paymentRequestFingerprint({ uid, testId, amount, currency: "INR" });
   const requestRef = db.doc("testSeriesPaymentRequests/" + requestDocId);
+  const lockRef = db.doc("testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({ uid, testId }));
   const reservationToken = crypto.randomUUID();
   const reservation = await db.runTransaction(async tx => {
-    const [requestSnap, latestTest, entitlement] = await Promise.all([tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef)]);
+    const [requestSnap, latestTest, entitlement, lockSnap] = await Promise.all([
+      tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef), tx.get(lockRef)
+    ]);
     let latestAmount = null;
     if (latestTest.exists && latestTest.data().status === "published") {
       try { latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }); } catch {}
@@ -942,25 +947,62 @@ exports.rmCreatePaymentOrder = onCall({
     if (access && access.uid === uid && access.testId === testId && access.status === "active") {
       throw new HttpsError("already-exists", "You already have access to this test");
     }
+
+    const lock = lockSnap.exists ? lockSnap.data() : null;
+    const lockDecision = inspectStudentTestPaymentLock(lock, { uid, testId, requestDocId });
+    if (lockDecision.action === "reject") return { action: "blocked" };
+    if (lockDecision.action === "reconcile") return { action: "reconcile_lock" };
+    if (lock && !requestSnap.exists) return { action: "reconcile_lock" };
+    if (lock && requestSnap.exists && lock.status !== requestSnap.data().status) return { action: "reconcile_lock" };
+
     const decision = inspectPaymentRequest(requestSnap.exists ? requestSnap.data() : null, fingerprint);
-    if (decision.action === "reject") throw new HttpsError("already-exists", "This payment request ID was already used with a different or failed request. Start a new checkout.");
-    if (decision.action === "wait") throw new HttpsError("unavailable", "This payment request is still processing. Retry with the same request ID shortly.");
-    if (decision.action === "reconcile") throw new HttpsError("failed-precondition", "The previous payment outcome needs support reconciliation. Do not start another checkout yet.");
-    if (decision.action === "replay") return { action: "replay", orderId: decision.orderId };
-    tx.create(requestRef, {
-      uid, testId, requestId, fingerprint, amount, currency: "INR",
-      status: PAYMENT_REQUEST_STATES.CREATING, reservationToken,
-      receipt: "rm_" + requestDocId.slice(0, 32),
-      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+    if (decision.action === "reject") return { action: "reject" };
+    if (decision.action === "reserve") {
+      tx.create(requestRef, {
+        uid, testId, requestId, fingerprint, amount, currency: "INR",
+        status: PAYMENT_REQUEST_STATES.CREATING, reservationToken,
+        receipt: "rm_" + requestDocId.slice(0, 32),
+        createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+      });
+      if (!lockSnap.exists) tx.create(lockRef, {
+        uid, testId, requestDocId, status: PAYMENT_REQUEST_STATES.CREATING,
+        createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+      });
+      return { action: "create" };
+    }
+
+    if (!lockSnap.exists) tx.create(lockRef, {
+      uid, testId, requestDocId, status: requestSnap.data().status,
+      createdAt: requestSnap.data().createdAt || FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
     });
-    return { action: "create" };
+    if (decision.action === "replay") return { action: "replay", orderId: decision.orderId };
+    if (decision.action === "wait") return { action: "wait" };
+    if (decision.action === "reconcile") return { action: "reconcile" };
+    return { action: "reconcile_lock" };
   });
+
+  if (reservation.action === "blocked") {
+    throw new HttpsError("already-exists", "A payment request for this test is already pending or awaiting reconciliation. Do not start another checkout.", { paymentPending: true });
+  }
+  if (reservation.action === "reconcile_lock") {
+    throw new HttpsError("failed-precondition", "The existing student-test payment lock needs support reconciliation. Do not start another checkout.");
+  }
+  if (reservation.action === "reject") {
+    throw new HttpsError("already-exists", "This payment request ID was already used with a different or failed request. Start a new checkout.");
+  }
+  if (reservation.action === "wait") {
+    throw new HttpsError("unavailable", "This payment request is still processing. Retry with the same request ID shortly.");
+  }
+  if (reservation.action === "reconcile") {
+    throw new HttpsError("failed-precondition", "The previous payment outcome needs support reconciliation. Do not start another checkout yet.");
+  }
 
   if (reservation.action === "replay") {
     const orderSnap = await db.doc("testSeriesPaymentOrders/" + reservation.orderId).get();
     if (!orderSnap.exists) throw new HttpsError("failed-precondition", "The saved payment order needs support reconciliation.");
     const order = orderSnap.data();
-    if (order.uid !== uid || order.testId !== testId || order.amount !== amount || order.currency !== "INR" || order.status !== "created") {
+    if (order.uid !== uid || order.testId !== testId || order.amount !== amount || order.currency !== "INR" || order.status !== "created" || order.razorpayOrderId !== reservation.orderId || order.paymentRequestId !== requestDocId) {
       throw new HttpsError("failed-precondition", "The saved payment order is inconsistent and needs support reconciliation.");
     }
     return { orderId: reservation.orderId, amount: order.amount, currency: order.currency, keyId: RAZORPAY_KEY_ID.value(), testId };
