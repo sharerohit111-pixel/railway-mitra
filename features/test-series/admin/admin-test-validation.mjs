@@ -8,6 +8,11 @@ export function validateOwnerTestDraft(draft) {
     throw new Error("टेस्ट का नाम आवश्यक है और अधिकतम 160 अक्षरों का होना चाहिए।");
   }
 
+  const category = typeof draft.category === "string" && draft.category.trim() ? draft.category.trim() : "General";
+  const folder = typeof draft.folder === "string" && draft.folder.trim() ? draft.folder.trim() : "General";
+  if (category.length > 60 || !/^[\\p{L}\\p{N} _-]+$/u.test(category)) throw new Error("Category में केवल अक्षर, अंक, space, _ और - स्वीकार हैं (अधिकतम 60 अक्षर)।");
+  const folderParts = folder.split("/").map(part => part.trim());
+  if (folder.length > 120 || folderParts.length > 4 || folderParts.some(part => !part || part.length > 40 || !/^[\\p{L}\\p{N} _-]+$/u.test(part))) throw new Error("Folder में अधिकतम 4 सुरक्षित स्तर दें; हर स्तर 1–40 अक्षरों का हो।");
   const mode = draft.mode === "scheduled" ? "scheduled" : draft.mode === "mock" ? "mock" : null;
   if (!mode) throw new Error("टेस्ट का प्रकार Mock या Scheduled होना चाहिए।");
 
@@ -65,6 +70,8 @@ export function validateOwnerTestDraft(draft) {
 
   const payload = {
     title,
+    category,
+    folder: folderParts.join(" / "),
     mode,
     durationMinutes,
     price,
