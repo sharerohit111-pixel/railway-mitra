@@ -37,3 +37,8 @@ As soon as manual submission or the server-timeout finalizer begins, the CBT cli
 - Initialize with `initStudentLeaderboard({ app, testId, root })` after phone-OTP authentication.
 - The callable never returns UID, phone, email or attempt ID. It currently reads at most 1,000 submitted result records per test; if the cap is reached, the UI explicitly marks counts/rank as potentially incomplete. A production-scale leaderboard needs a dedicated aggregation design before large cohorts.
 - Tied scores share competition rank; earlier submission determines ordering within the tie.
+
+
+## Student performance dashboard scope
+
+The Student Performance dashboard displays the latest 100 submitted results, ordered newest-first by the server. Its result count and average score describe only the results loaded in that bounded view; they are not lifetime totals. The server query uses the `uid` + `submittedAt` composite index in `firestore.indexes.json`.
