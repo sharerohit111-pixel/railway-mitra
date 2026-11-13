@@ -73,8 +73,7 @@ The Owner Question Bank list supports exact topic, chapter and folder filters, c
 
 ### Bulk selection for test assembly
 
-The Question Bank UI supports selecting multiple questions from the currently loaded result pages and appending them to the Test Management question JSON editor in one action. Existing question IDs are skipped to prevent duplicate insertion. The Owner must still review and save the draft/published test through the existing Test Management workflow; selection does not publish or modify a test by itself.
-
+The Question Bank UI supports selecting multiple questions from the currently loaded result pages and appending them to the Test Management question JSON editor in one action. Existing question IDs are skipped to prevent duplicate insertion. The Owner must still review and save the draft/published test through the normal Owner review and Save Test action; selection does not publish or modify a test by itself.
 
 The bulk-add controls can add every currently loaded question matching a selected topic, chapter, and/or folder to the Test Management JSON editor. The current loaded result pages are the selection scope; use Load More or narrow the Question Bank filters before adding if the target group is larger than the loaded pages. Duplicate IDs are skipped, and the test still requires the normal Owner review and Save Test action.
 
@@ -111,6 +110,7 @@ The Results & Ranking module can export its per-test aggregates as CSV or open a
 
 The Owner Results & Ranking screen can filter the loaded per-test aggregates by test ID or title and sort by attempts, average score, average correct-answer percentage, or test name. CSV and print/PDF exports use the currently visible filtered and sorted test rows, while the report continues to label the bounded server-side sample. The filter is client-side over the returned analytics snapshot and does not expand the latest-500 server query.
 
+
 ### Live Razorpay order inspection (read-only)
 
 For reconciliation requests that contain a provider order ID observed after a Firestore write failure, the Owner can request a live Razorpay lookup from the reconciliation queue. The Owner-only callable reads the request record, fetches the Razorpay order and its payment attempts using server-held API credentials, and compares the provider receipt, amount, currency, and server-owned UID/test notes against the reserved request. The response is a strict allow-list and excludes provider notes, contact details, email, and raw payloads. Each payment attempt must use a documented Razorpay status (created, authorized, captured, refunded, or failed), a positive INR amount, a valid matching order ID, and a boolean captured flag consistent with the status; unknown or contradictory provider rows fail closed. This operation is read-only: it does not retry order creation, mark a request resolved, release a student-test lock, grant access, or alter payment records. Requests without a known provider order ID remain support cases and cannot be inspected through this control. A captured provider payment must still be reconciled through the separately verified payment-ledger workflow; this lookup alone never grants access.
@@ -125,11 +125,14 @@ Every Owner live Razorpay order inspection writes an append-only record to `test
 
 The Payments module now includes a separate, Owner-only audit history panel backed by `rmOwnerListPaymentAudit`. It is cursor-paginated (25 records by default, maximum 50) and returns only allow-listed inspection metadata: audit ID, Owner UID, payment request reference, lookup outcome, request-match result, order/payment statuses, payment count and server timestamp. The raw Razorpay response, receipt value, credentials, phone, email and arbitrary Firestore fields are excluded. The browser clears the audit list when the Owner session ends. The audit collection remains inaccessible to browser clients under the default-deny Firestore rules. Viewing audit history is read-only and does not resolve or release payment locks or change student entitlements.
 
+
 ### Razorpay inspection decision guidance
 
-The reconciliation queue's read-only inspection now displays a status-specific safety message. A request/order mismatch requires manual review. A Razorpay order marked `paid` without any captured/refunded payment row is treated as an inconsistency and must be checked against the provider and local payment ledger/entitlement. Captured or refunded payment history requires ledger review; an authorized payment may still be captured later or refunded; and created/attempted orders or failed attempts may still permit another attempt on the same provider order. None of these inspection outcomes authorizes manual lock deletion. Only the verified `payment.captured` webhook transaction grants entitlement and clears the matching lock.
+The reconciliation queue's read-only inspection displays a status-specific safety message. A request/order mismatch requires manual review. A Razorpay order marked `paid` without any captured/refunded payment row is treated as an inconsistency and must be checked against the provider and local payment ledger/entitlement. Captured or refunded payment history requires ledger review; an authorized payment may still be captured later or refunded; and known created/attempted orders with only known non-captured attempts may still permit another attempt on the same provider order.
 
-The pure decision helper is isolated in `payment-inspection-guidance.mjs` and covered by `tests/payment-inspection-guidance.test.mjs`. Its tests run with the existing Owner Admin test command:
+Unknown order statuses, unknown payment statuses, missing payment arrays, and malformed payment rows now fail closed to a manual-review message. They never produce retry guidance. None of the inspection outcomes authorizes manual lock deletion. Only the verified `payment.captured` webhook transaction grants entitlement and clears the matching lock.
+
+The pure decision helper is isolated in `payment-inspection-guidance.mjs` and covered by tests for request mismatch, paid-order inconsistencies, captured/refunded history, pending authorization, failed/empty attempts, unknown provider states, and malformed responses. Run the complete isolated Owner Admin helper suite with Node.js 22:
 
 ```bash
 node --test features/test-series/admin/tests/*.test.mjs
