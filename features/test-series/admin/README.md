@@ -59,3 +59,8 @@ The Results & Ranking module calls the Owner-only `rmOwnerGetResultAnalytics` ca
 ## Owner Question Bank
 
 The Question Bank module stores reusable question records separately in `testSeriesQuestionBank`. Owner-only callable APIs support saving and listing records with topic, chapter and folder metadata. Question text, options, explanation and correct option are stored server-side; student clients cannot list or write these records. The dashboard displays up to the 100 most recently updated entries. The dashboard supports adding, editing and deleting individual records. Bulk import/export and attaching selected bank entries to a test are follow-on work. Existing test creation/import remains unchanged.
+
+
+### Bulk import and adding bank items to a draft
+
+The Owner Question Bank supports XLSX, XLS, CSV and JSON bulk import (up to 100 records per request). Spreadsheet columns are `topic`, `chapter`, `folder`, `text` (or `question`), `optionA`–`optionF` or `options` as a JSON array, `correctIndex` (zero-based), and optional `explanation`. Blank or invalid correct indexes are rejected server-side. Each batch is validated before its Firestore batch write. The Question Bank list also offers **Add to Test**, which copies the selected question into the existing Test Management question editor; the Owner must still save the test through the normal draft/publish workflow. Direct browser Firestore access to `testSeriesQuestionBank` is denied.
