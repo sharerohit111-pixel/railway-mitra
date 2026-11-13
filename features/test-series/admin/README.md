@@ -17,3 +17,13 @@ Load admin-dashboard.html into the Test Series route only after app Firebase Aut
 
 ## Not live yet
 Cards are navigation placeholders. Cloud CRUD, question import, payment verification, reports, backup/restore, owner UID provisioning, MFA enrollment UX, App Check, and restrictive Firestore rules remain to be implemented. No deployment or billing changes were made.
+
+
+## Test authoring validation
+The owner test form uses the pure helper `admin-test-validation.mjs` before calling the backend. It checks the same question count, safe unique IDs, text/option limits, answer indexes, duration, price and marking ranges enforced by `ownerTestPayload`. Scheduled tests must have valid start/end values with the end strictly after the start. Server-side validation remains authoritative.
+
+Run the isolated helper tests with Node.js 22:
+
+```bash
+node --test features/test-series/admin/tests/*.test.mjs
+```
