@@ -17,7 +17,11 @@ function validateOrderInput({ keyId, keySecret, amount, currency = "INR", receip
   }
 }
 
-class RazorpayOrderRejectedError extends Error {\n  constructor(message) { super(message); this.name = "RazorpayOrderRejectedError"; }\n}\n\nasync function createRazorpayOrder({
+class RazorpayOrderRejectedError extends Error {
+  constructor(message) { super(message); this.name = "RazorpayOrderRejectedError"; }
+}
+
+async function createRazorpayOrder({
   fetchImpl = globalThis.fetch,
   keyId,
   keySecret,
