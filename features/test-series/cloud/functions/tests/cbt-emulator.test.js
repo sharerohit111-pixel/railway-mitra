@@ -644,6 +644,10 @@ test("non-owner cannot read payment history", async () => {
       callable("rmOwnerListPayments", {}),
       error => error.code === "functions/permission-denied"
     );
+    await assert.rejects(
+      callable("rmOwnerListPaymentReconciliation", {}),
+      error => error.code === "functions/permission-denied"
+    );
   } finally {
     if (originalOwnerUid === undefined) delete process.env.OWNER_UID;
     else process.env.OWNER_UID = originalOwnerUid;
