@@ -86,3 +86,7 @@ The isolated Owner Question Bank module can define section labels (for example, 
 ### Student activity search
 
 The Owner Students module includes a client-side search across the currently loaded result pages. It matches the full student Firebase UID, test ID, and test title while displaying only a shortened UID. Use Load More to fetch older pages; the search automatically includes those newly loaded rows. This is an activity/result lookup, not a full student account directory: it does not expose phone numbers, email addresses, authentication records, or answer selections.
+
+### Student-level performance summaries
+
+Alongside the paginated attempt list, the Owner Students panel groups currently loaded result rows by student UID. It shows attempt count, distinct tests, average score, average correct percentage and most recent submission time. Selecting a summary filters the attempt list to that student. These are explicitly page-window summaries, not lifetime student records or a complete Firebase Authentication user directory. Pure aggregation and search behavior are covered by `node --test features/test-series/admin/tests/*.test.mjs`.
