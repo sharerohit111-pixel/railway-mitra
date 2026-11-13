@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#071326">
+<title>Owner Analytics | Railway Mitra</title>
+<link rel="stylesheet" href="../../assets/css/main.css">
+<link rel="stylesheet" href="./analytics-dashboard.css">
+<script type="module" src="./analytics-dashboard.js"></script>
+</head>
+<body>
+<main class="rm-owner-analytics">
+  <header class="rm-owner-header">
+    <a href="../../app.html">← Railway Mitra</a>
+    <span class="rm-owner-kicker">OWNER CONSOLE</span>
+    <h1>Analytics Dashboard</h1>
+    <p>उपयोगकर्ता गतिविधि और ऐप की वृद्धि का सुरक्षित नियंत्रण पटल</p>
+  </header>
+  <section id="rmOwnerState" class="rm-owner-state" role="status" aria-live="polite">
+    <strong>पहचान सत्यापित की जा रही है…</strong>
+    <p>केवल अधिकृत मालिक खाते को यह पृष्ठ दिखाया जाएगा।</p>
+  </section>
+  <section id="rmOwnerDashboard" hidden>
+    <div class="rm-owner-grid">
+      <article class="rm-owner-card"><span>अभी सक्रिय उपयोगकर्ता</span><strong>—</strong><small>Analytics डेटा कनेक्शन लंबित</small></article>
+      <article class="rm-owner-card"><span>पिछले 7 दिनों के उपयोगकर्ता</span><strong>—</strong><small>Analytics डेटा कनेक्शन लंबित</small></article>
+      <article class="rm-owner-card"><span>सत्र (7 दिन)</span><strong>—</strong><small>इवेंट रिपोर्ट कनेक्शन लंबित</small></article>
+      <article class="rm-owner-card"><span>इंस्टॉल अनुरोध स्वीकार घटनाएँ</span><strong>—</strong><small>समर्थित ब्राउज़र घटनाएँ; पूर्ण इंस्टॉल गणना नहीं</small></article>
+    </div>
+    <article class="rm-owner-panel">
+      <h2>डेटा कनेक्शन की स्थिति</h2>
+      <p id="rmAnalyticsConnection">Google रिपोर्ट सर्वर से सुरक्षित रूप से लोड की जाएगी।</p>
+      <a href="https://analytics.google.com/" target="_blank" rel="noopener">Google Analytics खोलें ↗</a>
+    </article>
+    <article class="rm-owner-panel">
+      <h2>अगले विकास चरण</h2>
+      <ul>
+        <li>GA4 डेटा से सुरक्षित रिपोर्ट प्राप्त करना</li>
+        <li>Realtime, daily active users और feature event reports लाना</li>
+        <li>Firebase/Cloud Logging से errors और performance metrics जोड़ना</li>
+        <li>मालिक के अधिकार की सर्वर से जाँच करना</li>
+      </ul>
+    </article>
+  </section>
+</main>
+</body>
+</html>

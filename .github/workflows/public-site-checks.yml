@@ -69,11 +69,11 @@ jobs:
           assert 'auth-guard.js' in app, 'Authenticated app guard missing'
           assert 'new URL("./app.html", self.registration.scope).href' in service_worker, 'Offline navigation must fall back to app.html'
           assert 'sign in' in home.lower() or 'sign-in' in home.lower()
-          assert 'https://sharerohit111-pixel.github.io/railway-mitra/' in home, 'Project Pages canonical URL missing'
+          assert 'rel="canonical" href="https://railwaymitra.com/"' in home, 'Custom-domain canonical URL missing'
           public_pages = ['index.html', 'about.html', 'contact.html', 'disclaimer.html', 'guides/index.html', 'guides/allowance-basics.html', 'guides/track-maintenance-reference.html', 'guides/calculator-checklist.html']
           for page in public_pages:
               content = Path(page).read_text()
               assert 'href="/' not in content and 'src="/' not in content, f'Root-relative asset or link found in {page}'
-          assert 'https://sharerohit111-pixel.github.io/railway-mitra/sitemap.xml' in Path('robots.txt').read_text()
+          assert 'https://railwaymitra.com/sitemap.xml' in Path('robots.txt').read_text()
           print('Public pages and PWA manifest checks passed')
           PY

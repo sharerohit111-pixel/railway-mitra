@@ -2,6 +2,8 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const { defineSecret } = require("firebase-functions/params");
+const { BetaAnalyticsDataClient } = require("@google-analytics/data");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 
@@ -1037,3 +1039,95 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
     deletedFeedbackThreads: feedback.size
   };
 });
+
+
+// Owner-only Google Analytics Data API report.
+// Configure GA_SERVICE_ACCOUNT_JSON and GA4_PROPERTY_ID as Firebase Functions
+// secrets. The service account must have Viewer access to the configured property.
+const GA_SERVICE_ACCOUNT_JSON = defineSecret("GA_SERVICE_ACCOUNT_JSON");
+const GA4_PROPERTY_ID = defineSecret("GA4_PROPERTY_ID");
+
+exports.getOwnerAnalyticsSummary = onCall(
+  { region: REGION, secrets: [GA_SERVICE_ACCOUNT_JSON, GA4_PROPERTY_ID], timeoutSeconds: 30 },
+  async request => {
+    requireAdmin(request);
+    let credentials;
+    try {
+      credentials = JSON.parse(GA_SERVICE_ACCOUNT_JSON.value());
+      if (!credentials.client_email || !credentials.private_key) throw new Error("Missing service account fields");
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Google Analytics reporting credentials are not configured.");
+    }
+
+    try {
+      const propertyId = GA4_PROPERTY_ID.value().trim();
+      if (!/^[0-9]{5,20}$/.test(propertyId)) {
+        throw new HttpsError("failed-precondition", "Google Analytics property ID is not configured correctly.");
+      }
+      const client = new BetaAnalyticsDataClient({
+        credentials: {
+          client_email: credentials.client_email,
+          private_key: credentials.private_key
+        }
+      });
+      const property = "properties/" + propertyId;
+      const [realtime] = await client.runRealtimeReport({
+        property,
+        metrics: [{ name: "activeUsers" }]
+      });
+      const [weekly] = await client.runReport({
+        property,
+        dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+        metrics: [
+          { name: "activeUsers" },
+          { name: "sessions" },
+          { name: "eventCount" }
+        ]
+      });
+      const [events, installEvents] = await Promise.all([
+        client.runReport({
+          property,
+          dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+          dimensions: [{ name: "eventName" }],
+          metrics: [{ name: "eventCount" }],
+          limit: 20,
+          orderBys: [{ metric: { metricName: "eventCount" }, desc: true }]
+        }),
+        client.runReport({
+          property,
+          dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+          metrics: [{ name: "eventCount" }],
+          dimensionFilter: {
+            filter: {
+              fieldName: "eventName",
+              stringFilter: { matchType: "EXACT", value: "pwa_install_accepted" }
+            }
+          }
+        })
+      ]);
+      const metricValue = (report, index) =>
+        Number(report?.rows?.[0]?.metricValues?.[index]?.value || 0);
+      const eventRows = (events.rows || []).map(row => ({
+        eventName: row.dimensionValues?.[0]?.value || "unknown",
+        eventCount: Number(row.metricValues?.[0]?.value || 0)
+      }));
+      const installPromptAccepted = Number(installEvents.rows?.[0]?.metricValues?.[0]?.value || 0);
+      return {
+        propertyId,
+        realtimeActiveUsers: metricValue(realtime, 0),
+        last7Days: {
+          activeUsers: metricValue(weekly, 0),
+          sessions: metricValue(weekly, 1),
+          eventCount: metricValue(weekly, 2),
+          installPromptAccepted
+        },
+        topEvents: eventRows,
+        generatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      if (error instanceof HttpsError) throw error;
+      console.error("Owner Analytics API error:", error);
+      throw new HttpsError("unavailable", "Google Analytics report could not be loaded. Check the service account property access and API setup.");
+    }
+  }
+);
