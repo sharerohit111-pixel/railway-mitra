@@ -31,6 +31,7 @@ const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require(
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
+const { restoreOwnerQuestionAnswerKeys } = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -541,17 +542,14 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
   const t = testSnap.data();
   const publicQuestions = questionsSnap.exists ? questionsSnap.data().questions || [] : [];
   const answerMap = answerKeySnap.exists ? answerKeySnap.data().questions || {} : {};
-  if (!Array.isArray(publicQuestions) || (publicQuestions.length && !answerKeySnap.exists)) {
-    throw new HttpsError("failed-precondition", "Test answer key is unavailable; editing is blocked to avoid losing correct answers");
+  let questions;
+  try {
+    questions = restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap);
+  } catch (error) {
+    console.error("Owner test answer-key restoration failed", { testId, message: error.message });
+    throw new HttpsError("failed-precondition", "Test answer key is missing or inconsistent; editing is blocked");
   }
-  const questions = publicQuestions.map(question => {
-    const answer = answerMap[question.id];
-    const rawIndex = answer && answer.correctAnswer;
-    const correctIndex = typeof rawIndex === "string" && /^\d+$/.test(rawIndex) ? Number(rawIndex) : NaN;
-    if (!Number.isInteger(correctIndex) || correctIndex < 0 || !Array.isArray(question.options) || correctIndex >= question.options.length) {
-      throw new HttpsError("failed-precondition", "A question answer key is missing or inconsistent; editing is blocked");
-    }
-    return { ...question, correctIndex };
+  return { ...question, correctIndex };
   });
   return {
     testId, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
