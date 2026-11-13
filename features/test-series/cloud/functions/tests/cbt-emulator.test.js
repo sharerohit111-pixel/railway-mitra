@@ -362,6 +362,9 @@ test("student can start, save answers and submit with server-side scoring", asyn
   });
   assert.equal(sectionResume.resumed, true);
   assert.equal(sectionResume.expiresAt, sectionStart.expiresAt);
+  const resumedPaper = await callable("rmGetExamQuestions", { attemptId: started.attemptId });
+  assert.equal(resumedPaper.sectionTimings["Technical Ability"].expiresAt, sectionStart.expiresAt);
+  assert.ok(resumedPaper.sectionTimings["Technical Ability"].startedAt);
   await assert.rejects(
     callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Not a section" }),
     error => error.code === "functions/not-found"
