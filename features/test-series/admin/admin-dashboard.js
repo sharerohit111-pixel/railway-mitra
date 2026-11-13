@@ -46,6 +46,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     signOut: () => signOut(auth),
     onSignedOut: () => {
       clearPaymentHistory();
+      clearStudentActivity();
       home.hidden = true;
       setup.hidden = true;
       login.hidden = false;
@@ -285,17 +286,69 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) { status(e.message || "Test सेव नहीं हुआ।"); }
     finally { button.disabled = false; }
   });
+  const studentsPanel = el("rm-admin-students-panel");
+  const studentsList = el("rm-admin-students-list");
+  const studentsStatus = el("rm-admin-students-status");
+  const studentsMore = el("rm-admin-students-more");
+  let studentsCursor = null;
+  let studentsGeneration = 0;
+  function clearStudentActivity() {
+    studentsGeneration += 1;
+    studentsCursor = null;
+    studentsList.replaceChildren();
+    studentsStatus.textContent = "";
+    studentsMore.hidden = true;
+    studentsMore.disabled = false;
+  }
+  async function refreshStudentActivity({ append = false } = {}) {
+    if (append && !studentsCursor) return;
+    const generation = ++studentsGeneration;
+    if (!append) { studentsCursor = null; studentsList.replaceChildren(); studentsStatus.textContent = "विद्यार्थी परीक्षा गतिविधि लोड हो रही है…"; }
+    else studentsMore.disabled = true;
+    try {
+      const response = await httpsCallable(functions, "rmOwnerListStudentActivity")({ cursor: append ? studentsCursor : null, pageSize: 25 });
+      if (generation !== studentsGeneration) return;
+      const data = response.data || {};
+      const rows = Array.isArray(data.activities) ? data.activities : [];
+      rows.forEach(activity => {
+        const card = document.createElement("article");
+        card.className = "rm-admin-payment-row";
+        const heading = document.createElement("b");
+        heading.textContent = (activity.testTitle || activity.testId || "Test") + " · " + Number(activity.score || 0) + " अंक";
+        const detail = document.createElement("small");
+        const submitted = activity.submittedAt ? new Date(activity.submittedAt) : null;
+        const submittedLabel = submitted && Number.isFinite(submitted.getTime()) ? submitted.toLocaleString() : "समय उपलब्ध नहीं";
+        const uidLabel = activity.studentUid ? activity.studentUid.slice(0, 10) + "…" : "विद्यार्थी अज्ञात";
+        detail.textContent = [uidLabel, "सही " + activity.correct, "गलत " + activity.wrong, "छोड़े " + activity.unattempted, "कुल " + activity.totalQuestions, activity.timedOut ? "समय समाप्त" : "जमा", submittedLabel].join(" · ");
+        card.append(heading, detail);
+        studentsList.append(card);
+      });
+      studentsCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
+      studentsMore.hidden = !studentsCursor;
+      studentsMore.disabled = false;
+      studentsStatus.textContent = rows.length ? rows.length + " परीक्षा परिणाम लोड हुए।" : append ? "और परिणाम उपलब्ध नहीं हैं।" : "अभी कोई जमा परीक्षा परिणाम नहीं है।";
+    } catch (error) {
+      if (generation !== studentsGeneration) return;
+      studentsStatus.textContent = error.message || "विद्यार्थी गतिविधि लोड नहीं हुई।";
+      studentsMore.disabled = false;
+    }
+  }
+  el("rm-admin-refresh-students").addEventListener("click", () => refreshStudentActivity());
+  studentsMore.addEventListener("click", () => refreshStudentActivity({ append: true }));
   document.querySelectorAll("[data-admin-module]").forEach(button => button.addEventListener("click", () => {
     const module = button.dataset.adminModule;
     testsPanel.hidden = module !== "tests";
     paymentsPanel.hidden = module !== "payments";
+    studentsPanel.hidden = module !== "students";
     el("rm-admin-module-status").textContent = module === "tests"
       ? "Test Management खुला है।"
       : module === "payments"
         ? "केवल server-verified captured payment ledger दिखाया जाता है।"
+        : module === "students" ? "केवल server-verified परीक्षा परिणाम का सारांश दिखाया जाता है।"
         : button.querySelector("b").textContent + " का cloud module अभी जोड़ा नहीं गया है।";
     if (module === "tests") refreshTests();
     if (module === "payments") refreshPayments();
+    if (module === "students") refreshStudentActivity();
   }));
   return { destroy() { stopOwnerSessionWatch(); } };
 }
