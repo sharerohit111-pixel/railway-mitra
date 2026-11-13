@@ -407,6 +407,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   function resetQuestionBankForm() {
     questionBankForm.reset();
     el("rm-qb-item-id").value = "";
+    el("rm-qb-question-section").value = "";
     el("rm-qb-save").textContent = "प्रश्न सुरक्षित करें";
     el("rm-qb-cancel-edit").hidden = true;
   }
@@ -442,6 +443,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "Edit";
       edit.addEventListener("click", () => {
         el("rm-qb-item-id").value = item.itemId;
+        el("rm-qb-question-section").value = item.question?.section || "";
         el("rm-qb-topic").value = item.topic || "";
         el("rm-qb-chapter").value = item.chapter || "";
         el("rm-qb-folder").value = item.folder || "General";
