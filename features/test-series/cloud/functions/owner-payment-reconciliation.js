@@ -83,7 +83,8 @@ async function listOwnerPaymentReconciliation({
   }
 
   const size = normalizePageSize(pageSize);
-  // createdAt is immutable after reservation; ordering by updatedAt lets a status change move a row\n  // across pages and can make an unresolved request disappear behind an already-issued cursor.\n  let query = db.collection(collectionName).orderBy("createdAt", "desc");
+  // createdAt is immutable after reservation; ordering by updatedAt lets a status change move a row\n  // across pages and can make an unresolved request disappear behind an already-issued cursor.
+  let query = db.collection(collectionName).orderBy("createdAt", "desc");
   if (cursor !== null) {
     if (!safeDocumentId(cursor)) throw inputError("invalid_cursor", "Payment reconciliation cursor is invalid");
     const cursorSnapshot = await db.doc(collectionName + "/" + cursor).get();
