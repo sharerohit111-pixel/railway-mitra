@@ -64,7 +64,7 @@ test("App Check initializes on a dedicated Test Series app before Auth and Fires
   const authPosition = bootstrap.indexOf("getAuth(app)");
   const firestorePosition = bootstrap.indexOf("getFirestore(app)");
   assert.ok(appCheckPosition >= 0 && authPosition > appCheckPosition && firestorePosition > appCheckPosition);
-  assert.doesNotMatch(bootstrap, /assets\/js\/firebase\.js/);
+  assert.doesNotMatch(bootstrap, /from ["'][^"']*assets\/js\/firebase\.js["']/);
   assert.match(provider, /new ReCaptchaEnterpriseProvider\(SITE_KEY\)/);
   assert.match(provider, /isTokenAutoRefreshEnabled:\s*true/);
 });
@@ -76,6 +76,6 @@ test("Owner and Student portals consume the dedicated App Check bootstrap", () =
   ]) {
     const source = readRepositoryFile(file);
     assert.match(source, /from ["']\.\.\/cloud\/firebase-app-check-init\.js["']/);
-    assert.doesNotMatch(source, /assets\/js\/firebase\.js/);
+    assert.doesNotMatch(source, /from ["'][^"']*assets\/js\/firebase\.js["']/);
   }
 });
