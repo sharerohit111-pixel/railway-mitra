@@ -317,6 +317,41 @@ export function initOwnerAdminDashboard(auth, functions) {
           updatedLabel
         ].join(" · ");
         card.append(heading, detail);
+        if (typeof request.providerOrderIdObserved === "string" && /^order_[A-Za-z0-9]{6,40}$/.test(request.providerOrderIdObserved)) {
+          const inspectButton = document.createElement("button");
+          inspectButton.type = "button";
+          inspectButton.textContent = "Razorpay Status जाँचें";
+          const inspection = document.createElement("small");
+          inspection.setAttribute("role", "status");
+          inspectButton.addEventListener("click", async () => {
+            inspectButton.disabled = true;
+            inspection.textContent = "Razorpay से live status लिया जा रहा है…";
+            try {
+              const result = (await httpsCallable(functions, "rmOwnerInspectPaymentOrder")({
+                requestRecordId: request.requestRecordId
+              })).data || {};
+              const order = result.order || {};
+              const payments = Array.isArray(result.payments) ? result.payments : [];
+              const paymentSummary = payments.length
+                ? payments.map(payment => payment.paymentId + ": " + payment.status + " · ₹" + (payment.amountPaise / 100).toFixed(2)).join(" | ")
+                : "Provider पर कोई payment attempt नहीं मिला";
+              inspection.textContent = (result.matchesRequest === true
+                ? "Provider Order और स्थानीय request का मिलान सही है। "
+                : "चेतावनी: Provider Order और स्थानीय request का मिलान नहीं हुआ। ") +
+                "Order: " + (order.status || "unknown") + " · " + paymentSummary +
+                " · यह केवल read-only जाँच है; access या payment lock में कोई बदलाव नहीं हुआ।";
+            } catch (error) {
+              inspection.textContent = error.message || "Razorpay status जाँच नहीं हो सकी। कोई रिकॉर्ड नहीं बदला।";
+            } finally {
+              inspectButton.disabled = false;
+            }
+          });
+          card.append(inspectButton, inspection);
+        } else {
+          const note = document.createElement("small");
+          note.textContent = "Provider Order ID उपलब्ध नहीं है; इस request की live provider जाँच अभी संभव नहीं है।";
+          card.append(note);
+        }
         reconciliationList.append(card);
       });
       reconciliationCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
