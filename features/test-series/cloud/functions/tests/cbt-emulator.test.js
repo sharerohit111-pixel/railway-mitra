@@ -101,6 +101,23 @@ test("owner access accepts only a verified phone MFA factor", () => {
   assert.equal(hasVerifiedPhoneMfa(null), false);
 });
 
+test("student accounts cannot list the Owner question bank", async () => {
+  await assert.rejects(
+    callable("rmOwnerListQuestionBank"),
+    error => error.code === "functions/permission-denied"
+  );
+});
+
+test("student accounts cannot write to the Owner question bank", async () => {
+  await assert.rejects(
+    callable("rmOwnerSaveQuestionBankItem", {
+      topic: "Civil", chapter: "Soil", folder: "Practice",
+      question: { text: "Question?", options: ["A", "B"], correctIndex: 0 }
+    }),
+    error => error.code === "functions/permission-denied"
+  );
+});
+
 test("student accounts cannot call Owner result analytics", async () => {
   await assert.rejects(
     callable("rmOwnerGetResultAnalytics"),
