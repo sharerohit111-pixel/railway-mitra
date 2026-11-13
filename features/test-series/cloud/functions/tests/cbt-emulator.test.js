@@ -870,6 +870,17 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
       createdAt: new Date(), updatedAt: new Date()
     });
 
+    await paymentLockRef.update({ requestDocId: "a".repeat(64) });
+    await assert.rejects(
+      applyCapturedPayment({ db, event, eventId }),
+      error => error.code === "payment_lock_conflict"
+    );
+    assert.equal((await paymentRef.get()).exists, false,
+      "a captured payment with a mismatched lock must not create a ledger record");
+    assert.equal((await entitlementRef.get()).exists, false,
+      "a captured payment with a mismatched lock must not grant access");
+    await paymentLockRef.update({ requestDocId });
+
     const first = await applyCapturedPayment({ db, event, eventId });
     assert.deepEqual(first, {
       granted: true, duplicate: false, paymentId, orderId, uid, testId: paidTestId
@@ -985,7 +996,7 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
     if (attemptId) await db.doc("testSeriesAttempts/" + attemptId).delete().catch(() => {});
     await db.doc("testSeriesActiveSessions/" + uid).delete().catch(() => {});
     await Promise.all([
-      testRef, orderRef, secondOrderRef, paymentRef, eventRef, replayEventRef, entitlementRef,
+      testRef, orderRef, secondOrderRef, paymentRef, eventRef, replayEventRef, entitlementRef, paymentLockRef,
       db.doc("testSeriesPaymentEvents/evt_ledger_replay_repaired"),
       db.doc("testSeriesPaymentEvents/evt_ledger_payment_reuse")
     ].map(ref => ref.delete().catch(() => {})));
