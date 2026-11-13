@@ -98,10 +98,24 @@ async function main() {
     headers: { ...auth(userA.token), "Content-Type": "application/json" },
     body: JSON.stringify({ writes: [updateWrite(`users/${userB.uid}/dutyDiary/2026-11-13`, "cross-user-write")] })
   });
+  await expectStatus("user A can update own duty diary entry", await commit(userA.token, [
+    updateWrite(`users/${userA.uid}/dutyDiary/2026-11-13`, "updated-own-duty-diary")
+  ]), 200);
 
   await expectStatus("user A can create own main employee profile", await commit(userA.token, [
     updateWrite(`users/${userA.uid}/employeeProfile/main`, "own-profile")
   ]), 200);
+  await expectStatus("user A can update own main employee profile", await commit(userA.token, [
+    updateWrite(`users/${userA.uid}/employeeProfile/main`, "updated-own-profile")
+  ]), 200);
+  await expectDenied("user A cannot read user B employee profile", `${base}/users/${userB.uid}/employeeProfile/main`, {
+    headers: auth(userA.token)
+  });
+  await expectDenied("user A cannot write user B employee profile", `${base}:commit`, {
+    method: "POST",
+    headers: { ...auth(userA.token), "Content-Type": "application/json" },
+    body: JSON.stringify({ writes: [updateWrite(`users/${userB.uid}/employeeProfile/main`, "cross-user-profile-write")] })
+  });
   await expectDenied("user A cannot write a non-main employee profile", `${base}:commit`, {
     method: "POST",
     headers: { ...auth(userA.token), "Content-Type": "application/json" },
@@ -117,7 +131,7 @@ async function main() {
     headers: auth(userA.token)
   });
 
-  const checks = protectedCollections.length * 2 + 9;
+  const checks = protectedCollections.length * 2 + 13;
   console.log("RULES_TEST_RESULT", JSON.stringify({ projectId, checks, result: "passed" }));
 }
 
