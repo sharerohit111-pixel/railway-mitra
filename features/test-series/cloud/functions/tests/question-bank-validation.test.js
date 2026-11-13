@@ -2,19 +2,22 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { normalizeQuestionBankItem } = require("../question-bank-validation");
 
-const validItem = (overrides = {}) => ({
-  topic: "Civil Engineering",
-  chapter: "Soil Mechanics",
-  folder: "GDCE / Practice",
-  question: {
-    text: "Bearing capacity?",
-    options: ["Safe", "Unsafe"],
-    correctIndex: 0,
-    explanation: "A short explanation",
-    ...overrides.question
-  },
-  ...overrides
-});
+const validItem = (overrides = {}) => {
+  const { question: questionOverrides = {}, ...fields } = overrides;
+  return {
+    topic: "Civil Engineering",
+    chapter: "Soil Mechanics",
+    folder: "GDCE / Practice",
+    ...fields,
+    question: {
+      text: "Bearing capacity?",
+      options: ["Safe", "Unsafe"],
+      correctIndex: 0,
+      explanation: "A short explanation",
+      ...questionOverrides
+    }
+  };
+};
 
 test("normalizes a question-bank record and preserves a Hindi section name", () => {
   const result = normalizeQuestionBankItem(validItem({
