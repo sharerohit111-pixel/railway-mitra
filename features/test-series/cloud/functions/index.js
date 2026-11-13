@@ -549,8 +549,6 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
     console.error("Owner test answer-key restoration failed", { testId, message: error.message });
     throw new HttpsError("failed-precondition", "Test answer key is missing or inconsistent; editing is blocked");
   }
-  return { ...question, correctIndex };
-  });
   return {
     testId, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
     durationMinutes: Number(t.durationMinutes || 30), price: Number(t.price || 0),
