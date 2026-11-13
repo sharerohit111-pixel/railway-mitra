@@ -157,6 +157,8 @@ test("derives section question counts and preserves configured section time limi
     ]
   }));
   assert.deepEqual(payload.sections, [{ name: "Technical Ability", timeLimitMinutes: 25, questionCount: 2 }]);
+  assert.equal(payload.questions[1].section, "Technical Ability",
+    "case-insensitive section labels must be normalized to the configured name");
 });
 
 test("rejects invalid or duplicate section time configuration", () => {
