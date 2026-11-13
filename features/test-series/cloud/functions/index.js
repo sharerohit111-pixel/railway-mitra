@@ -189,6 +189,11 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
       sections: Array.isArray(test.sections) ? test.sections : [] },
     questions: questions.map(q => ({ id: q.id, text: q.text, options: q.options, ...(q.section ? { section: q.section } : {}) })),
     savedAnswers: attempt.answers || {},
+    // Only section timing metadata is exposed; the answer key remains server-side.
+    sectionTimings: Object.fromEntries(Object.entries(attempt.sectionTimings || {}).map(([name, timing]) => [name, {
+      startedAt: date(timing.startedAt)?.toISOString() || null,
+      expiresAt: date(timing.expiresAt)?.toISOString() || null
+    }])),
     expiresAt: date(attempt.expiresAt).toISOString()
   };
 });
