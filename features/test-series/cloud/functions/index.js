@@ -988,7 +988,8 @@ exports.rmCreatePaymentOrder = onCall({
     console.error("Razorpay order creation failed", { uid, testId, definiteFailure, message: error.message });
     throw new HttpsError(definiteFailure ? "unavailable" : "failed-precondition",
       definiteFailure ? "Payment provider rejected this order. Start a new checkout if you want to try again."
-        : "Payment provider outcome is unknown. Do not start another checkout; contact support for reconciliation.");
+        : "Payment provider outcome is unknown. Do not start another checkout; contact support for reconciliation.",
+      definiteFailure ? { retryableNewRequest: true } : undefined);
   }
 
   const orderRef = db.doc("testSeriesPaymentOrders/" + providerOrder.id);
