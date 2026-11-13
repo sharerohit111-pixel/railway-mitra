@@ -1,5 +1,6 @@
 import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt, enterCbtSection } from "../cloud/student-client.js";
 import { readPendingAnswerDraft, writePendingAnswerDraft } from "./answer-draft-store.mjs";
+import { lockCbtExamControls } from "./exam-interaction-lock.mjs";
 
 export function initStudentCbtExam({ app, testId, root = document }) {
   const el = id => root.getElementById(id);
@@ -44,18 +45,19 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   let navigationRequest = 0;
   async function activateQuestion(nextIndex){
+    if (finished) return;
     const request = ++navigationRequest;
     const question = paper.questions[nextIndex];
     if (!isQuestionAvailable(question)) throw new Error("इस सेक्शन का समय समाप्त हो चुका है।");
     if (question?.section) {
       const timing = await enterCbtSection(app, attemptId, question.section);
       // A slower response from an earlier click must never override a newer navigation.
-      if(request !== navigationRequest) return;
+      if(finished || request !== navigationRequest) return;
       sectionExpiresAt = timing.timeLimitMinutes ? new Date(timing.expiresAt).getTime() : 0;
       paper.sectionTimings = paper.sectionTimings || {};
       if (timing.timeLimitMinutes) paper.sectionTimings[question.section] = { startedAt: timing.startedAt, expiresAt: timing.expiresAt };
     } else {
-      if(request !== navigationRequest) return;
+      if(finished || request !== navigationRequest) return;
       sectionExpiresAt = 0;
     }
     index = nextIndex;
@@ -110,7 +112,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     el("rm-cbt-question").textContent=q.text;
     const options=el("rm-cbt-options"); options.replaceChildren();
     q.options.forEach((value,i)=>{const b=document.createElement("button");b.type="button";b.className="rm-cbt-option";b.setAttribute("aria-pressed",String(String(answers[q.id])===String(i)));const mark=document.createElement("b");mark.textContent=String.fromCharCode(65+i)+".";
-      const label=document.createElement("span");label.textContent=value;b.append(mark,label);b.addEventListener("click",()=>{answers[q.id]=String(i);render();queueSave(q.id,String(i)).catch(()=>{});});options.append(b);});
+      const label=document.createElement("span");label.textContent=value;b.append(mark,label);b.addEventListener("click",()=>{if(finished)return;answers[q.id]=String(i);render();queueSave(q.id,String(i)).catch(()=>{});});options.append(b);});
     el("rm-cbt-prev").disabled=index===0;el("rm-cbt-next").disabled=index===paper.questions.length-1;
     const palette=el("rm-cbt-palette");palette.replaceChildren();
     paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(answers[item.id]!==undefined);b.disabled=!isQuestionAvailable(item);b.addEventListener("click",()=>{activateQuestion(i).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});palette.append(b);});
@@ -134,7 +136,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     });
   }
   async function finish(auto=false){
-    if(finished)return;finished=true;clearInterval(timer);el("rm-cbt-submit").disabled=true;
+    if(finished)return;finished=true;navigationRequest++;clearInterval(timer);lockCbtExamControls(root);
     try{
       let timeoutWarning="";
       if(auto){
@@ -160,7 +162,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       try{localStorage.removeItem(draftKey());}catch(_){}
       showResult(score,timeoutWarning);
     }catch(e){
-      finished=false;el("rm-cbt-submit").disabled=false;
+      finished=false;el("rm-cbt-submit").disabled=false;el("rm-cbt-retry").disabled=false;render();
       if(remaining()>0&&!timer)timer=setInterval(tick,1000);
       status(e.message||"Submit असफल। इंटरनेट जाँचकर फिर प्रयास करें।");
     }
