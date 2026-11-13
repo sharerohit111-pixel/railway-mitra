@@ -140,10 +140,6 @@ export function initOwnerAdminDashboard(auth, functions) {
       });
       if (generation !== paymentsGeneration) return;
       const data = response.data || {};
-      analyticsData = data;
-      const hasTestRows = Array.isArray(data.tests) && data.tests.length > 0;
-      analyticsCsvButton.disabled = !hasTestRows;
-      analyticsPrintButton.disabled = !hasTestRows;
       const payments = Array.isArray(data.payments) ? data.payments : [];
       if (!append) paymentsList.replaceChildren();
       payments.forEach(payment => {
@@ -765,7 +761,11 @@ export function initOwnerAdminDashboard(auth, functions) {
     });
     const total = Array.isArray(analyticsData?.tests) ? analyticsData.tests.length : 0;
     analyticsFilterStatus.textContent = analyticsData ? visible.length + " / " + total + " टेस्ट दिखाए जा रहे हैं।" : "";
+    analyticsCsvButton.disabled = visible.length === 0;
+    analyticsPrintButton.disabled = visible.length === 0;
   }
+  analyticsSearch.addEventListener("input", renderAnalyticsTests);
+  analyticsSort.addEventListener("change", renderAnalyticsTests);
   function clearAnalytics() {
     analyticsGeneration += 1;
     analyticsSummary.replaceChildren();
@@ -817,8 +817,9 @@ export function initOwnerAdminDashboard(auth, functions) {
     }
   }
   analyticsCsvButton.addEventListener("click", () => {
-    if (!analyticsData?.tests?.length) return;
-    const blob = new Blob(["\uFEFF", testAnalyticsCsv(analyticsData)], { type: "text/csv;charset=utf-8" });
+    const reportData = visibleAnalyticsData();
+    if (!reportData?.tests?.length) return;
+    const blob = new Blob(["\uFEFF", testAnalyticsCsv(reportData)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
