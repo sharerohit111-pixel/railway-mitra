@@ -105,6 +105,34 @@ test("owner access accepts only a verified phone MFA factor", () => {
   assert.equal(hasVerifiedPhoneMfa(null), false);
 });
 
+test("student accounts cannot overwrite or inspect an existing Owner question bank record", async () => {
+  const itemId = "owner-qb-existing-protected";
+  const ref = db.doc("testSeriesQuestionBank/" + itemId);
+  await ref.set({
+    topic: "Civil Engineering", chapter: "Soil Mechanics", folder: "Protected",
+    question: { text: "Owner-only question?", options: ["A", "B"], correctIndex: 1 },
+    correctIndex: 1, updatedAt: new Date()
+  });
+  try {
+    await assert.rejects(
+      callable("rmOwnerSaveQuestionBankItem", {
+        itemId, topic: "Attacker", chapter: "Overwrite", folder: "Attempt",
+        question: { text: "Overwrite?", options: ["X", "Y"], correctIndex: 0 }
+      }),
+      error => error.code === "functions/permission-denied"
+    );
+    const saved = (await ref.get()).data();
+    assert.equal(saved.topic, "Civil Engineering");
+    assert.equal(saved.question.text, "Owner-only question?");
+    await assert.rejects(
+      callable("rmOwnerListQuestionBank", { search: "Owner-only question" }),
+      error => error.code === "functions/permission-denied"
+    );
+  } finally {
+    await ref.delete();
+  }
+});
+
 test("student accounts cannot bulk import into the Owner question bank", async () => {
   await assert.rejects(
     callable("rmOwnerBulkSaveQuestionBank", { items: [{
