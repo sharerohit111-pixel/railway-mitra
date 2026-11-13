@@ -111,7 +111,24 @@ test("student catalogue returns published metadata only and never answer keys", 
   assert.equal(catalogue.tests.some(item => item.testId === "emulator-draft-test"), false);
 });
 
-test("student catalogue marks only the matching active paid entitlement as unlocked", async () => {\n  const paidTestId = "emulator-catalogue-paid-unlock";\n  const testRef = db.doc("testSeriesTests/" + paidTestId);\n  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);\n  try {\n    await testRef.set({ title: "Paid Catalogue Test", status: "published", price: 25, mode: "mock", durationMinutes: 10 });\n    const before = await callable("rmListAvailableTests");\n    assert.equal(before.tests.find(item => item.testId === paidTestId).accessType, "paid");\n    await entitlementRef.set({ uid, testId: paidTestId, status: "active" });\n    const after = await callable("rmListAvailableTests");\n    assert.equal(after.tests.find(item => item.testId === paidTestId).accessType, "unlocked");\n  } finally {\n    await entitlementRef.delete().catch(() => {});\n    await testRef.delete().catch(() => {});\n  }\n});\n\ntest("an unconfigured zero-price test is not advertised as the free trial or startable", async () => {
+test("student catalogue marks only the matching active paid entitlement as unlocked", async () => {
+  const paidTestId = "emulator-catalogue-paid-unlock";
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  try {
+    await testRef.set({ title: "Paid Catalogue Test", status: "published", price: 25, mode: "mock", durationMinutes: 10 });
+    const before = await callable("rmListAvailableTests");
+    assert.equal(before.tests.find(item => item.testId === paidTestId).accessType, "paid");
+    await entitlementRef.set({ uid, testId: paidTestId, status: "active" });
+    const after = await callable("rmListAvailableTests");
+    assert.equal(after.tests.find(item => item.testId === paidTestId).accessType, "unlocked");
+  } finally {
+    await entitlementRef.delete().catch(() => {});
+    await testRef.delete().catch(() => {});
+  }
+});
+
+test("an unconfigured zero-price test is not advertised as the free trial or startable", async () => {
   const zeroPriceTestId = "emulator-unconfigured-zero-price";
   const testRef = db.doc("testSeriesTests/" + zeroPriceTestId);
   try {
