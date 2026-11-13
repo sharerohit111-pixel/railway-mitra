@@ -379,6 +379,27 @@ export function initOwnerAdminDashboard(auth, functions) {
           el("rm-qb-cancel-edit").hidden = false;
           questionBankForm.scrollIntoView({ behavior: "smooth", block: "start" });
         });
+        const addToTest = document.createElement("button"); addToTest.type = "button"; addToTest.textContent = "Add to Test";
+        addToTest.addEventListener("click", () => {
+          const target = el("rm-test-questions");
+          let current;
+          try { current = target.value.trim() ? JSON.parse(target.value) : []; }
+          catch { questionBankStatus.textContent = "पहले Test Management में प्रश्न JSON ठीक करें।"; return; }
+          if (!Array.isArray(current)) { questionBankStatus.textContent = "Test प्रश्न सूची Array होनी चाहिए।"; return; }
+          const question = {
+            id: "bank_" + item.itemId,
+            text: item.question?.text || "",
+            options: Array.isArray(item.question?.options) ? item.question.options : [],
+            correctIndex: Number(item.correctIndex),
+            explanation: item.question?.explanation || ""
+          };
+          if (current.some(existing => existing.id === question.id)) {
+            questionBankStatus.textContent = "यह प्रश्न इस टेस्ट में पहले से जोड़ा गया है।"; return;
+          }
+          current.push(question);
+          target.value = JSON.stringify(current, null, 2);
+          questionBankStatus.textContent = "प्रश्न Test Management के प्रश्न बॉक्स में जुड़ गया। टेस्ट सुरक्षित करने के लिए Save Test दबाएँ।";
+        });
         const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Delete";
         remove.addEventListener("click", async () => {
           if (!window.confirm("क्या यह प्रश्न स्थायी रूप से हटाना चाहते हैं?")) return;
@@ -393,7 +414,7 @@ export function initOwnerAdminDashboard(auth, functions) {
             remove.disabled = false;
           }
         });
-        actions.append(edit, remove);
+        actions.append(edit, addToTest, remove);
         card.append(heading, detail, actions); questionBankList.append(card);
       });
       questionBankStatus.textContent = items.length + " प्रश्न लोड हुए। अधिकतम 100 नवीनतम प्रश्न दिखाए जाते हैं।";
