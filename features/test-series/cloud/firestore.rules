@@ -24,6 +24,7 @@ service cloud.firestore {
     match /testSeriesEntitlements/{document=**} { allow read, write: if false; }
     match /testSeriesFreeAttempts/{document=**} { allow read, write: if false; }
     match /testSeriesConfig/{document=**} { allow read, write: if false; }
+    match /testSeriesQuestionBank/{document=**} { allow read, write: if false; }
 
     // Default deny for every other collection unless existing rules are added deliberately.
     match /{document=**} { allow read, write: if false; }
