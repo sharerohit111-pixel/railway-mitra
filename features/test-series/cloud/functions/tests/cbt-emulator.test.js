@@ -97,6 +97,37 @@ after(async () => {
 });
 
 
+test("student dashboard returns the latest 100 submitted results first", async () => {
+  const refs = [
+    db.doc("testSeriesResults/emulator-dashboard-old"),
+    db.doc("testSeriesResults/emulator-dashboard-middle"),
+    db.doc("testSeriesResults/emulator-dashboard-new")
+  ];
+  const base = Date.now();
+  try {
+    await Promise.all(refs.map((ref, index) => ref.set({
+      uid,
+      testId: "emulator-dashboard-test",
+      score: index + 1,
+      correct: index + 1,
+      wrong: 0,
+      unattempted: 0,
+      totalQuestions: 1,
+      submittedAt: new Date(base + index * 1000)
+    })));
+    const result = await callable("rmGetStudentDashboard");
+    const rows = result.results.filter(row => row.attemptId.startsWith("emulator-dashboard-"));
+    assert.deepEqual(rows.map(row => row.attemptId), [
+      "emulator-dashboard-new",
+      "emulator-dashboard-middle",
+      "emulator-dashboard-old"
+    ]);
+    assert.deepEqual(rows.map(row => row.score), [3, 2, 1]);
+  } finally {
+    await Promise.all(refs.map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("owner access accepts only a verified phone MFA factor", () => {
   assert.equal(hasVerifiedPhoneMfa({ firebase: { sign_in_second_factor: "phone" } }), true);
   assert.equal(hasVerifiedPhoneMfa({ firebase: { sign_in_second_factor: "totp" } }), false);
