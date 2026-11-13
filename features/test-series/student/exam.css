@@ -5,3 +5,5 @@
 .rm-cbt-section-chip span{overflow-wrap:anywhere}
 .rm-cbt-section-chip small{color:#7df2c1;white-space:nowrap;font-size:11px}
 .rm-cbt-section{display:inline-flex;align-items:center;padding:6px 10px;margin:0 0 12px;border-radius:999px;background:#103b59;border:1px solid #347da4;color:#7de7ff;font-size:12px;font-weight:800}
+
+.rm-cbt-section{display:flex;align-items:center;gap:12px;justify-content:space-between}.rm-cbt-section small{color:#7df2c1;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
