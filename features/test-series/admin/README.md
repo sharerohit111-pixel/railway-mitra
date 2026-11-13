@@ -69,3 +69,8 @@ The Owner Question Bank supports XLSX, XLS, CSV and JSON bulk import (up to 100 
 ### Question Bank search, filters and pagination
 
 The Owner Question Bank list supports exact topic, chapter and folder filters, case-insensitive text search across question text and classification fields, and cursor-based pages of 25 records. The server scans a bounded window of up to 500 recently updated records per request and filters that window in memory, avoiding a proliferation of composite Firestore indexes. The UI shows a continuation control when more records remain in that scan window; very large libraries may require repeated scans and the report is intentionally bounded per request. Filter option lists are derived from the same recent 500-record window.
+
+
+### Bulk selection for test assembly
+
+The Question Bank UI supports selecting multiple questions from the currently loaded result pages and appending them to the Test Management question JSON editor in one action. Existing question IDs are skipped to prevent duplicate insertion. The Owner must still review and save the draft/published test through the existing Test Management workflow; selection does not publish or modify a test by itself.
