@@ -3,7 +3,7 @@ import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbt
 export function initStudentCbtExam({ app, testId, root = document }) {
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
-  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, finished=false, sectionTransitioning=false;
+  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
   const status = message => { el("rm-cbt-status").textContent=message; };
   const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
   const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
@@ -68,10 +68,13 @@ export function initStudentCbtExam({ app, testId, root = document }) {
   }
   function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-Date.now())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left){ sectionClock.textContent="सेक्शन समय समाप्त"; if(!sectionTransitioning&&!finished){ sectionTransitioning=true; const currentSection=paper.questions[index]?.section; const expired=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=Date.now()).map(([name])=>name)); if(currentSection)expired.add(currentSection); const nextIndex=paper.questions.findIndex((item,i)=>i>index&&(!item.section||!expired.has(item.section))); if(nextIndex>=0){ status("इस सेक्शन का समय समाप्त। अगले उपलब्ध सेक्शन में जा रहे हैं…"); activateQuestion(nextIndex).catch(error=>status(error.message||"अगला सेक्शन नहीं खुला।")).finally(()=>{sectionTransitioning=false;}); } else { status("सभी उपलब्ध सेक्शन का समय समाप्त। शेष प्रश्न लॉक हैं।"); const options=el("rm-cbt-options"); options.querySelectorAll("button").forEach(button=>button.disabled=true); } } } } if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
+    const active=inFlightSaves.get(qid);
+    if(active&&active.value===value) return active.promise;
     pendingAnswers.set(qid,value);
     persistPending();
     el("rm-cbt-saved").textContent="Saving…";
-    saving=saving.catch(()=>{}).then(()=>saveCbtAnswer(app,attemptId,qid,value)).then(()=>{
+    const entry={value,promise:null};
+    entry.promise=saving=saving.catch(()=>{}).then(()=>saveCbtAnswer(app,attemptId,qid,value)).then(()=>{
       if(pendingAnswers.get(qid)===value)pendingAnswers.delete(qid);
       persistPending();
       el("rm-cbt-saved").textContent=pendingAnswers.size?"Some answers pending":"All changes saved";
@@ -81,8 +84,11 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       el("rm-cbt-retry").hidden=false;
       status(e.message||"उत्तर सेव नहीं हुआ। इंटरनेट जाँचकर Retry दबाएँ।");
       throw e;
+    }).finally(()=>{
+      if(inFlightSaves.get(qid)===entry) inFlightSaves.delete(qid);
     });
-    return saving;
+    inFlightSaves.set(qid,entry);
+    return entry.promise;
   }
   async function retryPending(){
     // Online events, the Retry button, and refresh recovery can request a retry
