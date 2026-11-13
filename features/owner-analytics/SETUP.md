@@ -20,14 +20,15 @@ GOOGLE_CLOUD_PROJECT=railway-mitra npm run set-owner-admin -- <OWNER_FIREBASE_AU
 
 1. In Google Cloud Console for project `railway-mitra`, enable the Google Analytics Data API.
 2. Create a dedicated service account for read-only reporting. Do not download or commit its key into Git.
-3. In Google Analytics Admin > Property access management for property `564314853`, add the service account email with Viewer access.
-4. Store the service account JSON securely as a Firebase Functions secret:
+3. In Google Analytics Admin, open the correct GA4 property and copy its numeric Property ID (not the Measurement ID beginning with `G-`). Add the service account email under Property access management with Viewer access.
+4. Store the numeric property ID as a Firebase Functions secret, then store the service account JSON securely as a separate secret:
 
 ```bash
+firebase functions:secrets:set GA4_PROPERTY_ID
 firebase functions:secrets:set GA_SERVICE_ACCOUNT_JSON
 ```
 
-Paste the complete service-account JSON when prompted. Never put it in source code, GitHub, a client bundle, or chat.
+Enter the numeric GA4 Property ID when prompted for the first secret, then paste the complete service-account JSON for the second. Do not assume a remembered or sample ID is correct. Never put it in source code, GitHub, a client bundle, or chat.
 
 ## 3. Deploy and verify
 
