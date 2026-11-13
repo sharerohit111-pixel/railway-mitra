@@ -427,6 +427,54 @@ export function initOwnerAdminDashboard(auth, functions) {
     } finally { submit.disabled = false; }
   });
   el("rm-qb-cancel-edit").addEventListener("click", resetQuestionBankForm);
+  el("rm-qb-bulk-import").addEventListener("click", async () => {
+    const file = el("rm-qb-bulk-file").files?.[0];
+    if (!file) { questionBankStatus.textContent = "पहले Excel, CSV या JSON file चुनें।"; return; }
+    const button = el("rm-qb-bulk-import");
+    button.disabled = true;
+    questionBankStatus.textContent = "File पढ़ी जा रही है…";
+    try {
+      const ext = file.name.split(".").pop().toLowerCase();
+      let rows;
+      if (ext === "json") {
+        const parsed = JSON.parse(await file.text());
+        rows = Array.isArray(parsed) ? parsed : parsed.items || parsed.questions;
+      } else if (["xlsx", "xls", "csv"].includes(ext)) {
+        const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
+        const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      } else throw new Error("केवल XLSX, XLS, CSV या JSON file समर्थित है।");
+      if (!Array.isArray(rows) || !rows.length) throw new Error("File में प्रश्न नहीं मिले।");
+      if (rows.length > 100) throw new Error("एक बार में अधिकतम 100 प्रश्न आयात करें।");
+      const items = rows.map((row, index) => {
+        const normalized = Object.fromEntries(Object.entries(row).map(([key, value]) => [String(key).trim().toLowerCase(), value]));
+        const topic = String(normalized.topic || el("rm-qb-topic").value || "").trim();
+        const chapter = String(normalized.chapter || el("rm-qb-chapter").value || "").trim();
+        const folder = String(normalized.folder || el("rm-qb-folder").value || "General").trim();
+        let options = normalized.options;
+        if (typeof options === "string" && options.trim().startsWith("[")) options = JSON.parse(options);
+        if (!Array.isArray(options)) options = ["a", "b", "c", "d", "e", "f"].map(key => normalized["option" + key.toUpperCase()]).filter(value => value !== "");
+        const rawIndex = normalized.correctindex ?? normalized.correct_index ?? normalized.answerindex;
+        const correctIndex = rawIndex === undefined || rawIndex === null || String(rawIndex).trim() === "" ? NaN : Number(rawIndex);
+        return {
+          topic, chapter, folder,
+          question: {
+            text: String(normalized.text ?? normalized.question ?? "").trim(),
+            options: Array.isArray(options) ? options.map(value => String(value)) : [],
+            correctIndex,
+            explanation: String(normalized.explanation || "")
+          }
+        };
+      });
+      const result = await httpsCallable(functions, "rmOwnerBulkSaveQuestionBank")({ items });
+      questionBankStatus.textContent = result.data.saved + " प्रश्न सुरक्षित हुए।";
+      el("rm-qb-bulk-file").value = "";
+      await refreshQuestionBank();
+    } catch (error) {
+      questionBankStatus.textContent = error.message || "Bulk import पूरा नहीं हुआ।";
+    } finally { button.disabled = false; }
+  });
   el("rm-admin-refresh-question-bank").addEventListener("click", refreshQuestionBank);
   const analyticsPanel = el("rm-admin-analytics-panel");
   const analyticsStatus = el("rm-admin-analytics-status");
