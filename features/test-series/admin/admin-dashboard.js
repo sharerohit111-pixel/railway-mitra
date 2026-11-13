@@ -1,4 +1,5 @@
 import { summarizeStudentActivity, studentActivityCsv, studentActivityPrintHtml } from "./student-activity.mjs";
+import { testAnalyticsCsv, testAnalyticsPrintHtml } from "./result-analytics.mjs";
 // UI wiring is initialized by the Test Series host after Firebase Auth is ready.
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
@@ -139,6 +140,10 @@ export function initOwnerAdminDashboard(auth, functions) {
       });
       if (generation !== paymentsGeneration) return;
       const data = response.data || {};
+      analyticsData = data;
+      const hasTestRows = Array.isArray(data.tests) && data.tests.length > 0;
+      analyticsCsvButton.disabled = !hasTestRows;
+      analyticsPrintButton.disabled = !hasTestRows;
       const payments = Array.isArray(data.payments) ? data.payments : [];
       if (!append) paymentsList.replaceChildren();
       payments.forEach(payment => {
@@ -738,11 +743,17 @@ export function initOwnerAdminDashboard(auth, functions) {
   const analyticsSummary = el("rm-admin-analytics-summary");
   const analyticsTests = el("rm-admin-analytics-tests");
   let analyticsGeneration = 0;
+  let analyticsData = null;
+  const analyticsCsvButton = el("rm-admin-export-test-analytics");
+  const analyticsPrintButton = el("rm-admin-print-test-analytics");
   function clearAnalytics() {
     analyticsGeneration += 1;
     analyticsSummary.replaceChildren();
     analyticsTests.replaceChildren();
     analyticsStatus.textContent = "";
+    analyticsData = null;
+    analyticsCsvButton.disabled = true;
+    analyticsPrintButton.disabled = true;
   }
   async function refreshAnalytics() {
     const generation = ++analyticsGeneration;
@@ -779,6 +790,30 @@ export function initOwnerAdminDashboard(auth, functions) {
       analyticsStatus.textContent = error.message || "विश्लेषण लोड नहीं हुआ।";
     }
   }
+  analyticsCsvButton.addEventListener("click", () => {
+    if (!analyticsData?.tests?.length) return;
+    const blob = new Blob(["\\uFEFF", testAnalyticsCsv(analyticsData)], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "railway-mitra-test-wise-performance.csv";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  });
+  analyticsPrintButton.addEventListener("click", () => {
+    if (!analyticsData?.tests?.length) return;
+    const reportWindow = window.open("", "_blank");
+    if (!reportWindow) {
+      analyticsStatus.textContent = "रिपोर्ट विंडो ब्राउज़र ने रोकी। इस साइट के लिए pop-ups अनुमति दें।";
+      return;
+    }
+    reportWindow.document.open();
+    reportWindow.document.write(testAnalyticsPrintHtml(analyticsData));
+    reportWindow.document.close();
+    const printReport = () => { reportWindow.focus(); reportWindow.print(); };
+    if (reportWindow.document.readyState === "complete") printReport();
+    else reportWindow.addEventListener("load", printReport, { once: true });
+  });
   el("rm-admin-refresh-analytics").addEventListener("click", refreshAnalytics);
   document.querySelectorAll("[data-admin-module]").forEach(button => button.addEventListener("click", () => {
     const module = button.dataset.adminModule;
