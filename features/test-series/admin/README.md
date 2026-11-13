@@ -100,3 +100,8 @@ The Owner Students panel exports only the currently loaded, search-filtered atte
 ## Student results print / PDF report
 
 The Students module provides **Print / Save Loaded Report as PDF** for the currently loaded rows after applying the active search. It opens a print-friendly, landscape report containing only the same allow-listed result summary fields as the CSV export. Use the browser print dialog's **Save as PDF** destination to create a PDF. This is a bounded snapshot of loaded rows, not a lifetime student history. HTML values are escaped and contact details, answer selections and answer keys are excluded. The report opens only after an Owner-authorized session is active.
+
+
+## Test-wise performance exports
+
+The Results & Ranking module can export its per-test aggregates as CSV or open a print-friendly report that the Owner can save as PDF. The report uses only test ID/title, attempts, average score, average correct percentage and timeout count. It inherits the server's bounded analytics window (latest 500 submitted results) and explicitly labels sampled data; it is not a lifetime report. The report escapes test titles and excludes student identifiers and contact data.
