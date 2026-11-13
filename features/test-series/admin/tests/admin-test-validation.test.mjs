@@ -145,3 +145,29 @@ test("rejects overlong question section labels", () => {
     questions: [{ id: "q1", text: "Question?", options: ["A", "B"], correctIndex: 0, section: "x".repeat(81) }]
   })), /सेक्शन नाम अधिकतम 80/);
 });
+
+
+test("derives section question counts and preserves configured section time limits", () => {
+  const payload = validateOwnerTestDraft(validDraft({
+    sections: [{ name: "Technical Ability", timeLimitMinutes: 25 }],
+    questions: [
+      { id: "q1", text: "Q1", options: ["A", "B"], correctIndex: 0, section: "Technical Ability" },
+      { id: "q2", text: "Q2", options: ["A", "B"], correctIndex: 1, section: "technical ability" },
+      { id: "q3", text: "Q3", options: ["A", "B"], correctIndex: 0 }
+    ]
+  }));
+  assert.deepEqual(payload.sections, [{ name: "Technical Ability", timeLimitMinutes: 25, questionCount: 2 }]);
+});
+
+test("rejects invalid or duplicate section time configuration", () => {
+  for (const timeLimitMinutes of [-1, 241, 1.5, "abc"]) {
+    assert.throws(() => validateOwnerTestDraft(validDraft({
+      sections: [{ name: "Maths", timeLimitMinutes }],
+      questions: [{ id: "q1", text: "Q", options: ["A", "B"], correctIndex: 0, section: "Maths" }]
+    })), /सेक्शन/);
+  }
+  assert.throws(() => validateOwnerTestDraft(validDraft({
+    sections: [{ name: "Maths", timeLimitMinutes: 10 }, { name: "maths", timeLimitMinutes: 15 }],
+    questions: [{ id: "q1", text: "Q", options: ["A", "B"], correctIndex: 0, section: "Maths" }]
+  })), /दोहराया/);
+});
