@@ -101,6 +101,13 @@ test("owner access accepts only a verified phone MFA factor", () => {
   assert.equal(hasVerifiedPhoneMfa(null), false);
 });
 
+test("student accounts cannot call Owner result analytics", async () => {
+  await assert.rejects(
+    callable("rmOwnerGetResultAnalytics"),
+    error => error.code === "functions/permission-denied"
+  );
+});
+
 test("student accounts cannot call the Owner student activity report", async () => {
   await assert.rejects(
     callable("rmOwnerListStudentActivity"),
