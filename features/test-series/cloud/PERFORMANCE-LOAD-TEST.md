@@ -51,3 +51,6 @@ If attempt-document growth, contention, or p95/p99 latency is unacceptable, eval
 - Firestore rules merged with current live rules and reviewed; the branch rules file is not approved for deployment.
 - Razorpay test-mode order creation, webhook delivery, reconciliation, refund/support workflow and entitlement verification.
 - Cost estimate and explicit approval before any billable deployment or load test.
+## Run through GitHub Actions
+
+A manual-only workflow is available at **Actions → Test Series Firestore load test (local emulator only) → Run workflow**. It defaults to 25 students, 2 waves and 10 workers. Inputs are bounded (students 1–500, waves 1–20, concurrency 1–students). It starts only the GitHub-hosted local Firestore Emulator; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic. Start with the defaults, inspect the `LOAD_TEST_RESULT` output, then increase the emulator workload deliberately. The workflow is manual-only and does not run on every push or pull request.
