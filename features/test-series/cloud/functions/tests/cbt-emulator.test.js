@@ -101,6 +101,13 @@ test("owner access accepts only a verified phone MFA factor", () => {
   assert.equal(hasVerifiedPhoneMfa(null), false);
 });
 
+test("student accounts cannot delete from the Owner question bank", async () => {
+  await assert.rejects(
+    callable("rmOwnerDeleteQuestionBankItem", { itemId: "question-bank-item" }),
+    error => error.code === "functions/permission-denied"
+  );
+});
+
 test("student accounts cannot list the Owner question bank", async () => {
   await assert.rejects(
     callable("rmOwnerListQuestionBank"),
