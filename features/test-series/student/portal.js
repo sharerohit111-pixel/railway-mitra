@@ -8,7 +8,7 @@ import { initStudentDashboard } from "./dashboard.js";
 const el = id => document.getElementById(id);
 const login = el("rm-portal-login"), workspace = el("rm-portal-app"), view = el("rm-portal-view");
 const authStatus = el("rm-portal-auth-status"), portalStatus = el("rm-portal-status");
-let confirmation = null, recaptcha = null, currentUser = null, currentTestId = null, activeView = "catalogue";
+let confirmation = null, recaptcha = null, currentUser = null, currentTestId = null, activeView = "catalogue", authStateVersion = 0;
 
 function setBusy(button, busy, label) {
   button.disabled = busy;
@@ -111,12 +111,36 @@ document.querySelectorAll("[data-view]").forEach(button => button.addEventListen
   showView(button.dataset.view).catch(error => { portalStatus.textContent = error.message; });
 }));
 
-onAuthStateChanged(auth, user => {
-  if (user) openWorkspace(user).catch(error => { portalStatus.textContent = error.message; });
-  else {
+onAuthStateChanged(auth, async user => {
+  const version = ++authStateVersion;
+  if (!user) {
+    currentUser = null;
+    currentTestId = null;
+    workspace.hidden = true;
+    login.hidden = false;
+    el("rm-portal-logout").hidden = true;
+    return;
+  }
+
+  try {
+    const token = await user.getIdTokenResult();
+    if (version !== authStateVersion || auth.currentUser?.uid !== user.uid) return;
+    if (token.claims?.firebase?.sign_in_provider !== "phone") {
+      currentUser = null;
+      currentTestId = null;
+      workspace.hidden = true;
+      login.hidden = false;
+      el("rm-portal-logout").hidden = true;
+      authStatus.textContent = "Student access requires mobile OTP sign-in. Enter your phone number to continue.";
+      return;
+    }
+    await openWorkspace(user);
+  } catch (error) {
+    if (version !== authStateVersion) return;
     currentUser = null;
     workspace.hidden = true;
     login.hidden = false;
     el("rm-portal-logout").hidden = true;
+    authStatus.textContent = error.message || "Student session could not be verified.";
   }
 });
