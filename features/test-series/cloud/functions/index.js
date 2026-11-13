@@ -259,10 +259,10 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
     const question = (questionSet.data().questions || []).find(item => item.id === questionId);
     if (!question) throw new HttpsError("invalid-argument", "Question does not belong to this exam");
+    const testSnap = await tx.get(db.doc("testSeriesTests/" + a.testId));
+    if (!testSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
+    const sections = validatedExamSections(testSnap.data(), questionSet.data().questions || []);
     if (question.section !== undefined && question.section !== null) {
-      const testSnap = await tx.get(db.doc("testSeriesTests/" + a.testId));
-      if (!testSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
-      const sections = validatedExamSections(testSnap.data(), questionSet.data().questions || []);
       const config = sections.find(item => item.name === question.section);
       if (!config) throw new HttpsError("failed-precondition", "Question section is not configured for this exam");
       if (config.timeLimitMinutes > 0) {
