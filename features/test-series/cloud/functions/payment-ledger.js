@@ -2,6 +2,7 @@
 
 const { FieldValue } = require("firebase-admin/firestore");
 const { validateCapturedPayment } = require("./payment-validation");
+const { paymentStudentTestLockDocumentId } = require("./payment-order-request");
 
 function fail(code, message) {
   const error = new Error(message);
@@ -184,9 +185,22 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
     }
 
     const entitlementRef = db.doc("testSeriesEntitlements/" + validation.uid + "_" + validation.testId);
-    const entitlementSnap = await tx.get(entitlementRef);
+    const paymentLockRef = db.doc("testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({
+      uid: validation.uid, testId: validation.testId
+    }));
+    const [entitlementSnap, paymentLockSnap] = await Promise.all([
+      tx.get(entitlementRef), tx.get(paymentLockRef)
+    ]);
     if (entitlementSnap.exists) {
       fail("entitlement_conflict", "An entitlement already exists for this student and test");
+    }
+    if (paymentLockSnap.exists && (
+      !order.paymentRequestId ||
+      paymentLockSnap.data().requestDocId !== order.paymentRequestId ||
+      paymentLockSnap.data().uid !== validation.uid ||
+      paymentLockSnap.data().testId !== validation.testId
+    )) {
+      fail("payment_lock_conflict", "The student-test payment lock does not match the captured order");
     }
 
     const ledgerRecord = {
@@ -224,6 +238,7 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
       currency: validation.currency,
       grantedAt: FieldValue.serverTimestamp()
     });
+    if (paymentLockSnap.exists) tx.delete(paymentLockRef);
 
     return {
       granted: true,
