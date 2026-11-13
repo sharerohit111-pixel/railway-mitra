@@ -340,8 +340,8 @@ function ownerTestPayload(data) {
   const category = typeof data.category === "string" && data.category.trim() ? data.category.trim() : "General";
   const folderRaw = typeof data.folder === "string" && data.folder.trim() ? data.folder.trim() : "General";
   const folderParts = folderRaw.split("/").map(part => part.trim());
-  if (category.length > 60 || !/^[\\p{L}\\p{N} _-]+$/u.test(category)) throw new HttpsError("invalid-argument", "Category contains unsupported characters or is too long");
-  if (folderRaw.length > 120 || folderParts.length > 4 || folderParts.some(part => !part || part.length > 40 || !/^[\\p{L}\\p{N} _-]+$/u.test(part))) throw new HttpsError("invalid-argument", "Folder path must contain up to four safe levels");
+  if (category.length > 60 || !/^[\p{L}\p{N} _-]+$/u.test(category)) throw new HttpsError("invalid-argument", "Category contains unsupported characters or is too long");
+  if (folderRaw.length > 120 || folderParts.length > 4 || folderParts.some(part => !part || part.length > 40 || !/^[\p{L}\p{N} _-]+$/u.test(part))) throw new HttpsError("invalid-argument", "Folder path must contain up to four safe levels");
   const mode = data.mode === "scheduled" ? "scheduled" : data.mode === "mock" ? "mock" : null;
   if (!mode) throw new HttpsError("invalid-argument", "Mode must be mock or scheduled");
   const durationMinutes = Number(data.durationMinutes);
