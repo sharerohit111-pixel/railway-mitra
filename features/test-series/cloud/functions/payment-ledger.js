@@ -59,6 +59,12 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
 
     if (eventSnap.exists) {
       const previousEvent = eventSnap.data();
+      // Reusing an event ID for another payment/order is a conflict even when
+      // the alternate payment has no ledger document yet. Check identity before
+      // looking up the alternate payment's ledger records.
+      if (previousEvent.paymentId !== paymentId || previousEvent.razorpayOrderId !== orderId) {
+        fail("event_id_conflict", "Provider event ID was already used for a different payment payload");
+      }
       if (!orderSnap.exists || !paymentSnap.exists) {
         fail("event_ledger_inconsistent", "Previously processed event is missing its order or payment ledger record");
       }
