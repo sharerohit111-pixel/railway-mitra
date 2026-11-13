@@ -472,7 +472,7 @@ exports.rmOwnerSaveQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
     question: { text, options, explanation: typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : "" },
     correctIndex,
     updatedAt: FieldValue.serverTimestamp(),
-    createdAt: data.itemId ? undefined : FieldValue.serverTimestamp()
+    ...(!data.itemId ? { createdAt: FieldValue.serverTimestamp() } : {})
   }, { merge: true });
   return { saved: true, itemId };
 });
@@ -484,10 +484,15 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
     throw new HttpsError("invalid-argument", "Page size must be from 1 to 100");
   }
-  let query = db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc");
-  if (data.topic) query = query.where("topic", "==", String(data.topic).slice(0, 80));
-  const snap = await query.limit(pageSize).get();
-  return { items: snap.docs.map(doc => ({ itemId: doc.id, ...doc.data(), createdAt: date(doc.data().createdAt)?.toISOString() || null, updatedAt: date(doc.data().updatedAt)?.toISOString() || null })) };
+  const snap = await db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc").limit(pageSize).get();
+  const items = snap.docs.map(doc => {
+    const row = doc.data();
+    return { itemId: doc.id, topic: row.topic, chapter: row.chapter, folder: row.folder,
+      question: row.question, correctIndex: row.correctIndex,
+      createdAt: date(row.createdAt)?.toISOString() || null,
+      updatedAt: date(row.updatedAt)?.toISOString() || null };
+  });
+  return { items };
 });
 
 // Owner-only, read-only payment history. Authorization runs before any ledger read.
