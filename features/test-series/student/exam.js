@@ -42,8 +42,20 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     }catch(_){status("स्थानीय Draft पढ़ा नहीं जा सका। सर्वर पर सेव उत्तर उपलब्ध रहेंगे।");}
   }
   const remaining = () => Math.max(0, Math.ceil((expiresAt-Date.now())/1000));
+  function isQuestionAvailable(question) {
+    if (!question?.section) return true;
+    const timing = paper?.sectionTimings?.[question.section];
+    return !timing || (timing.expiresAt && new Date(timing.expiresAt).getTime() > Date.now());
+  }
+  function findAvailableIndex(start, direction) {
+    for (let i = start; i >= 0 && i < paper.questions.length; i += direction) {
+      if (isQuestionAvailable(paper.questions[i])) return i;
+    }
+    return -1;
+  }
   async function activateQuestion(nextIndex){
     const question = paper.questions[nextIndex];
+    if (!isQuestionAvailable(question)) throw new Error("इस सेक्शन का समय समाप्त हो चुका है।");
     if (question?.section) {
       const timing = await enterCbtSection(app, attemptId, question.section);
       sectionExpiresAt = timing.timeLimitMinutes ? new Date(timing.expiresAt).getTime() : 0;
@@ -92,7 +104,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       const label=document.createElement("span");label.textContent=value;b.append(mark,label);b.addEventListener("click",()=>{answers[q.id]=String(i);render();queueSave(q.id,String(i)).catch(()=>{});});options.append(b);});
     el("rm-cbt-prev").disabled=index===0;el("rm-cbt-next").disabled=index===paper.questions.length-1;
     const palette=el("rm-cbt-palette");palette.replaceChildren();
-    paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(answers[item.id]!==undefined);b.addEventListener("click",()=>{activateQuestion(i).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});palette.append(b);});
+    paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(answers[item.id]!==undefined);b.disabled=!isQuestionAvailable(item);b.addEventListener("click",()=>{activateQuestion(i).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});palette.append(b);});
     const sectionProgress = el("rm-cbt-section-progress");
     const sectionNames = [...new Set(paper.questions.map(item => typeof item.section === "string" ? item.section.trim() : "").filter(Boolean))];
     sectionProgress.replaceChildren();
@@ -103,6 +115,7 @@ export function initStudentCbtExam({ app, testId, root = document }) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "rm-cbt-section-chip";
+      button.disabled = !isQuestionAvailable(paper.questions[indices[0]]);
       button.setAttribute("aria-current", String(paper.questions[index]?.section === name));
       const label = document.createElement("span"); label.textContent = name;
       const count = document.createElement("small"); count.textContent = answeredCount + "/" + indices.length + " हल";
@@ -198,8 +211,8 @@ export function initStudentCbtExam({ app, testId, root = document }) {
     }catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
   });
   el("rm-cbt-retry").addEventListener("click",async()=>{const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){status(e.message||"Retry असफल।");}finally{b.disabled=false;}});
-  el("rm-cbt-prev").addEventListener("click",()=>{if(index>0)activateQuestion(index-1).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
-  el("rm-cbt-next").addEventListener("click",()=>{if(index<paper.questions.length-1)activateQuestion(index+1).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
+  el("rm-cbt-prev").addEventListener("click",()=>{const target=findAvailableIndex(index-1,-1);if(target>=0)activateQuestion(target).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
+  el("rm-cbt-next").addEventListener("click",()=>{const target=findAvailableIndex(index+1,1);if(target>=0)activateQuestion(target).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
   el("rm-cbt-submit").addEventListener("click",()=>{if(confirm("क्या आप परीक्षा Submit करना चाहते हैं?"))finish(false);});
   const onOnline=()=>{if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>{});}};
   if(typeof window!=="undefined")window.addEventListener("online",onOnline);
