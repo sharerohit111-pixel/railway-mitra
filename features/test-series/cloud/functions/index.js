@@ -615,11 +615,12 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
   }
   const { pageSize, searchText, filters } = listRequest;
   let query = db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc");
-  if (data.cursor !== undefined && data.cursor !== null) {
-    if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(data.cursor)) {
+  const cursor = req.data && req.data.cursor;
+  if (cursor !== undefined && cursor !== null) {
+    if (typeof cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(cursor)) {
       throw new HttpsError("invalid-argument", "Invalid question bank cursor");
     }
-    const cursorSnap = await db.doc("testSeriesQuestionBank/" + data.cursor).get();
+    const cursorSnap = await db.doc("testSeriesQuestionBank/" + cursor).get();
     if (!cursorSnap.exists) throw new HttpsError("invalid-argument", "Question bank cursor not found");
     query = query.startAfter(cursorSnap);
   }
