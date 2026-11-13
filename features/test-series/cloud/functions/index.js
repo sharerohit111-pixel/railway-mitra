@@ -425,6 +425,7 @@ exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
     : null;
   return {
     freeTestId,
+    freeTestLocked: Boolean(freeConfig && freeConfig.hasClaims === true),
     tests: snap.docs.map(d => {
       const t = d.data();
       return { testId: d.id, title: t.title || "", mode: t.mode || "mock", status: t.status || "draft",
