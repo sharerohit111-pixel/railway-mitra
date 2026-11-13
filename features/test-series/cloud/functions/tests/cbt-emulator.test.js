@@ -191,6 +191,51 @@ test("student accounts cannot call the Owner student activity report", async () 
   );
 });
 
+test("CBT rejects a persisted question whose section has no canonical test configuration", async () => {
+  const malformedTestId = "emulator-section-map-mismatch";
+  const attemptId = "emulator-section-map-attempt";
+  const testRef = db.doc("testSeriesTests/" + malformedTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + malformedTestId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+
+  await testRef.set({
+    title: "Malformed Section Map", status: "published", price: 0,
+    mode: "mock", durationMinutes: 10,
+    sections: [{ name: "Technical Ability", timeLimitMinutes: 5, questionCount: 1 }]
+  });
+  await paperRef.set({
+    questions: [{
+      id: "q1", text: "Section mapping check?", options: ["A", "B"],
+      section: "General Ability"
+    }]
+  });
+  await attemptRef.set({
+    uid, testId: malformedTestId, status: "in_progress",
+    startedAt: new Date(), expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    answers: {}
+  });
+
+  try {
+    await assert.rejects(
+      callable("rmGetExamQuestions", { attemptId }),
+      error => error.code === "functions/failed-precondition"
+    );
+    await assert.rejects(
+      callable("rmEnterCbtSection", { attemptId, section: "General Ability" }),
+      error => error.code === "functions/failed-precondition"
+    );
+    await assert.rejects(
+      callable("rmSaveAnswer", { attemptId, questionId: "q1", answer: "0" }),
+      error => error.code === "functions/failed-precondition"
+    );
+    assert.equal((await attemptRef.get()).data().answers.q1, undefined);
+  } finally {
+    await attemptRef.delete();
+    await paperRef.delete();
+    await testRef.delete();
+  }
+});
+
 test("student catalogue returns published metadata only and never answer keys", async () => {
   const catalogue = await callable("rmListAvailableTests");
   const listed = catalogue.tests.find(item => item.testId === testId);
