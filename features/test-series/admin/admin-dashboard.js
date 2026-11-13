@@ -408,6 +408,8 @@ export function initOwnerAdminDashboard(auth, functions) {
               let safetyGuidance;
               if (result.matchesRequest !== true) {
                 safetyGuidance = "सुरक्षा निर्णय: स्थानीय request और Provider Order का मिलान नहीं हुआ। कोई कार्रवाई न करें; मैन्युअल समीक्षा आवश्यक है।";
+              } else if (order.status === "paid" && !hasCapturedHistory) {
+                safetyGuidance = "सुरक्षा निर्णय: Razorpay Order paid है, लेकिन भुगतान सूची में captured/refunded रिकॉर्ड नहीं मिला। यह असंगति है; Provider और स्थानीय payment ledger/entitlement की मैन्युअल समीक्षा करें। lock न हटाएँ।";
               } else if (hasCapturedHistory) {
                 safetyGuidance = "सुरक्षा निर्णय: इस Order पर capture का इतिहास मिला है (रिफंड हुआ भुगतान भी पहले capture हुआ था)। भुगतान ledger और entitlement का मिलान करें; lock स्वयं न हटाएँ।";
               } else if (hasAuthorization) {
