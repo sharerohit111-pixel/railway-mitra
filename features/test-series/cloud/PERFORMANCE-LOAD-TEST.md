@@ -53,4 +53,8 @@ If attempt-document growth, contention, or p95/p99 latency is unacceptable, eval
 - Cost estimate and explicit approval before any billable deployment or load test.
 ## Run through GitHub Actions
 
-A manual-only workflow is available at **Actions → Test Series Firestore load test (local emulator only) → Run workflow**. It defaults to 25 students, 2 full-paper waves and 10 workers when manually dispatched. The marker-file push trigger runs 500 students, 1 full-paper wave and 500 workers. Inputs are bounded (students 1–500, waves 1–20, concurrency 1–students). It starts only the GitHub-hosted local Firestore Emulator; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic. Start with the defaults, inspect the `LOAD_TEST_RESULT` output, then increase the emulator workload deliberately. The workflow is manual-only and does not run on every push or pull request.
+The workflow **Actions → Test Series Firestore load test (local emulator only)** is manual-only. It has no `push`, `pull_request`, or marker-file trigger. The required `confirm_load_test` boolean defaults to `false`; the job is skipped unless a person deliberately checks that confirmation when dispatching the workflow.
+
+Default bounded inputs are 25 students, 2 full-paper waves and 10 workers. Inputs remain capped at 500 students, 20 waves and 500 workers, with concurrency no greater than the student count. The workflow uses only the GitHub-hosted local Firestore/Auth emulators; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic.
+
+A load test is still a load test even when it targets a local emulator. Do not dispatch it unless the project owner has explicitly approved that run. Ordinary pull-request/push CBT CI runs unit, callable-emulator and Firestore Rules tests only; it must never invoke either load harness. The obsolete `LOAD-TEST-TRIGGER` marker has been removed.
