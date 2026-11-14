@@ -1,0 +1,61 @@
+name: Test Series Functions validation
+
+on:
+  pull_request:
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/student-client.js"
+      - "features/test-series/student/**"
+      - "features/test-series/admin/**"
+      - "firebase.json"
+      - ".github/workflows/test-series-functions.yml"
+  push:
+    branches:
+      - feature/test-series-cloud-access
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/student-client.js"
+      - "features/test-series/student/**"
+      - "features/test-series/admin/**"
+      - "firebase.json"
+      - ".github/workflows/test-series-functions.yml"
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Firebase codebase configuration
+        run: node -e "const c=require('./firebase.json'); if(!Array.isArray(c.functions)||!c.functions.some(x=>x.codebase==='test-series'&&x.source==='features/test-series/cloud/functions')) process.exit(1)"
+      - name: Install isolated function dependencies
+        working-directory: features/test-series/cloud/functions
+        run: npm install --ignore-scripts
+      - name: Check JavaScript syntax
+        working-directory: features/test-series/cloud/functions
+        run: npm run lint
+      - name: Check isolated Owner Admin module syntax
+        run: |
+          node --check --input-type=module < features/test-series/admin/admin-dashboard.js
+          node --check --input-type=module < features/test-series/admin/owner-portal.js
+          node --check --input-type=module < features/test-series/admin/owner-session.mjs
+          node --check --input-type=module < features/test-series/admin/admin-test-validation.mjs
+          node --check --input-type=module < features/test-series/admin/payment-inspection-guidance.mjs
+          node --check --input-type=module < features/test-series/cloud/app-check.js
+          node --check --input-type=module < features/test-series/cloud/firebase-app-check-init.js
+      - name: Test Owner Admin draft validation
+        run: node --test features/test-series/admin/tests/*.test.mjs
+      - name: Check isolated student module syntax
+        run: |
+          node --check --input-type=module < features/test-series/cloud/student-client.js
+          node --check --input-type=module < features/test-series/student/catalogue.js
+          node --check --input-type=module < features/test-series/student/payment-checkout.js
+          node --check --input-type=module < features/test-series/student/exam.js
+          node --check --input-type=module < features/test-series/student/answer-draft-store.mjs
+          node --check --input-type=module < features/test-series/student/dashboard.js
+          node --check --input-type=module < features/test-series/student/leaderboard.js
+          node --check --input-type=module < features/test-series/student/portal.js
+      - name: Test offline answer draft recovery
+        run: node --test features/test-series/student/tests/*.test.mjs

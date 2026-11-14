@@ -1,0 +1,199 @@
+<section id="rm-owner-admin" class="rm-admin" aria-label="Railway Mitra Owner Admin">
+  <header class="rm-admin-head"><div><span class="rm-admin-kicker">RAILWAY MITRA · TEST SERIES</span><h1>Owner Control Centre</h1><p>Secure administration dashboard</p></div><span class="rm-owner-chip">OWNER ONLY</span></header>
+  <div id="rm-admin-login" class="rm-admin-panel"><h2>Owner Login</h2><p>Google या Email + Password से लॉगिन करें। प्रत्येक Admin session में SMS OTP आवश्यक है।</p>
+    <button id="rm-owner-google" class="rm-admin-primary">Continue with Google</button><div class="rm-admin-or">या Email से लॉगिन करें</div>
+    <label>Email<input id="rm-owner-email" type="email" autocomplete="username" placeholder="Owner email"></label>
+    <label>Password<input id="rm-owner-password" type="password" autocomplete="current-password" placeholder="Owner password"></label>
+    <button id="rm-owner-email-login" class="rm-admin-secondary">Email Login</button><div id="rm-owner-login-status" class="rm-admin-status" role="status"></div><div id="rm-admin-recaptcha"></div>
+  </div>
+  <div id="rm-admin-mfa-setup" class="rm-admin-panel" hidden><h2>Phone OTP सुरक्षा सक्रिय करें</h2><p>पहली बार Owner अकाउंट पर अपना मोबाइल नंबर सत्यापित करके MFA जोड़ें।</p><label>मोबाइल नंबर (देश कोड सहित)<input id="rm-owner-phone" type="tel" placeholder="+91XXXXXXXXXX"></label><button id="rm-owner-enroll-otp" class="rm-admin-primary">OTP भेजें और सुरक्षा सक्रिय करें</button></div>
+  <div id="rm-admin-otp" class="rm-admin-panel" hidden><h2>SMS OTP सत्यापन</h2><p>आपके Owner मोबाइल पर आया 6 अंकों का OTP दर्ज करें।</p><label>OTP<input id="rm-owner-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit OTP"></label><button id="rm-owner-otp-confirm" class="rm-admin-primary">Verify OTP</button></div>
+  <div id="rm-admin-home" hidden><div class="rm-admin-welcome"><div><small>AUTHORIZED OWNER</small><h2 id="rm-admin-owner-email"></h2></div><button id="rm-owner-logout">Logout</button></div>
+    <div class="rm-admin-status rm-admin-secure">OTP verified · Owner session active</div>
+    <section class="rm-admin-panel" aria-labelledby="rm-owner-provider-title">
+      <h3 id="rm-owner-provider-title">Owner Sign-in Methods</h3>
+      <p>Google और Email/Password को इसी मौजूदा Owner खाते से जोड़ें। नया अलग Firebase UID बनाने की कोशिश न करें।</p>
+      <label>Email<input id="rm-owner-link-email-address" type="email" autocomplete="email" placeholder="वही Owner email"></label>
+      <label>Password<input id="rm-owner-link-password" type="password" autocomplete="new-password" placeholder="Email provider password"></label>
+      <div class="rm-admin-form-grid">
+        <button id="rm-owner-link-google" type="button">Link Google to this account</button>
+        <button id="rm-owner-link-email" type="button">Link Email to this account</button>
+      </div>
+      <p id="rm-owner-provider-status" class="rm-admin-status" role="status" aria-live="polite"></p>
+    </section>
+    <div class="rm-admin-stats"><article><span>Tests</span><b>—</b><small>Cloud data pending</small></article><article><span>Students</span><b>—</b><small>Cloud data pending</small></article><article><span>Payments</span><b>—</b><small>Cloud data pending</small></article><article><span>Results</span><b>—</b><small>Cloud data pending</small></article></div>
+    <h3>Management</h3><div class="rm-admin-grid">
+      <button data-admin-module="tests"><i>📝</i><b>Test Management</b><small>Create · Edit · Publish</small></button>
+      <button data-admin-module="questions"><i>📚</i><b>Question Bank</b><small>JSON / Excel import</small></button>
+      <button type="button" data-admin-module="access" disabled aria-disabled="true" title="अलग Access Management मॉड्यूल अभी उपलब्ध नहीं है"><i>🔐</i><b>Test Access Management</b><small>अभी उपलब्ध नहीं · मूल्य Test Management में निर्धारित करें</small></button>
+      <button type="button" data-admin-module="students"><i>👥</i><b>Students</b><small>Activity · Attempts</small></button>
+      <button type="button" data-admin-module="payments"><i>💳</i><b>Payments</b><small>Verified transactions · Reconciliation</small></button>
+      <button type="button" data-admin-module="analytics"><i>📊</i><b>Results & Ranking</b><small>Scores · Test-wise reports</small></button>
+      <button type="button" disabled aria-disabled="true" title="यह सुविधा अभी उपलब्ध नहीं है"><i>☁️</i><b>Cloud Backup</b><small>अभी उपलब्ध नहीं · विकास बाकी</small></button>
+      <button type="button" disabled aria-disabled="true" title="यह सुविधा अभी उपलब्ध नहीं है"><i>⚙️</i><b>System Settings</b><small>अभी उपलब्ध नहीं · विकास बाकी</small></button>
+    </div>
+    <section id="rm-admin-tests-panel" class="rm-admin-panel" hidden>
+      <h3>Test Management</h3>
+      <div class="rm-admin-panel" aria-label="Free test configuration">
+        <h4>पहला निःशुल्क टेस्ट चुनें</h4>
+        <label>प्रकाशित और शून्य-कीमत वाला टेस्ट<select id="rm-free-test-select"><option value="">पहले टेस्ट सूची Refresh करें</option></select></label>
+        <button id="rm-free-test-save" type="button">निःशुल्क टेस्ट निर्धारित करें</button>
+        <small>केवल प्रकाशित और ₹0 मूल्य वाला टेस्ट चुनें। पहला विद्यार्थी निःशुल्क प्रयास claim करते ही चयन स्थायी हो जाएगा, ताकि पहले से claim किए गए विद्यार्थियों का access न टूटे।</small>
+      </div>
+      <form id="rm-admin-test-form">
+        <input id="rm-test-id" type="hidden">
+        <label>Test Title<input id="rm-test-title" required maxlength="160" placeholder="जैसे GDCE JE Civil Mock Test 01"></label>
+        <div class="rm-admin-form-grid">
+          <label>Category<input id="rm-test-category" maxlength="60" value="General" placeholder="जैसे GDCE JE"></label>
+          <label>Folder / Subfolder<input id="rm-test-folder" maxlength="120" value="General" placeholder="जैसे Civil / JE / Mock Tests"></label>
+          <label>Mode<select id="rm-test-mode"><option value="mock">Mock Test</option><option value="scheduled">Scheduled Test</option></select></label>
+          <label>Duration (minutes)<input id="rm-test-duration" type="number" min="1" max="240" value="30" required></label>
+          <label>Price (₹)<input id="rm-test-price" type="number" min="0" step="0.01" value="0" required></label>
+          <label>Marks / Question<input id="rm-test-marks" type="number" min="0.01" max="100" step="0.25" value="1" required></label>
+          <label>Negative Marks<input id="rm-test-negative" type="number" min="0" max="100" step="0.25" value="0" required></label>
+          <label>Schedule Start<input id="rm-test-start" type="datetime-local"></label>
+          <label>Schedule End<input id="rm-test-end" type="datetime-local"></label>
+          <p class="rm-admin-hint">हर नया या संपादित टेस्ट पहले Draft के रूप में सेव होगा। Publish करने के लिए टेस्ट सूची में “Preview &amp; Publish” चुनें।</p>
+        </div>
+        <div class="rm-admin-import">
+          <label>Import Questions File (JSON / Excel)<input id="rm-question-file" type="file" accept=".json,.xlsx,.xls,.csv,application/json"></label>
+          <button id="rm-question-import" type="button">Import File into Question Editor</button>
+          <small>Excel columns: id, text, optionA–optionF, correctIndex. JSON में प्रश्नों की Array या { "questions": [...] } दें। Import करने के बाद प्रश्नों को जाँचकर Save Test करें।</small>
+        </div>
+        <label>Questions (JSON)<textarea id="rm-test-questions" rows="10" required placeholder='[{"id":"q1","text":"Question?","options":["A","B","C","D"],"correctIndex":0}]'></textarea></label>
+        <p class="rm-admin-hint">हर प्रश्न में id, text, options और correctIndex दें। सही उत्तर सर्वर पर अलग सुरक्षित रखा जाएगा।</p>
+        <div class="rm-admin-form-grid"><button class="rm-admin-primary" type="submit">Save Test</button><button id="rm-admin-test-cancel" type="button">Clear / New Test</button></div>
+      </form>
+      <h3>Cloud Tests</h3>
+      <button id="rm-admin-refresh-tests" type="button">Refresh Test List</button>
+      <label>टेस्ट खोजें<input id="rm-admin-test-search" type="search" maxlength="120" placeholder="नाम, Test ID, Category या Folder"></label>
+      <label>Folder फ़िल्टर<select id="rm-admin-test-folder-filter"><option value="">सभी फ़ोल्डर</option></select></label>
+      <p class="rm-admin-hint">सूची 50 टेस्ट प्रति पेज लोड होती है। खोज और Folder फ़िल्टर अब तक लोड हुए टेस्ट पर लागू होंगे। अधिक टेस्ट देखने के लिए Load More दबाएँ।</p>
+      <div id="rm-admin-tests-list" class="rm-admin-tests-list">अभी सूची लोड नहीं हुई।</div>
+      <button id="rm-admin-tests-more" type="button" hidden>Load More Tests</button>
+      <div id="rm-admin-publish-review" class="rm-admin-review-overlay" role="dialog" aria-modal="true" aria-labelledby="rm-admin-review-title" hidden>
+        <section class="rm-admin-review-panel">
+          <div class="rm-admin-review-head"><div><small>OWNER REVIEW · PRIVATE ANSWER KEY</small><h3 id="rm-admin-review-title">Publish से पहले पूरा पेपर जाँचें</h3></div><button id="rm-admin-review-close" type="button" aria-label="Close review">✕</button></div>
+          <div id="rm-admin-review-summary" class="rm-admin-review-summary"></div>
+          <div id="rm-admin-review-questions" class="rm-admin-review-questions"></div>
+          <p id="rm-admin-review-status" class="rm-admin-status" role="status"></p>
+          <div class="rm-admin-review-actions"><button id="rm-admin-review-cancel" type="button">Cancel</button><button id="rm-admin-review-publish" class="rm-admin-primary" type="button" disabled>Confirm Publish</button></div>
+        </section>
+      </div>
+    </section>
+    <section id="rm-admin-question-bank-panel" class="rm-admin-panel" hidden>
+      <h3>Question Bank</h3>
+      <p>प्रश्नों को विषय, अध्याय और फ़ोल्डर के अनुसार सुरक्षित रखें। सही उत्तर केवल Owner callable के माध्यम से उपलब्ध होगा।</p>
+      <form id="rm-admin-question-bank-form">
+        <input id="rm-qb-item-id" type="hidden">
+        <label>विषय<input id="rm-qb-topic" required maxlength="80" placeholder="जैसे Civil Engineering"></label>
+        <label>अध्याय<input id="rm-qb-chapter" required maxlength="100" placeholder="जैसे Soil Mechanics"></label>
+        <label>फ़ोल्डर<input id="rm-qb-folder" required maxlength="120" value="General" placeholder="जैसे JE / Soil / Practice"></label>
+        <label>सेक्शन (वैकल्पिक)<input id="rm-qb-question-section" maxlength="80" placeholder="जैसे Technical Ability"></label>
+        <label>प्रश्न (JSON)<textarea id="rm-qb-question" rows="7" required placeholder='{"text":"प्रश्न लिखें?","options":["विकल्प A","विकल्प B","विकल्प C","विकल्प D"],"correctIndex":0,"explanation":"समाधान"}'></textarea></label>
+        <div class="rm-admin-form-grid"><button id="rm-qb-save" class="rm-admin-primary" type="submit">प्रश्न सुरक्षित करें</button><button id="rm-qb-cancel-edit" type="button" hidden>संपादन रद्द करें</button></div>
+      </form>
+      <label>प्रश्न खोजें<input id="rm-qb-search" type="search" maxlength="120" placeholder="प्रश्न, विषय या अध्याय खोजें"></label>
+      <div class="rm-admin-form-grid">
+        <label>विषय फ़िल्टर<select id="rm-qb-filter-topic"><option value="">सभी विषय</option></select></label>
+        <label>अध्याय फ़िल्टर<select id="rm-qb-filter-chapter"><option value="">सभी अध्याय</option></select></label>
+        <label>फ़ोल्डर फ़िल्टर<select id="rm-qb-filter-folder"><option value="">सभी फ़ोल्डर</option></select></label>
+        <button id="rm-qb-apply-filters" type="button">फ़िल्टर लागू करें</button>
+        <button id="rm-qb-clear-filters" type="button">फ़िल्टर हटाएँ</button>
+      </div>
+      <div class="rm-admin-import">
+        <h4>Bulk Import (Excel / CSV / JSON)</h4>
+        <label>Question File<input id="rm-qb-bulk-file" type="file" accept=".xlsx,.xls,.csv,.json,application/json"></label>
+        <small>Columns: topic, chapter, folder, section (optional), text/question, optionA–optionF या options JSON, correctIndex, explanation. एक बार में अधिकतम 100 प्रश्न।</small>
+        <button id="rm-qb-bulk-import" type="button">Import Questions in Bulk</button>
+      </div>
+      <section class="rm-admin-import" aria-labelledby="rm-qb-sections-title">
+        <h4 id="rm-qb-sections-title">Test Section Builder</h4>
+        <p>टेस्ट के प्रश्न अलग-अलग सेक्शन में बाँटें। प्रत्येक सेक्शन का समय अलग निर्धारित करें; प्रश्न संख्या जुड़े हुए प्रश्नों से अपने आप गिनी जाएगी।</p>
+        <label>सेक्शन का नाम<input id="rm-qb-section-name" maxlength="80" placeholder="जैसे Technical Ability"></label>
+        <label>सेक्शन समय सीमा (मिनट, 0 = कोई अलग सीमा नहीं)<input id="rm-qb-section-time" type="number" min="0" max="240" step="1" value="0"></label>
+        <div class="rm-admin-form-grid">
+          <button id="rm-qb-create-section" type="button">सेक्शन बनाएँ</button>
+          <button id="rm-qb-clear-sections" type="button">सेक्शन हटाएँ</button>
+        </div>
+        <div id="rm-qb-sections-list" class="rm-admin-payments-list"></div>
+        <p id="rm-qb-sections-status" class="rm-admin-status" aria-live="polite">सेक्शन अभी नहीं बनाए गए हैं।</p>
+      </section>
+      <div class="rm-admin-form-grid">
+        <label>पूरे विषय के प्रश्न जोड़ें<select id="rm-qb-add-topic"><option value="">विषय चुनें</option></select></label>
+        <label>अध्याय के प्रश्न जोड़ें<select id="rm-qb-add-chapter"><option value="">अध्याय चुनें</option></select></label>
+        <label>फ़ोल्डर के प्रश्न जोड़ें<select id="rm-qb-add-folder"><option value="">फ़ोल्डर चुनें</option></select></label>
+        <button id="rm-qb-add-scope" class="rm-admin-primary" type="button">चुना हुआ समूह टेस्ट में जोड़ें</button>
+      </div>
+      <p>समूह जोड़ने की सुविधा वर्तमान में लोड हुए प्रश्नों में चुने गए विषय/अध्याय/फ़ोल्डर के मेल खाते प्रश्न जोड़ेगी।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-qb-select-visible" type="button">दिख रहे सभी प्रश्न चुनें</button>
+        <button id="rm-qb-clear-selection" type="button">चयन हटाएँ</button>
+        <button id="rm-qb-add-selected" class="rm-admin-primary" type="button">चुने हुए प्रश्न टेस्ट में जोड़ें</button>
+      </div>
+      <p id="rm-qb-selection-status" class="rm-admin-status" aria-live="polite">कोई प्रश्न चयनित नहीं है।</p>
+      <div class="rm-admin-form-grid"><button id="rm-admin-refresh-question-bank" type="button">Refresh Question Bank</button><button id="rm-qb-load-more" type="button" hidden disabled>और प्रश्न लोड करें</button></div>
+      <div id="rm-admin-question-bank-status" class="rm-admin-status" role="status" aria-live="polite">Question Bank अभी लोड नहीं हुआ।</div>
+      <div id="rm-admin-question-bank-list" class="rm-admin-payments-list"></div>
+    </section>
+    <section id="rm-admin-payments-panel" class="rm-admin-panel" hidden>
+      <h3>Payment History</h3>
+      <p>यहाँ केवल server-verified captured payments दिखते हैं। Phone, email और provider notes प्रदर्शित नहीं किए जाते।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-admin-refresh-payments" type="button">Refresh Payments</button>
+        <button id="rm-admin-payments-more" type="button" hidden disabled>Load More</button>
+      </div>
+      <div id="rm-admin-payments-status" class="rm-admin-status" role="status" aria-live="polite">Payments सूची अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-payments-list" class="rm-admin-payments-list"></div>
+
+      <h4>Payment Reconciliation Queue</h4>
+      <p>जिन Razorpay Order अनुरोधों का परिणाम स्पष्ट नहीं है, वे यहाँ दिखेंगे। जाँच पूरी होने तक विद्यार्थी को नया Checkout शुरू करने के लिए न कहें।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-admin-refresh-reconciliation" type="button">Refresh Queue</button>
+        <button id="rm-admin-reconciliation-more" type="button" hidden disabled>Load More</button>
+      </div>
+      <div id="rm-admin-reconciliation-status" class="rm-admin-status" role="status" aria-live="polite">Reconciliation Queue अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-reconciliation-list" class="rm-admin-payments-list"></div>
+
+      <h4>Payment Inspection Audit Trail</h4>
+      <p>Owner द्वारा की गई Razorpay Status जाँचों का सुरक्षित रिकॉर्ड। यह सूची केवल निरीक्षण इतिहास दिखाती है; इससे Payment Lock या Entitlement नहीं बदलते।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-admin-refresh-payment-audit" type="button">Refresh Audit History</button>
+        <button id="rm-admin-payment-audit-more" type="button" hidden disabled>Load More</button>
+      </div>
+      <div id="rm-admin-payment-audit-status" class="rm-admin-status" role="status" aria-live="polite">Audit History अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-payment-audit-list" class="rm-admin-payments-list"></div>
+    </section>
+
+    <section id="rm-admin-students-panel" class="rm-admin-panel" hidden>
+      <h3>Student Exam Activity</h3>
+      <p>केवल परीक्षा परिणाम का सुरक्षित सारांश। मोबाइल, ईमेल और विद्यार्थियों के उत्तर नहीं दिखाए जाते।</p>
+      <div class="rm-admin-form-grid">
+        <button id="rm-admin-refresh-students" type="button">Refresh Activity</button>
+        <button id="rm-admin-export-students" type="button" disabled>Export Loaded Results CSV</button>
+        <button id="rm-admin-print-students" type="button" disabled>Print / Save Loaded Report as PDF</button>
+        <button id="rm-admin-students-more" type="button" hidden disabled>Load More</button>
+      </div>
+      <label>विद्यार्थी / टेस्ट खोजें<input id="rm-admin-students-search" type="search" maxlength="120" placeholder="Student UID, Test ID या Test Name"></label>
+      <small>खोज वर्तमान में लोड हुए परिणामों पर लागू होगी। अधिक पुराने परिणाम देखने के लिए Load More दबाएँ।</small>
+      <small>CSV में केवल वर्तमान में लोड हुए और खोज से मेल खाते परिणाम होंगे।</small>
+      <h4>विद्यार्थी सारांश</h4>
+      <div id="rm-admin-student-summaries" class="rm-admin-payments-list"></div>
+      <h4>परीक्षा परिणाम</h4>
+      <div id="rm-admin-students-status" class="rm-admin-status" role="status" aria-live="polite">विद्यार्थी गतिविधि अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-students-list" class="rm-admin-payments-list"></div>
+    </section>
+    <section id="rm-admin-analytics-panel" class="rm-admin-panel" hidden>
+      <h3>Results & Ranking Analytics</h3>
+      <p>सर्वर से नवीनतम 500 जमा परिणामों का सारांश। यह lifetime total नहीं है।</p>
+      <button id="rm-admin-refresh-analytics" type="button">Refresh Analytics</button>
+      <div class="rm-admin-form-grid"><button id="rm-admin-export-test-analytics" type="button" disabled>Export Test-wise CSV</button><button id="rm-admin-print-test-analytics" type="button" disabled>Print / Save Test Report as PDF</button></div>
+      <div id="rm-admin-analytics-status" class="rm-admin-status" role="status" aria-live="polite">Analytics अभी लोड नहीं हुई।</div>
+      <div id="rm-admin-analytics-summary" class="rm-admin-grid"></div>
+      <div class="rm-admin-form-grid"><label>टेस्ट खोजें<input id="rm-admin-analytics-search" type="search" maxlength="120" placeholder="Test ID या नाम"></label><label>क्रमबद्ध करें<select id="rm-admin-analytics-sort"><option value="attempts">सबसे अधिक प्रयास</option><option value="averageScore">औसत अंक</option><option value="averageCorrectPercent">सही उत्तर प्रतिशत</option><option value="title">टेस्ट का नाम</option></select></label></div>
+      <div id="rm-admin-analytics-filter-status" class="rm-admin-hint" aria-live="polite"></div>
+      <div id="rm-admin-analytics-tests" class="rm-admin-payments-list"></div>
+    </section>
+    <p id="rm-admin-module-status" class="rm-admin-status">Test Management का पहला Cloud module जोड़ा गया है। बाकी modules अगले चरणों में आएँगे।</p>
+  </div>
+</section><link rel="stylesheet" href="./admin-dashboard.css">

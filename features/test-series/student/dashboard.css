@@ -1,0 +1,15 @@
+.rm-student-dashboard{color:#eaf3ff;font-family:inherit;width:100%;max-width:920px;margin:0 auto;padding:18px;box-sizing:border-box}
+.rm-dashboard-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rm-dashboard-eyebrow{font-size:11px;letter-spacing:.16em;color:#69c9ff;margin:0 0 5px}
+.rm-dashboard-header h1{font-size:clamp(22px,5vw,30px);margin:0;color:#fff}
+.rm-dashboard-header button{border:1px solid #318bd4;background:#102d4b;color:#dff3ff;border-radius:10px;padding:10px 14px;font-weight:600}
+#rm-dashboard-status{color:#a9c3dc;margin:18px 0}
+.rm-dashboard-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+.rm-dashboard-stat,.rm-dashboard-result{background:linear-gradient(145deg,#102943,#0b1d32);border:1px solid #234969;border-radius:14px;padding:14px}
+.rm-dashboard-stat strong{display:block;font-size:22px;color:#fff}
+.rm-dashboard-stat span,.rm-dashboard-result p{font-size:12px;color:#a9c3dc}
+.rm-dashboard-results{display:grid;gap:12px}
+.rm-dashboard-result h2{font-size:16px;margin:0 0 8px;color:#fff}
+.rm-dashboard-result p{margin:5px 0}
+.rm-dashboard-score{font-size:22px!important;color:#75d7ff!important;font-weight:700}
+@media(max-width:480px){.rm-student-dashboard{padding:12px}.rm-dashboard-summary{gap:7px}.rm-dashboard-stat{padding:10px}.rm-dashboard-stat strong{font-size:18px}.rm-dashboard-stat span{font-size:10px}}

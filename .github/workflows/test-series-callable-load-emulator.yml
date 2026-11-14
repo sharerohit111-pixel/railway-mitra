@@ -1,0 +1,72 @@
+name: Test Series authenticated callable load test (local emulator only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_load_test:
+        description: "I explicitly approve running this synthetic local-emulator callable load test"
+        required: true
+        default: false
+        type: boolean
+      students:
+        description: "Synthetic students (1–100)"
+        required: true
+        default: "50"
+        type: string
+      concurrency:
+        description: "Concurrent students (1–100)"
+        required: true
+        default: "50"
+        type: string
+      questions:
+        description: "Questions per student (1–100)"
+        required: true
+        default: "50"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  authenticated-callable-load:
+    if: ${{ inputs.confirm_load_test == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Validate bounded workload inputs
+        env:
+          CALLABLE_LOAD_STUDENTS: ${{ inputs.students || '50' }}
+          CALLABLE_LOAD_CONCURRENCY: ${{ inputs.concurrency || '50' }}
+          CALLABLE_LOAD_QUESTIONS: ${{ inputs.questions || '50' }}
+        run: |
+          node -e 'const limits = { CALLABLE_LOAD_STUDENTS: [1, 100], CALLABLE_LOAD_CONCURRENCY: [1, 100], CALLABLE_LOAD_QUESTIONS: [1, 100] }; for (const [key, [min, max]] of Object.entries(limits)) { const value = Number(process.env[key]); if (!Number.isInteger(value) || value < min || value > max) { console.error(key + " must be an integer from " + min + " to " + max); process.exit(1); } } if (Number(process.env.CALLABLE_LOAD_CONCURRENCY) > Number(process.env.CALLABLE_LOAD_STUDENTS)) { console.error("Concurrency cannot exceed student count"); process.exit(1); }'
+
+      - name: Install isolated Test Series Functions dependencies
+        working-directory: features/test-series/cloud/functions
+        run: npm install --no-audit --no-fund
+
+      - name: Run authenticated callable load against local emulators only
+        env:
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
+          FUNCTIONS_EMULATOR_HOST: 127.0.0.1:5001
+          GCLOUD_PROJECT: demo-railway-mitra-callable-load
+          CALLABLE_LOAD_STUDENTS: ${{ inputs.students || '50' }}
+          CALLABLE_LOAD_CONCURRENCY: ${{ inputs.concurrency || '50' }}
+          CALLABLE_LOAD_QUESTIONS: ${{ inputs.questions || '50' }}
+        run: |
+          npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-callable-load --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:callable:emulator"

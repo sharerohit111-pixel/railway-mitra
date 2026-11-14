@@ -1,0 +1,54 @@
+name: Test Series CBT emulator tests
+
+on:
+  push:
+    branches:
+      - feature/test-series-cloud-access
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/student/**"
+      - "firebase.json"
+      - ".github/workflows/test-series-cbt-emulator.yml"
+  pull_request:
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/student/**"
+      - "firebase.json"
+      - ".github/workflows/test-series-cbt-emulator.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cbt-emulator-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install isolated CBT Functions dependencies
+        working-directory: features/test-series/cloud/functions
+        run: npm install --no-audit --no-fund
+
+      - name: Install GDCE Functions dependencies for shared emulator config
+        run: npm --prefix functions install --no-audit --no-fund
+
+      - name: Check CBT Functions syntax
+        working-directory: features/test-series/cloud/functions
+        run: npm run lint
+
+      - name: Run CBT unit and Firestore Rules emulator tests
+        run: TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project railway-mitra --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"

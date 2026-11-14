@@ -1,5 +1,12 @@
-# P-Way & Civil Engineering Tools
+# Engineering Calculators for Railway Track/P Way
 
-Dedicated home for independent P-Way and Civil Engineering utilities in Railway Mitra.
+Dedicated home for independent railway track and P-Way engineering calculators in Railway Mitra.
 
-Each tool must remain isolated in its own subfolder. The first tool is **Versine Calculator**.
+**Available calculators:**
+- Sleeper, Fastening & Ballast Quantity Calculator
+- SEJ Gap & Rail Expansion Calculator
+- Hot/Cold Weather Patrolling Calculator
+- Cant & Safe Speed Calculator
+- Versine Calculator
+
+Each calculator remains isolated in its own subfolder. Keep future changes within the relevant calculator folder and avoid modifying unrelated Railway Mitra features.

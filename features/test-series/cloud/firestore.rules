@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Preserve existing Railway Mitra employee data access.
+    match /users/{userId}/dutyDiary/{dateId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/employeeProfile/{profileId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == userId
+        && profileId == 'main';
+    }
+
+    // CBT data is accessible only through authenticated callable backend APIs.
+    // Admin SDK bypasses these rules; browser clients cannot read keys or alter results.
+    match /testSeriesTests/{document=**} { allow read, write: if false; }
+    match /testSeriesAnswerKeys/{document=**} { allow read, write: if false; }
+    match /testSeriesAttempts/{document=**} { allow read, write: if false; }
+    match /testSeriesActiveSessions/{document=**} { allow read, write: if false; }
+    match /testSeriesResults/{document=**} { allow read, write: if false; }
+    match /testSeriesEntitlements/{document=**} { allow read, write: if false; }
+    match /testSeriesFreeAttempts/{document=**} { allow read, write: if false; }
+    match /testSeriesConfig/{document=**} { allow read, write: if false; }
+    match /testSeriesQuestionBank/{document=**} { allow read, write: if false; }
+
+    // Default deny for every other collection unless existing rules are added deliberately.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
