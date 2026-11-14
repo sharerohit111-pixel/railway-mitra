@@ -68,6 +68,12 @@ function calculateCant() {
   const cantToProvide = Math.min(equilibriumCant, maxCa);
   const theoreticalMaxSpeed = Math.sqrt(((maxCa + maxCd) * radius) / CANT_CONSTANT);
 
+  // Reject overflow/invalid derived values instead of displaying Infinity or NaN.
+  if (!Number.isFinite(equilibriumCant) || !Number.isFinite(cantToProvide) || !Number.isFinite(theoreticalMaxSpeed)) {
+    alert(en ? 'The entered values produce an out-of-range result. Please check the curve and speed inputs.' : 'दिए गए मानों से गणना की सीमा से बाहर परिणाम बन रहा है। कृपया कर्व और गति के इनपुट जाँचें।');
+    return;
+  }
+
   document.getElementById('cantOutput').textContent = equilibriumCant.toFixed(1) + ' mm';
   const withinLimit = equilibriumCant <= maxCa;
   document.getElementById('statusBadge').innerHTML = withinLimit
