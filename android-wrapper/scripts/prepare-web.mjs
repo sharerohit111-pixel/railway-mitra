@@ -107,7 +107,7 @@ for (const page of ['index.html', 'app.html']) {
   if (!html.includes(updaterScript)) {
     const headClose = html.toLowerCase().lastIndexOf('</head>');
     if (headClose < 0) throw new Error(`Could not find </head> in staged ${page}.`);
-    html = html.slice(0, headClose) + '    ' + updaterScript + '\\n' + html.slice(headClose);
+    html = html.slice(0, headClose) + '    ' + updaterScript + '\n' + html.slice(headClose);
     fs.writeFileSync(pagePath, html);
   }
 }
