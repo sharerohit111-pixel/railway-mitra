@@ -1,5 +1,8 @@
 name: Android packaging smoke test # Rebuild with refreshed Firebase Android OAuth configuration
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -116,3 +119,17 @@ jobs:
           path: android-wrapper/android-signing-report.txt
           if-no-files-found: error
           retention-days: 7
+
+      - name: Prepare stable APK release asset
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/android-app-shell'
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk /tmp/Railway-Mitra-Android.apk
+      - name: Publish or update Android beta APK release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/android-app-shell'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-beta
+          name: Railway Mitra Android Beta
+          prerelease: true
+          make_latest: false
+          files: /tmp/Railway-Mitra-Android.apk
+          fail_on_unmatched_files: true
