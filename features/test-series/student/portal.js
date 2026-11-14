@@ -71,7 +71,9 @@ async function showView(name) {
     if (!response.ok) throw new Error("Test catalogue could not be loaded.");
     if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
     view.innerHTML = markup;
-    await initStudentTestCatalogue({ app, studentUid: sessionUid, root: document, onStart: async ({ test }) => {
+    await initStudentTestCatalogue({ app, studentUid: sessionUid, root: document,
+      isSessionActive: () => requestVersion === portalState.viewRequestVersion && isCurrentStudentSession(sessionVersion, sessionUid),
+      onStart: async ({ test }) => {
       if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
       portalState.currentTestId = test.testId;
       await showExam(test);
