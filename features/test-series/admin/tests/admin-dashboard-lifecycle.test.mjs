@@ -20,6 +20,6 @@ test("Owner publish completion and errors cannot update a logged-out or changed-
   const handler = source.slice(start, end);
   assert.match(handler, /const generation = testManagementGeneration/);
   assert.match(handler, /const publishingTestId = reviewedTest\.testId/);
-  assert.match(handler, /await httpsCallable\(functions, "rmOwnerPublishTest"\)\(\{ testId: publishingTestId \}\);\s*if \(generation !== testManagementGeneration\) return;/);
+  assert.match(handler, /const result = await httpsCallable\(functions, "rmOwnerPublishTest"\)\(\{ testId: publishingTestId \}\);\s*if \(generation !== testManagementGeneration\) return;/);
   assert.match(handler, /catch \(error\) \{\s*if \(generation !== testManagementGeneration\) return;/);
 });
