@@ -13,7 +13,8 @@
     "capgo:app:add": "npx @capgo/cli@latest app add com.railwaymitra.app",
     "capgo:channel:add": "npx @capgo/cli@latest channel add production com.railwaymitra.app",
     "capgo:bundle:upload": "npx @capgo/cli@latest bundle upload com.railwaymitra.app --path web --channel production",
-    "capgo:doctor": "npx @capgo/cli@latest doctor"
+    "capgo:doctor": "npx @capgo/cli@latest doctor",
+    "capgo:channel:set-default": "npx @capgo/cli@latest channel set production com.railwaymitra.app --state default"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
