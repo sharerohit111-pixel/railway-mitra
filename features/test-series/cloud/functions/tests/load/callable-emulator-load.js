@@ -17,7 +17,8 @@ const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
-const STUDENTS = boundedInt(process.env.CALLABLE_LOAD_STUDENTS, 20, 1, 100);
+// Supports a staged ramp up to 500 synthetic identities; this is a harness ceiling, not a capacity claim.
+const STUDENTS = boundedInt(process.env.CALLABLE_LOAD_STUDENTS, 20, 1, 500);
 const CONCURRENCY = boundedInt(process.env.CALLABLE_LOAD_CONCURRENCY, 10, 1, STUDENTS);
 const QUESTIONS = boundedInt(process.env.CALLABLE_LOAD_QUESTIONS, 50, 1, 100);
 const RUN = randomUUID().replace(/-/g, "");
