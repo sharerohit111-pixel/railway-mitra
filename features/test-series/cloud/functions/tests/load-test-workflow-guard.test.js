@@ -45,3 +45,22 @@ test("authenticated callable load workflow is manual-only and disabled without e
   assert.match(callableLoadWorkflow, /demo-railway-mitra-callable-load/);
   assert.doesNotMatch(callableLoadWorkflow, /firebase deploy|prod(uction)?\./i);
 });
+
+test("callable load fixtures satisfy paid entitlement ledger checks and clean up", () => {
+  const callableLoadScript = fs.readFileSync(
+    path.join(repositoryRoot, "features/test-series/cloud/functions/tests/load/callable-emulator-load.js"),
+    "utf8"
+  );
+  assert.match(callableLoadScript, /paymentId:\s*"loadpay-/);
+  assert.match(callableLoadScript, /orderId:\s*"loadorder-/);
+  assert.match(callableLoadScript, /testSeriesPayments\//);
+  assert.match(callableLoadScript, /testSeriesPaymentOrders\//);
+  assert.match(callableLoadScript, /status:\s*"captured"/);
+  assert.match(callableLoadScript, /status:\s*"paid"/);
+  assert.match(callableLoadScript, /razorpayOrderId:\s*student\.orderId/);
+  assert.match(callableLoadScript, /amount:\s*100/);
+  assert.match(callableLoadScript, /currency:\s*"INR"/);
+  assert.match(callableLoadScript, /cleanupRefs/);
+  assert.match(callableLoadScript, /testSeriesPayments\/" \+ s\.paymentId/);
+  assert.match(callableLoadScript, /testSeriesPaymentOrders\/" \+ s\.orderId/);
+});
