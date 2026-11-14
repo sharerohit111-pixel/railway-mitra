@@ -9,12 +9,12 @@ on:
         default: false
         type: boolean
       students:
-        description: "Synthetic students (1–100)"
+        description: "Synthetic students (1–500)"
         required: true
         default: "50"
         type: string
       concurrency:
-        description: "Concurrent students (1–100)"
+        description: "Concurrent students (1–500)"
         required: true
         default: "50"
         type: string
@@ -53,7 +53,7 @@ jobs:
           CALLABLE_LOAD_CONCURRENCY: ${{ inputs.concurrency || '50' }}
           CALLABLE_LOAD_QUESTIONS: ${{ inputs.questions || '50' }}
         run: |
-          node -e 'const limits = { CALLABLE_LOAD_STUDENTS: [1, 100], CALLABLE_LOAD_CONCURRENCY: [1, 100], CALLABLE_LOAD_QUESTIONS: [1, 100] }; for (const [key, [min, max]] of Object.entries(limits)) { const value = Number(process.env[key]); if (!Number.isInteger(value) || value < min || value > max) { console.error(key + " must be an integer from " + min + " to " + max); process.exit(1); } } if (Number(process.env.CALLABLE_LOAD_CONCURRENCY) > Number(process.env.CALLABLE_LOAD_STUDENTS)) { console.error("Concurrency cannot exceed student count"); process.exit(1); }'
+          node -e 'const limits = { CALLABLE_LOAD_STUDENTS: [1, 500], CALLABLE_LOAD_CONCURRENCY: [1, 500], CALLABLE_LOAD_QUESTIONS: [1, 100] }; for (const [key, [min, max]] of Object.entries(limits)) { const value = Number(process.env[key]); if (!Number.isInteger(value) || value < min || value > max) { console.error(key + " must be an integer from " + min + " to " + max); process.exit(1); } } if (Number(process.env.CALLABLE_LOAD_CONCURRENCY) > Number(process.env.CALLABLE_LOAD_STUDENTS)) { console.error("Concurrency cannot exceed student count"); process.exit(1); }'
 
       - name: Install isolated Test Series Functions dependencies
         working-directory: features/test-series/cloud/functions
