@@ -96,7 +96,7 @@ async function openWorkspace(user) {
 async function sendOtp() {
   const button = el("rm-student-send-otp");
   const phone = el("rm-student-phone").value.trim();
-  if (!/^\\+[1-9]\\d{7,14}$/.test(phone)) {
+  if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
     authStatus.textContent = "Enter a valid phone number with country code, for example +91XXXXXXXXXX.";
     return;
   }
@@ -114,7 +114,7 @@ async function sendOtp() {
 }
 async function verifyOtp() {
   const button = el("rm-student-verify-otp"), code = el("rm-student-otp").value.trim();
-  if (!confirmation || !/^\\d{6}$/.test(code)) {
+  if (!confirmation || !/^\d{6}$/.test(code)) {
     authStatus.textContent = "Enter the 6-digit OTP sent to your phone.";
     return;
   }
