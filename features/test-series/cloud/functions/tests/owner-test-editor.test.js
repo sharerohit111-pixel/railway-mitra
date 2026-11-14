@@ -1,5 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const { readFileSync } = require("node:fs");
 const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("../owner-test-editor");
 
 const questions = [
@@ -69,4 +70,31 @@ test("blocks publish for metadata, question count, duplicate IDs, malformed opti
     [{ ...questions[0], correctIndex: 0 }, questions[1]], validAnswerMap), /must not contain private answer indexes/);
   assert.throws(() => validateOwnerQuestionPaper({ ...validTestMetadata, mode: "scheduled", scheduleStartAt: "bad", scheduleEndAt: "also bad" },
     questions, validAnswerMap), /Scheduled test window/);
+});
+
+test("Owner loader fails closed when the question paper or private answer key is missing", () => {
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const start = source.indexOf("exports.rmOwnerGetTest =");
+  const end = source.indexOf("exports.rmOwnerListTests =", start);
+  const handler = source.slice(start, end);
+  assert.ok(start >= 0 && end > start, "Owner test loader exists");
+  assert.match(handler, /if \(!questionsSnap\.exists \|\| !answerKeySnap\.exists\)/);
+  assert.match(handler, /publicQuestions\.length < 1/);
+  assert.match(handler, /publicQuestions\.length > 500/);
+  assert.match(handler, /editing is blocked/);
+});
+
+test("published tests remain immutable and student question delivery excludes private answer indexes", () => {
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const saveStart = source.indexOf("exports.rmOwnerSaveTest =");
+  const publishStart = source.indexOf("exports.rmOwnerPublishTest =", saveStart);
+  const saveHandler = source.slice(saveStart, publishStart);
+  assert.match(saveHandler, /existing\.data\(\)\.status === "published"/);
+  assert.match(saveHandler, /Published tests are immutable/);
+
+  const deliveryStart = source.indexOf("exports.rmGetExamQuestions =");
+  const deliveryEnd = source.indexOf("exports.rmEnterCbtSection =", deliveryStart);
+  const deliveryHandler = source.slice(deliveryStart, deliveryEnd);
+  assert.match(deliveryHandler, /questions\.map\(q => \(\{ id: q\.id, text: q\.text, options: q\.options/);
+  assert.doesNotMatch(deliveryHandler, /correctIndex|correctAnswer|testSeriesAnswerKeys/);
 });
