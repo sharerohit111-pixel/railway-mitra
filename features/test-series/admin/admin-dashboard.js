@@ -143,9 +143,41 @@ export function initOwnerAdminDashboard(auth, functions) {
       detail.textContent = [test.category || "General", test.folder || "General", test.mode, test.status, test.questionCount + " प्रश्न", "₹" + test.price].join(" · ");
       const edit = document.createElement("button");
       edit.type = "button";
-      edit.textContent = test.status === "published" ? "Copy to Draft" : "Edit";
+      edit.textContent = test.status === "published" ? "Copy to Draft" : "Edit Draft";
       edit.addEventListener("click", () => loadTestForEdit(test.testId, test.status === "published"));
-      card.append(heading, detail, edit); testsList.append(card);
+      card.append(heading, detail, edit);
+      if (test.status === "draft") {
+        const publish = document.createElement("button");
+        publish.type = "button";
+        publish.textContent = "Preview & Publish";
+        publish.addEventListener("click", async () => {
+          const preview = [
+            "प्रकाशित करने से पहले टेस्ट विवरण जाँचें:",
+            "नाम: " + test.title,
+            "Category: " + (test.category || "General"),
+            "Folder: " + (test.folder || "General"),
+            "Mode: " + test.mode,
+            "प्रश्न: " + test.questionCount,
+            "मूल्य: ₹" + test.price,
+            "अवधि: " + test.durationMinutes + " मिनट",
+            "",
+            "पुष्टि के बाद यह टेस्ट विद्यार्थियों के लिए Published हो जाएगा और फिर संपादन योग्य नहीं रहेगा।"
+          ].join("\\n");
+          if (!window.confirm(preview)) return;
+          publish.disabled = true;
+          try {
+            const result = await httpsCallable(functions, "rmOwnerPublishTest")({ testId: test.testId });
+            status("टेस्ट प्रकाशित हुआ: " + result.data.testId);
+            await refreshTests();
+          } catch (error) {
+            status(error.message || "टेस्ट प्रकाशित नहीं हुआ।");
+          } finally {
+            publish.disabled = false;
+          }
+        });
+        card.append(publish);
+      }
+      testsList.append(card);
     });
   }
   function updateTestListFilters() {
