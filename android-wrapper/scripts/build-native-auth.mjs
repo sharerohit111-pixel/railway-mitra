@@ -31,3 +31,16 @@ await build({
   legalComments: 'none'
 });
 console.log('Built isolated native Android share bridge.');
+
+const updaterOutput = path.join(root, 'web', 'assets', 'js', 'native-updater.js');
+await build({
+  entryPoints: [path.join(root, 'src', 'native-updater.js')],
+  outfile: updaterOutput,
+  bundle: true,
+  platform: 'browser',
+  format: 'iife',
+  target: ['es2020'],
+  minify: true,
+  legalComments: 'none'
+});
+console.log('Built isolated native OTA updater bridge.');
