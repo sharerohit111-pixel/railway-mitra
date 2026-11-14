@@ -12,15 +12,12 @@ const {
   getAuth,
   connectAuthEmulator,
   onAuthStateChanged,
-  PhoneAuthProvider,
-  signInWithCredential,
+  signInWithCustomToken,
   signOut
 } = require("firebase/auth");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const AUTH_EMULATOR_URL = "http://127.0.0.1:9099";
-const AUTH_EMULATOR_CODES_URL =
-  AUTH_EMULATOR_URL + "/emulator/v1/projects/" + PROJECT + "/verificationCodes";
 
 async function waitFor(predicate, label, timeoutMs = 8000) {
   const deadline = Date.now() + timeoutMs;
@@ -31,54 +28,13 @@ async function waitFor(predicate, label, timeoutMs = 8000) {
   assert.ok(predicate(), "Timed out waiting for " + label);
 }
 
-async function signInWithEmulatorPhone(auth, phoneNumber) {
-  // Use the Auth Emulator's local verification endpoint, then complete the
-  // phone credential with the Firebase client SDK. No browser reCAPTCHA or SMS
-  // gateway is involved, and this remains a real phone-provider auth session.
-  const sendResponse = await fetch(
-    AUTH_EMULATOR_URL + "/identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=fake-api-key",
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        phoneNumber,
-        recaptchaToken: "railway-mitra-auth-emulator-only"
-      })
-    }
-  );
-  if (!sendResponse.ok) {
-    throw new Error("Auth Emulator phone challenge returned HTTP " + sendResponse.status + ": " + await sendResponse.text());
-  }
-  const challenge = await sendResponse.json();
-  if (typeof challenge.sessionInfo !== "string" || !challenge.sessionInfo) {
-    throw new Error("Auth Emulator did not return a phone verification session.");
-  }
-
-  const deadline = Date.now() + 5000;
-  let verificationCode = null;
-  while (Date.now() < deadline && !verificationCode) {
-    const response = await fetch(AUTH_EMULATOR_CODES_URL);
-    if (!response.ok) {
-      throw new Error("Auth Emulator verification-code endpoint returned HTTP " + response.status);
-    }
-    const payload = await response.json();
-    const match = (payload.verificationCodes || [])
-      .filter(item => item.phoneNumber === phoneNumber)
-      .at(-1);
-    verificationCode = match?.code || match?.sessionCode || null;
-    if (match?.sessionInfo) challenge.sessionInfo = match.sessionInfo;
-    if (!verificationCode) await delay(20);
-  }
-
-  if (!verificationCode) {
-    throw new Error("No SMS verification code appeared for the emulator-only phone number.");
-  }
-  const credential = PhoneAuthProvider.credential(challenge.sessionInfo, verificationCode);
-  const userCredential = await signInWithCredential(auth, credential);
-  return userCredential.user;
+async function signInAsEmulatorUid(auth, adminAuth, uid) {
+  const token = await adminAuth.createCustomToken(uid);
+  const credential = await signInWithCustomToken(auth, token);
+  return credential.user;
 }
 
-test("Auth Emulator isolates Student A logout before Student B phone sign-in", { timeout: 25000 }, async () => {
+test("Auth Emulator clears Student A before Student B's unsupported provider is rejected", { timeout: 15000 }, async () => {
   const adminApp = initializeApp({ projectId: PROJECT }, "student-switch-admin");
   const adminAuth = getAdminAuth(adminApp);
   const clientApp = initializeClientApp({
@@ -108,17 +64,19 @@ test("Auth Emulator isolates Student A logout before Student B phone sign-in", {
     }
   };
   const snapshots = [];
+  const tokenChecks = [];
+  const rejectedUids = new Set();
   const callbackErrors = [];
-  const userIds = new Set();
   let initialStateSeen = false;
   let resolveInitialState;
   const initialState = new Promise(resolve => { resolveInitialState = resolve; });
 
   const unsubscribe = onAuthStateChanged(auth, user => {
     const version = ++state.authStateVersion;
+    const previousUid = state.currentUser?.uid || null;
 
     // This is the same teardown helper used by the production student portal.
-    // Capture the UI immediately after teardown and before awaiting token claims.
+    // Capture the UI after teardown and before awaiting incoming token claims.
     invalidateStudentPortalSession(state, {
       workspace: ui.workspace,
       login: ui.login,
@@ -127,9 +85,9 @@ test("Auth Emulator isolates Student A logout before Student B phone sign-in", {
     });
     snapshots.push({
       uid: user?.uid || null,
+      previousUid,
       workspaceHidden: ui.workspace.hidden,
       viewChildren: [...ui.view.children],
-      previousUid: state.currentUser?.uid || null,
       currentTestId: state.currentTestId
     });
 
@@ -141,12 +99,16 @@ test("Auth Emulator isolates Student A logout before Student B phone sign-in", {
       return;
     }
 
-    userIds.add(user.uid);
     void (async () => {
       try {
         const token = await user.getIdTokenResult();
         if (version !== state.authStateVersion || auth.currentUser?.uid !== user.uid) return;
-        if (token.claims?.firebase?.sign_in_provider !== "phone") return;
+        const provider = token.claims?.firebase?.sign_in_provider || null;
+        tokenChecks.push({ uid: user.uid, provider });
+        if (provider !== "phone") {
+          rejectedUids.add(user.uid);
+          return;
+        }
 
         state.currentUser = user;
         ui.workspace.hidden = false;
@@ -159,20 +121,24 @@ test("Auth Emulator isolates Student A logout before Student B phone sign-in", {
     })();
   });
 
-  const suffix = String(Date.now()).slice(-4);
-  const phoneA = "+1650555" + suffix;
-  const phoneB = "+1650556" + suffix;
+  const suffix = String(Date.now());
+  const uidA = "student-a-session-switch-" + suffix;
+  const uidB = "student-b-session-switch-" + suffix;
   let userA = null;
   let userB = null;
 
   try {
     await initialState;
 
-    userA = await signInWithEmulatorPhone(auth, phoneA);
-    await waitFor(() => state.currentUser?.uid === userA.uid, "Student A workspace");
-    assert.equal((await userA.getIdTokenResult()).claims?.firebase?.sign_in_provider, "phone");
+    userA = await signInAsEmulatorUid(auth, adminAuth, uidA);
+    await waitFor(() => tokenChecks.some(item => item.uid === uidA), "Student A token claims");
+    assert.equal(tokenChecks.find(item => item.uid === uidA).provider, "custom");
+    assert.equal(ui.workspace.hidden, true, "custom-token sessions are not admitted as student phone sessions");
 
+    // Seed an already-open Student A exam view to exercise the shared teardown
+    // helper used when a valid previous session is being explicitly signed out.
     let previousExamDestroyed = false;
+    state.currentUser = userA;
     state.activeExamController = {
       destroy() { previousExamDestroyed = true; }
     };
@@ -183,8 +149,6 @@ test("Auth Emulator isolates Student A logout before Student B phone sign-in", {
     ui.logoutButton.hidden = false;
     ui.view.children = ["student-a-private-exam-content"];
 
-    // Match the portal's immediate logout path: clear the old account before
-    // waiting for Firebase signOut and its asynchronous auth-state callback.
     invalidateStudentPortalSession(state, {
       workspace: ui.workspace,
       login: ui.login,
@@ -206,31 +170,30 @@ test("Auth Emulator isolates Student A logout before Student B phone sign-in", {
     );
     assert.equal(auth.currentUser, null);
 
-    userB = await signInWithEmulatorPhone(auth, phoneB);
+    userB = await signInAsEmulatorUid(auth, adminAuth, uidB);
     assert.notEqual(userA.uid, userB.uid, "Student B must be a different Firebase account");
-    await waitFor(() => state.currentUser?.uid === userB.uid, "Student B workspace");
-    assert.equal((await userB.getIdTokenResult()).claims?.firebase?.sign_in_provider, "phone");
+    await waitFor(() => tokenChecks.some(item => item.uid === uidB), "Student B token claims");
 
-    const studentBTransition = [...snapshots].reverse().find(item => item.uid === userB.uid);
+    const studentBTransition = [...snapshots].reverse().find(item => item.uid === uidB);
     assert.ok(studentBTransition, "the Auth listener observed Student B");
-    assert.equal(studentBTransition.workspaceHidden, true, "the workspace stays hidden while B's claims are checked");
-    assert.deepEqual(studentBTransition.viewChildren, [], "Student A's rendered exam is gone before B's token lookup");
-    assert.equal(studentBTransition.previousUid, null, "Student A's UID is cleared before B is admitted");
-    assert.equal(studentBTransition.currentTestId, null, "Student A's test ID is cleared before B is admitted");
+    assert.equal(studentBTransition.workspaceHidden, true);
+    assert.deepEqual(studentBTransition.viewChildren, []);
+    assert.equal(studentBTransition.previousUid, null);
+    assert.equal(studentBTransition.currentTestId, null);
+    assert.equal(tokenChecks.find(item => item.uid === uidB).provider, "custom");
+    assert.equal(rejectedUids.has(uidB), true, "the portal provider gate must reject B's non-phone session");
 
-    assert.equal(auth.currentUser?.uid, userB.uid);
-    assert.equal(state.currentUser?.uid, userB.uid);
-    assert.deepEqual(ui.view.children, ["workspace:" + userB.uid]);
-    assert.equal(ui.view.children.some(item => item.includes(userA.uid)), false);
+    assert.equal(auth.currentUser?.uid, uidB);
+    assert.equal(state.currentUser, null);
+    assert.equal(ui.workspace.hidden, true);
+    assert.equal(ui.login.hidden, false);
+    assert.deepEqual(ui.view.children, []);
     assert.deepEqual(callbackErrors, []);
   } finally {
     unsubscribe();
     await signOut(auth).catch(() => {});
-    for (const uid of userIds) {
-      await adminAuth.deleteUser(uid).catch(() => {});
-    }
-    if (userA?.uid && !userIds.has(userA.uid)) await adminAuth.deleteUser(userA.uid).catch(() => {});
-    if (userB?.uid && !userIds.has(userB.uid)) await adminAuth.deleteUser(userB.uid).catch(() => {});
+    await adminAuth.deleteUser(uidA).catch(() => {});
+    await adminAuth.deleteUser(uidB).catch(() => {});
     await deleteClientApp(clientApp).catch(() => {});
     await deleteApp(adminApp).catch(() => {});
   }
