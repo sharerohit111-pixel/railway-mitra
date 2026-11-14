@@ -1,12 +1,13 @@
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9_-]{20,128}$/;
 const TEST_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
 const STORAGE_PREFIX = "railway-mitra.test-series.payment-request.v1";
+const SUBMITTED_PREFIX = "railway-mitra.test-series.payment-submitted.v1";
 
-function storageKey(testId) {
+function storageKey(testId, prefix = STORAGE_PREFIX) {
   if (typeof testId !== "string" || !TEST_ID_PATTERN.test(testId)) {
     throw new Error("A valid test ID is required for payment request storage");
   }
-  return STORAGE_PREFIX + ":" + testId;
+  return prefix + ":" + testId;
 }
 
 export function requirePaymentSessionStorage(root = globalThis) {
@@ -23,10 +24,7 @@ export function requirePaymentSessionStorage(root = globalThis) {
   }
 }
 
-/**
- * Reuses the opaque idempotency key for this test in the current browser tab.
- * sessionStorage survives reloads but is isolated from other tabs and users.
- */
+/** Reuses the opaque idempotency key for this test in the current browser tab. */
 export function getOrCreatePaymentRequestId(storage, testId, createId) {
   if (!storage || typeof storage.getItem !== "function" || typeof storage.setItem !== "function") {
     throw new Error("Payment session storage is required");
@@ -34,11 +32,8 @@ export function getOrCreatePaymentRequestId(storage, testId, createId) {
   if (typeof createId !== "function") throw new Error("A secure payment request ID generator is required");
   const key = storageKey(testId);
   let existing;
-  try {
-    existing = storage.getItem(key);
-  } catch {
-    throw new Error("Payment session storage could not be read. Checkout was not started.");
-  }
+  try { existing = storage.getItem(key); }
+  catch { throw new Error("Payment session storage could not be read. Checkout was not started."); }
   if (typeof existing === "string" && REQUEST_ID_PATTERN.test(existing)) return existing;
 
   const requestId = createId();
@@ -54,15 +49,39 @@ export function getOrCreatePaymentRequestId(storage, testId, createId) {
   return requestId;
 }
 
+export function markPaymentSubmitted(storage, testId) {
+  if (!storage || typeof storage.setItem !== "function" || typeof storage.getItem !== "function") {
+    throw new Error("Payment session storage is required");
+  }
+  const key = storageKey(testId, SUBMITTED_PREFIX);
+  try {
+    storage.setItem(key, "1");
+    if (storage.getItem(key) !== "1") throw new Error("storage verification failed");
+  } catch {
+    throw new Error("Payment status could not be saved. Do not pay again; refresh and check test access.");
+  }
+}
+
+export function hasPaymentBeenSubmitted(storage, testId) {
+  if (!storage || typeof storage.getItem !== "function") return false;
+  try { return storage.getItem(storageKey(testId, SUBMITTED_PREFIX)) === "1"; }
+  catch { return false; }
+}
+
+export function clearPaymentSubmitted(storage, testId) {
+  if (!storage || typeof storage.removeItem !== "function") {
+    throw new Error("Payment session storage is required");
+  }
+  try { storage.removeItem(storageKey(testId, SUBMITTED_PREFIX)); }
+  catch { throw new Error("The payment status marker could not be cleared. Please reload."); }
+}
+
 export function clearPaymentRequestId(storage, testId) {
   if (!storage || typeof storage.removeItem !== "function") {
     throw new Error("Payment session storage is required");
   }
-  try {
-    storage.removeItem(storageKey(testId));
-  } catch {
-    throw new Error("The completed failed-request marker could not be cleared. Please reload before retrying.");
-  }
+  try { storage.removeItem(storageKey(testId)); }
+  catch { throw new Error("The completed failed-request marker could not be cleared. Please reload before retrying."); }
 }
 
 export function isDefiniteProviderOrderRejection(error) {
