@@ -110,77 +110,207 @@
   </div>
 </div>
 <script>
+
+const LANG = {
+  hi: {
+    title: "🚂 रेलवे क्रॉसिंग फिटिंग्स कैलकुलेटर",
+    subtitle: "क्रॉसिंग बोल्ट, रबर पैड, हील ब्लॉक, बियरिंग प्लेट और सुइयों की सटीक जानकारी",
+    boltCardTitle: "⚡ क्रॉसिंग बोल्ट क्विक लुकअप (बोल्ट खोजें)",
+    angle: "क्रॉसिंग एंगल",
+    rail: "रेल सेक्शन",
+    serial: "बोल्ट क्रम संख्या (1 - 12)",
+    resSel: "चुना गया संयोजन",
+    resDrg: "बोल्ट ड्राइंग नंबर",
+    resSize: "बोल्ट साइज़ (मि.मी.)",
+    serialWord: "क्रम",
+    mainCardTitle: "📋 अन्य क्रॉसिंग फिटिंग्स विवरण",
+    tabPads: "रबर पैड",
+    tabHeel: "हील जोड़ गुटके व बोल्ट",
+    tabPlates: "स्पेशल बियरिंग प्लेट",
+    tabCheck: "चेक रेल व सुइयाँ",
+    thSleeper: "स्लीपर नंबर",
+    thPad: "रबर पैड नंबर",
+    thPos: "क्रम",
+    thBlock: "गुटका नंबर",
+    thBolt: "बोल्ट ड्राइंग नंबर",
+    thSize: "साइज़ (मि.मी.)",
+    thSI: "स्लीपर (SI)",
+    thLeft: "लेफ्ट प्लेट (L)",
+    thRight: "राइट प्लेट (R)",
+    checkHeading: "क्रॉसिंग के सामने चेक रेल के गुटका, बोल्ट व रबर पैड",
+    needleHeading: "क्रॉसिंग की सुइयाँ (TOC और HOC)",
+    posNames: ["पहला (1st)", "दूसरा (2nd)", "तीसरा (3rd)", "चौथा (4th)"]
+  },
+  en: {
+    title: "🚂 Railway Crossing Fittings Calculator",
+    subtitle: "Accurate lookup for Crossing Bolts, Rubber Pads, Heel Blocks, Bearing Plates & Needles",
+    boltCardTitle: "⚡ Crossing Bolt Quick Lookup",
+    angle: "Crossing Angle",
+    rail: "Rail Section",
+    serial: "Bolt Serial No. (1 - 12)",
+    resSel: "Selected Combination",
+    resDrg: "Bolt Drawing No.",
+    resSize: "Bolt Size (mm)",
+    serialWord: "Serial",
+    mainCardTitle: "📋 Complete Crossing Fittings Details",
+    tabPads: "Rubber Pads",
+    tabHeel: "Heel Joint Blocks & Bolts",
+    tabPlates: "Special Bearing Plates",
+    tabCheck: "Check Rail & Needles",
+    thSleeper: "Sleeper No.",
+    thPad: "Rubber Pad No.",
+    thPos: "Position",
+    thBlock: "Block No.",
+    thBolt: "Bolt Drawing No.",
+    thSize: "Size (mm)",
+    thSI: "Sleeper (SI)",
+    thLeft: "Left Plate (L)",
+    thRight: "Right Plate (R)",
+    checkHeading: "Check Rail Block, Bolt & Rubber Pad in front of Crossing",
+    needleHeading: "Crossing Needles / Tongues (TOC & HOC)",
+    posNames: ["1st", "2nd", "3rd", "4th"]
+  }
+};
+
 const DB = {
   bolts: {
     "1:12": {
-      "60 Kg": {1:["11535",400],2:["11533",380],3:["11532",370],4:["11531",360],5:["11529",340],6:["11528",330],7:["11524",290],8:["11525",300],9:["11527",320],10:["11528",330],11:["11529",340],12:["11531",360]},
-      "52 Kg": {1:["11534",390],2:["11532",270],3:["11531",360],4:["11530",350],5:["11528",330],6:["11527",320],7:["11524",290],8:["11525",300],9:["11527",320],10:["11528",330],11:["11529",340],12:["11531",360]}
+      "60 Kg": {
+        1:{d:"11535",s:400}, 2:{d:"11533",s:380}, 3:{d:"11532",s:370}, 4:{d:"11531",s:360},
+        5:{d:"11529",s:340}, 6:{d:"11528",s:330}, 7:{d:"11524",s:290}, 8:{d:"11525",s:300},
+        9:{d:"11527",s:320}, 10:{d:"11528",s:330}, 11:{d:"11529",s:340}, 12:{d:"11531",s:360}
+      },
+      "52 Kg": {
+        1:{d:"11534",s:390}, 2:{d:"11532",s:270}, 3:{d:"11531",s:360}, 4:{d:"11530",s:350},
+        5:{d:"11528",s:330}, 6:{d:"11527",s:320}, 7:{d:"11524",s:290}, 8:{d:"11525",s:300},
+        9:{d:"11527",s:320}, 10:{d:"11528",s:330}, 11:{d:"11529",s:340}, 12:{d:"11531",s:360}
+      }
     },
     "1:8.5": {
-      "60 Kg": {1:["11536",410],2:["11534",390],3:["11532",370],4:["11530",350],5:["11528",330],6:["11526",310],7:["11525",300],8:["11527",320],9:["11529",340],10:["11531",360],11:["11533",380],12:["11535",400]},
-      "52 Kg": {1:["11535",400],2:["11533",380],3:["11531",360],4:["11529",340],5:["11527",320],6:["11526",310],7:["11525",300],8:["11527",320],9:["11529",340],10:["11531",360],11:["11533",380],12:["11535",400]}
+      "60 Kg": {
+        1:{d:"11536",s:410}, 2:{d:"11534",s:390}, 3:{d:"11532",s:370}, 4:{d:"11530",s:350},
+        5:{d:"11528",s:330}, 6:{d:"11526",s:310}, 7:{d:"11525",s:300}, 8:{d:"11527",s:320},
+        9:{d:"11529",s:340}, 10:{d:"11531",s:360}, 11:{d:"11533",s:380}, 12:{d:"11535",s:400}
+      },
+      "52 Kg": {
+        1:{d:"11535",s:400}, 2:{d:"11533",s:380}, 3:{d:"11531",s:360}, 4:{d:"11529",s:340},
+        5:{d:"11527",s:320}, 6:{d:"11526",s:310}, 7:{d:"11525",s:300}, 8:{d:"11527",s:320},
+        9:{d:"11529",s:340}, 10:{d:"11531",s:360}, 11:{d:"11533",s:380}, 12:{d:"11535",s:400}
+      }
     }
   },
   pads: {
-    "1:12": [[64,"6842"],[65,"6845"],[66,"6204"],[67,"6205"],[68,"6206"],[69,"6207"],[70,"6208"],[71,"6209"],[72,"6210"],[73,"6211"],[74,"6846"],[75,"6843"],[76,"6844"]],
-    "1:8.5": [[41,"6800/1"],[42,"6800"],[43,"6198"],[44,"6199"],[45,"6200"],[46,"6201"],[47,"6202"],[48,"6203"],[49,"6601"],[50,"6801/1"]]
+    "1:12": [
+      {sl:64,p:"6842"},{sl:65,p:"6845"},{sl:66,p:"6204"},{sl:67,p:"6205"},{sl:68,p:"6206"},
+      {sl:69,p:"6207"},{sl:70,p:"6208"},{sl:71,p:"6209"},{sl:72,p:"6210"},{sl:73,p:"6211"},
+      {sl:74,p:"6846"},{sl:75,p:"6843"},{sl:76,p:"6844"}
+    ],
+    "1:8.5": [
+      {sl:41,p:"6800/1"},{sl:42,p:"6800"},{sl:43,p:"6198"},{sl:44,p:"6199"},{sl:45,p:"6200"},
+      {sl:46,p:"6201"},{sl:47,p:"6202"},{sl:48,p:"6203"},{sl:49,p:"6601"},{sl:50,p:"6801/1"}
+    ]
   },
   heel: {
     "1:12": {
-      "60 Kg": [["पहला (1st)","2611","11522","270"],["दूसरा (2nd)","2612","11526","310"],["तीसरा (3rd)","4359","11531","360"],["चौथा (4th)","4360","11533","380"]],
-      "52 Kg": [["पहला (1st)","4760","11522","270"],["दूसरा (2nd)","4761","11525","300"],["तीसरा (3rd)","4762","11531","360"],["चौथा (4th)","4763","11533","380"]]
+      "60 Kg": [{b:"2611",bt:"11522",sz:"270"},{b:"2612",bt:"11526",sz:"310"},{b:"4359",bt:"11531",sz:"360"},{b:"4360",bt:"11533",sz:"380"}],
+      "52 Kg": [{b:"4760",bt:"11522",sz:"270"},{b:"4761",bt:"11525",sz:"300"},{b:"4762",bt:"11531",sz:"360"},{b:"4763",bt:"11533",sz:"380"}]
     },
     "1:8.5": {
-      "60 Kg": [["पहला (1st)","4978","11522","270"],["दूसरा (2nd)","4979","11526","310"],["तीसरा (3rd)","4880","11521","310"],["चौथा (4th)","-","-","-"]],
-      "52 Kg": [["पहला (1st)","15561","11522","270"],["दूसरा (2nd)","15562","11525","300"],["तीसरा (3rd)","4878","-","360"],["चौथा (4th)","-","-","-"]]
+      "60 Kg": [{b:"4978",bt:"11522",sz:"270"},{b:"4979",bt:"11526",sz:"310"},{b:"4880",bt:"11521",sz:"310"},{b:"-",bt:"-",sz:"-"}],
+      "52 Kg": [{b:"15561",bt:"11522",sz:"270"},{b:"15562",bt:"11525",sz:"300"},{b:"4878",bt:"-",sz:"360"},{b:"-",bt:"-",sz:"-"}]
     }
   },
   plates: {
     "1:12": {
-      "60 Kg": [[21,"4611","4597","-"],[22,"4612","4604","-"],[23,"4612","4605","-"],[24,"4612","4606","-"],[25,"4613","4607","-"],[26,"4613","4608","-"],[27,"4613","4609","-"]],
-      "52 Kg": [[21,"-","4726","4736"],[22,"-","4743","4737"],[23,"-","4744","4738"],[24,"-","4745","8016"],[25,"-","8314","8017"],[26,"-","8315","8018"],[27,"-","8316","8019"]]
+      "60 Kg": [{si:21,p:"4611",l:"4597",r:"-"},{si:22,p:"4612",l:"4604",r:"-"},{si:23,p:"4612",l:"4605",r:"-"},{si:24,p:"4612",l:"4606",r:"-"},{si:25,p:"4613",l:"4607",r:"-"},{si:26,p:"4613",l:"4608",r:"-"},{si:27,p:"4613",l:"4609",r:"-"}],
+      "52 Kg": [{si:21,p:"-",l:"4726",r:"4736"},{si:22,p:"-",l:"4743",r:"4737"},{si:23,p:"-",l:"4744",r:"4738"},{si:24,p:"-",l:"4745",r:"8016"},{si:25,p:"-",l:"8314",r:"8017"},{si:26,p:"-",l:"8315",r:"8018"},{si:27,p:"-",l:"8316",r:"8019"}]
     },
     "1:8.5": {
-      "60 Kg": [[14,"4876","4974","-"],[15,"4876","4975","-"],[16,"4876","4976","-"]],
-      "52 Kg": [[14,"-","4872","4869"],[15,"-","4873","4870"],[16,"-","4874","4871"]]
+      "60 Kg": [{si:14,p:"4876",l:"4974",r:"-"},{si:15,p:"4876",l:"4975",r:"-"},{si:16,p:"4876",l:"4976",r:"-"}],
+      "52 Kg": [{si:14,p:"-",l:"4872",r:"4869"},{si:15,p:"-",l:"4873",r:"4870"},{si:16,p:"-",l:"4874",r:"4871"}]
     }
   },
-  check: { "60 Kg": ["8294","2082","11514","190 mm"], "52 Kg": ["8294","4774","11513","180 mm"] },
-  needles: { "1:12": { "60 Kg": ["4121","2716"], "52 Kg": ["4775","4776"] }, "1:8.5": { "60 Kg": ["4987","4988"], "52 Kg": ["4894","4895"] } }
+  check: {
+    "60 Kg": {p:"8294",b:"2082",bt:"11514",sz:"190 mm"},
+    "52 Kg": {p:"8294",b:"4774",bt:"11513",sz:"180 mm"}
+  },
+  needles: {
+    "1:12": { "60 Kg": {toc:"4121",hoc:"2716"}, "52 Kg": {toc:"4775",hoc:"4776"} },
+    "1:8.5": { "60 Kg": {toc:"4987",hoc:"4988"}, "52 Kg": {toc:"4894",hoc:"4895"} }
+  }
 };
 
+let currentLang = "hi";
 let activeTab = "rubberPads";
+
+function setLanguage(lang) {
+  currentLang = lang;
+  const t = LANG[lang];
+  document.getElementById("btnHi").classList.toggle("active", lang === "hi");
+  document.getElementById("btnEn").classList.toggle("active", lang === "en");
+
+  document.getElementById("uiTitle").textContent = t.title;
+  document.getElementById("uiSubtitle").textContent = t.subtitle;
+  document.getElementById("uiBoltCardTitle").textContent = t.boltCardTitle;
+  document.getElementById("lblBoltAngle").textContent = t.angle;
+  document.getElementById("lblBoltRail").textContent = t.rail;
+  document.getElementById("lblBoltSerial").textContent = t.serial;
+  document.getElementById("lblResSel").textContent = t.resSel;
+  document.getElementById("lblResDrg").textContent = t.resDrg;
+  document.getElementById("lblResSize").textContent = t.resSize;
+  document.getElementById("uiMainCardTitle").textContent = t.mainCardTitle;
+  document.getElementById("lblMainAngle").textContent = t.angle;
+  document.getElementById("lblMainRail").textContent = t.rail;
+  document.getElementById("tabPads").textContent = t.tabPads;
+  document.getElementById("tabHeel").textContent = t.tabHeel;
+  document.getElementById("tabPlates").textContent = t.tabPlates;
+  document.getElementById("tabCheck").textContent = t.tabCheck;
+
+  updateBolt();
+  renderTable();
+}
 
 function updateBolt() {
   const a = document.getElementById("boltAngle").value;
   const r = document.getElementById("boltRail").value;
   const s = document.getElementById("boltSerial").value;
-  const d = DB.bolts[a][r][s];
-  document.getElementById("resSelection").textContent = `${a === "1:8.5" ? "1:8½" : a} (${r}) - Serial #${s}`;
-  document.getElementById("resDrawing").textContent = d;
-  document.getElementById("resSize").textContent = `${d} mm`;
+  const item = DB.bolts[a][r][s];
+  const t = LANG[currentLang];
+  const dispAngle = a === "1:8.5" ? "1:8½" : a;
+
+  document.getElementById("resSelection").textContent = \`\${dispAngle} (\${r}) - \${t.serialWord} #\${s}\`;
+  document.getElementById("resDrawing").textContent = item.d;
+  document.getElementById("resSize").textContent = \`\${item.s} mm\`;
 }
 
 function renderTable() {
   const a = document.getElementById("mainAngle").value;
   const r = document.getElementById("mainRail").value;
   const box = document.getElementById("tabContent");
+  const t = LANG[currentLang];
+
   if (activeTab === "rubberPads") {
-    box.innerHTML = `<table><thead><tr><th>Sleeper No.</th><th>Rubber Pad No.</th></tr></thead><tbody>` +
-      DB.pads[a].map(x => `<tr><td><strong>${x}</strong></td><td><span class="badge">${x}</span></td></tr>`).join("") + `</tbody></table>`;
+    box.innerHTML = \`<table><thead><tr><th>\${t.thSleeper}</th><th>\${t.thPad}</th></tr></thead><tbody>\` +
+      DB.pads[a].map(x => \`<tr><td><strong>\${x.sl}</strong></td><td><span class="badge">\${x.p}</span></td></tr>\`).join("") + \`</tbody></table>\`;
   } else if (activeTab === "heelJoint") {
-    box.innerHTML = `<table><thead><tr><th>क्रम</th><th>गुटका (Block)</th><th>बोल्ट (Bolt)</th><th>साइज़ (mm)</th></tr></thead><tbody>` +
-      DB.heel[a][r].map(x => `<tr><td><strong>${x}</strong></td><td>${x}</td><td><span class="badge">${x}</span></td><td>${x}</td></tr>`).join("") + `</tbody></table>`;
+    box.innerHTML = \`<table><thead><tr><th>\${t.thPos}</th><th>\${t.thBlock}</th><th>\${t.thBolt}</th><th>\${t.thSize}</th></tr></thead><tbody>\` +
+      DB.heel[a][r].map((x, idx) => \`<tr><td><strong>\${t.posNames[idx]}</strong></td><td>\${x.b}</td><td><span class="badge">\${x.bt}</span></td><td>\${x.sz}</td></tr>\`).join("") + \`</tbody></table>\`;
   } else if (activeTab === "bearingPlates") {
-    box.innerHTML = `<table><thead><tr><th>Sleeper (SI)</th><th>R/Pad</th><th>Left (L)</th><th>Right (R)</th></tr></thead><tbody>` +
-      DB.plates[a][r].map(x => `<tr><td><strong>${x}</strong></td><td>${x}</td><td><span class="badge">${x}</span></td><td>${x !== "-" ? `<span class="badge">${x}</span>` : "-"}</td></tr>`).join("") + `</tbody></table>`;
+    box.innerHTML = \`<table><thead><tr><th>\${t.thSI}</th><th>\${t.thPad}</th><th>\${t.thLeft}</th><th>\${t.thRight}</th></tr></thead><tbody>\` +
+      DB.plates[a][r].map(x => \`<tr><td><strong>\${x.si}</strong></td><td>\${x.p}</td><td><span class="badge">\${x.l}</span></td><td>\${x.r !== "-" ? \`<span class="badge">\${x.r}</span>\` : "-"}</td></tr>\`).join("") + \`</tbody></table>\`;
   } else {
     const c = DB.check[r], n = DB.needles[a][r];
-    box.innerHTML = `<h4 style="margin:10px 0;color:var(--primary)">चेक रेल फिटिंग्स (${r})</h4><table><thead><tr><th>R/Pad</th><th>Block</th><th>Bolt</th><th>Size</th></tr></thead><tbody><tr><td><span class="badge">${c}</span></td><td><span class="badge">${c}</span></td><td><span class="badge">${c}</span></td><td><strong>${c}</strong></td></tr></tbody></table>
-    <h4 style="margin:18px 0;color:var(--primary)">क्रॉसिंग की सुइयाँ (TOC & HOC)</h4><table><thead><tr><th>TOC</th><th>HOC</th></tr></thead><tbody><tr><td><span class="badge">${n}</span></td><td><span class="badge">${n}</span></td></tr></tbody></table>`;
+    box.innerHTML = \`<h4 style="margin:10px 0;color:var(--primary)">\${t.checkHeading} (\${r})</h4>
+      <table><thead><tr><th>\${t.thPad}</th><th>\${t.thBlock}</th><th>\${t.thBolt}</th><th>\${t.thSize}</th></tr></thead>
+      <tbody><tr><td><span class="badge">\${c.p}</span></td><td><span class="badge">\${c.b}</span></td><td><span class="badge">\${c.bt}</span></td><td><strong>\${c.sz}</strong></td></tr></tbody></table>
+      <h4 style="margin:18px 0 10px;color:var(--primary)">\${t.needleHeading}</h4>
+      <table><thead><tr><th>TOC (Toe of Crossing)</th><th>HOC (Heel of Crossing)</th></tr></thead>
+      <tbody><tr><td><span class="badge">\${n.toc}</span></td><td><span class="badge">\${n.hoc}</span></td></tr></tbody></table>\`;
   }
 }
 
+document.getElementById("btnHi").addEventListener("click", () => setLanguage("hi"));
+document.getElementById("btnEn").addEventListener("click", () => setLanguage("en"));
 document.getElementById("boltAngle").addEventListener("change", updateBolt);
 document.getElementById("boltRail").addEventListener("change", updateBolt);
 document.getElementById("boltSerial").addEventListener("change", updateBolt);
@@ -196,8 +326,7 @@ document.querySelectorAll("#tabButtons .tab-btn").forEach(btn => {
   });
 });
 
-updateBolt();
-renderTable();
+setLanguage("hi");
 </script>
 </body>
 </html>
