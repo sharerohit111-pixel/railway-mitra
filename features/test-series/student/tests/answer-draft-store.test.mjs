@@ -29,23 +29,27 @@ test("writes and restores valid pending answers for the exact attempt key", () =
 
 test("rejects coercible values, unknown questions and out-of-range option indexes", () => {
   const key = "draft";
+  const validationQuestions = Array.from({ length: 9 }, (_, index) => ({
+    id: "valid-" + index,
+    options: ["A", "B", "C", "D"]
+  }));
   const storage = makeStorage({
     [key]: JSON.stringify([
-      ["q1", "0"],
-      ["q1", null],
-      ["q1", false],
-      ["q1", []],
-      ["q1", {}],
-      ["q1", "4"],
-      ["q1", "-1"],
-      ["q1", "1.0"],
+      ["valid-0", "0"],
+      ["valid-1", null],
+      ["valid-2", false],
+      ["valid-3", []],
+      ["valid-4", {}],
+      ["valid-5", "4"],
+      ["valid-6", "-1"],
+      ["valid-7", "1.0"],
       ["missing", "0"],
       [null, "0"],
-      ["q2", "1"]
+      ["valid-8", "1"]
     ])
   });
-  const restored = readPendingAnswerDraft({ storage, key, questions });
-  assert.deepEqual([...restored.answers], [["q1", "0"], ["q2", "1"]]);
+  const restored = readPendingAnswerDraft({ storage, key, questions: validationQuestions });
+  assert.deepEqual([...restored.answers], [["valid-0", "0"], ["valid-8", "1"]]);
   assert.equal(restored.discarded, 9);
 });
 
