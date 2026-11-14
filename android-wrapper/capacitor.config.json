@@ -17,7 +17,9 @@
     },
     "CapacitorUpdater": {
       "autoUpdate": "off",
-      "version": "1.0.0"
+      "version": "1.0.0",
+      "appId": "com.railwaymitra.app",
+      "defaultChannel": "production"
     }
   }
 }
