@@ -62,11 +62,17 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
           test.folder || "General",
           test.mode === "scheduled" ? "Scheduled" : "Mock Test",
           (test.durationMinutes || 0) + " min",
-          (test.questionCount || 0) + " questions",
-          test.accessType === "free_trial" ? "Free first attempt" : test.accessType === "paid" ? "₹" + test.price : test.accessType === "unlocked" ? "Purchased - Unlocked" : "Access unavailable"
+          (test.questionCount || 0) + " questions"
         ];
-        if (test.mode === "scheduled" && test.scheduleStartAt) details.push("Starts " + new Date(test.scheduleStartAt).toLocaleString());
         details.forEach(value => { const tag = root.createElement("span"); tag.textContent = value; meta.append(tag); });
+        const accessTag = root.createElement("span");
+        accessTag.textContent = test.accessType === "free_trial" ? "Free first attempt" : test.accessType === "paid" ? "₹" + test.price : test.accessType === "unlocked" ? "Purchased - Unlocked" : "Access unavailable";
+        meta.append(accessTag);
+        if (test.mode === "scheduled" && test.scheduleStartAt) {
+          const scheduleTag = root.createElement("span");
+          scheduleTag.textContent = "Starts " + new Date(test.scheduleStartAt).toLocaleString();
+          meta.append(scheduleTag);
+        }
 
         const button = root.createElement("button");
         button.type = "button";
@@ -79,26 +85,30 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
           if (pendingPaymentChecks.has(paymentStateKey) || hasPaymentBeenSubmitted(storage, studentUid, test.testId)) {
             button.disabled = true;
             status.textContent = "Checking server-verified payment status…";
-            let checkCursor = null, latestTest = null, pagesChecked = 0;
-            do {
-              const page = await listAvailableCbtTests(app, { pageSize: 100, cursor: checkCursor });
-              latestTest = (page.tests || []).find(item => item.testId === test.testId) || latestTest;
-              checkCursor = page.nextCursor || null;
-              pagesChecked++;
-              if (latestTest || !page.hasMore || pagesChecked >= 100) break;
-            } while (true);
-            if (latestTest?.accessType === "unlocked") {
-              pendingPaymentChecks.delete(paymentStateKey);
-              clearPaymentSubmitted(storage, studentUid, test.testId);
-              test.accessType = "unlocked";
-              card.dataset.accessType = "unlocked";
-              const accessTag = meta.lastElementChild;
-              if (accessTag) accessTag.textContent = "Purchased - Unlocked";
-              button.textContent = "Start Test";
-              button.disabled = false;
-              status.textContent = "Payment verified. Your test is unlocked. You can start it now.";
-            } else {
-              status.textContent = "Payment is not verified yet. Please wait for confirmation, then check again. Do not pay again.";
+            try {
+              let checkCursor = null, latestTest = null, pagesChecked = 0;
+              do {
+                const page = await listAvailableCbtTests(app, { pageSize: 100, cursor: checkCursor });
+                latestTest = (page.tests || []).find(item => item.testId === test.testId) || latestTest;
+                checkCursor = page.nextCursor || null;
+                pagesChecked++;
+                if (latestTest || !page.hasMore || pagesChecked >= 100) break;
+              } while (true);
+              if (latestTest?.accessType === "unlocked") {
+                pendingPaymentChecks.delete(paymentStateKey);
+                clearPaymentSubmitted(storage, studentUid, test.testId);
+                test.accessType = "unlocked";
+                card.dataset.accessType = "unlocked";
+                accessTag.textContent = "Purchased - Unlocked";
+                button.textContent = "Start Test";
+                button.disabled = false;
+                status.textContent = "Payment verified. Your test is unlocked. You can start it now.";
+              } else {
+                status.textContent = "Payment is not verified yet. Please wait for confirmation, then check again. Do not pay again.";
+                button.disabled = false;
+              }
+            } catch (error) {
+              status.textContent = error.message || "Payment status could not be checked. Please retry.";
               button.disabled = false;
             }
             return;
