@@ -56,6 +56,21 @@ test("rejects non-POST requests and invalid signatures before ledger access", as
   assert.equal(calls, 0);
 });
 
+test("rejects a missing raw request body before invoking either ledger processor", async () => {
+  let calls = 0;
+  const req = request();
+  req.rawBody = undefined;
+  const res = response();
+  await handleRazorpayWebhook({
+    req, res, secret, db: {},
+    applyPayment: async () => { calls++; },
+    applyRefund: async () => { calls++; }
+  });
+  assert.equal(res.code, 400);
+  assert.equal(res.body, "Invalid webhook signature");
+  assert.equal(calls, 0);
+});
+
 test("acknowledges verified non-capture events without creating a ledger entry", async () => {
   let calls = 0;
   const body = { ...event, event: "payment.authorized" };
