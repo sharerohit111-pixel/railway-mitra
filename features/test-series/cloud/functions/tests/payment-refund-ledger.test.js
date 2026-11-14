@@ -138,7 +138,9 @@ test("rejects refund identity, amount and payment mismatches", async () => {
   await assert.rejects(() => applyProcessedRefund({ db: h.db, event: badAmount, eventId: "evt_bad_2" }), { code: "invalid_refund_fields" });
 
   const mismatch = structuredClone(h.event);
+  // Keep the provider snapshot internally valid so the ledger comparison is reached.
   mismatch.payload.payment.entity.amount = 50000;
+  mismatch.payload.payment.entity.amount_refunded = 50000;
   await assert.rejects(() => applyProcessedRefund({ db: h.db, event: mismatch, eventId: "evt_bad_3" }), { code: "refund_payment_mismatch" });
 });
 
