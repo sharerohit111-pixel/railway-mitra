@@ -1,6 +1,8 @@
 'use strict';
 
-const admin = require('firebase-admin');
+const { initializeApp, deleteApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 const projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT;
 const firestoreHost = process.env.FIRESTORE_EMULATOR_HOST;
@@ -18,9 +20,9 @@ if (firestoreHost !== expectedFirestoreHost || authHost !== expectedAuthHost) {
   throw new Error('Refusing backup/restore smoke test unless both SDKs target the exact loopback emulators.');
 }
 
-admin.initializeApp({ projectId }, 'cbt-backup-restore-smoke');
-const db = admin.firestore();
-const auth = admin.auth();
+const app = initializeApp({ projectId }, 'cbt-backup-restore-smoke');
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 async function seed() {
   await auth.createUser({
@@ -32,7 +34,7 @@ async function seed() {
     marker: 'railway-mitra-cbt-emulator-backup-restore',
     schemaVersion: 1,
     synthetic: true,
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
+    createdAt: FieldValue.serverTimestamp()
   });
   console.log('Seeded synthetic Firestore document and Auth user.');
 }
@@ -57,12 +59,22 @@ async function verify() {
 
 async function main() {
   const mode = process.argv[2];
-  if (mode === 'seed') return seed();
-  if (mode === 'verify') return verify();
+  if (mode === 'seed') {
+    await seed();
+    return;
+  }
+  if (mode === 'verify') {
+    await verify();
+    return;
+  }
   throw new Error('Usage: node local-emulator-backup-restore-smoke.js <seed|verify>');
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await deleteApp(app);
+  });

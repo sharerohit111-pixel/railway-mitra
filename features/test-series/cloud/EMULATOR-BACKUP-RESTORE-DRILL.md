@@ -30,7 +30,7 @@ npm --prefix features/test-series/cloud/functions install --no-audit --no-fund
 
 ## Synthetic local export/import round trip
 
-Run from the repository root. The demo project ID and exact loopback emulator endpoints are mandatory. Keep the export outside the repository checkout.
+Run from the repository root. The exact demo project ID and loopback emulator endpoints are mandatory. Keep the export outside the repository checkout.
 
 ```bash
 BACKUP_ROOT="$(mktemp -d)"
@@ -55,7 +55,7 @@ npx firebase-tools emulators:exec \
 rm -rf "$BACKUP_ROOT"
 ```
 
-The fixture refuses to run without a `demo-*` project and both local emulator host variables. It creates one synthetic Auth user and one document in the test-only `testSeriesBackupRestoreDrill` collection. The verify phase checks both records after import and deletes them from the restored emulator. No OTP is sent and no carrier gateway is contacted.
+The fixture refuses to run unless the project is exactly `demo-railway-mitra-cbt` and both SDK hosts are exactly `127.0.0.1:9099` and `127.0.0.1:8080`. It creates one synthetic Auth user and one document in the test-only `testSeriesBackupRestoreDrill` collection. The verify phase checks both records after import and deletes them from the restored emulator. No OTP is sent and no carrier gateway is contacted.
 
 ## Automated CI
 
