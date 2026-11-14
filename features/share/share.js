@@ -55,6 +55,20 @@
             url: APP_URL
         };
 
+        // Capacitor Android WebView does not consistently expose Web Share API.
+        // Use the native Android Sharesheet when the isolated bridge is present.
+        if (window.RailwayMitraNativeShare && typeof window.RailwayMitraNativeShare.share === "function") {
+            try {
+                await window.RailwayMitraNativeShare.share(shareData);
+                return;
+            } catch (error) {
+                if (error && (error.name === "AbortError" || error.message === "Share canceled")) {
+                    return;
+                }
+                console.warn("Native share failed; trying browser share.", error);
+            }
+        }
+
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
