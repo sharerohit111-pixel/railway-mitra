@@ -137,3 +137,10 @@ The pure decision helper is isolated in `payment-inspection-guidance.mjs` and co
 ```bash
 node --test features/test-series/admin/tests/*.test.mjs
 ```
+
+
+## Owner provider linking
+
+After the Owner has signed in and the server has authorized the dashboard, the Sign-in Methods panel can link Google or Email/Password to the currently authenticated Firebase account. The linking helper captures the current UID, refuses unsupported providers, and verifies that Firebase returned the same UID with the requested provider in `providerData`. If Firebase reports that a credential is already in use by another UID, the UI does not merge accounts or change ownership; resolve the identity conflict manually in Firebase before retrying. Linking is not a substitute for the server-side `OWNER_UID`, Phone MFA claim, or App Check checks. Test the linking flow in the intended Firebase project before production use; no live project configuration or real account was changed by these code updates.
+
+The pure UID-preservation guard is covered by `node --test features/test-series/admin/tests/*.test.mjs`.
