@@ -149,6 +149,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
 
   async function openPublishReview(test, button) {
+    const generation = testManagementGeneration;
     button.disabled = true;
     reviewStatus.textContent = "सर्वर से पूरा प्रश्नपत्र और उत्तर-कुंजी सुरक्षित रूप से लोड हो रही है…";
     reviewDialog.hidden = false;
@@ -156,6 +157,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     try {
       const response = await httpsCallable(functions, "rmOwnerGetTest")({ testId: test.testId });
       const data = response.data || {};
+      if (generation !== testManagementGeneration) return;
       if (data.testId !== test.testId || data.status !== "draft") {
         throw new Error("यह टेस्ट अब Draft नहीं है। सूची Refresh करके दोबारा जाँचें।");
       }
@@ -278,6 +280,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (freeTestLocked) status("पहला विद्यार्थी निःशुल्क प्रयास ले चुका है। अब निःशुल्क टेस्ट का चयन स्थायी रूप से लॉक है।");
   }
   function clearTestManagement() {
+    closePublishReview();
     testManagementGeneration += 1;
     testEditGeneration += 1;
     testsCursor = null;
