@@ -1068,6 +1068,117 @@ test("concurrent CBT start, answer-save and submit transactions preserve one aut
   }
 });
 
+test("CBT repairs a stale active pointer and starts independent section clocks exactly once", async () => {
+  const scenarioTestId = "emulator-cbt-section-race";
+  const testRef = db.doc("testSeriesTests/" + scenarioTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + scenarioTestId);
+  const keyRef = db.doc("testSeriesAnswerKeys/" + scenarioTestId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  const staleAttemptId = "emulator-cbt-section-stale-pointer";
+  const staleAttemptRef = db.doc("testSeriesAttempts/" + staleAttemptId);
+  let paidAccess;
+  try {
+    await testRef.set({
+      title: "Section Clock Concurrency", status: "published", price: 30,
+      mode: "mock", durationMinutes: 10, marksPerQuestion: 1,
+      negativeMarks: 0.25, questionCount: 2,
+      sections: [
+        { name: "Technical Ability", timeLimitMinutes: 2, questionCount: 1 },
+        { name: "General Awareness", timeLimitMinutes: 1, questionCount: 1 }
+      ]
+    });
+    await paperRef.set({ questions: [
+      { id: "clock-q1", text: "Technical question?", options: ["A", "B"], section: "Technical Ability" },
+      { id: "clock-q2", text: "General question?", options: ["A", "B"], section: "General Awareness" }
+    ] });
+    await keyRef.set({ questions: {
+      "clock-q1": { correctAnswer: "0" },
+      "clock-q2": { correctAnswer: "1" }
+    } });
+    paidAccess = await seedPaidAccess({
+      testId: scenarioTestId,
+      paymentId: "pay_emulator_section_clock",
+      orderId: "order_emulator_section_clock",
+      amount: 3000
+    });
+
+    // A dangling pointer must not block a new paid attempt or be returned as active.
+    await staleAttemptRef.set({
+      uid: uid + "-stale",
+      testId: scenarioTestId,
+      status: "in_progress",
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+    });
+    await activeRef.set({
+      uid, testId: scenarioTestId, attemptId: staleAttemptId,
+      status: "in_progress", expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+    });
+    const started = await callable("rmStartExam", { testId: scenarioTestId });
+    assert.ok(started.attemptId);
+    assert.notEqual(started.attemptId, staleAttemptId);
+    let active = (await activeRef.get()).data();
+    assert.equal(active.attemptId, started.attemptId);
+    assert.equal(active.uid, uid);
+    assert.equal(active.testId, scenarioTestId);
+
+    // Concurrent entry into separate sections must create independent clocks.
+    const [technical, general] = await Promise.all([
+      callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Technical Ability" }),
+      callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "General Awareness" })
+    ]);
+    assert.equal(technical.section, "Technical Ability");
+    assert.equal(general.section, "General Awareness");
+    assert.equal(technical.timeLimitMinutes, 2);
+    assert.equal(general.timeLimitMinutes, 1);
+    assert.notEqual(technical.expiresAt, general.expiresAt);
+
+    const resumedTechnical = await callable("rmEnterCbtSection", {
+      attemptId: started.attemptId, section: "Technical Ability"
+    });
+    const resumedGeneral = await callable("rmEnterCbtSection", {
+      attemptId: started.attemptId, section: "General Awareness"
+    });
+    assert.equal(resumedTechnical.expiresAt, technical.expiresAt);
+    assert.equal(resumedGeneral.expiresAt, general.expiresAt);
+    assert.equal(resumedTechnical.resumed, true);
+    assert.equal(resumedGeneral.resumed, true);
+
+    const attemptRef = db.doc("testSeriesAttempts/" + started.attemptId);
+    await attemptRef.update({
+      ["sectionTimings.Technical Ability.expiresAt"]: new Date(Date.now() - 1000)
+    });
+    await assert.rejects(
+      callable("rmEnterCbtSection", { attemptId: started.attemptId, section: "Technical Ability" }),
+      error => error.code === "functions/deadline-exceeded"
+    );
+    const savedAttempt = (await attemptRef.get()).data();
+    assert.equal(new Date(savedAttempt.sectionTimings["General Awareness"].expiresAt.toDate
+      ? savedAttempt.sectionTimings["General Awareness"].expiresAt.toDate()
+      : savedAttempt.sectionTimings["General Awareness"].expiresAt).getTime(),
+      new Date(general.expiresAt).getTime(),
+      "expiring one section must not reset or mutate the other section clock"
+    );
+    active = (await activeRef.get()).data();
+    assert.equal(active.attemptId, started.attemptId);
+  } finally {
+    const scenarioAttempts = await db.collection("testSeriesAttempts")
+      .where("uid", "==", uid).where("testId", "==", scenarioTestId).get().catch(() => null);
+    const attemptIds = scenarioAttempts ? scenarioAttempts.docs.map(doc => doc.id) : [];
+    const cleanupRefs = [
+      ...attemptIds.map(id => db.doc("testSeriesAttempts/" + id)),
+      ...attemptIds.map(id => db.doc("testSeriesResults/" + id)),
+      staleAttemptRef, testRef, paperRef, keyRef,
+      ...(paidAccess ? [
+        paidAccess.paymentRef, paidAccess.orderRef, paidAccess.entitlementRef
+      ] : [])
+    ];
+    await Promise.all(cleanupRefs.map(ref => ref.delete().catch(() => {})));
+    if (previousActive.exists) await activeRef.set(previousActive.data());
+    else await activeRef.delete().catch(() => {});
+  }
+});
+
 test("free test cannot start until the one-time claim is created", async () => {
   const unclaimedTestId = "emulator-unclaimed-free-test";
   await db.doc(`testSeriesTests/${unclaimedTestId}`).set({
