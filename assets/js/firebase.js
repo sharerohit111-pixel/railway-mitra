@@ -6,11 +6,12 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-s
 // Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBhxC-YtYTzDvvc7clufOukgdVUNEvrNj4",
-authDomain: "railway-mitra.firebaseapp.com",
+  authDomain: "railway-mitra.firebaseapp.com",
   projectId: "railway-mitra",
   storageBucket: "railway-mitra.firebasestorage.app",
   messagingSenderId: "697258746002",
-  appId: "1:697258746002:web:811c2627b8874f7212064b"
+  appId: "1:697258746002:web:811c2627b8874f7212064b",
+  measurementId: "G-44W6KK7FSR"
 };
 
 // Initialize Firebase
