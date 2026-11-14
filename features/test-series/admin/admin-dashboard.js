@@ -71,6 +71,16 @@ export function initOwnerAdminDashboard(auth, functions) {
     hasPhoneMfa,
     verifyOwner: async () => (await verifyOwnerSession({})).data,
     signOut: () => signOut(auth),
+    onChecking: () => {
+      clearPaymentHistory();
+      clearTestManagement();
+      clearStudentActivity();
+      clearAnalytics();
+      clearQuestionBank();
+      home.hidden = true;
+      setup.hidden = true;
+      login.hidden = false;
+    },
     onSignedOut: () => {
       clearPaymentHistory();
       clearTestManagement();
