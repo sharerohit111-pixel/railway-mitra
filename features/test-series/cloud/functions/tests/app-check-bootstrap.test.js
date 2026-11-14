@@ -34,16 +34,16 @@ test("deployed callable policy requires App Check and only the Functions Emulato
 
 test("every exported callable uses the shared fail-closed App Check options", () => {
   const source = readRepositoryFile("features/test-series/cloud/functions/index.js");
-  const declarations = [...source.matchAll(/exports\\.(\\w+)\\s*=\\s*onCall\\(([\\s\\S]*?),\\s*async\\s+req\\s*=>/g)];
-  const callCount = (source.match(/\\bonCall\\s*\\(/g) || []).length;
+  const declarations = [...source.matchAll(/exports\.(\w+)\s*=\s*onCall\(([\s\S]*?),\s*async\s+req\s*=>/g)];
+  const callCount = (source.match(/\bonCall\s*\(/g) || []).length;
 
   assert.ok(declarations.length >= 20, "expected the Test Series callable surface to be covered");
   assert.equal(declarations.length, callCount, "every onCall declaration must be matched");
   for (const declaration of declarations) {
     assert.match(declaration[2], /CALLABLE_OPTIONS/, declaration[1] + " must use shared App Check options");
   }
-  assert.match(source, /exports\\.rmRazorpayWebhook\\s*=\\s*onRequest/);
-  assert.match(source, /secrets:\\s*\\[RAZORPAY_WEBHOOK_SECRET\\]/);
+  assert.match(source, /exports\.rmRazorpayWebhook\s*=\s*onRequest/);
+  assert.match(source, /secrets:\s*\[RAZORPAY_WEBHOOK_SECRET\]/);
 });
 
 test("production App Check initializes before Auth, Firestore and Functions clients", () => {
@@ -59,25 +59,25 @@ test("production App Check initializes before Auth, Firestore and Functions clie
     );
   }
 
-  assert.match(bootstrap, /resolveTestSeriesFirebaseMode\\(globalThis\\.location\\)/);
-  assert.match(bootstrap, /initializeApp\\(firebaseConfig,\\s*["']railway-mitra-test-series["']\\)/);
-  assert.match(bootstrap, /bootstrapMode\\.mode === ["']emulator["']\\s*\\?\\s*null\\s*:\\s*initializeRailwayMitraAppCheck\\(app\\)/);
+  assert.match(bootstrap, /resolveTestSeriesFirebaseMode\(globalThis\.location\)/);
+  assert.match(bootstrap, /initializeApp\(firebaseConfig,\s*["']railway-mitra-test-series["']\)/);
+  assert.match(bootstrap, /bootstrapMode\.mode === ["']emulator["']\s*\?\s*null\s*:\s*initializeRailwayMitraAppCheck\(app\)/);
   const appCheckPosition = bootstrap.indexOf("initializeRailwayMitraAppCheck(app)");
   const authPosition = bootstrap.indexOf("getAuth(app)");
   const firestorePosition = bootstrap.indexOf("getFirestore(app)");
-  const functionsPosition = bootstrap.indexOf("getFunctions(app, \"asia-south1\")");
+  const functionsPosition = bootstrap.indexOf('getFunctions(app, "asia-south1")');
   assert.ok(appCheckPosition >= 0 && authPosition > appCheckPosition && firestorePosition > appCheckPosition && functionsPosition > appCheckPosition);
-  assert.doesNotMatch(bootstrap, /from ["'][^"']*assets\\/js\\/firebase\\.js["']/);
-  assert.match(provider, /new ReCaptchaEnterpriseProvider\\(SITE_KEY\\)/);
-  assert.match(provider, /isTokenAutoRefreshEnabled:\\s*true/);
+  assert.doesNotMatch(bootstrap, /from ["'][^"']*assets\/js\/firebase\.js["']/);
+  assert.match(provider, /new ReCaptchaEnterpriseProvider\(SITE_KEY\)/);
+  assert.match(provider, /isTokenAutoRefreshEnabled:\s*true/);
 });
 
 test("emulator bootstrap connects all Firebase services before portal modules execute", () => {
   const bootstrap = readRepositoryFile("features/test-series/cloud/firebase-app-check-init.js");
-  assert.match(bootstrap, /connectAuthEmulator\\(auth,/);
-  assert.match(bootstrap, /connectFirestoreEmulator\\(db,/);
-  assert.match(bootstrap, /connectFunctionsEmulator\\(functions,/);
-  assert.match(bootstrap, /firebaseBootstrapMode = bootstrapMode\\.mode/);
+  assert.match(bootstrap, /connectAuthEmulator\(auth,/);
+  assert.match(bootstrap, /connectFirestoreEmulator\(db,/);
+  assert.match(bootstrap, /connectFunctionsEmulator\(functions,/);
+  assert.match(bootstrap, /firebaseBootstrapMode = bootstrapMode\.mode/);
 });
 
 test("Owner and Student portals consume the dedicated App Check bootstrap", () => {
@@ -86,7 +86,7 @@ test("Owner and Student portals consume the dedicated App Check bootstrap", () =
     "features/test-series/student/portal.js"
   ]) {
     const source = readRepositoryFile(file);
-    assert.match(source, /from ["']\\.\\.\\/cloud\\/firebase-app-check-init\\.js["']/);
-    assert.doesNotMatch(source, /from ["'][^"']*assets\\/js\\/firebase\\.js["']/);
+    assert.match(source, /from ["']\.\.\/cloud\/firebase-app-check-init\.js["']/);
+    assert.doesNotMatch(source, /from ["'][^"']*assets\/js\/firebase\.js["']/);
   }
 });
