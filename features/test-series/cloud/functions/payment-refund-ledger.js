@@ -24,20 +24,13 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
   if (!safeId(eventId)) fail("invalid_event_id", "A valid provider event ID is required");
 
   const refund = event && event.payload && event.payload.refund && event.payload.refund.entity;
-  const providerPayment = event && event.payload && event.payload.payment && event.payload.payment.entity;
-  if (!event || event.event !== "refund.processed" || !refund || refund.status !== "processed" ||
-      !providerPayment || providerPayment.id !== refund.payment_id) {
-    fail("invalid_refund_event", "A processed refund with its matching payment snapshot is required");
+  if (!event || event.event !== "refund.processed" || !refund || refund.status !== "processed") {
+    fail("invalid_refund_event", "A processed refund entity is required");
   }
   if (!safeId(refund.id) || !safeId(refund.payment_id) ||
       !Number.isSafeInteger(refund.amount) || refund.amount <= 0 ||
-      !Number.isSafeInteger(providerPayment.amount) || providerPayment.amount <= 0 ||
-      !Number.isSafeInteger(providerPayment.amount_refunded) ||
-      providerPayment.amount_refunded < refund.amount ||
-      providerPayment.amount_refunded > providerPayment.amount ||
-      typeof refund.currency !== "string" || !/^[A-Z]{3}$/.test(refund.currency) ||
-      providerPayment.currency !== refund.currency) {
-    fail("invalid_refund_fields", "Refund amount, currency or provider payment snapshot is invalid");
+      typeof refund.currency !== "string" || !/^[A-Z]{3}$/.test(refund.currency)) {
+    fail("invalid_refund_fields", "Refund identity, amount or currency is invalid");
   }
 
   const paymentRef = db.doc("testSeriesPayments/" + refund.payment_id);
@@ -64,8 +57,13 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
     if (!paymentSnap.exists) fail("refund_payment_not_found", "Refund does not match a captured payment in this application");
     const payment = paymentSnap.data();
     if (payment.status !== "captured" || payment.paymentId !== refund.payment_id ||
-        payment.amount !== providerPayment.amount || payment.currency !== refund.currency) {
+        payment.currency !== refund.currency || !Number.isSafeInteger(payment.amount) ||
+        payment.amount <= 0 || !Number.isSafeInteger(payment.amountRefunded || 0)) {
       fail("refund_payment_mismatch", "Refund does not match the captured payment ledger");
+    }
+    const nextAmountRefunded = (payment.amountRefunded || 0) + refund.amount;
+    if (!Number.isSafeInteger(nextAmountRefunded) || nextAmountRefunded > payment.amount) {
+      fail("refund_amount_exceeds_payment", "Processed refunds exceed the original captured payment");
     }
     const orderRef = db.doc("testSeriesPaymentOrders/" + payment.razorpayOrderId);
     const entitlementRef = db.doc("testSeriesEntitlements/" + payment.uid + "_" + payment.testId);
@@ -81,8 +79,7 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
       fail("refund_ledger_inconsistent", "Refund order and entitlement do not match the captured payment");
     }
 
-    const fullyRefunded = providerPayment.amount_refunded === payment.amount ||
-      providerPayment.refund_status === "full";
+    const fullyRefunded = nextAmountRefunded === payment.amount;
     const record = {
       refundId: refund.id,
       paymentId: refund.payment_id,
@@ -102,11 +99,13 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
     if (fullyRefunded) {
       tx.update(paymentRef, {
         status: "refunded",
-        amountRefunded: providerPayment.amount_refunded,
+        amountRefunded: nextAmountRefunded,
         refundedAt: FieldValue.serverTimestamp()
       });
       tx.update(orderRef, { status: "refunded", refundedAt: FieldValue.serverTimestamp() });
       tx.update(entitlementRef, { status: "revoked", revokedAt: FieldValue.serverTimestamp(), revokeReason: "full_refund" });
+    } else {
+      tx.update(paymentRef, { amountRefunded: nextAmountRefunded, updatedAt: FieldValue.serverTimestamp() });
     }
     return { duplicate: false, revoked: fullyRefunded, paymentId: refund.payment_id };
   });
