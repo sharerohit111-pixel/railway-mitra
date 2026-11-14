@@ -1,6 +1,6 @@
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
 const { hasVerifiedPhoneMfa } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
@@ -968,12 +968,32 @@ exports.rmOwnerGetResultAnalytics = onCall(CALLABLE_OPTIONS, async req => {
 // Student catalogue exposes published metadata only; question sets and answer keys stay private.
 exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req);
+  const requestedPageSize = req.data?.pageSize === undefined ? 100 : Number(req.data.pageSize);
+  if (!Number.isInteger(requestedPageSize) || requestedPageSize < 1 || requestedPageSize > 100) {
+    throw new HttpsError("invalid-argument", "pageSize must be an integer from 1 to 100");
+  }
+  const cursorId = req.data?.cursor === undefined || req.data?.cursor === null || req.data?.cursor === ""
+    ? null : id(req.data.cursor);
+  let query = db.collection("testSeriesTests")
+    .where("status", "==", "published")
+    .orderBy(FieldPath.documentId())
+    .limit(requestedPageSize + 1);
+  if (cursorId) {
+    const cursorSnap = await db.doc("testSeriesTests/" + cursorId).get();
+    if (!cursorSnap.exists || cursorSnap.data().status !== "published") {
+      throw new HttpsError("invalid-argument", "Catalogue cursor is no longer valid");
+    }
+    query = query.startAfter(cursorSnap);
+  }
   const [snap, freeConfig] = await Promise.all([
-    db.collection("testSeriesTests").where("status", "==", "published").limit(100).get(),
+    query.get(),
     db.doc("testSeriesConfig/freeTest").get()
   ]);
+  const hasMore = snap.docs.length > requestedPageSize;
+  const pageDocs = hasMore ? snap.docs.slice(0, requestedPageSize) : snap.docs;
+  const nextCursor = hasMore && pageDocs.length ? pageDocs[pageDocs.length - 1].id : null;
   const freeTestId = freeConfig.exists && freeConfig.data().enabled ? freeConfig.data().testId : null;
-  const tests = await Promise.all(snap.docs.map(async d => {
+  const tests = await Promise.all(pageDocs.map(async d => {
     const t = d.data(), price = Number(t.price || 0);
     let accessType = d.id === freeTestId ? "free_trial" : (price > 0 ? "paid" : "unavailable");
     if (price > 0 && accessType !== "free_trial") {
@@ -1010,7 +1030,7 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
     };
   }));
   tests.sort((a, b) => a.title.localeCompare(b.title));
-  return { tests };
+  return { tests, nextCursor, hasMore };
 });
 
 
