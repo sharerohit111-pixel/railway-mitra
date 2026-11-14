@@ -100,25 +100,44 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
       if (eventSnap.exists && !refundSnap.exists) {
         fail("refund_ledger_inconsistent", "Processed refund event is missing its refund ledger record");
       }
+      let priorEvent = null;
       if (refundSnap.exists) {
         const priorRefund = refundSnap.data();
         if (priorRefund.status !== "processed" ||
             priorRefund.refundId !== refund.id ||
             priorRefund.paymentId !== refund.payment_id ||
             priorRefund.amount !== refund.amount ||
-            priorRefund.currency !== refund.currency) {
+            priorRefund.currency !== refund.currency ||
+            !safeId(priorRefund.eventId)) {
           fail("refund_id_conflict", "Refund ID was reused for a different or incomplete refund");
         }
-      }
-      let priorEvent = null;
-      if (eventSnap.exists) {
-        priorEvent = eventSnap.data();
-        if (priorEvent.eventId !== eventId ||
+        if (eventSnap.exists && priorRefund.eventId !== eventId) {
+          fail("refund_id_conflict", "Provider event ID was already used for a different refund delivery");
+        }
+        const originalEventSnap = priorRefund.eventId === eventId
+          ? eventSnap
+          : await tx.get(db.doc("testSeriesPaymentEvents/" + priorRefund.eventId));
+        if (!originalEventSnap.exists) {
+          fail("refund_ledger_inconsistent", "Refund record is missing its original event record");
+        }
+        priorEvent = originalEventSnap.data();
+        if (priorEvent.eventId !== priorRefund.eventId ||
             priorEvent.status !== "refund_processed" ||
             priorEvent.refundId !== refund.id ||
             priorEvent.paymentId !== refund.payment_id ||
             priorEvent.amount !== refund.amount ||
             priorEvent.currency !== refund.currency) {
+          fail("refund_ledger_inconsistent", "Original refund event does not match its refund record");
+        }
+      }
+      if (eventSnap.exists) {
+        const currentEvent = eventSnap.data();
+        if (currentEvent.eventId !== eventId ||
+            currentEvent.status !== "refund_processed" ||
+            currentEvent.refundId !== refund.id ||
+            currentEvent.paymentId !== refund.payment_id ||
+            currentEvent.amount !== refund.amount ||
+            currentEvent.currency !== refund.currency) {
           fail("refund_id_conflict", "Provider event ID was reused for a different refund");
         }
       }

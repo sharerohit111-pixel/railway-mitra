@@ -78,6 +78,25 @@ test("duplicate refund replay fails closed when the entitlement has drifted", as
   );
 });
 
+test("same refund under a new event ID verifies the original event and stays write-free", async () => {
+  const h = harness();
+  await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_original" });
+  const duplicate = await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_delivery_2" });
+  assert.equal(duplicate.duplicate, true);
+  assert.equal(duplicate.revoked, true);
+  assert.equal(h.docs.has("testSeriesPaymentEvents/evt_refund_delivery_2"), false);
+});
+
+test("new-event refund replay fails when the original event record is missing", async () => {
+  const h = harness();
+  await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_original_missing" });
+  h.docs.delete("testSeriesPaymentEvents/evt_refund_original_missing");
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_delivery_after_missing" }),
+    { code: "refund_ledger_inconsistent" }
+  );
+});
+
 test("event ledger without its refund record is not acknowledged as a duplicate", async () => {
   const h = harness();
   await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_partial_record" });
