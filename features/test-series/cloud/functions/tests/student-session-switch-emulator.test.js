@@ -56,11 +56,11 @@ async function getEmulatorSmsCode(phoneNumber) {
     responseKeys = Object.keys(payload || {});
     const wanted = normalizeEmulatorPhoneNumber(phoneNumber);
     const matchingEntries = entries.filter(item => normalizeEmulatorPhoneNumber(item.phoneNumber) === wanted);
-    const match = matchingEntries.find(item => /^\\d{6}$/.test(String(item.code ?? "")));
+    const match = matchingEntries.find(item => /^\d{6}$/.test(String(item.code ?? "")));
     observedEntries = matchingEntries.map(item => ({
       keys: Object.keys(item || {}),
       codeType: typeof item.code,
-      hasUsableCode: /^\\d{6}$/.test(String(item.code ?? ""))
+      hasUsableCode: /^\d{6}$/.test(String(item.code ?? ""))
     }));
     if (match) return String(match.code);
     await delay(25);
