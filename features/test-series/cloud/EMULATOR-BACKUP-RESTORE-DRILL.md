@@ -24,6 +24,10 @@ The emulator configuration uses the CBT Firestore Rules file and both Functions 
 
 Do not put exports inside a tracked source directory. Use a local ignored directory such as `.local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS`. Confirm the directory is ignored before running the drill; never commit emulator exports.
 
+## Automated CI smoke coverage
+
+The `Test Series CBT emulator tests` GitHub Actions workflow also runs a synthetic Auth + Firestore export/import smoke test. It creates one clearly synthetic Auth user and one Firestore document in a `demo-*` emulator project, exports emulator state on clean shutdown, starts a fresh emulator with that export imported, verifies both records, and deletes the synthetic records. The CI test does not connect to a Firebase project or use production credentials. Check the workflow run result before treating the smoke test as passed.
+
 ## Create a synthetic local snapshot
 
 1. Start the emulators with the isolated configuration:
@@ -76,6 +80,7 @@ Record:
 - Export command result and saved directory.
 - Restore command result.
 - CBT tests and Firestore Rules test outcomes.
+- Automated Auth/Firestore export-import smoke workflow result, if run.
 - Any missing records or rule regressions.
 - Operator and review outcome.
 
