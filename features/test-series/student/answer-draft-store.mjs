@@ -63,13 +63,29 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
       .map(question => [question.id, question])
   );
 
+  const seenQuestionIds = new Set();
+  const ambiguousQuestionIds = new Set();
+
   for (const pair of entries) {
     if (!Array.isArray(pair) || pair.length !== 2) {
       discarded++;
       continue;
     }
     const [questionId, value] = pair;
-    const question = typeof questionId === "string" ? validQuestions.get(questionId) : null;
+    if (typeof questionId === "string") {
+      if (seenQuestionIds.has(questionId)) {
+        // A duplicated key is ambiguous. Remove an earlier accepted value and
+        // discard every occurrence rather than silently using last-write-wins.
+        if (answers.delete(questionId)) discarded++;
+        ambiguousQuestionIds.add(questionId);
+        discarded++;
+        continue;
+      }
+      seenQuestionIds.add(questionId);
+    }
+    const question = typeof questionId === "string" && !ambiguousQuestionIds.has(questionId)
+      ? validQuestions.get(questionId)
+      : null;
     // Only accept the exact string format written by this module. Number(null),
     // Number(false), and Number([]) all become zero and must not restore option A.
     if (!question || typeof value !== "string" || !/^(0|[1-9]\d*)$/.test(value)) {

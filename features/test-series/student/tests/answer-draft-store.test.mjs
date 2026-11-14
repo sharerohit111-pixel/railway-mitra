@@ -161,3 +161,22 @@ test("enforces the 128 KiB limit using UTF-8 bytes, not JavaScript string length
   assert.equal(writeStorage.getItem("draft"), previousDraft);
 });
 
+
+
+test("discards all answers for duplicate question IDs instead of applying last-write-wins", () => {
+  const storage = makeStorage({
+    draft: JSON.stringify([["q1", "0"], ["q2", "1"], ["q1", "2"], ["q1", "3"]])
+  });
+  const restored = readPendingAnswerDraft({ storage, key: "draft", questions });
+  assert.deepEqual([...restored.answers], [["q2", "1"]]);
+  assert.equal(restored.discarded, 3);
+});
+
+test("does not let a later duplicate rescue an earlier malformed answer", () => {
+  const storage = makeStorage({
+    draft: JSON.stringify([["q1", null], ["q1", "1"], ["q2", "0"]])
+  });
+  const restored = readPendingAnswerDraft({ storage, key: "draft", questions });
+  assert.deepEqual([...restored.answers], [["q2", "0"]]);
+  assert.equal(restored.discarded, 2);
+});
