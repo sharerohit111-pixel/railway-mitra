@@ -38,7 +38,7 @@ async function showView(name) {
     if (!response.ok) throw new Error("Test catalogue could not be loaded.");
     if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
     view.innerHTML = markup;
-    await initStudentTestCatalogue({ app, root: document, onStart: async ({ test }) => {
+    await initStudentTestCatalogue({ app, studentUid: sessionUid, root: document, onStart: async ({ test }) => {
       if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
       currentTestId = test.testId;
       await showExam(test);
