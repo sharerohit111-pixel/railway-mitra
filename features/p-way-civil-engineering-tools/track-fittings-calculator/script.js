@@ -34,6 +34,7 @@ const translations = {
     qty2: "2 Nos. / Sleeper",
     jointNote: "For Fishplated / Glued Joints",
     warn52on60: "Note: Combination liners (different GS & NGS) are required when laying 52 kg rail on a 60 kg sleeper.",
+    warn52on8746: "Note: For the RT-8746 wider-base sleeper with 52 kg rail, the listed GS and NGS liner references are different. Verify the exact approved combination against the applicable RDSO drawing before field use.",
     warnNotRec: "Note: Laying 60 kg rail on a 52 kg sleeper (RT-2495) is generally not standard practice on Indian Railways.",
     warn8527_52kg: "Important: The 52 kg rail combination for RT-8527 contains provisional drawing references marked “Check RDSO”. Do not use these references for field work until verified against the latest applicable RDSO drawing and railway instructions.",
     mappingUnavailable: "No verified fitting combination is available for this selection. Do not use a substitute; confirm the applicable RDSO drawing and railway instructions."
@@ -71,6 +72,7 @@ const translations = {
     qty2: "2 नग / प्रति स्लीपर",
     jointNote: "फिशप्लेट / ग्लूड जॉइंट के लिए",
     warn52on60: "नोट: 60 kg स्लीपर पर 52 kg रेल बिछाने के लिए GS और NGS में अलग-अलग कॉम्बिनेशन लाइनर लगते हैं।",
+    warn52on8746: "नोट: RT-8746 वाइडर-बेस स्लीपर पर 52 kg रेल के लिए सूचीबद्ध GS और NGS लाइनर संदर्भ अलग-अलग हैं। फील्ड में उपयोग से पहले लागू RDSO ड्राइंग से स्वीकृत संयोजन की पुष्टि करें।"
     warnNotRec: "नोट: 52 kg स्लीपर (RT-2495) पर 60 kg रेल बिछाना भारतीय रेलवे में मानक (Standard) नहीं है।",
     warn8527_52kg: "महत्वपूर्ण: RT-8527 पर 52 kg रेल के लिए कुछ ड्राइंग संदर्भ “Check RDSO” के रूप में अस्थायी हैं। फील्ड में उपयोग से पहले नवीनतम लागू RDSO ड्राइंग और रेलवे निर्देशों से इनकी पुष्टि अवश्य करें।",
     mappingUnavailable: "इस चयन के लिए सत्यापित फिटिंग संयोजन उपलब्ध नहीं है। कोई दूसरा फिटिंग विकल्प स्वयं न चुनें; लागू RDSO ड्राइंग और रेलवे निर्देशों से पुष्टि करें।"
@@ -144,7 +146,7 @@ const rdsoData = {
     grsp: "RT-8747 (10mm)",
     insert: "RT-8745",
     cutLiner: "RT-4322",
-    warn: "warn52on60"
+    warn: "warn52on8746"
   },
   "RT-8527_60kg": {
     erc: "RT-5919 (Mk-V)",
