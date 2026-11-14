@@ -17,7 +17,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
   const lifecycle = createCbtExamLifecycle();
   const isActive = () => lifecycle.isActive();
-  const status = message => { el("rm-cbt-status").textContent=message; };
+  const status = message => { if (isActive()) el("rm-cbt-status").textContent=message; };
   const storageIdentity = { appId: app?.options?.appId || "app", studentUid, testId };
   const attemptKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "attempt" });
   const draftKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "pending", attemptId });
