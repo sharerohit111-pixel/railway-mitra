@@ -2,10 +2,10 @@
 /* =========================================
    RAILWAY MITRA
    SERVICE WORKER
-   Version: 1.0.0
+   Version: 1.0.1
    ========================================= */
 
-const CACHE_NAME = "railway-mitra-v3";
+const CACHE_NAME = "railway-mitra-v4";
 
 /* INSTALL */
 self.addEventListener("install", (event) => {
