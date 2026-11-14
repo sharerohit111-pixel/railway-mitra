@@ -43,7 +43,7 @@ async function authEmulatorRequest(path, { method = "GET", body } = {}) {
 }
 
 function normalizeEmulatorPhoneNumber(value) {
-  return typeof value === "string" ? value.replace(/\\D/g, "") : "";
+  return typeof value === "string" ? value.replace(/[^0-9]/g, "") : "";
 }
 
 async function getEmulatorSmsCode(phoneNumber) {
