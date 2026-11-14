@@ -95,7 +95,8 @@ test("logout persists a same-student lock and exposes retry when Firebase signOu
   assert.ok(catchStart > signOutCall, "logout handles sign-out failure");
   assert.match(catchBody, /logoutRecovery\.block\(signingOutUid\)/);
   assert.match(catchBody, /retrySignOutButton\.hidden = false/);
-  assert.match(catchBody, /setOtpControlsLocked\(true\)/);
+  const lockBeforeAwait = portal.indexOf("setOtpControlsLocked(true)", logoutStart);
+  assert.ok(lockBeforeAwait > logoutStart && lockBeforeAwait < signOutCall, "OTP controls are locked before awaiting sign-out");
   assert.ok(!catchBody.includes("setOtpControlsLocked(false)"), "OTP controls remain locked after an unconfirmed sign-out");
 });
 
