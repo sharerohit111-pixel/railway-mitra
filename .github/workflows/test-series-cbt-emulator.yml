@@ -6,6 +6,7 @@ on:
       - feature/test-series-cloud-access
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/README.md"
       - "features/test-series/student/**"
       - "firebase.json"
       - "firebase.test-series-cbt-emulator.json"
@@ -13,6 +14,7 @@ on:
   pull_request:
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/README.md"
       - "features/test-series/student/**"
       - "firebase.json"
       - "firebase.test-series-cbt-emulator.json"

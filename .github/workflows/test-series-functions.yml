@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/README.md"
       - "features/test-series/cloud/student-client.js"
       - "features/test-series/student/**"
       - "features/test-series/admin/**"
@@ -15,6 +16,7 @@ on:
       - feature/test-series-cloud-access
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/README.md"
       - "features/test-series/cloud/student-client.js"
       - "features/test-series/student/**"
       - "features/test-series/admin/**"
