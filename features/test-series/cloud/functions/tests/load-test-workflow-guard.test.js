@@ -12,6 +12,18 @@ const functionsWorkflow = readWorkflow("test-series-functions.yml");
 const firestoreLoadWorkflow = readWorkflow("test-series-firestore-load-emulator.yml");
 const callableLoadWorkflow = readWorkflow("test-series-callable-load-emulator.yml");
 
+
+function eventPathFilters(workflow, eventName) {
+  const event = workflow.match(new RegExp(
+    "^  " + eventName + ":\\n([\\s\\S]*?)(?=^  [A-Za-z_][\\w-]*:\\n|^permissions:)",
+    "m"
+  ));
+  assert.ok(event, eventName + " trigger must be present");
+  const paths = event[1].match(/^    paths:\\n((?:      - [^\\n]+\\n)+)/m);
+  assert.ok(paths, eventName + " path filters must be explicit");
+  return [...paths[1].matchAll(/^      - "([^"]+)"$/gm)].map(match => match[1]);
+}
+
 function assertManualOptInWorkflow(workflow, label) {
   const onStart = workflow.indexOf("\non:");
   const permissionsStart = workflow.indexOf("\npermissions:");
@@ -43,6 +55,22 @@ test("automated Test Series validation workflows grant only read-only repository
       ["contents: read"],
       label + " must not receive write or broader token permissions"
     );
+  }
+});
+
+
+test("security-sensitive Firestore Rules and App Check changes trigger the right CI workflows", () => {
+  for (const eventName of ["push", "pull_request"]) {
+    const cbtPaths = eventPathFilters(cbtWorkflow, eventName);
+    const functionsPaths = eventPathFilters(functionsWorkflow, eventName);
+    assert.ok(cbtPaths.includes("features/test-series/cloud/firestore.rules"),
+      "CBT " + eventName + " must run when isolated Firestore Rules change");
+    assert.ok(functionsPaths.includes("features/test-series/cloud/firestore.rules"),
+      "Functions " + eventName + " validation must run when isolated Firestore Rules change");
+    assert.ok(functionsPaths.includes("features/test-series/cloud/app-check.js"),
+      "Functions " + eventName + " validation must run when App Check initialization changes");
+    assert.ok(functionsPaths.includes("features/test-series/cloud/firebase-app-check-init.js"),
+      "Functions " + eventName + " validation must run when Firebase/App Check bootstrap changes");
   }
 });
 

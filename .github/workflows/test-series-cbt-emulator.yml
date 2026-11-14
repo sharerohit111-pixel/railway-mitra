@@ -6,6 +6,7 @@ on:
       - feature/test-series-cloud-access
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/firestore.rules"
       - "features/test-series/cloud/README.md"
       - "features/test-series/student/**"
       - "firebase.json"
@@ -14,6 +15,7 @@ on:
   pull_request:
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/firestore.rules"
       - "features/test-series/cloud/README.md"
       - "features/test-series/student/**"
       - "firebase.json"

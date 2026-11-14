@@ -141,3 +141,8 @@ The CBT Firestore Emulator regression sends a raw-body-HMAC-verified full-refund
 The automated Test Series Functions validation and CBT Emulator workflows grant the GitHub Actions token only `contents: read`. Their syntax, Owner/student regression and emulator checks do not require repository write access. A regression test in `functions/tests/load-test-workflow-guard.test.js` keeps this least-privilege policy explicit for both workflows.
 
 The separate Firestore and callable load-test workflows remain manual-only and require the explicit `confirm_load_test` input. Do not dispatch either load-test workflow without the user's separate approval; ordinary CBT CI must never invoke a load harness.
+
+
+## Security-sensitive CI path coverage
+
+The normal CBT Emulator workflow must run for every change to `features/test-series/cloud/firestore.rules`, on both feature-branch pushes and pull requests, because that workflow executes the Firestore Rules Emulator suite. The Functions validation workflow also runs for changes to those rules and to `app-check.js` or `firebase-app-check-init.js`, so security bootstrap and rules changes cannot bypass the routine validation path. A regression test in `functions/tests/load-test-workflow-guard.test.js` asserts these path filters for both events. The shared root `firestore.indexes.json` is intentionally not included in this Test Series-only trigger list because it is shared repository configuration and may change for unrelated Railway Mitra modules.
