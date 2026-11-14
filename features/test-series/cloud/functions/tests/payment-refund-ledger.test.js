@@ -1,0 +1,87 @@
+"use strict";
+
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
+const { applyProcessedRefund } = require("../payment-refund-ledger");
+
+function harness({ amountRefunded = 49900, refundAmount = 49900, refundStatus = "full" } = {}) {
+  const docs = new Map([
+    ["testSeriesPayments/pay_refund_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "captured" }],
+    ["testSeriesPaymentOrders/order_refund_1", { paymentId: "pay_refund_1", uid: "student_1", testId: "test_1", status: "paid" }],
+    ["testSeriesEntitlements/student_1_test_1", { paymentId: "pay_refund_1", uid: "student_1", testId: "test_1", status: "active" }]
+  ]);
+  const db = {
+    doc(path) { return { path }; },
+    async runTransaction(fn) {
+      const writes = [];
+      const tx = {
+        async get(ref) { return { exists: docs.has(ref.path), data: () => docs.get(ref.path) }; },
+        create(ref, value) { writes.push(["create", ref.path, value]); },
+        update(ref, value) { writes.push(["update", ref.path, value]); }
+      };
+      const result = await fn(tx);
+      for (const [op, path, value] of writes) {
+        if (op === "create" && docs.has(path)) throw new Error("already exists");
+        docs.set(path, { ...(docs.get(path) || {}), ...value });
+      }
+      return result;
+    }
+  };
+  const event = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_1", payment_id: "pay_refund_1", amount: refundAmount, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_refund_1", amount: 49900, amount_refunded: amountRefunded, currency: "INR", refund_status: refundStatus, status: "captured" } }
+    }
+  };
+  return { db, event, docs };
+}
+
+test("fully processed refund revokes matching paid access atomically", async () => {
+  const h = harness();
+  const result = await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_1" });
+  assert.equal(result.revoked, true);
+  assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "refunded");
+  assert.equal(h.docs.get("testSeriesPaymentOrders/order_refund_1").status, "refunded");
+  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "revoked");
+  assert.equal(h.docs.get("testSeriesRefunds/rfnd_1").status, "processed");
+});
+
+test("partial refund is recorded without revoking access", async () => {
+  const h = harness({ amountRefunded: 10000, refundAmount: 10000, refundStatus: "partial" });
+  const result = await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_partial_1" });
+  assert.equal(result.revoked, false);
+  assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
+  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "active");
+  assert.equal(h.docs.get("testSeriesRefunds/rfnd_1").status, "processed");
+});
+
+test("duplicate refund delivery is idempotent", async () => {
+  const h = harness();
+  await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_1" });
+  const duplicate = await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_1" });
+  assert.equal(duplicate.duplicate, true);
+  assert.equal(duplicate.revoked, true);
+});
+
+test("rejects refund identity, amount and payment mismatches", async () => {
+  const h = harness();
+  const badId = structuredClone(h.event);
+  badId.payload.refund.entity.payment_id = "pay_other";
+  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: badId, eventId: "evt_bad_1" }), { code: "invalid_refund_event" });
+
+  const badAmount = structuredClone(h.event);
+  badAmount.payload.refund.entity.amount = 0;
+  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: badAmount, eventId: "evt_bad_2" }), { code: "invalid_refund_fields" });
+
+  const mismatch = structuredClone(h.event);
+  mismatch.payload.payment.entity.amount = 50000;
+  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: mismatch, eventId: "evt_bad_3" }), { code: "refund_payment_mismatch" });
+});
+
+test("does not revoke access for refund events that are not processed", async () => {
+  const h = harness();
+  h.event.payload.refund.entity.status = "pending";
+  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_pending_1" }), { code: "invalid_refund_event" });
+  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "active");
+});
