@@ -907,6 +907,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   const questionBankForm = el("rm-admin-question-bank-form");
   const questionBankMore = el("rm-qb-load-more");
   let questionBankGeneration = 0;
+  let questionBankSessionGeneration = 0;
   let questionBankCursor = null;
   let questionBankFilters = { topic: "", chapter: "", folder: "" };
   let questionBankItems = [];
@@ -985,6 +986,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     el("rm-qb-cancel-edit").hidden = true;
   }
   function clearQuestionBank() {
+    questionBankSessionGeneration += 1;
     questionBankGeneration += 1;
     questionBankCursor = null;
     questionBankItems = [];
@@ -1044,13 +1046,19 @@ export function initOwnerAdminDashboard(auth, functions) {
       const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Delete";
       remove.addEventListener("click", async () => {
         if (!window.confirm("क्या यह प्रश्न स्थायी रूप से हटाना चाहते हैं?")) return;
+        const sessionGeneration = questionBankSessionGeneration;
         remove.disabled = true;
         try {
           await httpsCallable(functions, "rmOwnerDeleteQuestionBankItem")({ itemId: item.itemId });
+          if (sessionGeneration !== questionBankSessionGeneration) return;
           if (el("rm-qb-item-id").value === item.itemId) resetQuestionBankForm();
           questionBankStatus.textContent = "प्रश्न हटा दिया गया।";
           await refreshQuestionBank();
-        } catch (error) { questionBankStatus.textContent = error.message || "प्रश्न हटाया नहीं जा सका।"; remove.disabled = false; }
+        } catch (error) {
+          if (sessionGeneration !== questionBankSessionGeneration) return;
+          questionBankStatus.textContent = error.message || "प्रश्न हटाया नहीं जा सका।";
+          remove.disabled = false;
+        }
       });
       actions.append(edit, addToTest, remove);
       card.append(selectLabel, heading, detail, actions); questionBankList.append(card);
@@ -1108,6 +1116,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   questionBankForm.addEventListener("submit", async event => {
     event.preventDefault();
+    const sessionGeneration = questionBankSessionGeneration;
     const submit = el("rm-qb-save"); submit.disabled = true;
     questionBankStatus.textContent = "प्रश्न सुरक्षित किया जा रहा है…";
     try {
@@ -1125,11 +1134,14 @@ export function initOwnerAdminDashboard(auth, functions) {
         ...(itemId ? { itemId } : {}), topic: el("rm-qb-topic").value,
         chapter: el("rm-qb-chapter").value, folder: el("rm-qb-folder").value, question
       });
+      if (sessionGeneration !== questionBankSessionGeneration) return;
       resetQuestionBankForm();
       questionBankStatus.textContent = itemId ? "प्रश्न में बदलाव सुरक्षित हो गया।" : "प्रश्न सुरक्षित हो गया।";
       await refreshQuestionBank();
-    } catch (error) { questionBankStatus.textContent = error.message || "प्रश्न सुरक्षित नहीं हुआ।"; }
-    finally { submit.disabled = false; }
+    } catch (error) {
+      if (sessionGeneration !== questionBankSessionGeneration) return;
+      questionBankStatus.textContent = error.message || "प्रश्न सुरक्षित नहीं हुआ।";
+    } finally { submit.disabled = false; }
   });
   el("rm-qb-cancel-edit").addEventListener("click", resetQuestionBankForm);
   el("rm-qb-add-scope").addEventListener("click", () => {
@@ -1186,6 +1198,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     refreshQuestionBank();
   });
   el("rm-qb-bulk-import").addEventListener("click", async () => {
+    const sessionGeneration = questionBankSessionGeneration;
     const file = el("rm-qb-bulk-file").files?.[0];
     if (!file) { questionBankStatus.textContent = "पहले Excel, CSV या JSON file चुनें।"; return; }
     const button = el("rm-qb-bulk-import"); button.disabled = true;
@@ -1238,12 +1251,16 @@ export function initOwnerAdminDashboard(auth, functions) {
           throw new Error("पंक्ति " + (index + 1) + ": विषय, अध्याय और फ़ोल्डर भरें।");
         }
       });
+      if (sessionGeneration !== questionBankSessionGeneration) return;
       const result = await httpsCallable(functions, "rmOwnerBulkSaveQuestionBank")({ items });
+      if (sessionGeneration !== questionBankSessionGeneration) return;
       questionBankStatus.textContent = result.data.saved + " प्रश्न सुरक्षित हुए।";
       el("rm-qb-bulk-file").value = "";
       await refreshQuestionBank();
-    } catch (error) { questionBankStatus.textContent = error.message || "Bulk import पूरा नहीं हुआ।"; }
-    finally { button.disabled = false; }
+    } catch (error) {
+      if (sessionGeneration !== questionBankSessionGeneration) return;
+      questionBankStatus.textContent = error.message || "Bulk import पूरा नहीं हुआ।";
+    } finally { button.disabled = false; }
   });
   const analyticsPanel = el("rm-admin-analytics-panel");
   const analyticsStatus = el("rm-admin-analytics-status");
