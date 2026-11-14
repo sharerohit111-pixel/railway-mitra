@@ -1657,3 +1657,66 @@ test("webhook safely recovers after a transient Firestore transaction failure", 
     await Promise.all([orderRef, paymentRef, eventRef, entitlementRef].map(ref => ref.delete().catch(() => {})));
   }
 });
+
+
+test("student test catalogue paginates published tests with stable document cursors", async () => {
+  const ids = [
+    "emulator-catalogue-page-a",
+    "emulator-catalogue-page-b",
+    "emulator-catalogue-page-c",
+    "emulator-catalogue-page-d",
+    "emulator-catalogue-page-e"
+  ];
+  const refs = ids.map(id => db.doc("testSeriesTests/" + id));
+  try {
+    const batch = db.batch();
+    refs.forEach((ref, index) => batch.set(ref, {
+      title: "Catalogue Page " + index,
+      status: "published",
+      price: 0,
+      mode: "mock",
+      durationMinutes: 10,
+      questionCount: 1
+    }));
+    await batch.commit();
+
+    const first = await callable("rmListAvailableTests", { pageSize: 2 });
+    assert.equal(first.tests.length, 2);
+    assert.equal(first.hasMore, true);
+    assert.ok(first.nextCursor);
+    assert.deepEqual(first.tests.map(item => item.testId), ids.slice(0, 2));
+
+    const second = await callable("rmListAvailableTests", {
+      pageSize: 2,
+      cursor: first.nextCursor
+    });
+    assert.equal(second.tests.length, 2);
+    assert.equal(second.hasMore, true);
+    assert.ok(second.nextCursor);
+    assert.deepEqual(second.tests.map(item => item.testId), ids.slice(2, 4));
+
+    const third = await callable("rmListAvailableTests", {
+      pageSize: 2,
+      cursor: second.nextCursor
+    });
+    assert.equal(third.tests.length, 1);
+    assert.equal(third.hasMore, false);
+    assert.equal(third.nextCursor, null);
+    assert.deepEqual(third.tests.map(item => item.testId), ids.slice(4));
+
+    const all = [...first.tests, ...second.tests, ...third.tests];
+    assert.equal(new Set(all.map(item => item.testId)).size, ids.length);
+    assert.deepEqual(all.map(item => item.testId), ids);
+
+    await assert.rejects(
+      callable("rmListAvailableTests", { pageSize: 0 }),
+      error => error.code === "functions/invalid-argument"
+    );
+    await assert.rejects(
+      callable("rmListAvailableTests", { pageSize: 2, cursor: "emulator-missing-catalogue-cursor" }),
+      error => error.code === "functions/invalid-argument"
+    );
+  } finally {
+    await Promise.all(refs.map(ref => ref.delete().catch(() => {})));
+  }
+});
