@@ -73,7 +73,7 @@ test("logout clears the prior workspace and OTP confirmation before awaiting Fir
   const logoutStart = portal.indexOf('logoutButton.addEventListener("click", async () => {');
   const invalidation = portal.indexOf("invalidateStudentPortalSession(portalState", logoutStart);
   const confirmationClear = portal.indexOf("confirmation = null", logoutStart);
-  const sendDisabled = portal.indexOf("sendOtpButton.disabled = true", logoutStart);
+  const sendDisabled = portal.indexOf("setOtpControlsLocked(true)", logoutStart);
   const signOutCall = portal.indexOf("await signOut(auth)", logoutStart);
 
   assert.ok(logoutStart >= 0, "logout handler exists");
