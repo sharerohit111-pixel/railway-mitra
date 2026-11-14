@@ -16,7 +16,7 @@ on:
       concurrency:
         description: "Concurrent students (1–500)"
         required: true
-        default: "50"
+        default: "20"
         type: string
       questions:
         description: "Questions per student (1–100)"
