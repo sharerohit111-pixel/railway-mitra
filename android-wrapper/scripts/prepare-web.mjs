@@ -99,5 +99,18 @@ if (!appHtml.includes(shareScript)) {
 appHtml = appHtml.replace(shareScript, '<script src="assets/js/native-share.js"></script>\\n    ' + shareScript);
 fs.writeFileSync(appHtmlPath, appHtml);
 
+// Inject the updater bridge only into the staged Android web bundle.
+for (const page of ['index.html', 'app.html']) {
+  const pagePath = path.join(webRoot, page);
+  let html = fs.readFileSync(pagePath, 'utf8');
+  const updaterScript = '<script src="assets/js/native-updater.js"></script>';
+  if (!html.includes(updaterScript)) {
+    const headClose = html.toLowerCase().lastIndexOf('</head>');
+    if (headClose < 0) throw new Error(`Could not find </head> in staged ${page}.`);
+    html = html.slice(0, headClose) + '    ' + updaterScript + '\\n' + html.slice(headClose);
+    fs.writeFileSync(pagePath, html);
+  }
+}
+
 console.log(`Prepared local Android web bundle at: ${webRoot}`);
 console.log(`Packaged ${runtimeEntries.length} runtime entries.`);
