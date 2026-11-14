@@ -3,6 +3,7 @@ import { readPendingAnswerDraft, writePendingAnswerDraft } from "./answer-draft-
 import { buildCbtStorageKey } from "./attempt-storage-key.mjs";
 import { lockCbtExamControls } from "./exam-interaction-lock.mjs";
 import { restoreCbtOptionFocus } from "./exam-focus.mjs";
+import { createCbtExamLifecycle } from "./exam-lifecycle.mjs";
 
 export function initStudentCbtExam({ app, testId, studentUid, root = document }) {
   if (typeof studentUid !== "string" || !studentUid.trim()) {
@@ -14,19 +15,22 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
   let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
+  const lifecycle = createCbtExamLifecycle();
+  const isActive = () => lifecycle.isActive();
   const status = message => { el("rm-cbt-status").textContent=message; };
   const storageIdentity = { appId: app?.options?.appId || "app", studentUid, testId };
   const attemptKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "attempt" });
   const draftKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "pending", attemptId });
   const positionKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "position", attemptId });
   function showResult(score, warning=""){
+    if (!isActive()) return;
     clearInterval(timer);
     startPanel.hidden=true;workspace.hidden=true;resultPanel.hidden=false;
     try{if(attemptId)localStorage.removeItem(draftKey());}catch(_){}
     el("rm-cbt-score").textContent="Score: "+score.score+" · Correct: "+score.correct+" · Wrong: "+score.wrong+" · Unattempted: "+score.unattempted+(score.timedOut?" · Time expired":"")+(warning?" · "+warning:"");
   }
   function persistPending(){
-    if(!attemptId)return;
+    if(!isActive() || !attemptId)return;
     let storage;
     try { storage=window.localStorage; } catch (_) {}
     const saved=writePendingAnswerDraft({storage,key:draftKey(),entries:[...pendingAnswers.entries()]});
@@ -54,27 +58,28 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   }
   let navigationRequest = 0;
   async function activateQuestion(nextIndex){
-    if (finished) return;
+    if (!isActive() || finished) return;
     const request = ++navigationRequest;
     const question = paper.questions[nextIndex];
     if (!isQuestionAvailable(question)) throw new Error("इस सेक्शन का समय समाप्त हो चुका है।");
     if (question?.section) {
       const timing = await enterCbtSection(app, attemptId, question.section);
       // A slower response from an earlier click must never override a newer navigation.
-      if(finished || request !== navigationRequest) return;
+      if(!isActive() || finished || request !== navigationRequest) return;
       sectionExpiresAt = timing.timeLimitMinutes ? new Date(timing.expiresAt).getTime() : 0;
       paper.sectionTimings = paper.sectionTimings || {};
       if (timing.timeLimitMinutes) paper.sectionTimings[question.section] = { startedAt: timing.startedAt, expiresAt: timing.expiresAt };
     } else {
-      if(finished || request !== navigationRequest) return;
+      if(!isActive() || finished || request !== navigationRequest) return;
       sectionExpiresAt = 0;
     }
     index = nextIndex;
     try { localStorage.setItem(positionKey(), String(index)); } catch (_) {}
     render(); tick();
   }
-  function tick(){ const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-Date.now())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left){ sectionClock.textContent="सेक्शन समय समाप्त"; if(!sectionTransitioning&&!finished){ sectionTransitioning=true; const currentSection=paper.questions[index]?.section; const expired=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=Date.now()).map(([name])=>name)); if(currentSection)expired.add(currentSection); const nextIndex=paper.questions.findIndex((item,i)=>i>index&&(!item.section||!expired.has(item.section))); if(nextIndex>=0){ status("इस सेक्शन का समय समाप्त। अगले उपलब्ध सेक्शन में जा रहे हैं…"); activateQuestion(nextIndex).catch(error=>status(error.message||"अगला सेक्शन नहीं खुला।")).finally(()=>{sectionTransitioning=false;}); } else { status("सभी उपलब्ध सेक्शन का समय समाप्त। शेष प्रश्न लॉक हैं।"); const options=el("rm-cbt-options"); options.querySelectorAll("button").forEach(button=>button.disabled=true); } } } } if(!s&&!finished) finish(true); }
+  function tick(){ if(!isActive()) return; const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-Date.now())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left){ sectionClock.textContent="सेक्शन समय समाप्त"; if(!sectionTransitioning&&!finished){ sectionTransitioning=true; const currentSection=paper.questions[index]?.section; const expired=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=Date.now()).map(([name])=>name)); if(currentSection)expired.add(currentSection); const nextIndex=paper.questions.findIndex((item,i)=>i>index&&(!item.section||!expired.has(item.section))); if(nextIndex>=0){ status("इस सेक्शन का समय समाप्त। अगले उपलब्ध सेक्शन में जा रहे हैं…"); activateQuestion(nextIndex).catch(error=>status(error.message||"अगला सेक्शन नहीं खुला।")).finally(()=>{sectionTransitioning=false;}); } else { status("सभी उपलब्ध सेक्शन का समय समाप्त। शेष प्रश्न लॉक हैं।"); const options=el("rm-cbt-options"); options.querySelectorAll("button").forEach(button=>button.disabled=true); } } } } if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
+    if (!isActive()) return Promise.resolve();
     const active=inFlightSaves.get(qid);
     if(active&&active.value===value) return active.promise;
     pendingAnswers.set(qid,value);
@@ -83,10 +88,12 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     const entry={value,promise:null};
     entry.promise=saving=saving.catch(()=>{}).then(()=>saveCbtAnswer(app,attemptId,qid,value)).then(()=>{
       if(pendingAnswers.get(qid)===value)pendingAnswers.delete(qid);
+      if (!isActive()) return;
       persistPending();
       el("rm-cbt-saved").textContent=pendingAnswers.size?"Some answers pending":"All changes saved";
       el("rm-cbt-retry").hidden=pendingAnswers.size===0;
     }).catch(e=>{
+      if (!isActive()) throw e;
       el("rm-cbt-saved").textContent="Save failed · "+pendingAnswers.size+" pending";
       el("rm-cbt-retry").hidden=false;
       status(e.message||"उत्तर सेव नहीं हुआ। इंटरनेट जाँचकर Retry दबाएँ।");
@@ -104,16 +111,20 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     retrying=(async()=>{
       const entries=[...pendingAnswers.entries()];
       for(const [qid,value] of entries){
+        if (!isActive()) return;
         // A newer selection may have replaced this snapshot while retry was waiting.
         if(pendingAnswers.get(qid)!==value) continue;
         await queueSave(qid,value);
+        if (!isActive()) return;
       }
+      if (!isActive()) return;
       if(pendingAnswers.size) throw new Error("कुछ उत्तर अभी सर्वर पर सेव नहीं हुए हैं।");
     })();
     try { return await retrying; }
     finally { retrying=null; }
   }
   function render({ focusOptionIndex = null } = {}){
+    if (!isActive() || !paper) return;
     const q=paper.questions[index]; el("rm-cbt-count").textContent="Question "+(index+1)+" of "+paper.questions.length;
     const sectionHeading = el("rm-cbt-section");
     sectionHeading.querySelector("span").textContent = q.section || "";
@@ -146,7 +157,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     if (Number.isInteger(focusOptionIndex)) restoreCbtOptionFocus(options, focusOptionIndex);
   }
   async function finish(auto=false){
-    if(finished)return;finished=true;navigationRequest++;clearInterval(timer);lockCbtExamControls(root);
+    if(!isActive() || finished)return;finished=true;navigationRequest++;clearInterval(timer);lockCbtExamControls(root);
     try{
       let timeoutWarning="";
       if(auto){
@@ -159,31 +170,37 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
           new Promise(resolve=>{graceTimer=setTimeout(resolve,5000);})
         ]);
         clearTimeout(graceTimer);
+        if (!isActive()) return;
         if(pendingAnswers.size) timeoutWarning="Some unsaved answers were not included";
       }else{
         // A failed autosave must not short-circuit the explicit retry pass.
         // Wait for the current queue to settle, then retry every still-pending answer.
         await saving.catch(()=>{});
         await retryPending();
+        if (!isActive()) return;
       }
       const score=await submitCbtExam(app,attemptId);
+      if (!isActive()) return;
       // Submission is already confirmed by the server. Browser storage cleanup is best-effort
       // and must never hide a successful result when storage is disabled or quota-restricted.
       try{localStorage.removeItem(draftKey());}catch(_){}
       showResult(score,timeoutWarning);
     }catch(e){
+      if (!isActive()) return;
       finished=false;el("rm-cbt-submit").disabled=false;el("rm-cbt-retry").disabled=false;render();
       if(remaining()>0&&!timer)timer=setInterval(tick,1000);
       status(e.message||"Submit असफल। इंटरनेट जाँचकर फिर प्रयास करें।");
     }
   }
   el("rm-cbt-start").addEventListener("click",async()=>{
+    if (!isActive()) return;
     const button=el("rm-cbt-start");button.disabled=true;status("परीक्षा लोड हो रही है…");
     try{
       let previousAttempt=null;
       try{previousAttempt=localStorage.getItem(attemptKey());}catch(_){}
       if(!previousAttempt){
         const active=await getStudentActiveCbtAttempt(app,testId);
+        if (!isActive()) return;
         if(active.found){
           previousAttempt=active.attemptId;
           try{localStorage.setItem(attemptKey(),previousAttempt);}catch(_){}
@@ -193,23 +210,30 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
         attemptId=previousAttempt;
         try{
           const previousResult=await getCbtAttemptResult(app,attemptId);
+          if (!isActive()) return;
           showResult(previousResult);return;
         }catch(_){/* Not submitted yet; inspect the original server attempt. */}
         try{
           paper=await getCbtExamQuestions(app,attemptId);
         }catch(_){
+          if (!isActive()) return;
           // If the server deadline has passed, submit only server-persisted answers.
           const recovered=await submitCbtExam(app,attemptId);
+          if (!isActive()) return;
           try{localStorage.removeItem(draftKey());}catch(_){}
           showResult(recovered);
           status("समय सीमा समाप्त थी। परिणाम सर्वर पर सुरक्षित उत्तरों से बनाया गया है; स्थानीय unsaved Draft शामिल नहीं हो सकता।");
           return;
         }
       }else{
-        const started=await startCbtExam(app,testId);attemptId=started.attemptId;
+        const started=await startCbtExam(app,testId);
+        if (!isActive()) return;
+        attemptId=started.attemptId;
         try{localStorage.setItem(attemptKey(),attemptId);}catch(_){}
         paper=await getCbtExamQuestions(app,attemptId);
+        if (!isActive()) return;
       }
+      if (!isActive()) return;
       answers={...paper.savedAnswers};restorePending();
       for(const [qid,value] of pendingAnswers)answers[qid]=value;
       expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;
@@ -224,30 +248,33 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
       if(firstAvailable===undefined)throw new Error("सभी सेक्शन का समय समाप्त हो चुका है।");
       try { await activateQuestion(firstAvailable); }
       catch (sectionError) {
+        if (!isActive()) return;
         const fallback=candidates.find(i=>i!==firstAvailable&&(!paper.questions[i].section||!expiredSections.has(paper.questions[i].section)));
         if(fallback===undefined)throw sectionError;
         await activateQuestion(fallback);
+        if (!isActive()) return;
         status("पिछला सेक्शन समय-सीमा पार कर चुका था। उपलब्ध अगले सेक्शन से परीक्षा जारी है।");
       }
+      if (!isActive()) return;
       if(pendingAnswers.size)retryPending().catch(()=>{});
       tick();timer=setInterval(tick,1000);
-    }catch(e){status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
+    }catch(e){if (!isActive()) return;status(e.message||"परीक्षा शुरू नहीं हुई।");button.disabled=false;}
   });
-  el("rm-cbt-retry").addEventListener("click",async()=>{const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){status(e.message||"Retry असफल।");}finally{b.disabled=false;}});
+  el("rm-cbt-retry").addEventListener("click",async()=>{if (!isActive()) return;const b=el("rm-cbt-retry");b.disabled=true;try{await retryPending();if (!isActive()) return;status("सभी उत्तर सर्वर पर सुरक्षित हैं।");}catch(e){if (!isActive()) return;status(e.message||"Retry असफल।");}finally{if (isActive()) b.disabled=false;}});
   el("rm-cbt-prev").addEventListener("click",()=>{const target=findAvailableIndex(index-1,-1);if(target>=0)activateQuestion(target).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
   el("rm-cbt-next").addEventListener("click",()=>{const target=findAvailableIndex(index+1,1);if(target>=0)activateQuestion(target).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});
   el("rm-cbt-submit").addEventListener("click",()=>{if(confirm("क्या आप परीक्षा Submit करना चाहते हैं?"))finish(false);});
   const connection=el("rm-cbt-connection");
   const setConnectionState=online=>{if(!connection)return;connection.dataset.state=online?"online":"offline";connection.textContent=online?"Online · connected":"Offline · no connection";};
-  const onOffline=()=>{setConnectionState(false);if(attemptId&&!finished){status("इंटरनेट कनेक्शन बंद है। उत्तर इस डिवाइस पर अस्थायी रूप से सुरक्षित होंगे; परीक्षा बंद न करें।");el("rm-cbt-saved").textContent="Offline · answers pending";}};
-  const onOnline=()=>{setConnectionState(true);if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>status("कनेक्शन वापस आया है, लेकिन कुछ उत्तर अभी सेव नहीं हुए। Retry दबाएँ।"));}};
+  const onOffline=()=>{if (!isActive()) return;setConnectionState(false);if(attemptId&&!finished){status("इंटरनेट कनेक्शन बंद है। उत्तर इस डिवाइस पर अस्थायी रूप से सुरक्षित होंगे; परीक्षा बंद न करें।");el("rm-cbt-saved").textContent="Offline · answers pending";}};
+  const onOnline=()=>{if (!isActive()) return;setConnectionState(true);if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>status("कनेक्शन वापस आया है, लेकिन कुछ उत्तर अभी सेव नहीं हुए। Retry दबाएँ।"));}};
   const onBeforeUnload=event=>{
-    if(!finished&&(pendingAnswers.size||inFlightSaves.size)){
+    if(isActive()&&!finished&&(pendingAnswers.size||inFlightSaves.size)){
       event.preventDefault();
       event.returnValue="";
     }
   };
-  const onPageHide=()=>{if(pendingAnswers.size)persistPending();};
+  const onPageHide=()=>{if(isActive()&&pendingAnswers.size)persistPending();};
   if(typeof window!=="undefined"){
     window.addEventListener("offline",onOffline);
     window.addEventListener("online",onOnline);
@@ -256,5 +283,5 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     setConnectionState(window.navigator?.onLine!==false);
     if(window.navigator?.onLine===false)onOffline();
   }
-  return { destroy(){clearInterval(timer);navigationRequest++;if(typeof window!=="undefined"){window.removeEventListener("offline",onOffline);window.removeEventListener("online",onOnline);window.removeEventListener("beforeunload",onBeforeUnload);window.removeEventListener("pagehide",onPageHide);}} };
+  return { destroy(){lifecycle.destroy();clearInterval(timer);navigationRequest++;if(typeof window!=="undefined"){window.removeEventListener("offline",onOffline);window.removeEventListener("online",onOnline);window.removeEventListener("beforeunload",onBeforeUnload);window.removeEventListener("pagehide",onPageHide);}} };
 }
