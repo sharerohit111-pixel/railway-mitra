@@ -90,8 +90,13 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
             if (latestTest?.accessType === "unlocked") {
               pendingPaymentChecks.delete(paymentStateKey);
               clearPaymentSubmitted(storage, studentUid, test.testId);
-              status.textContent = "Payment verified. Your test is unlocked.";
-              await loadPage({ append: false });
+              test.accessType = "unlocked";
+              card.dataset.accessType = "unlocked";
+              const accessTag = meta.lastElementChild;
+              if (accessTag) accessTag.textContent = "Purchased - Unlocked";
+              button.textContent = "Start Test";
+              button.disabled = false;
+              status.textContent = "Payment verified. Your test is unlocked. You can start it now.";
             } else {
               status.textContent = "Payment is not verified yet. Please wait for confirmation, then check again. Do not pay again.";
               button.disabled = false;
