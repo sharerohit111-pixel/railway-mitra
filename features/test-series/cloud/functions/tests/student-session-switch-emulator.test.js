@@ -48,24 +48,28 @@ function normalizeEmulatorPhoneNumber(value) {
 
 async function getEmulatorSmsCode(phoneNumber) {
   const deadline = Date.now() + 8000;
-  let observedPhoneNumbers = [];
+  let observedEntries = [];
   let responseKeys = [];
   while (Date.now() < deadline) {
     const payload = await authEmulatorRequest("/emulator/v1/projects/" + encodeURIComponent(PROJECT) + "/verificationCodes");
     const entries = Array.isArray(payload.verificationCodes) ? payload.verificationCodes : [];
-    observedPhoneNumbers = entries.map(item => String(item.phoneNumber || "")).slice(0, 10);
     responseKeys = Object.keys(payload || {});
     const wanted = normalizeEmulatorPhoneNumber(phoneNumber);
-    const match = entries.find(item => normalizeEmulatorPhoneNumber(item.phoneNumber) === wanted);
-    const sessionCode = match && match.sessionCode != null ? String(match.sessionCode) : "";
-    if (sessionCode) return sessionCode;
+    const matchingEntries = entries.filter(item => normalizeEmulatorPhoneNumber(item.phoneNumber) === wanted);
+    const match = matchingEntries.find(item => item.sessionCode != null && String(item.sessionCode).length > 0);
+    observedEntries = matchingEntries.map(item => ({
+      keys: Object.keys(item || {}),
+      sessionCodeType: typeof item.sessionCode,
+      hasSessionCode: item.sessionCode != null && String(item.sessionCode).length > 0
+    }));
+    if (match) return String(match.sessionCode);
     await delay(25);
   }
   assert.fail(
     "Timed out waiting for the local Auth Emulator SMS code for " + phoneNumber +
     " (project=" + PROJECT +
     ", responseKeys=" + responseKeys.join(",") +
-    ", pendingPhones=" + observedPhoneNumbers.join(",") + ")"
+    ", matchingEntryMetadata=" + JSON.stringify(observedEntries) + ")"
   );
 }
 
