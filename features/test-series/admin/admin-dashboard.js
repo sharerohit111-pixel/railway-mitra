@@ -146,6 +146,12 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (returnTarget && returnTarget.isConnected && !returnTarget.disabled) returnTarget.focus();
   }
 
+  document.addEventListener("focusin", event => {
+    if (reviewDialog.hidden || reviewDialog.contains(event.target)) return;
+    const closeButton = el("rm-admin-review-close");
+    if (closeButton && !closeButton.disabled) closeButton.focus();
+  });
+
   reviewDialog.addEventListener("keydown", event => {
     if (event.key === "Escape") {
       event.preventDefault();
