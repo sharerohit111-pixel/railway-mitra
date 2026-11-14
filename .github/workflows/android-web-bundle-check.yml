@@ -72,11 +72,25 @@ jobs:
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.RAILWAY_MITRA_GOOGLE_SERVICES_JSON }}
         run: |
-          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
-            echo "::warning::Missing RAILWAY_MITRA_GOOGLE_SERVICES_JSON repository secret; native Google sign-in will not be configured in this test build."
-          else
-            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-            node -e "const c=require('./android/app/google-services.json'); if(c.client?.[0]?.client_info?.android_client_info?.package_name !== 'com.railwaymitra.app') process.exit(1)"
+          test -n "$GOOGLE_SERVICES_JSON" || { echo "::error::Missing RAILWAY_MITRA_GOOGLE_SERVICES_JSON repository secret."; exit 1; }
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          node -e "const c=require('./android/app/google-services.json'); if(c.client?.[0]?.client_info?.android_client_info?.package_name !== 'com.railwaymitra.app') process.exit(1)"
+      - name: Restore stable Android debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: railway-mitra-android-debug-keystore-v1
+      - name: Create stable Android debug signing key when absent
+        run: |
+          mkdir -p "$HOME/.android"
+          if [ ! -f "$HOME/.android/debug.keystore" ]; then
+            keytool -genkeypair -v \
+              -keystore "$HOME/.android/debug.keystore" \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
           fi
       - name: Build debug APK
         run: |
