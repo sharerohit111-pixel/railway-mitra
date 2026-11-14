@@ -1,7 +1,7 @@
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
-const { hasVerifiedPhoneMfa } = require("./owner-auth");
+const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
 const { createRazorpayOrder } = require("./razorpay-order");
@@ -52,8 +52,9 @@ function user(req) {
 }
 function owner(req) {
   const uid = user(req);
-  if (!process.env.OWNER_UID || uid !== process.env.OWNER_UID) throw new HttpsError("permission-denied", "Owner access denied");
-  if (!hasVerifiedPhoneMfa(req.auth.token)) throw new HttpsError("permission-denied", "Owner phone OTP verification required");
+  if (!isAuthorizedOwner({ uid, ownerUid: process.env.OWNER_UID, token: req.auth.token })) {
+    throw new HttpsError("permission-denied", "Owner access denied; configured UID and phone MFA are required");
+  }
   return uid;
 }
 function student(req) {
