@@ -179,8 +179,7 @@ test("routes verified refund.processed events to the refund ledger", async () =>
   const refundEvent = {
     event: "refund.processed",
     payload: {
-      refund: { entity: { id: "rfnd_handler_1", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
-      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "captured" } }
+      refund: { entity: { id: "rfnd_handler_1", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } }
     }
   };
   let received;
