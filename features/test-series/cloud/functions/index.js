@@ -467,7 +467,8 @@ function ownerTestPayload(data) {
   const marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
   if (!Number.isFinite(marksPerQuestion) || marksPerQuestion <= 0 || marksPerQuestion > 100) throw new HttpsError("invalid-argument", "Invalid marks per question");
   if (!Number.isFinite(negativeMarks) || negativeMarks < 0 || negativeMarks > 100) throw new HttpsError("invalid-argument", "Invalid negative marks");
-  const status = data.status === "published" ? "published" : "draft";
+  // Saving a test can only create or update a draft. Publishing is a separate Owner action.
+  const status = "draft";
   let scheduleStartAt = null, scheduleEndAt = null;
   if (mode === "scheduled") {
     scheduleStartAt = date(data.scheduleStartAt); scheduleEndAt = date(data.scheduleEndAt);
@@ -543,6 +544,38 @@ exports.rmOwnerSaveTest = onCall(CALLABLE_OPTIONS, async req => {
     tx.set(db.doc("testSeriesAnswerKeys/" + testId), { questions: payload.answerQuestions, updatedAt: FieldValue.serverTimestamp() });
   });
   return { saved: true, testId, status: payload.metadata.status, questionCount: payload.publicQuestions.length };
+});
+
+// Publishing is an explicit, separate Owner action. A draft is made visible to students
+// only after its private answer-key map and public question set pass integrity checks.
+exports.rmOwnerPublishTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = id(req.data && req.data.testId);
+  const testRef = db.doc("testSeriesTests/" + testId);
+  const questionRef = db.doc("testSeriesQuestionSets/" + testId);
+  const answerRef = db.doc("testSeriesAnswerKeys/" + testId);
+  return db.runTransaction(async tx => {
+    const [testSnap, questionSnap, answerSnap] = await Promise.all([
+      tx.get(testRef), tx.get(questionRef), tx.get(answerRef)
+    ]);
+    if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
+    const test = testSnap.data();
+    if (test.status !== "draft") throw new HttpsError("failed-precondition", "Only a draft test can be published");
+    if (!questionSnap.exists || !answerSnap.exists) throw new HttpsError("failed-precondition", "Question paper or private answer key is missing");
+    const questions = questionSnap.data().questions;
+    const answerMap = answerSnap.data().questions;
+    try {
+      restoreOwnerQuestionAnswerKeys(questions, answerMap);
+    } catch (error) {
+      console.error("Owner publish integrity check failed", { testId, message: error.message });
+      throw new HttpsError("failed-precondition", "Question paper or answer key is incomplete; publishing is blocked");
+    }
+    if (!Array.isArray(questions) || questions.length !== test.questionCount || questions.length < 1) {
+      throw new HttpsError("failed-precondition", "Question count does not match the saved test metadata");
+    }
+    tx.update(testRef, { status: "published", publishedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+    return { published: true, testId, questionCount: questions.length };
+  });
 });
 
 exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
