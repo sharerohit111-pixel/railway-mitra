@@ -46,6 +46,9 @@ test("authenticated callable load workflow is manual-only and disabled without e
   assert.ok(callableLoadWorkflow.includes("firebase.test-series-cbt-emulator.json"));
   assert.ok(callableLoadWorkflow.includes('default: "20"'));
   assert.match(callableLoadWorkflow, /singleProjectMode !== true/);
+  assert.ok(callableLoadWorkflow.includes("            config.emulators?.singleProjectMode !== true"));
+  assert.ok(callableLoadWorkflow.includes("inputs.students || '20'"));
+  assert.ok(callableLoadWorkflow.includes("inputs.concurrency || '20'"));
   assert.match(callableLoadWorkflow, /single-project emulator mode/);
   assert.match(callableLoadWorkflow, /Verify isolated Test Series emulator configuration/);
   assert.ok(callableLoadWorkflow.includes('functions[0].codebase !== "test-series"'));
