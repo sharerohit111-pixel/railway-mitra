@@ -89,5 +89,15 @@ if (!loginHtml.includes(moduleScript)) {
 loginHtml = loginHtml.replace(moduleScript, '<script src="../../assets/js/native-google-auth.js"></script>\\n    ' + moduleScript);
 fs.writeFileSync(loginHtmlPath, loginHtml);
 
+
+const appHtmlPath = path.join(webRoot, 'app.html');
+let appHtml = fs.readFileSync(appHtmlPath, 'utf8');
+const shareScript = '<script src="features/share/share.js" defer></script>';
+if (!appHtml.includes(shareScript)) {
+  throw new Error('Could not locate the share feature script for native bridge injection.');
+}
+appHtml = appHtml.replace(shareScript, '<script src="assets/js/native-share.js"></script>\\n    ' + shareScript);
+fs.writeFileSync(appHtmlPath, appHtml);
+
 console.log(`Prepared local Android web bundle at: ${webRoot}`);
 console.log(`Packaged ${runtimeEntries.length} runtime entries.`);
