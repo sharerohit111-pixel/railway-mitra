@@ -11,3 +11,23 @@
 /* Unavailable Owner modules remain visibly disabled and cannot appear interactive. */
 .rm-admin .rm-admin-grid button:disabled{cursor:not-allowed;opacity:.55;border-style:dashed;filter:saturate(.55)}
 .rm-admin .rm-admin-grid button:disabled:focus-visible{outline:2px solid #70b8d8;outline-offset:3px}
+
+
+/* Full question-paper review stays inside the isolated Owner Admin module. */
+.rm-admin .rm-admin-review-overlay{position:fixed;inset:0;z-index:1000;background:#020914eF;padding:14px;overflow:auto;display:flex;align-items:flex-start;justify-content:center}
+.rm-admin .rm-admin-review-panel{width:min(900px,100%);margin:12px auto;background:linear-gradient(145deg,#102b49,#07182d);border:1px solid #34769a;border-radius:16px;padding:16px;box-shadow:0 20px 70px #000b}
+.rm-admin-review-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;position:sticky;top:0;background:#102b49;padding-bottom:10px}
+.rm-admin-review-head small{color:#62dfff;font-size:10px;letter-spacing:1px;font-weight:800}
+.rm-admin-review-head h3{margin:6px 0}
+.rm-admin-review-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 0;color:#c5dced;font-size:12px}
+.rm-admin-review-summary span{padding:8px;background:#07182d;border:1px solid #254967;border-radius:8px;overflow-wrap:anywhere}
+.rm-admin-review-questions{display:grid;gap:10px;margin:10px 0}
+.rm-admin-review-question{padding:12px;border:1px solid #254967;border-radius:10px;background:#07182d}
+.rm-admin-review-question h4{font-size:13px;margin:0 0 8px;color:#6de5ff}
+.rm-admin-review-question p{white-space:pre-wrap;overflow-wrap:anywhere;color:#f1f7fc;font-size:13px}
+.rm-admin-review-question ol{padding-left:24px;color:#c1d6e8;font-size:12px}
+.rm-admin-review-question li{padding:4px 6px;margin:3px 0;border-radius:6px;overflow-wrap:anywhere}
+.rm-admin-review-question li.is-correct{background:#104333;color:#9af2c9;border:1px solid #287d5c}
+.rm-admin-review-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:sticky;bottom:0;background:#102b49;padding-top:10px}
+.rm-admin-review-actions button{width:100%}
+@media(max-width:480px){.rm-admin .rm-admin-review-panel{padding:11px}.rm-admin-review-summary{grid-template-columns:1fr}}
