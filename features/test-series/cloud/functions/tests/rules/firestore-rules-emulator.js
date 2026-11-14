@@ -18,7 +18,8 @@ const protectedCollections = [
   "testSeriesPaymentOrders",
   "testSeriesPayments",
   "testSeriesPaymentEvents",
-  "testSeriesPaymentAudit"
+  "testSeriesPaymentAudit",
+  "testSeriesRefunds"
 ];
 
 async function expectStatus(label, response, expected) {
