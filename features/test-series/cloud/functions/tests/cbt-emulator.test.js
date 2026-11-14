@@ -722,6 +722,17 @@ test("student can start, save answers and submit with server-side scoring", asyn
   const otherTestAttempt = await callable("rmGetStudentActiveAttempt", { testId: "another-test" });
   assert.equal(otherTestAttempt.found, false);
 
+  // A stale browser-local attempt ID is rejected, while the authenticated
+  // server active-session pointer still identifies the student's real attempt.
+  await assert.rejects(
+    callable("rmGetCbtAttemptResult", { attemptId: "stale-client-local-attempt" }),
+    error => error.code === "functions/permission-denied" && error.message === "Attempt not found"
+  );
+  const authoritativeRecovery = await callable("rmGetStudentActiveAttempt", { testId });
+  assert.equal(authoritativeRecovery.found, true);
+  assert.equal(authoritativeRecovery.attemptId, started.attemptId);
+  assert.equal(authoritativeRecovery.status, "in_progress");
+
   // A reload/re-entry during a live attempt must resume the same server session.
   const resumed = await callable("rmStartExam", { testId });
   assert.equal(resumed.resumed, true);
