@@ -191,19 +191,31 @@ logoutButton.addEventListener("click", async () => {
     recaptcha = null;
   }
 
-  const sendOtpButton = el("rm-student-send-otp");
-  const verifyOtpButton = el("rm-student-verify-otp");
-  sendOtpButton.disabled = true;
-  verifyOtpButton.disabled = true;
+  setOtpControlsLocked(true);
   authStatus.textContent = "Signing out…";
   try {
     await signOut(auth);
+    logoutRecovery.clear();
+    retrySignOutButton.hidden = true;
     authStatus.textContent = "You have signed out.";
-    sendOtpButton.disabled = false;
-    verifyOtpButton.disabled = false;
+    setOtpControlsLocked(false);
   } catch (error) {
-    // Do not allow a new OTP flow to race an unconfirmed sign-out.
-    authStatus.textContent = error.message || "Sign-out could not be confirmed. The student workspace remains locked; reload before signing in again.";
+    // Do not allow a new OTP flow to race an unconfirmed logout. Persist a
+    // same-UID lock so a restored Firebase session cannot reopen the workspace.
+    if (signingOutUid && auth.currentUser?.uid === signingOutUid) {
+      const persisted = logoutRecovery.block(signingOutUid);
+      retrySignOutButton.hidden = false;
+      retrySignOutButton.disabled = false;
+      retrySignOutButton.textContent = "Retry sign out";
+      authStatus.textContent = persisted
+        ? (error.message || "Sign-out could not be confirmed. Retry sign out before continuing.")
+        : "Sign-out could not be confirmed. Keep this page open and retry; session-lock storage is unavailable.";
+    } else {
+      logoutRecovery.clear();
+      retrySignOutButton.hidden = true;
+      authStatus.textContent = "You have signed out.";
+      setOtpControlsLocked(false);
+    }
   }
 });
 document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => {

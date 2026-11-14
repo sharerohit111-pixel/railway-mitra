@@ -83,7 +83,7 @@ test("logout clears the prior workspace and OTP confirmation before awaiting Fir
   assert.ok(signOutCall > sendDisabled, "Firebase sign-out is awaited only after local lockout");
 });
 
-test("logout does not re-enable OTP controls when Firebase signOut fails", () => {
+test("logout persists a same-student lock and exposes retry when Firebase signOut fails", () => {
   const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
   const logoutStart = portal.indexOf('logoutButton.addEventListener("click", async () => {');
   const signOutCall = portal.indexOf("await signOut(auth)", logoutStart);
@@ -93,9 +93,36 @@ test("logout does not re-enable OTP controls when Firebase signOut fails", () =>
 
   assert.ok(signOutCall > logoutStart, "logout awaits Firebase sign-out");
   assert.ok(catchStart > signOutCall, "logout handles sign-out failure");
-  assert.match(catchBody, /student workspace remains locked/);
-  assert.ok(!catchBody.includes("sendOtpButton.disabled = false"), "OTP controls remain disabled after an unconfirmed sign-out");
+  assert.match(catchBody, /logoutRecovery\.block\(signingOutUid\)/);
+  assert.match(catchBody, /retrySignOutButton\.hidden = false/);
+  assert.match(catchBody, /setOtpControlsLocked\(true\)/);
+  assert.ok(!catchBody.includes("setOtpControlsLocked(false)"), "OTP controls remain locked after an unconfirmed sign-out");
 });
+
+test("successful logout clears the pending lock and hides retry control", () => {
+  const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
+  const logoutStart = portal.indexOf('logoutButton.addEventListener("click", async () => {');
+  const signOutCall = portal.indexOf("await signOut(auth)", logoutStart);
+  const successClear = portal.indexOf("logoutRecovery.clear()", signOutCall);
+  const retryHidden = portal.indexOf("retrySignOutButton.hidden = true", successClear);
+  const catchStart = portal.indexOf("} catch (error) {", signOutCall);
+  const catchBody = portal.slice(catchStart, portal.indexOf("\n  }\n});", catchStart));
+
+  assert.ok(successClear > signOutCall, "successful Firebase sign-out clears the persisted lock");
+  assert.ok(retryHidden > successClear, "successful sign-out hides the retry control");
+  assert.match(catchBody, /retrySignOutButton\.hidden = false/);
+});
+
+test("auth-state restoration blocks the same UID until sign-out succeeds", () => {
+  const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
+  const listener = portal.indexOf("onAuthStateChanged(auth, async user => {");
+  const block = portal.indexOf("logoutRecovery.shouldBlock(user.uid)", listener);
+  const tokenLookup = portal.indexOf("await user.getIdTokenResult()", listener);
+
+  assert.ok(block > listener, "auth listener checks pending logout before opening workspace");
+  assert.ok(tokenLookup > block, "token claims are not fetched before the pending-logout guard");
+});
+
 
 
 test("phone and OTP input validation retain their required regular-expression escapes", () => {
