@@ -768,8 +768,10 @@ export function initOwnerAdminDashboard(auth, functions) {
       activeQuestionSection = "";
       renderQuestionSections();
       await refreshTests();
-    } catch (e) { status(e.message || "Test सेव नहीं हुआ।"); }
-    finally { button.disabled = false; }
+    } catch (e) {
+      if (generation !== testManagementGeneration) return;
+      status(e.message || "Test सेव नहीं हुआ।");
+    } finally { button.disabled = false; }
   });
   const studentsPanel = el("rm-admin-students-panel");
   const studentsList = el("rm-admin-students-list");
