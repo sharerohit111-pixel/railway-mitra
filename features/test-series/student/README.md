@@ -78,3 +78,10 @@ The student portal now invalidates the current view generation, destroys the act
 ## OTP request lifecycle guard
 
 The phone sign-in portal assigns a monotonically increasing generation to each asynchronous OTP send/verify flow. A later OTP request, Firebase auth-state transition, or explicit logout invalidates older generations. A late Firebase confirmation or error may update the login UI only if its generation is still current; stale `finally` handlers cannot re-enable the Send OTP or Verify controls after the workspace has been locked. Verification also checks that the confirmation belongs to the current generation. This is client-side race protection only: Firebase Auth token claims and server-side phone-provider/UID checks remain authoritative. Automated Node regression tests cover generation invalidation, superseded requests, stale send/verify completions, and logout/auth-transition ordering. No real OTP is sent by these tests.
+
+
+## Auth Emulator account-switch regression
+
+The isolated CBT Auth Emulator test signs in a synthetic Student A and Student B through the Firebase phone-auth SDK, using only the local Auth Emulator at 127.0.0.1:9099. It retrieves the generated one-time code from the emulator's local verificationCodes endpoint; no carrier SMS, production Firebase project, or real student phone number is used. The test uses the same session-transition teardown helper as the portal and checks that Student A's exam controller, UID, test ID and rendered content are cleared before sign-out completes; after Student B signs in, the workspace remains hidden while B's phone-provider token claims are checked, then opens only for B. The existing portal source-order regression test separately verifies that the production auth listener invokes this teardown before awaiting token claims.
+
+This is an SDK/Auth Emulator integration test with a DOM fixture, not a full browser automation or real-device test. It does not validate production reCAPTCHA/App Check attestation, real SMS delivery, hosting integration, or deployed Firebase configuration; those remain separate pre-production checks.
