@@ -173,3 +173,26 @@ test("keeps inconsistent replay ledgers retryable instead of acknowledging a dam
   assert.equal(res.code, 500);
   assert.equal(res.body, "Payment event could not be safely recorded");
 });
+
+
+test("routes verified refund.processed events to the refund ledger", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_handler_1", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "captured" } }
+    }
+  };
+  let received;
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_refund_handler_1" }),
+    res, secret, db: {},
+    applyPayment: async () => { throw new Error("capture processor must not run"); },
+    applyRefund: async args => { received = args; return { duplicate: false, revoked: true }; }
+  });
+  assert.equal(res.code, 200);
+  assert.deepEqual(res.body, { received: true, duplicate: false, revoked: true });
+  assert.equal(received.eventId, "evt_refund_handler_1");
+  assert.deepEqual(received.event, refundEvent);
+});
