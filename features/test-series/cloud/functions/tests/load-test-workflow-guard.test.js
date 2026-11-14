@@ -8,6 +8,7 @@ const path = require("node:path");
 const repositoryRoot = path.resolve(__dirname, "../../../../../");
 const readWorkflow = name => fs.readFileSync(path.join(repositoryRoot, ".github/workflows", name), "utf8");
 const cbtWorkflow = readWorkflow("test-series-cbt-emulator.yml");
+const functionsWorkflow = readWorkflow("test-series-functions.yml");
 const firestoreLoadWorkflow = readWorkflow("test-series-firestore-load-emulator.yml");
 const callableLoadWorkflow = readWorkflow("test-series-callable-load-emulator.yml");
 
@@ -28,6 +29,21 @@ function assertManualOptInWorkflow(workflow, label) {
 test("ordinary CBT emulator CI never invokes a load-test harness", () => {
   assert.doesNotMatch(cbtWorkflow, /CALLABLE_LOAD_|load:callable:emulator|load:emulator/);
   assert.match(cbtWorkflow, /Run CBT unit and Firestore Rules emulator tests/);
+});
+
+test("automated Test Series validation workflows grant only read-only repository contents", () => {
+  for (const [label, workflow] of [
+    ["CBT emulator workflow", cbtWorkflow],
+    ["Functions validation workflow", functionsWorkflow]
+  ]) {
+    const permissions = workflow.match(/^permissions:\s*\n((?:[ \t]+[^\n]*\n)+)/m);
+    assert.ok(permissions, label + " must declare explicit token permissions");
+    assert.deepEqual(
+      permissions[1].trim().split(/\r?\n/).map(line => line.trim()),
+      ["contents: read"],
+      label + " must not receive write or broader token permissions"
+    );
+  }
 });
 
 test("Firestore load workflow is manual-only and disabled without explicit opt-in", () => {
