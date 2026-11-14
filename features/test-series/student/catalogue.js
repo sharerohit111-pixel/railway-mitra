@@ -79,15 +79,22 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
           if (pendingPaymentChecks.has(paymentStateKey) || hasPaymentBeenSubmitted(storage, studentUid, test.testId)) {
             button.disabled = true;
             status.textContent = "Checking server-verified payment status…";
-            await loadPage({ append: false });
-            const latest = [...list.querySelectorAll(".rm-catalogue-card")].find(card => card.dataset.testId === test.testId);
-            const latestTest = latest && latest.dataset.accessType;
-            if (latestTest === "unlocked") {
+            let checkCursor = null, latestTest = null, pagesChecked = 0;
+            do {
+              const page = await listAvailableCbtTests(app, { pageSize: 100, cursor: checkCursor });
+              latestTest = (page.tests || []).find(item => item.testId === test.testId) || latestTest;
+              checkCursor = page.nextCursor || null;
+              pagesChecked++;
+              if (latestTest || !page.hasMore || pagesChecked >= 100) break;
+            } while (true);
+            if (latestTest?.accessType === "unlocked") {
               pendingPaymentChecks.delete(paymentStateKey);
               clearPaymentSubmitted(storage, studentUid, test.testId);
               status.textContent = "Payment verified. Your test is unlocked.";
+              await loadPage({ append: false });
             } else {
               status.textContent = "Payment is not verified yet. Please wait for confirmation, then check again. Do not pay again.";
+              button.disabled = false;
             }
             return;
           }
