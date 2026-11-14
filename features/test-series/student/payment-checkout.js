@@ -36,7 +36,12 @@ function loadCheckoutScript(root = document) {
 
 // A checkout success callback is only a user-facing acknowledgement. Access is
 // granted exclusively by the verified server-side captured-payment webhook.
-export async function startStudentTestCheckout({ app, test, studentUid, onStatus, root = document }) {
+export async function startStudentTestCheckout({ app, test, studentUid, onStatus, isSessionActive = () => true, root = document }) {
+  const assertSessionActive = () => {
+    if (typeof isSessionActive !== "function" || !isSessionActive()) {
+      throw new Error("Student session changed. Payment checkout was paused; sign in again to continue.");
+    }
+  };
   if (typeof studentUid !== "string" || !studentUid) throw new Error("A verified student account is required for checkout.");
   if (!test || typeof test.testId !== "string" || !test.testId) {
     throw new Error("A valid test is required for checkout.");
@@ -46,6 +51,7 @@ export async function startStudentTestCheckout({ app, test, studentUid, onStatus
   }
   if (typeof onStatus === "function") onStatus("Preparing secure payment…");
   await loadCheckoutScript(root);
+  assertSessionActive();
 
   // Persist the opaque idempotency key in this tab so a reload or lost
   // callable response reuses the same server reservation instead of creating
@@ -55,6 +61,7 @@ export async function startStudentTestCheckout({ app, test, studentUid, onStatus
   let order;
   try {
     order = await createStudentPaymentOrder(app, test.testId, requestId);
+    assertSessionActive();
   } catch (error) {
     // The server sets this detail only after Razorpay explicitly rejected order
     // creation. Network ambiguity never clears the key and remains locked for
@@ -67,6 +74,7 @@ export async function startStudentTestCheckout({ app, test, studentUid, onStatus
     throw new Error("The payment order response could not be verified.");
   }
 
+  assertSessionActive();
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (error, value) => {
