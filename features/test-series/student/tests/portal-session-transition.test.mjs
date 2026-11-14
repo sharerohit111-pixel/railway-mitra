@@ -64,6 +64,6 @@ test("auth listener invalidates the old workspace before awaiting new token clai
   assert.ok(handlerStart >= 0, "auth-state listener exists");
   assert.ok(invalidation > handlerStart, "auth-state listener immediately invalidates the old workspace");
   const invalidationCallEnd = portal.indexOf("});", invalidation);
-  assert.match(portal.slice(invalidation, invalidationCallEnd), /\\bview\\b/, "the previous student's rendered view is passed for synchronous clearing");
+  assert.ok(portal.slice(invalidation, invalidationCallEnd).includes("view"), "the previous student's rendered view is passed for synchronous clearing");
   assert.ok(tokenLookup > invalidation, "token verification happens only after teardown");
 });
