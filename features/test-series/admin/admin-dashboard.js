@@ -123,6 +123,102 @@ export function initOwnerAdminDashboard(auth, functions) {
   const testsFolderFilter = el("rm-admin-test-folder-filter");
   let testsCursor = null;
   let testsRows = [];
+  const reviewDialog = el("rm-admin-publish-review");
+  const reviewSummary = el("rm-admin-review-summary");
+  const reviewQuestions = el("rm-admin-review-questions");
+  const reviewStatus = el("rm-admin-review-status");
+  const reviewPublish = el("rm-admin-review-publish");
+  let reviewedTest = null;
+  let reviewedPublishButton = null;
+
+  function closePublishReview() {
+    reviewDialog.hidden = true;
+    reviewedTest = null;
+    if (reviewedPublishButton) reviewedPublishButton.disabled = false;
+    reviewedPublishButton = null;
+    reviewPublish.disabled = true;
+    reviewSummary.replaceChildren();
+    reviewQuestions.replaceChildren();
+    reviewStatus.textContent = "";
+  }
+
+  function addReviewSummary(label, value) {
+    const item = document.createElement("span");
+    item.textContent = label + ": " + value;
+    reviewSummary.append(item);
+  }
+
+  async function openPublishReview(test, button) {
+    button.disabled = true;
+    reviewStatus.textContent = "सर्वर से पूरा प्रश्नपत्र और उत्तर-कुंजी सुरक्षित रूप से लोड हो रही है…";
+    reviewDialog.hidden = false;
+    reviewedPublishButton = button;
+    try {
+      const response = await httpsCallable(functions, "rmOwnerGetTest")({ testId: test.testId });
+      const data = response.data || {};
+      if (data.testId !== test.testId || data.status !== "draft") {
+        throw new Error("यह टेस्ट अब Draft नहीं है। सूची Refresh करके दोबारा जाँचें।");
+      }
+      const validated = validateOwnerTestDraft(data);
+      reviewedTest = { testId: data.testId, payload: validated };
+      reviewSummary.replaceChildren();
+      addReviewSummary("नाम", validated.title);
+      addReviewSummary("Category", validated.category);
+      addReviewSummary("Folder", validated.folder);
+      addReviewSummary("Mode", validated.mode);
+      addReviewSummary("प्रश्न", String(validated.questions.length));
+      addReviewSummary("मूल्य", "₹" + validated.price);
+      addReviewSummary("अवधि", validated.durationMinutes + " मिनट");
+      addReviewSummary("अंक / गलत उत्तर", validated.marksPerQuestion + " / -" + validated.negativeMarks);
+      if (validated.mode === "scheduled") {
+        addReviewSummary("प्रारंभ", new Date(validated.scheduleStartAt).toLocaleString());
+        addReviewSummary("समाप्ति", new Date(validated.scheduleEndAt).toLocaleString());
+      }
+      reviewQuestions.replaceChildren();
+      validated.questions.forEach((question, index) => {
+        const card = document.createElement("article");
+        card.className = "rm-admin-review-question";
+        const heading = document.createElement("h4");
+        heading.textContent = "प्रश्न " + (index + 1) + (question.section ? " · " + question.section : "");
+        const prompt = document.createElement("p");
+        prompt.textContent = question.text;
+        const options = document.createElement("ol");
+        options.type = "A";
+        question.options.forEach((option, optionIndex) => {
+          const item = document.createElement("li");
+          item.textContent = option + (optionIndex === question.correctIndex ? "  ✓ सही उत्तर" : "");
+          if (optionIndex === question.correctIndex) item.classList.add("is-correct");
+          options.append(item);
+        });
+        card.append(heading, prompt, options);
+        reviewQuestions.append(card);
+      });
+      reviewStatus.textContent = "पूरा पेपर जाँचें। हरे रंग में सही उत्तर दिखाया गया है; यह जानकारी केवल Owner Review में उपलब्ध है। सर्वर Publish के समय फिर से सभी जाँच करेगा।";
+      reviewPublish.disabled = false;
+    } catch (error) {
+      reviewedTest = null;
+      reviewStatus.textContent = error.message || "पूरा पेपर Review नहीं हो पाया। Publish रोक दिया गया है।";
+      reviewPublish.disabled = true;
+    }
+  }
+
+  el("rm-admin-review-close").addEventListener("click", closePublishReview);
+  el("rm-admin-review-cancel").addEventListener("click", closePublishReview);
+  reviewPublish.addEventListener("click", async () => {
+    if (!reviewedTest) return;
+    reviewPublish.disabled = true;
+    reviewStatus.textContent = "Server पर अंतिम प्रश्नपत्र और उत्तर-कुंजी जाँची जा रही है…";
+    try {
+      const result = await httpsCallable(functions, "rmOwnerPublishTest")({ testId: reviewedTest.testId });
+      status("टेस्ट प्रकाशित हुआ: " + result.data.testId);
+      closePublishReview();
+      await refreshTests();
+    } catch (error) {
+      reviewStatus.textContent = error.message || "टेस्ट प्रकाशित नहीं हुआ।";
+      reviewPublish.disabled = false;
+    }
+  });
+
   function renderTestRows() {
     const term = testsSearch.value.trim().toLocaleLowerCase();
     const folder = testsFolderFilter.value;
@@ -150,31 +246,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         const publish = document.createElement("button");
         publish.type = "button";
         publish.textContent = "Review & Publish";
-        publish.addEventListener("click", async () => {
-          const preview = [
-            "प्रकाशित करने से पहले टेस्ट विवरण जाँचें:",
-            "नाम: " + test.title,
-            "Category: " + (test.category || "General"),
-            "Folder: " + (test.folder || "General"),
-            "Mode: " + test.mode,
-            "प्रश्न: " + test.questionCount,
-            "मूल्य: ₹" + test.price,
-            "अवधि: " + test.durationMinutes + " मिनट",
-            "",
-            "पुष्टि के बाद यह टेस्ट विद्यार्थियों के लिए Published हो जाएगा और फिर संपादन योग्य नहीं रहेगा।"
-          ].join("\n");
-          if (!window.confirm(preview)) return;
-          publish.disabled = true;
-          try {
-            const result = await httpsCallable(functions, "rmOwnerPublishTest")({ testId: test.testId });
-            status("टेस्ट प्रकाशित हुआ: " + result.data.testId);
-            await refreshTests();
-          } catch (error) {
-            status(error.message || "टेस्ट प्रकाशित नहीं हुआ।");
-          } finally {
-            publish.disabled = false;
-          }
-        });
+        publish.addEventListener("click", () => openPublishReview(test, publish));
         card.append(publish);
       }
       testsList.append(card);
