@@ -99,3 +99,27 @@ test("disposing the portal watcher cancels pending UI authorization and unsubscr
   assert.equal(h.unsubscribed, true);
   assert.equal(h.calls.authorized.length, 0);
 });
+
+test("ignores an earlier account authorization when the signed-in Owner account changes", async () => {
+  let resolveFirst;
+  const firstUser = { uid: "owner-one" };
+  const secondUser = { uid: "owner-two" };
+  const h = createHarness({
+    verifyOwner: user => user.uid === firstUser.uid
+      ? new Promise(resolve => { resolveFirst = resolve; })
+      : Promise.resolve({ authorized: true, email: "second@example.test" })
+  });
+
+  h.emit(firstUser);
+  await Promise.resolve();
+  h.emit(secondUser);
+  await flush();
+  resolveFirst({ authorized: true, email: "first@example.test" });
+  await flush();
+
+  assert.equal(h.calls.verify, 2);
+  assert.equal(h.calls.authorized.length, 1);
+  assert.equal(h.calls.authorized[0].user, secondUser);
+  assert.equal(h.calls.authorized[0].result.email, "second@example.test");
+  assert.equal(h.calls.signOut, 0);
+});
