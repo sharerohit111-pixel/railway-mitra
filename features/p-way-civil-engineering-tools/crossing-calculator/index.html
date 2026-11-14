@@ -3,71 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Railway Crossing Fittings Calculator</title>
+  <title>Railway Crossing Calculator</title>
   <style>
-    :root { --primary: #1e3a8a; --primary-light: #2563eb; --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --muted: #64748b; --border: #cbd5e1; --accent: #eff6ff; }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding: 15px; line-height: 1.5; }
-    .container { max-width: 900px; margin: 0 auto; }
-    header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
-    header h1 { font-size: 1.35rem; margin-bottom: 4px; }
-    header p { font-size: 0.88rem; opacity: 0.92; }
-    .lang-switch { display: flex; background: rgba(255, 255, 255, 0.2); padding: 4px; border-radius: 8px; gap: 4px; }
-    .lang-btn { border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; cursor: pointer; color: #fff; background: transparent; transition: 0.2s; }
-    .lang-btn.active { background: #ffffff; color: var(--primary); }
-    .card { background: var(--card); border-radius: 12px; padding: 18px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .card-title { font-size: 1.08rem; font-weight: 700; color: var(--primary); margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+    :root {
+      --banana: #facc15;
+      --banana-dark: #eab308;
+      --banana-soft: #fef9c3;
+      --dark: #18181b;
+      --slate: #27272a;
+      --bg: #fffbeb;
+      --card: #ffffff;
+      --border: #fde047;
+      --muted: #52525b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--dark); padding: 14px; line-height: 1.5; }
+    .container { max-width: 850px; margin: 0 auto; }
+    header {
+      background: linear-gradient(135deg, var(--dark), var(--slate));
+      color: #fff; padding: 18px 20px; border-radius: 14px; margin-bottom: 18px;
+      border-bottom: 4px solid var(--banana); display: flex;
+      justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    header h1 { font-size: 1.3rem; color: var(--banana); margin-bottom: 3px; }
+    header p { font-size: 0.85rem; color: #e4e4e7; }
+    .lang-box { display: flex; background: #3f3f46; padding: 4px; border-radius: 10px; gap: 4px; }
+    .lang-btn {
+      border: none; padding: 7px 14px; border-radius: 7px; font-weight: 800;
+      font-size: 0.85rem; cursor: pointer; background: transparent; color: #fff;
+    }
+    .lang-btn.active { background: var(--banana); color: var(--dark); }
+    .card {
+      background: var(--card); border-radius: 14px; padding: 18px;
+      margin-bottom: 18px; border: 2px solid var(--border);
+      box-shadow: 0 4px 12px rgba(234, 179, 8, 0.12);
+    }
+    .card-title {
+      font-size: 1.05rem; font-weight: 800; color: var(--dark);
+      margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px dashed var(--banana-dark);
+    }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .form-group { display: flex; flex-direction: column; }
-    label { font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; }
-    select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: #fff; }
-    .result-box { margin-top: 15px; background: var(--accent); border-left: 5px solid var(--primary-light); padding: 15px; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; }
-    .result-item { display: flex; flex-direction: column; min-width: 140px; }
-    .result-label { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
-    .result-value { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
-    .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
-    .tab-btn { padding: 8px 12px; border: 1px solid var(--border); background: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.88rem; color: var(--muted); }
-    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-    th, td { border: 1px solid var(--border); padding: 9px; text-align: center; }
-    th { background: #f8fafc; color: var(--primary); font-weight: 700; }
-    tr:nth-child(even) { background: #f8fafc; }
-    .badge { display: inline-block; padding: 3px 9px; background: #dbeafe; color: #1e40af; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
+    label { font-size: 0.82rem; font-weight: 700; margin-bottom: 5px; color: var(--slate); }
+    select {
+      padding: 10px 12px; border: 2px solid #e4e4e7; border-radius: 9px;
+      font-size: 0.95rem; font-weight: 600; background: #fff; color: var(--dark);
+    }
+    .result-box {
+      margin-top: 15px; background: var(--banana-soft);
+      border-left: 6px solid var(--banana-dark); padding: 14px 16px;
+      border-radius: 10px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: space-between;
+    }
+    .result-item { display: flex; flex-direction: column; min-width: 130px; }
+    .result-label { font-size: 0.75rem; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+    .result-value { font-size: 1.35rem; font-weight: 900; color: var(--dark); }
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 8px 13px; border: 2px solid #e4e4e7; background: #fff;
+      border-radius: 9px; cursor: pointer; font-weight: 700; font-size: 0.85rem; color: var(--slate);
+    }
+    .tab-btn.active { background: var(--banana); color: var(--dark); border-color: var(--banana-dark); }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.9rem; }
+    th, td { border: 1px solid #fde68a; padding: 9px; text-align: center; }
+    th { background: var(--banana-soft); color: var(--dark); font-weight: 800; }
+    tr:nth-child(even) { background: #fffdf5; }
+    .badge {
+      display: inline-block; padding: 3px 10px; background: var(--dark);
+      color: var(--banana); border-radius: 999px; font-weight: 800; font-size: 0.85rem;
+    }
   </style>
 </head>
 <body>
 <div class="container">
   <header>
     <div>
-      <h1 id="uiTitle">🚂 रेलवे क्रॉसिंग फिटिंग्स कैलकुलेटर</h1>
-      <p id="uiSubtitle">क्रॉसिंग बोल्ट, रबर पैड, हील ब्लॉक, बियरिंग प्लेट और सुइयों की सटीक जानकारी</p>
+      <h1 id="t_title">🍌 रेलवे क्रॉसिंग फिटिंग्स कैलकुलेटर</h1>
+      <p id="t_sub">बोल्ट, रबर पैड, हील ब्लॉक, बियरिंग प्लेट और सुइयों की सटीक जानकारी</p>
     </div>
-    <div class="lang-switch">
-      <button type="button" class="lang-btn active" id="btnHi">हिंदी</button>
-      <button type="button" class="lang-btn" id="btnEn">English</button>
+    <div class="lang-box">
+      <button type="button" class="lang-btn active" id="btn_hi" onclick="changeLang('hi')">हिंदी</button>
+      <button type="button" class="lang-btn" id="btn_en" onclick="changeLang('en')">English</button>
     </div>
   </header>
 
   <div class="card">
-    <div class="card-title" id="uiBoltCardTitle">⚡ क्रॉसिंग बोल्ट क्विक लुकअप (बोल्ट खोजें)</div>
+    <div class="card-title" id="t_boltCard">⚡ क्रॉसिंग बोल्ट क्विक लुकअप (बोल्ट खोजें)</div>
     <div class="grid-3">
       <div class="form-group">
-        <label for="boltAngle" id="lblBoltAngle">क्रॉसिंग एंगल (Crossing Angle)</label>
-        <select id="boltAngle">
+        <label id="t_angle1">क्रॉसिंग एंगल (Angle)</label>
+        <select id="b_angle" onchange="calcBolt()">
           <option value="1:12">1:12</option>
           <option value="1:8.5">1:8½</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="boltRail" id="lblBoltRail">रेल सेक्शन (Rail Section)</label>
-        <select id="boltRail">
+        <label id="t_rail1">रेल सेक्शन (Rail Section)</label>
+        <select id="b_rail" onchange="calcBolt()">
           <option value="60 Kg">60 Kg</option>
           <option value="52 Kg">52 Kg</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="boltSerial" id="lblBoltSerial">बोल्ट क्रम संख्या (1 - 12)</label>
-        <select id="boltSerial">
+        <label id="t_serial">बोल्ट क्रम संख्या (1 - 12)</label>
+        <select id="b_serial" onchange="calcBolt()">
           <option value="1">1</option><option value="2">2</option><option value="3">3</option>
           <option value="4">4</option><option value="5" selected>5</option><option value="6">6</option>
           <option value="7">7</option><option value="8">8</option><option value="9">9</option>
@@ -77,133 +115,133 @@
     </div>
     <div class="result-box">
       <div class="result-item">
-        <span class="result-label" id="lblResSel">चुना गया संयोजन</span>
-        <span class="result-value" id="resSelection" style="font-size:1.05rem;">1:12 (60 Kg) - Serial #5</span>
+        <span class="result-label" id="t_selLbl">चुना गया संयोजन</span>
+        <span class="result-value" id="out_sel" style="font-size:1.05rem;">1:12 (60 Kg) - क्रम #5</span>
       </div>
       <div class="result-item">
-        <span class="result-label" id="lblResDrg">बोल्ट ड्राइंग नंबर</span>
-        <span class="result-value" id="resDrawing">11529</span>
+        <span class="result-label" id="t_drgLbl">बोल्ट ड्राइंग नंबर</span>
+        <span class="result-value" id="out_drg">11529</span>
       </div>
       <div class="result-item">
-        <span class="result-label" id="lblResSize">बोल्ट साइज़ (मि.मी.)</span>
-        <span class="result-value" id="resSize">340 mm</span>
+        <span class="result-label" id="t_sizeLbl">बोल्ट साइज़ (मि.मी.)</span>
+        <span class="result-value" id="out_size">340 mm</span>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title" id="uiMainCardTitle">📋 अन्य क्रॉसिंग फिटिंग्स विवरण</div>
-    <div class="grid-3" style="margin-bottom:15px;">
+    <div class="card-title" id="t_mainCard">📋 अन्य क्रॉसिंग फिटिंग्स विवरण</div>
+    <div class="grid-3" style="margin-bottom:14px;">
       <div class="form-group">
-        <label for="mainAngle" id="lblMainAngle">क्रॉसिंग एंगल (Crossing Angle)</label>
-        <select id="mainAngle">
+        <label id="t_angle2">क्रॉसिंग एंगल (Angle)</label>
+        <select id="m_angle" onchange="drawTable()">
           <option value="1:12">1:12</option>
           <option value="1:8.5">1:8½</option>
         </select>
       </div>
       <div class="form-group">
-        <label for="mainRail" id="lblMainRail">रेल सेक्शन (Rail Section)</label>
-        <select id="mainRail">
+        <label id="t_rail2">रेल सेक्शन (Rail Section)</label>
+        <select id="m_rail" onchange="drawTable()">
           <option value="60 Kg">60 Kg</option>
           <option value="52 Kg">52 Kg</option>
         </select>
       </div>
     </div>
-    <div class="tabs" id="tabButtons">
-      <button type="button" class="tab-btn active" data-tab="rubberPads" id="tabPads">रबर पैड</button>
-      <button type="button" class="tab-btn" data-tab="heelJoint" id="tabHeel">हील जोड़ गुटके व बोल्ट</button>
-      <button type="button" class="tab-btn" data-tab="bearingPlates" id="tabPlates">स्पेशल बियरिंग प्लेट</button>
-      <button type="button" class="tab-btn" data-tab="checkRailNeedles" id="tabCheck">चेक रेल व सुइयाँ</button>
+    <div class="tabs">
+      <button type="button" class="tab-btn active" id="tab_pads" onclick="openTab('pads', this)">रबर पैड</button>
+      <button type="button" class="tab-btn" id="tab_heel" onclick="openTab('heel', this)">हील जोड़ गुटके व बोल्ट</button>
+      <button type="button" class="tab-btn" id="tab_plates" onclick="openTab('plates', this)">स्पेशल बियरिंग प्लेट</button>
+      <button type="button" class="tab-btn" id="tab_check" onclick="openTab('check', this)">चेक रेल व सुइयाँ</button>
     </div>
-    <div id="tabContent"></div>
+    <div id="table_area"></div>
   </div>
 </div>
 <script>
-const LANG = {
+var TEXT = {
   hi: {
-    title: "🚂 रेलवे क्रॉसिंग फिटिंग्स कैलकुलेटर",
-    subtitle: "क्रॉसिंग बोल्ट, रबर पैड, हील ब्लॉक, बियरिंग प्लेट और सुइयों की सटीक जानकारी",
-    boltCardTitle: "⚡ क्रॉसिंग बोल्ट क्विक लुकअप (बोल्ट खोजें)",
-    angle: "क्रॉसिंग एंगल",
-    rail: "रेल सेक्शन",
+    title: "🍌 रेलवे क्रॉसिंग फिटिंग्स कैलकुलेटर",
+    sub: "बोल्ट, रबर पैड, हील ब्लॉक, बियरिंग प्लेट और सुइयों की सटीक जानकारी",
+    boltCard: "⚡ क्रॉसिंग बोल्ट क्विक लुकअप (बोल्ट खोजें)",
+    angle: "क्रॉसिंग एंगल (Angle)",
+    rail: "रेल सेक्शन (Rail Section)",
     serial: "बोल्ट क्रम संख्या (1 - 12)",
-    resSel: "चुना गया संयोजन",
-    resDrg: "बोल्ट ड्राइंग नंबर",
-    resSize: "बोल्ट साइज़ (मि.मी.)",
-    serialWord: "क्रम",
-    mainCardTitle: "📋 अन्य क्रॉसिंग फिटिंग्स विवरण",
+    selLbl: "चुना गया संयोजन",
+    drgLbl: "बोल्ट ड्राइंग नंबर",
+    sizeLbl: "बोल्ट साइज़ (मि.मी.)",
+    wordSerial: "क्रम",
+    mainCard: "📋 अन्य क्रॉसिंग फिटिंग्स विवरण",
     tabPads: "रबर पैड",
     tabHeel: "हील जोड़ गुटके व बोल्ट",
     tabPlates: "स्पेशल बियरिंग प्लेट",
     tabCheck: "चेक रेल व सुइयाँ",
-    thSleeper: "स्लीपर नंबर",
-    thPad: "रबर पैड नंबर",
-    thPos: "क्रम",
-    thBlock: "गुटका नंबर",
-    thBolt: "बोल्ट ड्राइंग नंबर",
-    thSize: "साइज़ (मि.मी.)",
-    thSI: "स्लीपर (SI)",
-    thLeft: "लेफ्ट प्लेट (L)",
-    thRight: "राइट प्लेट (R)",
-    checkHeading: "क्रॉसिंग के सामने चेक रेल के गुटका, बोल्ट व रबर पैड",
-    needleHeading: "क्रॉसिंग की सुइयाँ (TOC और HOC)",
-    posNames: ["पहला (1st)", "दूसरा (2nd)", "तीसरा (3rd)", "चौथा (4th)"]
+    hSleeper: "स्लीपर नंबर",
+    hPad: "रबर पैड नंबर",
+    hPos: "क्रम",
+    hBlock: "गुटका नंबर",
+    hBolt: "बोल्ट ड्राइंग नंबर",
+    hSize: "साइज़ (मि.मी.)",
+    hSI: "स्लीपर (SI)",
+    hLeft: "लेफ्ट प्लेट (L)",
+    hRight: "राइट प्लेट (R)",
+    chkHead: "क्रॉसिंग के सामने चेक रेल के गुटका, बोल्ट व रबर पैड",
+    ndlHead: "क्रॉसिंग की सुइयाँ (TOC और HOC)",
+    pos: ["पहला (1st)", "दूसरा (2nd)", "तीसरा (3rd)", "चौथा (4th)"]
   },
   en: {
-    title: "🚂 Railway Crossing Fittings Calculator",
-    subtitle: "Accurate lookup for Crossing Bolts, Rubber Pads, Heel Blocks, Bearing Plates & Needles",
-    boltCardTitle: "⚡ Crossing Bolt Quick Lookup",
+    title: "🍌 Railway Crossing Fittings Calculator",
+    sub: "Exact lookup for Crossing Bolts, Rubber Pads, Heel Blocks, Plates & Needles",
+    boltCard: "⚡ Crossing Bolt Quick Lookup",
     angle: "Crossing Angle",
     rail: "Rail Section",
     serial: "Bolt Serial No. (1 - 12)",
-    resSel: "Selected Combination",
-    resDrg: "Bolt Drawing No.",
-    resSize: "Bolt Size (mm)",
-    serialWord: "Serial",
-    mainCardTitle: "📋 Complete Crossing Fittings Details",
+    selLbl: "Selected Combination",
+    drgLbl: "Bolt Drawing No.",
+    sizeLbl: "Bolt Size (mm)",
+    wordSerial: "Serial",
+    mainCard: "📋 Complete Crossing Fittings Details",
     tabPads: "Rubber Pads",
     tabHeel: "Heel Joint Blocks & Bolts",
     tabPlates: "Special Bearing Plates",
     tabCheck: "Check Rail & Needles",
-    thSleeper: "Sleeper No.",
-    thPad: "Rubber Pad No.",
-    thPos: "Position",
-    thBlock: "Block No.",
-    thBolt: "Bolt Drawing No.",
-    thSize: "Size (mm)",
-    thSI: "Sleeper (SI)",
-    thLeft: "Left Plate (L)",
-    thRight: "Right Plate (R)",
-    checkHeading: "Check Rail Block, Bolt & Rubber Pad in front of Crossing",
-    needleHeading: "Crossing Needles / Tongues (TOC & HOC)",
-    posNames: ["1st", "2nd", "3rd", "4th"]
+    hSleeper: "Sleeper No.",
+    hPad: "Rubber Pad No.",
+    hPos: "Position",
+    hBlock: "Block No.",
+    hBolt: "Bolt Drawing No.",
+    hSize: "Size (mm)",
+    hSI: "Sleeper (SI)",
+    hLeft: "Left Plate (L)",
+    hRight: "Right Plate (R)",
+    chkHead: "Check Rail Block, Bolt & Rubber Pad in front of Crossing",
+    ndlHead: "Crossing Needles / Tongues (TOC & HOC)",
+    pos: ["1st", "2nd", "3rd", "4th"]
   }
 };
 
-const DB = {
+var DATA = {
   bolts: {
     "1:12": {
       "60 Kg": {
-        1:{d:"11535",s:400}, 2:{d:"11533",s:380}, 3:{d:"11532",s:370}, 4:{d:"11531",s:360},
-        5:{d:"11529",s:340}, 6:{d:"11528",s:330}, 7:{d:"11524",s:290}, 8:{d:"11525",s:300},
-        9:{d:"11527",s:320}, 10:{d:"11528",s:330}, 11:{d:"11529",s:340}, 12:{d:"11531",s:360}
+        1:{d:"11535",s:400},2:{d:"11533",s:380},3:{d:"11532",s:370},4:{d:"11531",s:360},
+        5:{d:"11529",s:340},6:{d:"11528",s:330},7:{d:"11524",s:290},8:{d:"11525",s:300},
+        9:{d:"11527",s:320},10:{d:"11528",s:330},11:{d:"11529",s:340},12:{d:"11531",s:360}
       },
       "52 Kg": {
-        1:{d:"11534",s:390}, 2:{d:"11532",s:270}, 3:{d:"11531",s:360}, 4:{d:"11530",s:350},
-        5:{d:"11528",s:330}, 6:{d:"11527",s:320}, 7:{d:"11524",s:290}, 8:{d:"11525",s:300},
-        9:{d:"11527",s:320}, 10:{d:"11528",s:330}, 11:{d:"11529",s:340}, 12:{d:"11531",s:360}
+        1:{d:"11534",s:390},2:{d:"11532",s:270},3:{d:"11531",s:360},4:{d:"11530",s:350},
+        5:{d:"11528",s:330},6:{d:"11527",s:320},7:{d:"11524",s:290},8:{d:"11525",s:300},
+        9:{d:"11527",s:320},10:{d:"11528",s:330},11:{d:"11529",s:340},12:{d:"11531",s:360}
       }
     },
     "1:8.5": {
       "60 Kg": {
-        1:{d:"11536",s:410}, 2:{d:"11534",s:390}, 3:{d:"11532",s:370}, 4:{d:"11530",s:350},
-        5:{d:"11528",s:330}, 6:{d:"11526",s:310}, 7:{d:"11525",s:300}, 8:{d:"11527",s:320},
-        9:{d:"11529",s:340}, 10:{d:"11531",s:360}, 11:{d:"11533",s:380}, 12:{d:"11535",s:400}
+        1:{d:"11536",s:410},2:{d:"11534",s:390},3:{d:"11532",s:370},4:{d:"11530",s:350},
+        5:{d:"11528",s:330},6:{d:"11526",s:310},7:{d:"11525",s:300},8:{d:"11527",s:320},
+        9:{d:"11529",s:340},10:{d:"11531",s:360},11:{d:"11533",s:380},12:{d:"11535",s:400}
       },
       "52 Kg": {
-        1:{d:"11535",s:400}, 2:{d:"11533",s:380}, 3:{d:"11531",s:360}, 4:{d:"11529",s:340},
-        5:{d:"11527",s:320}, 6:{d:"11526",s:310}, 7:{d:"11525",s:300}, 8:{d:"11527",s:320},
-        9:{d:"11529",s:340}, 10:{d:"11531",s:360}, 11:{d:"11533",s:380}, 12:{d:"11535",s:400}
+        1:{d:"11535",s:400},2:{d:"11533",s:380},3:{d:"11531",s:360},4:{d:"11529",s:340},
+        5:{d:"11527",s:320},6:{d:"11526",s:310},7:{d:"11525",s:300},8:{d:"11527",s:320},
+        9:{d:"11529",s:340},10:{d:"11531",s:360},11:{d:"11533",s:380},12:{d:"11535",s:400}
       }
     }
   },
@@ -247,94 +285,97 @@ const DB = {
     "1:8.5": { "60 Kg": {toc:"4987",hoc:"4988"}, "52 Kg": {toc:"4894",hoc:"4895"} }
   }
 };
+var lang = "hi";
+var curTab = "pads";
 
-let currentLang = "hi";
-let activeTab = "rubberPads";
-
-function setLanguage(lang) {
-  currentLang = lang;
-  const t = LANG[lang];
-  document.getElementById("btnHi").classList.toggle("active", lang === "hi");
-  document.getElementById("btnEn").classList.toggle("active", lang === "en");
-
-  document.getElementById("uiTitle").textContent = t.title;
-  document.getElementById("uiSubtitle").textContent = t.subtitle;
-  document.getElementById("uiBoltCardTitle").textContent = t.boltCardTitle;
-  document.getElementById("lblBoltAngle").textContent = t.angle;
-  document.getElementById("lblBoltRail").textContent = t.rail;
-  document.getElementById("lblBoltSerial").textContent = t.serial;
-  document.getElementById("lblResSel").textContent = t.resSel;
-  document.getElementById("lblResDrg").textContent = t.resDrg;
-  document.getElementById("lblResSize").textContent = t.resSize;
-  document.getElementById("uiMainCardTitle").textContent = t.mainCardTitle;
-  document.getElementById("lblMainAngle").textContent = t.angle;
-  document.getElementById("lblMainRail").textContent = t.rail;
-  document.getElementById("tabPads").textContent = t.tabPads;
-  document.getElementById("tabHeel").textContent = t.tabHeel;
-  document.getElementById("tabPlates").textContent = t.tabPlates;
-  document.getElementById("tabCheck").textContent = t.tabCheck;
-
-  updateBolt();
-  renderTable();
+function changeLang(l) {
+  lang = l;
+  var t = TEXT[l];
+  document.getElementById("btn_hi").className = l === "hi" ? "lang-btn active" : "lang-btn";
+  document.getElementById("btn_en").className = l === "en" ? "lang-btn active" : "lang-btn";
+  document.getElementById("t_title").textContent = t.title;
+  document.getElementById("t_sub").textContent = t.sub;
+  document.getElementById("t_boltCard").textContent = t.boltCard;
+  document.getElementById("t_angle1").textContent = t.angle;
+  document.getElementById("t_rail1").textContent = t.rail;
+  document.getElementById("t_serial").textContent = t.serial;
+  document.getElementById("t_selLbl").textContent = t.selLbl;
+  document.getElementById("t_drgLbl").textContent = t.drgLbl;
+  document.getElementById("t_sizeLbl").textContent = t.sizeLbl;
+  document.getElementById("t_mainCard").textContent = t.mainCard;
+  document.getElementById("t_angle2").textContent = t.angle;
+  document.getElementById("t_rail2").textContent = t.rail;
+  document.getElementById("tab_pads").textContent = t.tabPads;
+  document.getElementById("tab_heel").textContent = t.tabHeel;
+  document.getElementById("tab_plates").textContent = t.tabPlates;
+  document.getElementById("tab_check").textContent = t.tabCheck;
+  calcBolt();
+  drawTable();
 }
 
-function updateBolt() {
-  const a = document.getElementById("boltAngle").value;
-  const r = document.getElementById("boltRail").value;
-  const s = document.getElementById("boltSerial").value;
-  const item = DB.bolts[a][r][s];
-  const t = LANG[currentLang];
-  const dispAngle = a === "1:8.5" ? "1:8½" : a;
-
-  document.getElementById("resSelection").textContent = `${dispAngle} (${r}) - ${t.serialWord} #${s}`;
-  document.getElementById("resDrawing").textContent = item.d;
-  document.getElementById("resSize").textContent = `${item.s} mm`;
+function calcBolt() {
+  var a = document.getElementById("b_angle").value;
+  var r = document.getElementById("b_rail").value;
+  var s = document.getElementById("b_serial").value;
+  var res = DATA.bolts[a][r][s];
+  var t = TEXT[lang];
+  var angShow = a === "1:8.5" ? "1:8½" : a;
+  document.getElementById("out_sel").textContent = angShow + " (" + r + ") - " + t.wordSerial + " #" + s;
+  document.getElementById("out_drg").textContent = res.d;
+  document.getElementById("out_size").textContent = res.s + " mm";
 }
 
-function renderTable() {
-  const a = document.getElementById("mainAngle").value;
-  const r = document.getElementById("mainRail").value;
-  const box = document.getElementById("tabContent");
-  const t = LANG[currentLang];
+function openTab(tabName, el) {
+  curTab = tabName;
+  var btns = document.querySelectorAll(".tab-btn");
+  for (var i = 0; i < btns.length; i++) btns[i].className = "tab-btn";
+  el.className = "tab-btn active";
+  drawTable();
+}
 
-  if (activeTab === "rubberPads") {
-    box.innerHTML = `<table><thead><tr><th>${t.thSleeper}</th><th>${t.thPad}</th></tr></thead><tbody>` +
-      DB.pads[a].map(x => `<tr><td><strong>${x.sl}</strong></td><td><span class="badge">${x.p}</span></td></tr>`).join("") + `</tbody></table>`;
-  } else if (activeTab === "heelJoint") {
-    box.innerHTML = `<table><thead><tr><th>${t.thPos}</th><th>${t.thBlock}</th><th>${t.thBolt}</th><th>${t.thSize}</th></tr></thead><tbody>` +
-      DB.heel[a][r].map((x, idx) => `<tr><td><strong>${t.posNames[idx]}</strong></td><td>${x.b}</td><td><span class="badge">${x.bt}</span></td><td>${x.sz}</td></tr>`).join("") + `</tbody></table>`;
-  } else if (activeTab === "bearingPlates") {
-    box.innerHTML = `<table><thead><tr><th>${t.thSI}</th><th>${t.thPad}</th><th>${t.thLeft}</th><th>${t.thRight}</th></tr></thead><tbody>` +
-      DB.plates[a][r].map(x => `<tr><td><strong>${x.si}</strong></td><td>${x.p}</td><td><span class="badge">${x.l}</span></td><td>${x.r !== "-" ? `<span class="badge">${x.r}</span>` : "-"}</td></tr>`).join("") + `</tbody></table>`;
+function drawTable() {
+  var a = document.getElementById("m_angle").value;
+  var r = document.getElementById("m_rail").value;
+  var t = TEXT[lang];
+  var box = document.getElementById("table_area");
+  var html = "";
+
+  if (curTab === "pads") {
+    html = "<table><thead><tr><th>" + t.hSleeper + "</th><th>" + t.hPad + "</th></tr></thead><tbody>";
+    var list = DATA.pads[a];
+    for (var i = 0; i < list.length; i++) {
+      html += "<tr><td><strong>" + list[i].sl + "</strong></td><td><span class='badge'>" + list[i].p + "</span></td></tr>";
+    }
+    html += "</tbody></table>";
+  } else if (curTab === "heel") {
+    html = "<table><thead><tr><th>" + t.hPos + "</th><th>" + t.hBlock + "</th><th>" + t.hBolt + "</th><th>" + t.hSize + "</th></tr></thead><tbody>";
+    var list = DATA.heel[a][r];
+    for (var i = 0; i < list.length; i++) {
+      html += "<tr><td><strong>" + t.pos[i] + "</strong></td><td>" + list[i].b + "</td><td><span class='badge'>" + list[i].bt + "</span></td><td>" + list[i].sz + "</td></tr>";
+    }
+    html += "</tbody></table>";
+  } else if (curTab === "plates") {
+    html = "<table><thead><tr><th>" + t.hSI + "</th><th>" + t.hPad + "</th><th>" + t.hLeft + "</th><th>" + t.hRight + "</th></tr></thead><tbody>";
+    var list = DATA.plates[a][r];
+    for (var i = 0; i < list.length; i++) {
+      var rCol = list[i].r !== "-" ? "<span class='badge'>" + list[i].r + "</span>" : "-";
+      html += "<tr><td><strong>" + list[i].si + "</strong></td><td>" + list[i].p + "</td><td><span class='badge'>" + list[i].l + "</span></td><td>" + rCol + "</td></tr>";
+    }
+    html += "</tbody></table>";
   } else {
-    const c = DB.check[r], n = DB.needles[a][r];
-    box.innerHTML = `<h4 style="margin:10px 0;color:var(--primary)">${t.checkHeading} (${r})</h4>
-      <table><thead><tr><th>${t.thPad}</th><th>${t.thBlock}</th><th>${t.thBolt}</th><th>${t.thSize}</th></tr></thead>
-      <tbody><tr><td><span class="badge">${c.p}</span></td><td><span class="badge">${c.b}</span></td><td><span class="badge">${c.bt}</span></td><td><strong>${c.sz}</strong></td></tr></tbody></table>
-      <h4 style="margin:18px 0 10px;color:var(--primary)">${t.needleHeading}</h4>
-      <table><thead><tr><th>TOC (Toe of Crossing)</th><th>HOC (Heel of Crossing)</th></tr></thead>
-      <tbody><tr><td><span class="badge">${n.toc}</span></td><td><span class="badge">${n.hoc}</span></td></tr></tbody></table>`;
+    var c = DATA.check[r];
+    var n = DATA.needles[a][r];
+    html = "<h4 style='margin:10px 0;color:#18181b'>" + t.chkHead + " (" + r + ")</h4>" +
+      "<table><thead><tr><th>" + t.hPad + "</th><th>" + t.hBlock + "</th><th>" + t.hBolt + "</th><th>" + t.hSize + "</th></tr></thead>" +
+      "<tbody><tr><td><span class='badge'>" + c.p + "</span></td><td><span class='badge'>" + c.b + "</span></td><td><span class='badge'>" + c.bt + "</span></td><td><strong>" + c.sz + "</strong></td></tr></tbody></table>" +
+      "<h4 style='margin:18px 0 10px;color:#18181b'>" + t.ndlHead + "</h4>" +
+      "<table><thead><tr><th>TOC (Toe of Crossing)</th><th>HOC (Heel of Crossing)</th></tr></thead>" +
+      "<tbody><tr><td><span class='badge'>" + n.toc + "</span></td><td><span class='badge'>" + n.hoc + "</span></td></tr></tbody></table>";
   }
+  box.innerHTML = html;
 }
 
-document.getElementById("btnHi").addEventListener("click", () => setLanguage("hi"));
-document.getElementById("btnEn").addEventListener("click", () => setLanguage("en"));
-document.getElementById("boltAngle").addEventListener("change", updateBolt);
-document.getElementById("boltRail").addEventListener("change", updateBolt);
-document.getElementById("boltSerial").addEventListener("change", updateBolt);
-document.getElementById("mainAngle").addEventListener("change", renderTable);
-document.getElementById("mainRail").addEventListener("change", renderTable);
-
-document.querySelectorAll("#tabButtons .tab-btn").forEach(btn => {
-  btn.addEventListener("click", function() {
-    document.querySelectorAll("#tabButtons .tab-btn").forEach(b => b.classList.remove("active"));
-    this.classList.add("active");
-    activeTab = this.getAttribute("data-tab");
-    renderTable();
-  });
-});
-
-setLanguage("hi");
+changeLang("hi");
 </script>
 </body>
 </html>
