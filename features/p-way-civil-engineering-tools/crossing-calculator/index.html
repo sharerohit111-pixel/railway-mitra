@@ -156,9 +156,9 @@ function updateBolt() {
   const r = document.getElementById("boltRail").value;
   const s = document.getElementById("boltSerial").value;
   const d = DB.bolts[a][r][s];
-  document.getElementById("resSelection").textContent = ${a === "1:8.5" ? "1:8½" : a} (${r}) - Serial #${s};
+  document.getElementById("resSelection").textContent = `${a === "1:8.5" ? "1:8½" : a} (${r}) - Serial #${s}`;
   document.getElementById("resDrawing").textContent = d;
-  document.getElementById("resSize").textContent = ${d} mm;
+  document.getElementById("resSize").textContent = `${d} mm`;
 }
 
 function renderTable() {
@@ -166,18 +166,18 @@ function renderTable() {
   const r = document.getElementById("mainRail").value;
   const box = document.getElementById("tabContent");
   if (activeTab === "rubberPads") {
-    box.innerHTML = ${<table><thead><tr><th>Sleeper No.</th><th>Rubber Pad No.</th></tr></thead><tbody>} +
-      DB.pads[a].map(x => ${<tr><td><strong>}${x}${</strong></td><td><span class="badge">}${x}${</span></td></tr>}).join("") + ${</tbody></table>};
+    box.innerHTML = `<table><thead><tr><th>Sleeper No.</th><th>Rubber Pad No.</th></tr></thead><tbody>` +
+      DB.pads[a].map(x => `<tr><td><strong>${x}</strong></td><td><span class="badge">${x}</span></td></tr>`).join("") + `</tbody></table>`;
   } else if (activeTab === "heelJoint") {
-    box.innerHTML = ${<table><thead><tr><th>क्रम</th><th>गुटका (Block)</th><th>बोल्ट (Bolt)</th><th>साइज़ (mm)</th></tr></thead><tbody>} +
-      DB.heel[a][r].map(x => ${<tr><td><strong>}${x}${</strong></td><td>}${x}${</td><td><span class="badge">}${x}${</span></td><td>}${x}${</td></tr>}).join("") + ${</tbody></table>};
+    box.innerHTML = `<table><thead><tr><th>क्रम</th><th>गुटका (Block)</th><th>बोल्ट (Bolt)</th><th>साइज़ (mm)</th></tr></thead><tbody>` +
+      DB.heel[a][r].map(x => `<tr><td><strong>${x}</strong></td><td>${x}</td><td><span class="badge">${x}</span></td><td>${x}</td></tr>`).join("") + `</tbody></table>`;
   } else if (activeTab === "bearingPlates") {
-    box.innerHTML = ${<table><thead><tr><th>Sleeper (SI)</th><th>R/Pad</th><th>Left (L)</th><th>Right (R)</th></tr></thead><tbody>} +
-      DB.plates[a][r].map(x => ${<tr><td><strong>}${x}${</strong></td><td>}${x}${</td><td><span class="badge">}${x}${</span></td><td>${x !== "-" ? ${<span class="badge">}${x}${</span>} : "-"}</td></tr>}).join("") + ${</tbody></table>};
+    box.innerHTML = `<table><thead><tr><th>Sleeper (SI)</th><th>R/Pad</th><th>Left (L)</th><th>Right (R)</th></tr></thead><tbody>` +
+      DB.plates[a][r].map(x => `<tr><td><strong>${x}</strong></td><td>${x}</td><td><span class="badge">${x}</span></td><td>${x !== "-" ? `<span class="badge">${x}</span>` : "-"}</td></tr>`).join("") + `</tbody></table>`;
   } else {
     const c = DB.check[r], n = DB.needles[a][r];
-    box.innerHTML = ${<h4 style="margin:10px 0;color:var(--primary)">चेक रेल फिटिंग्स (${r})</h4><table><thead><tr><th>R/Pad</th><th>Block</th><th>Bolt</th><th>Size</th></tr></thead><tbody><tr><td><span class="badge">${c}</span></td><td><span class="badge">${c}</span></td><td><span class="badge">${c}</span></td><td><strong>${c}</strong></td></tr></tbody></table>
-    <h4 style="margin:18px 0;color:var(--primary)">क्रॉसिंग की सुइयाँ (TOC & HOC)</h4><table><thead><tr><th>TOC</th><th>HOC</th></tr></thead><tbody><tr><td><span class="badge">${n}</span></td><td><span class="badge">${n}</span></td></tr></tbody></table>};
+    box.innerHTML = `<h4 style="margin:10px 0;color:var(--primary)">चेक रेल फिटिंग्स (${r})</h4><table><thead><tr><th>R/Pad</th><th>Block</th><th>Bolt</th><th>Size</th></tr></thead><tbody><tr><td><span class="badge">${c}</span></td><td><span class="badge">${c}</span></td><td><span class="badge">${c}</span></td><td><strong>${c}</strong></td></tr></tbody></table>
+    <h4 style="margin:18px 0;color:var(--primary)">क्रॉसिंग की सुइयाँ (TOC & HOC)</h4><table><thead><tr><th>TOC</th><th>HOC</th></tr></thead><tbody><tr><td><span class="badge">${n}</span></td><td><span class="badge">${n}</span></td></tr></tbody></table>`;
   }
 }
 
