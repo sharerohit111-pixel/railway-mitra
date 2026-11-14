@@ -31,7 +31,7 @@ function harness({ refundAmount = 49900, amountRefunded = 49900, refundStatus = 
     event: "refund.processed",
     payload: {
       refund: { entity: { id: "rfnd_1", payment_id: "pay_refund_1", amount: refundAmount, currency: "INR", status: "processed" } },
-      payment: { entity: { id: "pay_refund_1", amount: 49900, amount_refunded: amountRefunded, currency: "INR", refund_status: refundStatus, status: "captured" } }
+      payment: { entity: { id: "pay_refund_1", amount: 49900, amount_refunded: amountRefunded, currency: "INR", refund_status: refundStatus, status: "captured", captured: true } }
     }
   };
   return { db, event, docs };
@@ -125,6 +125,26 @@ test("rejects a provider refund status that contradicts its cumulative amount", 
     () => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_bad_provider_refund_status" }),
     { code: "invalid_refund_fields" }
   );
+});
+
+test("rejects auto-refund snapshots for uncaptured or unspecified payments without changing access", async () => {
+  for (const captured of [false, undefined]) {
+    const h = harness();
+    if (captured === undefined) {
+      delete h.event.payload.payment.entity.captured;
+    } else {
+      h.event.payload.payment.entity.captured = captured;
+    }
+
+    await assert.rejects(
+      () => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_uncaptured_auto_refund" }),
+      { code: "invalid_refund_fields" }
+    );
+    assert.equal(h.docs.has("testSeriesRefunds/rfnd_1"), false);
+    assert.equal(h.docs.has("testSeriesPaymentEvents/evt_uncaptured_auto_refund"), false);
+    assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
+    assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "active");
+  }
 });
 
 test("rejects refund identity, amount and payment mismatches", async () => {

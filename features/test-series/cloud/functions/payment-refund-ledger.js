@@ -70,6 +70,7 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
     fail("invalid_refund_event", "A processed refund and its matching payment snapshot are required");
   }
   const providerRefundSnapshotValid = providerPayment &&
+    providerPayment.captured === true &&
     (providerPayment.refund_status === "full"
       ? providerPayment.amount_refunded === providerPayment.amount
       : providerPayment.refund_status === "partial" && providerPayment.amount_refunded < providerPayment.amount);
