@@ -34,7 +34,7 @@ const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
 const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
-const { restoreOwnerQuestionAnswerKeys } = require("./owner-test-editor");
+const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -565,13 +565,11 @@ exports.rmOwnerPublishTest = onCall(CALLABLE_OPTIONS, async req => {
     const questions = questionSnap.data().questions;
     const answerMap = answerSnap.data().questions;
     try {
-      restoreOwnerQuestionAnswerKeys(questions, answerMap);
+      validateOwnerQuestionPaper(test, questions, answerMap);
+      validatedExamSections(test, questions);
     } catch (error) {
       console.error("Owner publish integrity check failed", { testId, message: error.message });
-      throw new HttpsError("failed-precondition", "Question paper or answer key is incomplete; publishing is blocked");
-    }
-    if (!Array.isArray(questions) || questions.length !== test.questionCount || questions.length < 1) {
-      throw new HttpsError("failed-precondition", "Question count does not match the saved test metadata");
+      throw new HttpsError("failed-precondition", "Test details, question paper, section configuration or private answer key is invalid; publishing is blocked");
     }
     tx.update(testRef, { status: "published", publishedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
     return { published: true, testId, questionCount: questions.length };
