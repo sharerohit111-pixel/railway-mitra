@@ -130,6 +130,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   const reviewPublish = el("rm-admin-review-publish");
   let reviewedTest = null;
   let reviewedPublishButton = null;
+  let reviewReturnFocus = null;
 
   function closePublishReview() {
     reviewDialog.hidden = true;
@@ -140,7 +141,36 @@ export function initOwnerAdminDashboard(auth, functions) {
     reviewSummary.replaceChildren();
     reviewQuestions.replaceChildren();
     reviewStatus.textContent = "";
+    const returnTarget = reviewReturnFocus;
+    reviewReturnFocus = null;
+    if (returnTarget && returnTarget.isConnected && !returnTarget.disabled) returnTarget.focus();
   }
+
+  reviewDialog.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closePublishReview();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = [...reviewDialog.querySelectorAll(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )].filter(node => !node.hidden && node.getAttribute("aria-hidden") !== "true");
+    if (!focusable.length) {
+      event.preventDefault();
+      reviewDialog.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !reviewDialog.contains(document.activeElement))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !reviewDialog.contains(document.activeElement))) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 
   function addReviewSummary(label, value) {
     const item = document.createElement("span");
@@ -150,6 +180,7 @@ export function initOwnerAdminDashboard(auth, functions) {
 
   async function openPublishReview(test, button) {
     const generation = testManagementGeneration;
+    reviewReturnFocus = button;
     button.disabled = true;
     reviewStatus.textContent = "सर्वर से पूरा प्रश्नपत्र और उत्तर-कुंजी सुरक्षित रूप से लोड हो रही है…";
     reviewSummary.replaceChildren();
@@ -158,6 +189,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     reviewedTest = null;
     reviewDialog.hidden = false;
     reviewedPublishButton = button;
+    el("rm-admin-review-close").focus();
     try {
       const response = await httpsCallable(functions, "rmOwnerGetTest")({ testId: test.testId });
       const data = response.data || {};
