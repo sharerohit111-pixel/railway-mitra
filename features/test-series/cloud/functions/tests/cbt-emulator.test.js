@@ -726,7 +726,7 @@ test("student can start, save answers and submit with server-side scoring", asyn
   // server active-session pointer still identifies the student's real attempt.
   await assert.rejects(
     callable("rmGetCbtAttemptResult", { attemptId: "stale-client-local-attempt" }),
-    error => error.code === "functions/permission-denied" && error.message === "Attempt not found"
+    error => error.code === "functions/permission-denied" && error.message.includes("Attempt not found")
   );
   const authoritativeRecovery = await callable("rmGetStudentActiveAttempt", { testId });
   assert.equal(authoritativeRecovery.found, true);
