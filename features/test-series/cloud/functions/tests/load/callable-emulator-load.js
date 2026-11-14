@@ -142,9 +142,13 @@ async function main() {
     await pool(students, CONCURRENCY, async student => {
       try {
         const result = await timedCall("rmStartExam", student.token, { testId: TEST_ID }, latencies.start);
-        if (!result.attemptId || result.resumed) throw new Error("Unexpected start response");
-        student.attemptId = result.attemptId;
-        attemptIds.push(result.attemptId);
+        // Capture the server-created attempt before validating the response so cleanup
+        // can still remove it if a later assertion detects an unexpected response shape.
+        if (result && typeof result.attemptId === "string" && result.attemptId) {
+          student.attemptId = result.attemptId;
+          attemptIds.push(result.attemptId);
+        }
+        if (!student.attemptId || result.resumed) throw new Error("Unexpected start response");
       } catch (error) { failures++; console.error(error.message); }
     });
 
