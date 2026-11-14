@@ -66,5 +66,28 @@ for (const relativePath of requiredFiles) {
   }
 }
 
+// Android WebView: use durable IndexedDB persistence and inject the native auth bridge
+// only into the staged Android login page. The production website remains untouched.
+const firebasePath = path.join(webRoot, 'assets/js/firebase.js');
+let firebaseSource = fs.readFileSync(firebasePath, 'utf8');
+firebaseSource = firebaseSource.replace(
+  'import { getAuth } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";',
+  'import { initializeAuth, indexedDBLocalPersistence } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";'
+);
+firebaseSource = firebaseSource.replace('const auth = getAuth(app);', 'const auth = initializeAuth(app, { persistence: indexedDBLocalPersistence });');
+if (!firebaseSource.includes('initializeAuth(app, { persistence: indexedDBLocalPersistence })')) {
+  throw new Error('Could not safely configure Firebase IndexedDB persistence for Android.');
+}
+fs.writeFileSync(firebasePath, firebaseSource);
+
+const loginHtmlPath = path.join(webRoot, 'features/auth/login.html');
+let loginHtml = fs.readFileSync(loginHtmlPath, 'utf8');
+const moduleScript = '<script type="module" src="./login.js"></script>';
+if (!loginHtml.includes(moduleScript)) {
+  throw new Error('Could not locate the login module script for native bridge injection.');
+}
+loginHtml = loginHtml.replace(moduleScript, '<script src="../../assets/js/native-google-auth.js"></script>\\n    ' + moduleScript);
+fs.writeFileSync(loginHtmlPath, loginHtml);
+
 console.log(`Prepared local Android web bundle at: ${webRoot}`);
 console.log(`Packaged ${runtimeEntries.length} runtime entries.`);
