@@ -52,3 +52,14 @@ jobs:
 
       - name: Run CBT unit and Firestore Rules emulator tests
         run: TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project railway-mitra --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"
+
+      - name: Verify synthetic Auth and Firestore emulator backup/restore
+        shell: bash
+        run: |
+          set -euo pipefail
+          export_dir="${RUNNER_TEMP}/railway-mitra-cbt-emulator-export"
+          rm -rf "$export_dir"
+          GCLOUD_PROJECT=demo-railway-mitra-cbt npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt --only auth,firestore --export-on-exit="$export_dir" "node features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js seed"
+          test -f "$export_dir/firebase-export-metadata.json"
+          GCLOUD_PROJECT=demo-railway-mitra-cbt npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt --only auth,firestore --import="$export_dir" "node features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js verify"
+          rm -rf "$export_dir"
