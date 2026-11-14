@@ -5,7 +5,16 @@
  * The server remains authoritative; this store never marks an answer as saved.
  */
 const MAX_PENDING_ANSWERS = 500;
-const MAX_PENDING_DRAFT_CHARS = 128 * 1024;
+const MAX_PENDING_DRAFT_BYTES = 128 * 1024;
+
+function utf8ByteLength(value) {
+  if (typeof TextEncoder !== "function") return null;
+  try {
+    return new TextEncoder().encode(value).byteLength;
+  } catch {
+    return null;
+  }
+}
 
 export function readPendingAnswerDraft({ storage, key, questions }) {
   const answers = new Map();
@@ -23,7 +32,15 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
   if (raw === null || raw === undefined || raw === "") {
     return { answers, discarded, unavailable: false };
   }
-  if (typeof raw !== "string" || raw.length > MAX_PENDING_DRAFT_CHARS) {
+  if (typeof raw !== "string") {
+    try { storage.removeItem(key); } catch (_) {}
+    return { answers, discarded: 1, unavailable: false };
+  }
+  const rawBytes = utf8ByteLength(raw);
+  if (rawBytes === null) {
+    return { answers, discarded, unavailable: true };
+  }
+  if (rawBytes > MAX_PENDING_DRAFT_BYTES) {
     try { storage.removeItem(key); } catch (_) {}
     return { answers, discarded: 1, unavailable: false };
   }
@@ -79,7 +96,9 @@ export function writePendingAnswerDraft({ storage, key, entries }) {
     if (entries.length) {
       if (entries.length > MAX_PENDING_ANSWERS) return false;
       const serialized = JSON.stringify(entries);
-      if (typeof serialized !== "string" || serialized.length > MAX_PENDING_DRAFT_CHARS) return false;
+      if (typeof serialized !== "string") return false;
+      const serializedBytes = utf8ByteLength(serialized);
+      if (serializedBytes === null || serializedBytes > MAX_PENDING_DRAFT_BYTES) return false;
       storage.setItem(key, serialized);
     } else {
       storage.removeItem(key);

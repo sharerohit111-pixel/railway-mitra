@@ -119,3 +119,45 @@ test("accepts a full 500-answer draft within the configured bounds", () => {
   assert.equal(restored.answers.size, 500);
   assert.equal(restored.discarded, 0);
 });
+
+test("accepts a serialized draft exactly at the 128 KiB UTF-8 byte limit", () => {
+  const maxBytes = 128 * 1024;
+  const emptyIdBytes = new TextEncoder().encode(JSON.stringify([["", "0"]])).byteLength;
+  const questionId = "x".repeat(maxBytes - emptyIdBytes);
+  const entries = [[questionId, "0"]];
+  const serialized = JSON.stringify(entries);
+  assert.equal(new TextEncoder().encode(serialized).byteLength, maxBytes);
+
+  const storage = makeStorage();
+  assert.equal(writePendingAnswerDraft({ storage, key: "draft", entries }), true);
+  const restored = readPendingAnswerDraft({
+    storage,
+    key: "draft",
+    questions: [{ id: questionId, options: ["A"] }]
+  });
+  assert.equal(restored.answers.get(questionId), "0");
+  assert.equal(restored.discarded, 0);
+});
+
+test("enforces the 128 KiB limit using UTF-8 bytes, not JavaScript string length", () => {
+  const multibyteId = "é".repeat(65_536);
+  const oversizedRaw = JSON.stringify([[multibyteId, "0"]]);
+  assert.ok(oversizedRaw.length < 128 * 1024);
+  assert.ok(new TextEncoder().encode(oversizedRaw).byteLength > 128 * 1024);
+
+  const readStorage = makeStorage({ draft: oversizedRaw });
+  const restored = readPendingAnswerDraft({ storage: readStorage, key: "draft", questions });
+  assert.equal(restored.answers.size, 0);
+  assert.equal(restored.discarded, 1);
+  assert.equal(readStorage.getItem("draft"), null);
+
+  const previousDraft = JSON.stringify([["q1", "1"]]);
+  const writeStorage = makeStorage({ draft: previousDraft });
+  assert.equal(writePendingAnswerDraft({
+    storage: writeStorage,
+    key: "draft",
+    entries: [[multibyteId, "0"]]
+  }), false);
+  assert.equal(writeStorage.getItem("draft"), previousDraft);
+});
+
