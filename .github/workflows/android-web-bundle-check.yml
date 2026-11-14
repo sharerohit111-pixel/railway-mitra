@@ -1,0 +1,57 @@
+name: Android web bundle check
+
+on:
+  push:
+    branches:
+      - feature/android-app-shell
+    paths:
+      - "android-wrapper/**"
+      - "app.html"
+      - "assets/**"
+      - "config/**"
+      - "employee-benefits-calculators/**"
+      - "features/**"
+      - "guides/**"
+      - "install/**"
+      - "other-exams/**"
+      - "manifest.json"
+      - "service-worker.js"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "android-wrapper/**"
+      - "app.html"
+      - "assets/**"
+      - "config/**"
+      - "employee-benefits-calculators/**"
+      - "features/**"
+      - "guides/**"
+      - "install/**"
+      - "other-exams/**"
+      - "manifest.json"
+      - "service-worker.js"
+
+jobs:
+  prepare-web-bundle:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-wrapper
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Android workspace dependencies
+        run: npm install
+      - name: Prepare local Android web bundle
+        run: npm run build:web
+      - name: Verify required app entry points
+        run: |
+          test -f web/app.html
+          test -f web/features/auth/login.html
+          test -f web/assets/js/auth-guard.js
+          test -f web/assets/js/firebase.js
