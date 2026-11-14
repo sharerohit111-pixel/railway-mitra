@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { restoreOwnerQuestionAnswerKeys } = require("../owner-test-editor");
+const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("../owner-test-editor");
 
 const questions = [
   { id: "q1", text: "Question 1", options: ["A", "B"] },
@@ -40,4 +40,29 @@ test("rejects missing, malformed, negative and out-of-range answer indexes", () 
 test("rejects malformed question collections and records", () => {
   assert.throws(() => restoreOwnerQuestionAnswerKeys({}, {}), /question set is invalid/);
   assert.throws(() => restoreOwnerQuestionAnswerKeys([null], {}), /Question record is invalid/);
+});
+
+
+const validTestMetadata = {
+  title: "Civil JE Mock", mode: "mock", durationMinutes: 30, price: 0,
+  marksPerQuestion: 1, negativeMarks: 0.25, questionCount: 2
+};
+const validAnswerMap = {
+  q1: { correctAnswer: "0" },
+  q2: { correctAnswer: "2" }
+};
+
+test("validates the complete paper, metadata and exact private answer-key coverage", () => {
+  const result = validateOwnerQuestionPaper(validTestMetadata, questions, validAnswerMap);
+  assert.deepEqual(result.map(question => question.correctIndex), [0, 2]);
+});
+
+test("blocks publish for metadata, question count, duplicate IDs, malformed options or extra answer keys", () => {
+  assert.throws(() => validateOwnerQuestionPaper({ ...validTestMetadata, questionCount: 1 }, questions, validAnswerMap), /count/);
+  assert.throws(() => validateOwnerQuestionPaper({ ...validTestMetadata, durationMinutes: 0 }, questions, validAnswerMap), /duration/);
+  assert.throws(() => validateOwnerQuestionPaper({ ...validTestMetadata, title: " " }, questions, validAnswerMap), /title/);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [{ ...questions[0] }, { ...questions[1], id: "q1" }], validAnswerMap), /ID/);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [{ ...questions[0], options: ["A"] }, questions[1]], validAnswerMap), /options/);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, questions, { ...validAnswerMap, extra: { correctAnswer: "0" } }), /exactly match/);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, questions, { q1: { correctAnswer: "0" } }), /exactly match/);
 });
