@@ -73,3 +73,8 @@ Whenever Firebase Auth reports a session transition, the portal first increments
 ## Immediate logout lockout
 
 The student portal now invalidates the current view generation, destroys the active exam controller, clears the previous student's rendered view, and resets the local OTP confirmation before it awaits Firebase `signOut`. Both OTP controls remain disabled while sign-out is pending, preventing a new phone-auth flow from racing an unconfirmed logout. They are re-enabled only after Firebase confirms sign-out; if sign-out fails, the workspace remains locked and the user is instructed to reload before signing in again. The auth-state listener still performs its own teardown as a second fail-closed boundary. Regression tests verify the ordering and the failure path. This is client-side session hygiene only; Firebase Auth and server-side UID/phone-claim checks remain authoritative.
+
+
+## OTP request lifecycle guard
+
+The phone sign-in portal assigns a monotonically increasing generation to each asynchronous OTP send/verify flow. A later OTP request, Firebase auth-state transition, or explicit logout invalidates older generations. A late Firebase confirmation or error may update the login UI only if its generation is still current; stale `finally` handlers cannot re-enable the Send OTP or Verify controls after the workspace has been locked. Verification also checks that the confirmation belongs to the current generation. This is client-side race protection only: Firebase Auth token claims and server-side phone-provider/UID checks remain authoritative. Automated Node regression tests cover generation invalidation, superseded requests, stale send/verify completions, and logout/auth-transition ordering. No real OTP is sent by these tests.
