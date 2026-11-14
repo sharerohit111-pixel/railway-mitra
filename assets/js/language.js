@@ -56,7 +56,82 @@
     "अपनी जानकारी भरें":"Enter Your Details","सेव करें":"Save","हटाएँ":"Delete","वेतन स्तर चुनें":"Select Pay Level"
   };
   const EN_HI = Object.fromEntries(Object.entries(HI_EN).map(([hi,en])=>[en,hi]));
-  let lang = localStorage.getItem(KEY) || "mix";
+
+  Object.assign(EN_HI, {
+    "Your Railway Digital Companion":"आपका रेलवे डिजिटल साथी",
+    "Welcome to Railway Mitra":"रेलवे मित्र में आपका स्वागत है",
+    "Employee Services":"कर्मचारी सेवाएँ",
+    "My Employee Profile":"मेरी कर्मचारी प्रोफ़ाइल",
+    "Salary & Pay":"वेतन एवं वेतनमान",
+    "Salary and Pay Calculators":"वेतन एवं वेतन गणना",
+    "Income Tax":"आयकर",
+    "New & Old Tax Regime Calculator":"नई एवं पुरानी कर व्यवस्था कैलकुलेटर",
+    "Employee Benefits":"कर्मचारी लाभ",
+    "Gratuity, Leave Encashment & CEA Calculators":"ग्रेच्युटी, अवकाश नकदीकरण एवं CEA कैलकुलेटर",
+    "8th Pay Commission":"8वाँ वेतन आयोग",
+    "Estimated New Salary & Arrear Calculator":"अनुमानित नया वेतन एवं एरियर कैलकुलेटर",
+    "National Holidays & NHA":"राष्ट्रीय अवकाश एवं NHA",
+    "2026–2028 NH Calendar and NHA Reference":"2026–2028 राष्ट्रीय अवकाश कैलेंडर एवं NHA संदर्भ",
+    "Allowances":"भत्ते",
+    "DA, HRA, TA, NDA, OTA":"महँगाई भत्ता, मकान किराया भत्ता, यात्रा भत्ता, रात्रि ड्यूटी भत्ता एवं ओवरटाइम भत्ता",
+    "Arrear Calculator":"एरियर कैलकुलेटर",
+    "DA and Other Arrears":"DA एवं अन्य एरियर",
+    "Duty Roster & Allowance Diary":"ड्यूटी रोस्टर एवं भत्ता डायरी",
+    "Calendar-based duty entries, TA, NDA, OTA, KMA and monthly records":"कैलेंडर आधारित ड्यूटी प्रविष्टियाँ, TA, NDA, OTA, KMA एवं मासिक रिकॉर्ड",
+    "Personal Diary & Notes":"व्यक्तिगत डायरी एवं नोट्स",
+    "Write, save, search and organize personal notes and reminders":"व्यक्तिगत नोट्स और रिमाइंडर लिखें, सहेजें, खोजें एवं व्यवस्थित करें",
+    "NPS & Pension":"NPS एवं पेंशन",
+    "Retirement Planning Tools":"सेवानिवृत्ति योजना के उपकरण",
+    "Railway Rules":"रेलवे नियम",
+    "Rules, Manuals and Circulars":"नियम, मैनुअल एवं परिपत्र",
+    "Indian Railways P-Way Manuals & Guidelines":"भारतीय रेलवे P-Way मैनुअल एवं दिशानिर्देश",
+    "IRPWM, ACS, Track Safety Rules and Technical Manuals":"IRPWM, ACS, ट्रैक सुरक्षा नियम एवं तकनीकी मैनुअल",
+    "P-Way & Civil Engineering Tools":"P-Way एवं सिविल इंजीनियरिंग उपकरण",
+    "Versine Calculator and Engineering Utilities":"वर्साइन कैलकुलेटर एवं इंजीनियरिंग उपयोगिताएँ",
+    "P-Way Quick Reference (BG)":"P-Way त्वरित संदर्भ (BG)",
+    "Track Gauge, SEJ, LWR, Turnout, Ballast & Rail Wear Parameters":"ट्रैक गेज, SEJ, LWR, टर्नआउट, बैलास्ट एवं रेल घिसाव मानक",
+    "Railway Updates":"रेलवे अपडेट",
+    "Orders and Notifications":"आदेश एवं सूचनाएँ",
+    "Railway Map":"रेलवे मानचित्र",
+    "Explore India on an interactive map":"इंटरैक्टिव मानचित्र पर भारत देखें",
+    "Data Sources & Compliance":"डेटा स्रोत एवं अनुपालन",
+    "Source register and reuse checklist":"स्रोत रजिस्टर एवं पुनः उपयोग जाँच सूची",
+    "Settings":"सेटिंग्स",
+    "App Preferences, Backup & Privacy":"ऐप प्राथमिकताएँ, बैकअप एवं गोपनीयता",
+    "Privacy First":"गोपनीयता सर्वोपरि",
+    "Your personal employee information must remain private and protected.":"आपकी व्यक्तिगत कर्मचारी जानकारी निजी और सुरक्षित रहनी चाहिए।",
+    "Privacy Policy":"गोपनीयता नीति",
+    "Share App":"ऐप साझा करें",
+    "Updates":"अपडेट",
+    "Founder & Developer":"संस्थापक एवं डेवलपर",
+    "Rohit Kumar | Founder & Developer":"रोहित कुमार | संस्थापक एवं डेवलपर",
+    "Railway Mitra live feature highlights":"रेलवे मित्र की नवीनतम सुविधा जानकारी",
+    "Open menu":"मेनू खोलें",
+    "Close menu":"मेनू बंद करें",
+    "Primary navigation":"मुख्य नेविगेशन",
+    "Help & Support":"सहायता एवं समर्थन",
+    "Duty Roster":"ड्यूटी रोस्टर",
+    "Notifications":"सूचनाएँ",
+    "Feedback":"प्रतिक्रिया",
+    "Open Railway Rules":"रेलवे नियम खोलें",
+    "Open Help & Support":"सहायता एवं समर्थन खोलें",
+    "Open Duty Roster & Allowance Diary":"ड्यूटी रोस्टर एवं भत्ता डायरी खोलें",
+    "Open Notifications":"सूचनाएँ खोलें",
+    "Open Feedback for Us":"हमें प्रतिक्रिया दें",
+    "NOTICE":"सूचना",
+    "Owned & Developed by":"निर्माता एवं डेवलपर:",
+    "About":"परिचय",
+    "Learning Guides":"अध्ययन मार्गदर्शिकाएँ",
+    "Privacy":"गोपनीयता",
+    "Contact":"संपर्क",
+    "Logout":"लॉग आउट",
+    "My Profile":"मेरी प्रोफ़ाइल",
+    "Salary & Pay":"वेतन एवं वेतनमान",
+    "Arrear Calculator":"एरियर कैलकुलेटर",
+    "NPS & Pension":"NPS एवं पेंशन"
+  });
+
+  let lang = localStorage.getItem(KEY) === "hi" ? "hi" : "en";
   const originals = new WeakMap();
   function replaceText(value, map) {
     let out=value;
@@ -64,7 +139,7 @@
     return out;
   }
   function translate(root) {
-    const map=lang==="en"?HI_EN:null;
+    const map=lang==="hi"?EN_HI:HI_EN;
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
       acceptNode(n){return n.parentElement && !/^(SCRIPT|STYLE|NOSCRIPT)$/.test(n.parentElement.tagName) && n.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}
     });
@@ -74,7 +149,7 @@
       const base=originals.get(node);
       node.nodeValue=map?replaceText(base,map):base;
     }
-    root.querySelectorAll("input[placeholder],button[aria-label],a[aria-label],option,optgroup[label]").forEach(el=>{
+    root.querySelectorAll("input[placeholder],button[aria-label],a[aria-label],option[label],optgroup[label],[title],[alt]").forEach(el=>{
       ["placeholder","aria-label","label"].forEach(attr=>{
         if(!el.hasAttribute(attr))return;
         const key="data-rm-original-"+attr;
@@ -90,9 +165,9 @@
     });
     const btn=document.getElementById("rmLanguageToggle");
     if(btn){
-      btn.textContent=lang==="en"?"हिंदी + English":"English";
-      btn.setAttribute("aria-label",lang==="en"?"Switch to Hindi and English mix":"Switch to full English");
-      btn.title=lang==="en"?"वर्तमान मिश्रित भाषा में लौटें":"पूरे ऐप को English में बदलें";
+      btn.textContent=lang==="en"?"हिंदी":"English";
+      btn.setAttribute("aria-label",lang==="en"?"हिंदी में बदलें":"Switch to English");
+      btn.title=lang==="en"?"पूरे ऐप को हिंदी में बदलें":"Switch the entire app to English";
     }
   }
   function addToggle(){
@@ -118,7 +193,7 @@
     const b=document.createElement("button");b.id="rmLanguageToggle";b.type="button";
     if(document.body.classList.contains("rm-rules")){b.style.cssText="position:relative;display:block;width:max-content;max-width:100%;margin:0 0 18px auto;right:auto;bottom:auto;z-index:2;padding:9px 14px;border:1px solid #39dff5;border-radius:999px;background:linear-gradient(135deg,#087eae,#7838c8);color:#fff;font-weight:800;font-size:14px;box-shadow:0 4px 16px #0008;cursor:pointer";const target=document.querySelector(".rules-topic-grid");if(target)target.parentNode.insertBefore(b,target);}else{b.style.cssText="position:fixed;right:14px;bottom:78px;z-index:99999;padding:10px 15px;border:1px solid #39dff5;border-radius:999px;background:linear-gradient(135deg,#087eae,#7838c8);color:#fff;font-weight:800;font-size:14px;box-shadow:0 4px 16px #0008;cursor:pointer";}
     b.addEventListener("click",()=>{
-      lang=lang==="en"?"mix":"en";
+      lang=lang==="en"?"hi":"en";
       localStorage.setItem(KEY,lang);
       translate(document.body);
     });
