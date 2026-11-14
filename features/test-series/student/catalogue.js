@@ -48,6 +48,7 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
           const latest = refreshed.tests.find(item => item.testId === test.testId);
           if (latest?.accessType === "unlocked") {
             pendingPaymentChecks.delete(test.testId);
+            await initStudentTestCatalogue({ app, root, onStart });
             status.textContent = "Payment verified. Your test is unlocked.";
           } else {
             status.textContent = "Payment is not verified yet. Please wait for confirmation, then check again. Do not pay again.";
