@@ -7,7 +7,7 @@ import { watchOwnerSession } from "../owner-session.mjs";
 function createHarness(overrides = {}) {
   let listener;
   let unsubscribed = false;
-  const calls = { verify: 0, signOut: 0, signedOut: 0, mfaRequired: 0, authorized: [], errors: [] };
+  const calls = { verify: 0, signOut: 0, signedOut: 0, checking: [], mfaRequired: 0, authorized: [], errors: [] };
   const stop = watchOwnerSession({
     subscribe(callback) {
       listener = callback;
@@ -20,6 +20,7 @@ function createHarness(overrides = {}) {
     },
     signOut: async () => { calls.signOut += 1; },
     onSignedOut: () => { calls.signedOut += 1; },
+    onChecking: user => calls.checking.push(user),
     onMfaRequired: () => { calls.mfaRequired += 1; },
     onAuthorized: (user, result) => calls.authorized.push({ user, result }),
     onError: error => calls.errors.push(error),
@@ -34,6 +35,23 @@ function createHarness(overrides = {}) {
 }
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
+
+test("clears the prior Owner workspace immediately while a new account is being verified", async () => {
+  let resolveVerification;
+  const user = { uid: "owner-two" };
+  const h = createHarness({
+    verifyOwner: () => new Promise(resolve => { resolveVerification = resolve; })
+  });
+
+  h.emit(user);
+  assert.deepEqual(h.calls.checking, [user], "the old dashboard is cleared synchronously on the auth transition");
+  assert.equal(h.calls.authorized.length, 0);
+  await Promise.resolve();
+  assert.equal(typeof resolveVerification, "function");
+  resolveVerification({ authorized: true });
+  await flush();
+  assert.equal(h.calls.authorized.length, 1);
+});
 
 test("restores a persisted Owner session only after server authorization", async () => {
   const h = createHarness();
