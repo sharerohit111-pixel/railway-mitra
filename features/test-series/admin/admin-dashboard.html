@@ -10,6 +10,17 @@
   <div id="rm-admin-otp" class="rm-admin-panel" hidden><h2>SMS OTP सत्यापन</h2><p>आपके Owner मोबाइल पर आया 6 अंकों का OTP दर्ज करें।</p><label>OTP<input id="rm-owner-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit OTP"></label><button id="rm-owner-otp-confirm" class="rm-admin-primary">Verify OTP</button></div>
   <div id="rm-admin-home" hidden><div class="rm-admin-welcome"><div><small>AUTHORIZED OWNER</small><h2 id="rm-admin-owner-email"></h2></div><button id="rm-owner-logout">Logout</button></div>
     <div class="rm-admin-status rm-admin-secure">OTP verified · Owner session active</div>
+    <section class="rm-admin-panel" aria-labelledby="rm-owner-provider-title">
+      <h3 id="rm-owner-provider-title">Owner Sign-in Methods</h3>
+      <p>Google और Email/Password को इसी मौजूदा Owner खाते से जोड़ें। नया अलग Firebase UID बनाने की कोशिश न करें।</p>
+      <label>Email<input id="rm-owner-link-email" type="email" autocomplete="email" placeholder="वही Owner email"></label>
+      <label>Password<input id="rm-owner-link-password" type="password" autocomplete="new-password" placeholder="Email provider password"></label>
+      <div class="rm-admin-form-grid">
+        <button id="rm-owner-link-google" type="button">Link Google to this account</button>
+        <button id="rm-owner-link-email" type="button">Link Email to this account</button>
+      </div>
+      <p id="rm-owner-provider-status" class="rm-admin-status" role="status" aria-live="polite"></p>
+    </section>
     <div class="rm-admin-stats"><article><span>Tests</span><b>—</b><small>Cloud data pending</small></article><article><span>Students</span><b>—</b><small>Cloud data pending</small></article><article><span>Payments</span><b>—</b><small>Cloud data pending</small></article><article><span>Results</span><b>—</b><small>Cloud data pending</small></article></div>
     <h3>Management</h3><div class="rm-admin-grid">
       <button data-admin-module="tests"><i>📝</i><b>Test Management</b><small>Create · Edit · Publish</small></button>
