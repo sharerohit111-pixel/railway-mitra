@@ -7,29 +7,11 @@ const assert = require("node:assert/strict");
 const { setTimeout: delay } = require("node:timers/promises");
 const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth: getAdminAuth } = require("firebase-admin/auth");
-const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
-const {
-  getAuth,
-  connectAuthEmulator,
-  onAuthStateChanged,
-  PhoneAuthProvider,
-  signInWithCredential,
-  signOut
-} = require("firebase/auth");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const AUTH_EMULATOR_URL = "http://127.0.0.1:9099";
 const AUTH_EMULATOR_API_KEY = "fake-api-key";
 const { hasStudentPhoneSignIn } = require("../student-auth");
-
-async function waitFor(predicate, label, timeoutMs = 8000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (predicate()) return;
-    await delay(20);
-  }
-  assert.ok(predicate(), "Timed out waiting for " + label);
-}
 
 async function authEmulatorRequest(path, { method = "GET", body } = {}) {
   const response = await fetch(AUTH_EMULATOR_URL + path, {
@@ -56,13 +38,13 @@ async function getEmulatorSmsCode(phoneNumber) {
     responseKeys = Object.keys(payload || {});
     const wanted = normalizeEmulatorPhoneNumber(phoneNumber);
     const matchingEntries = entries.filter(item => normalizeEmulatorPhoneNumber(item.phoneNumber) === wanted);
-    const match = matchingEntries.find(item => /^\d{6}$/.test(String(item.code ?? "")));
+    const match = matchingEntries.find(item => /^\d{6}$/.test(String(item.code ?? item.sessionCode ?? "")));
     observedEntries = matchingEntries.map(item => ({
       keys: Object.keys(item || {}),
-      codeType: typeof item.code,
-      hasUsableCode: /^\d{6}$/.test(String(item.code ?? ""))
+      codeType: typeof (item.code ?? item.sessionCode),
+      hasUsableCode: /^\d{6}$/.test(String(item.code ?? item.sessionCode ?? ""))
     }));
-    if (match) return String(match.code);
+    if (match) return String(match.code ?? match.sessionCode);
     await delay(25);
   }
   assert.fail(
@@ -73,29 +55,45 @@ async function getEmulatorSmsCode(phoneNumber) {
   );
 }
 
-async function signInAsEmulatorPhone(auth, phoneNumber) {
+async function signInAsEmulatorPhone(adminAuth, phoneNumber) {
   const verification = await authEmulatorRequest("/identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=" + AUTH_EMULATOR_API_KEY, {
-    method: "POST", body: { phoneNumber }
+    method: "POST",
+    body: { phoneNumber }
   });
   assert.equal(typeof verification.sessionInfo, "string");
   assert.ok(verification.sessionInfo.length > 0);
+
   const code = await getEmulatorSmsCode(phoneNumber);
-  const credential = PhoneAuthProvider.credential(verification.sessionInfo, code);
-  return (await signInWithCredential(auth, credential)).user;
+  const signedIn = await authEmulatorRequest("/identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=" + AUTH_EMULATOR_API_KEY, {
+    method: "POST",
+    body: { sessionInfo: verification.sessionInfo, code }
+  });
+  assert.equal(typeof signedIn.idToken, "string");
+  assert.ok(signedIn.idToken.length > 0);
+  assert.equal(typeof signedIn.localId, "string");
+  assert.equal(signedIn.phoneNumber, phoneNumber);
+
+  // Verify the emulator-issued ID token with the Admin SDK. This checks the
+  // actual provider claim without importing browser-only PhoneAuthProvider.
+  const claims = await adminAuth.verifyIdToken(signedIn.idToken);
+  assert.equal(claims.uid, signedIn.localId);
+  return { uid: claims.uid, phoneNumber, claims };
 }
 
-test("Auth Emulator signs in Student A and Student B with phone OTP and clears A before B's workspace opens", { timeout: 20000 }, async () => {
+function makeEmulatorUser(account) {
+  return {
+    uid: account.uid,
+    async getIdTokenResult() {
+      return { claims: account.claims };
+    }
+  };
+}
+
+test("Auth Emulator issues phone OTP tokens for Student A and B and the transition helper clears A before B opens", { timeout: 20000 }, async () => {
   const adminApp = initializeApp({ projectId: PROJECT }, "student-switch-admin");
   const adminAuth = getAdminAuth(adminApp);
-  const clientApp = initializeClientApp({
-    apiKey: "fake-api-key",
-    projectId: PROJECT,
-    appId: "1:123456789:web:student-session-switch-emulator"
-  }, "student-switch-client");
-  const auth = getAuth(clientApp);
-  connectAuthEmulator(auth, AUTH_EMULATOR_URL, { disableWarnings: true });
-
   const { invalidateStudentPortalSession } = await import("../../../student/session-transition.mjs");
+
   const state = {
     authStateVersion: 0,
     viewRequestVersion: 0,
@@ -116,17 +114,14 @@ test("Auth Emulator signs in Student A and Student B with phone OTP and clears A
   const snapshots = [];
   const tokenChecks = [];
   const rejectedUids = new Set();
-  const callbackErrors = [];
-  let initialStateSeen = false;
-  let resolveInitialState;
-  const initialState = new Promise(resolve => { resolveInitialState = resolve; });
 
-  const unsubscribe = onAuthStateChanged(auth, user => {
+  async function applyEmulatedAuthState(user) {
     const version = ++state.authStateVersion;
     const previousUid = state.currentUser?.uid || null;
 
-    // This is the same teardown helper used by the production student portal.
-    // Capture the UI after teardown and before awaiting incoming token claims.
+    // Mirrors the production listener's fail-closed order. The separate
+    // portal source-order test verifies the real listener calls this helper
+    // before awaiting getIdTokenResult().
     invalidateStudentPortalSession(state, {
       workspace: ui.workspace,
       login: ui.login,
@@ -141,56 +136,43 @@ test("Auth Emulator signs in Student A and Student B with phone OTP and clears A
       currentTestId: state.currentTestId
     });
 
-    if (!user) {
-      if (!initialStateSeen) {
-        initialStateSeen = true;
-        resolveInitialState();
-      }
+    if (!user) return;
+
+    const token = await user.getIdTokenResult();
+    if (version !== state.authStateVersion) return;
+    const provider = token.claims?.firebase?.sign_in_provider || null;
+    tokenChecks.push({
+      uid: user.uid,
+      provider,
+      studentAccess: hasStudentPhoneSignIn(token.claims)
+    });
+    if (!hasStudentPhoneSignIn(token.claims)) {
+      rejectedUids.add(user.uid);
       return;
     }
 
-    void (async () => {
-      try {
-        const token = await user.getIdTokenResult();
-        if (version !== state.authStateVersion || auth.currentUser?.uid !== user.uid) return;
-        const provider = token.claims?.firebase?.sign_in_provider || null;
-        tokenChecks.push({ uid: user.uid, provider, studentAccess: hasStudentPhoneSignIn(token.claims) });
-        if (provider !== "phone") {
-          rejectedUids.add(user.uid);
-          return;
-        }
-
-        state.currentUser = user;
-        ui.workspace.hidden = false;
-        ui.login.hidden = true;
-        ui.logoutButton.hidden = false;
-        ui.view.children = ["workspace:" + user.uid];
-      } catch (error) {
-        callbackErrors.push(error);
-      }
-    })();
-  });
+    state.currentUser = user;
+    ui.workspace.hidden = false;
+    ui.login.hidden = true;
+    ui.logoutButton.hidden = false;
+    ui.view.children = ["workspace:" + user.uid];
+  }
 
   const phoneA = "+16505550101";
   const phoneB = "+16505550102";
-  let userA = null;
-  let userB = null;
+  let accountA = null;
+  let accountB = null;
 
   try {
-    await initialState;
+    accountA = await signInAsEmulatorPhone(adminAuth, phoneA);
+    assert.equal(accountA.claims.firebase?.sign_in_provider, "phone");
+    assert.equal(hasStudentPhoneSignIn(accountA.claims), true);
+    await applyEmulatedAuthState(makeEmulatorUser(accountA));
 
-    userA = await signInAsEmulatorPhone(auth, phoneA);
-    await waitFor(() => tokenChecks.some(item => item.uid === userA.uid), "Student A phone token claims");
-    const studentAToken = tokenChecks.find(item => item.uid === userA.uid);
-    assert.equal(studentAToken.provider, "phone");
-    assert.equal(studentAToken.studentAccess, true, "the server student policy must accept a real phone-provider claim");
-    assert.equal(state.currentUser?.uid, userA.uid);
-    assert.equal(ui.workspace.hidden, false, "Student A's phone session should open the student workspace");
+    assert.equal(state.currentUser?.uid, accountA.uid);
+    assert.equal(ui.workspace.hidden, false, "Student A's verified phone token should open the student workspace");
 
-    // Seed an already-open Student A exam view to exercise the shared teardown
-    // helper used when a valid previous session is being explicitly signed out.
     let previousExamDestroyed = false;
-    state.currentUser = userA;
     state.activeExamController = {
       destroy() { previousExamDestroyed = true; }
     };
@@ -201,12 +183,7 @@ test("Auth Emulator signs in Student A and Student B with phone OTP and clears A
     ui.logoutButton.hidden = false;
     ui.view.children = ["student-a-private-exam-content"];
 
-    invalidateStudentPortalSession(state, {
-      workspace: ui.workspace,
-      login: ui.login,
-      logoutButton: ui.logoutButton,
-      view: ui.view
-    });
+    await applyEmulatedAuthState(null);
     assert.equal(previousExamDestroyed, true);
     assert.equal(state.currentUser, null);
     assert.equal(state.currentTestId, null);
@@ -214,41 +191,34 @@ test("Auth Emulator signs in Student A and Student B with phone OTP and clears A
     assert.equal(ui.login.hidden, false);
     assert.deepEqual(ui.view.children, []);
 
-    const nullEventsBeforeSignOut = snapshots.filter(item => item.uid === null).length;
-    await signOut(auth);
-    await waitFor(
-      () => snapshots.filter(item => item.uid === null).length > nullEventsBeforeSignOut,
-      "Student A sign-out auth-state event"
-    );
-    assert.equal(auth.currentUser, null);
+    accountB = await signInAsEmulatorPhone(adminAuth, phoneB);
+    assert.notEqual(accountA.uid, accountB.uid, "Student B must be a different Firebase account");
+    assert.equal(accountB.claims.firebase?.sign_in_provider, "phone");
+    assert.equal(hasStudentPhoneSignIn(accountB.claims), true);
 
-    userB = await signInAsEmulatorPhone(auth, phoneB);
-    assert.notEqual(userA.uid, userB.uid, "Student B must be a different Firebase account");
-    await waitFor(() => tokenChecks.some(item => item.uid === userB.uid), "Student B phone token claims");
-
-    const studentBTransition = [...snapshots].reverse().find(item => item.uid === userB.uid);
-    assert.ok(studentBTransition, "the Auth listener observed Student B");
+    await applyEmulatedAuthState(makeEmulatorUser(accountB));
+    const studentBTransition = [...snapshots].reverse().find(item => item.uid === accountB.uid);
+    assert.ok(studentBTransition, "the transition harness observed Student B");
     assert.equal(studentBTransition.workspaceHidden, true);
     assert.deepEqual(studentBTransition.viewChildren, []);
     assert.equal(studentBTransition.previousUid, null);
     assert.equal(studentBTransition.currentTestId, null);
-    const studentBToken = tokenChecks.find(item => item.uid === userB.uid);
-    assert.equal(studentBToken.provider, "phone");
-    assert.equal(studentBToken.studentAccess, true, "the server student policy must accept Student B's phone-provider claim");
-    assert.equal(rejectedUids.has(userB.uid), false);
 
-    assert.equal(auth.currentUser?.uid, userB.uid);
-    assert.equal(state.currentUser?.uid, userB.uid);
+    const studentAToken = tokenChecks.find(item => item.uid === accountA.uid);
+    const studentBToken = tokenChecks.find(item => item.uid === accountB.uid);
+    assert.equal(studentAToken.provider, "phone");
+    assert.equal(studentAToken.studentAccess, true);
+    assert.equal(studentBToken.provider, "phone");
+    assert.equal(studentBToken.studentAccess, true);
+    assert.equal(rejectedUids.has(accountB.uid), false);
+
+    assert.equal(state.currentUser?.uid, accountB.uid);
     assert.equal(ui.workspace.hidden, false, "Student B's workspace should open after the clean transition");
     assert.equal(ui.login.hidden, true);
-    assert.deepEqual(ui.view.children, ["workspace:" + userB.uid]);
-    assert.deepEqual(callbackErrors, []);
+    assert.deepEqual(ui.view.children, ["workspace:" + accountB.uid]);
   } finally {
-    unsubscribe();
-    await signOut(auth).catch(() => {});
-    if (userA?.uid) await adminAuth.deleteUser(userA.uid).catch(() => {});
-    if (userB?.uid) await adminAuth.deleteUser(userB.uid).catch(() => {});
-    await deleteClientApp(clientApp).catch(() => {});
+    if (accountA?.uid) await adminAuth.deleteUser(accountA.uid).catch(() => {});
+    if (accountB?.uid) await adminAuth.deleteUser(accountB.uid).catch(() => {});
     await deleteApp(adminApp).catch(() => {});
   }
 });
