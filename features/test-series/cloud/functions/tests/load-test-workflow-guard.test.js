@@ -19,7 +19,7 @@ function eventPathFilters(workflow, eventName) {
     "m"
   ));
   assert.ok(event, eventName + " trigger must be present");
-  const paths = event[1].match(/^    paths:\\n((?:      - [^\\n]+\\n)+)/m);
+  const paths = event[1].match(/^    paths:\n((?:      - [^\n]+\n)+)/m);
   assert.ok(paths, eventName + " path filters must be explicit");
   return [...paths[1].matchAll(/^      - "([^"]+)"$/gm)].map(match => match[1]);
 }
