@@ -101,7 +101,7 @@ test("separate partial refunds revoke access only when their cumulative total eq
   assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "revoked");
 });
 
-test("rejects cumulative processed refunds above original payment amount", async () => {
+test("rejects a provider cumulative refund snapshot above the original payment amount", async () => {
   const h = harness({ refundAmount: 30000, amountRefunded: 30000, refundStatus: "partial" });
   await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_over_a" });
   const second = structuredClone(h.event);
@@ -109,7 +109,9 @@ test("rejects cumulative processed refunds above original payment amount", async
   second.payload.refund.entity.amount = 20000;
   second.payload.payment.entity.amount_refunded = 50000;
   second.payload.payment.entity.refund_status = "full";
-  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: second, eventId: "evt_over_b" }), { code: "refund_amount_exceeds_payment" });
+  // The provider snapshot itself is impossible (₹500 > the ₹499 payment),
+  // so validation rejects it before the transaction/ledger comparison.
+  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: second, eventId: "evt_over_b" }), { code: "invalid_refund_fields" });
 });
 
 
