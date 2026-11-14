@@ -36,7 +36,8 @@ function loadCheckoutScript(root = document) {
 
 // A checkout success callback is only a user-facing acknowledgement. Access is
 // granted exclusively by the verified server-side captured-payment webhook.
-export async function startStudentTestCheckout({ app, test, onStatus, root = document }) {
+export async function startStudentTestCheckout({ app, test, studentUid, onStatus, root = document }) {
+  if (typeof studentUid !== "string" || !studentUid) throw new Error("A verified student account is required for checkout.");
   if (!test || typeof test.testId !== "string" || !test.testId) {
     throw new Error("A valid test is required for checkout.");
   }
@@ -50,7 +51,7 @@ export async function startStudentTestCheckout({ app, test, onStatus, root = doc
   // callable response reuses the same server reservation instead of creating
   // another provider order. Unknown outcomes deliberately retain this key.
   const storage = requirePaymentSessionStorage(root);
-  const requestId = getOrCreatePaymentRequestId(storage, test.testId, createPaymentRequestId);
+  const requestId = getOrCreatePaymentRequestId(storage, studentUid, test.testId, createPaymentRequestId);
   let order;
   try {
     order = await createStudentPaymentOrder(app, test.testId, requestId);
@@ -58,7 +59,7 @@ export async function startStudentTestCheckout({ app, test, onStatus, root = doc
     // The server sets this detail only after Razorpay explicitly rejected order
     // creation. Network ambiguity never clears the key and remains locked for
     // reconciliation.
-    if (isDefiniteProviderOrderRejection(error)) clearPaymentRequestId(storage, test.testId);
+    if (isDefiniteProviderOrderRejection(error)) clearPaymentRequestId(storage, studentUid, test.testId);
     throw error;
   }
   if (!order || !order.orderId || !order.keyId || !Number.isSafeInteger(order.amount) || order.amount <= 0 ||
