@@ -151,7 +151,8 @@ onAuthStateChanged(auth, async user => {
   invalidateStudentPortalSession(portalState, {
     workspace,
     login,
-    logoutButton: el("rm-portal-logout")
+    logoutButton: el("rm-portal-logout"),
+    view
   });
   if (!user) return;
 
