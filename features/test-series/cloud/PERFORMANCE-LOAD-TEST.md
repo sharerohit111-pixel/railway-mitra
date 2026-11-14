@@ -58,3 +58,10 @@ The workflow **Actions → Test Series Firestore load test (local emulator only)
 Default bounded inputs are 25 students, 2 full-paper waves and 10 workers. Inputs remain capped at 500 students, 20 waves and 500 workers, with concurrency no greater than the student count. The workflow uses only the GitHub-hosted local Firestore/Auth emulators; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic.
 
 A load test is still a load test even when it targets a local emulator. Do not dispatch it unless the project owner has explicitly approved that run. Ordinary pull-request/push CBT CI runs unit, callable-emulator and Firestore Rules tests only; it must never invoke either load harness. The obsolete `LOAD-TEST-TRIGGER` marker has been removed.
+
+
+## Authenticated callable workflow
+
+The workflow **Actions → Test Series authenticated callable load test (local emulator only)** is also manual-only. Its `confirm_load_test` boolean defaults to `false`; the job runs only after an explicit opt-in. Inputs are bounded to 1–500 synthetic students, 1–500 concurrent student workers (never greater than the student count), and 1–100 questions. Defaults are 50 students, 50 workers and 50 questions. The workflow starts Auth, Firestore and Functions emulators, runs the CBT unit and Firestore Rules tests, then invokes the callable harness. It does not deploy or connect to a live Firebase project.
+
+For a staged progression, dispatch separate approved emulator runs at 20, 50, 100, 250 and 500 students, matching concurrency to the intended simultaneous-start scenario. The callable harness provisions emulator Auth identities serially before the timed callable phase; its reported latency/throughput excludes identity provisioning. Its answer saves are sequential within each student, so 500 student workers do not mean 25,000 answer calls are in flight at once. Review emulator resource limits and run duration at each stage. A successful result remains a local diagnostic, not a production capacity claim.
