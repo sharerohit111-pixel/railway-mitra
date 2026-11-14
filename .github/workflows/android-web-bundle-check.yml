@@ -73,11 +73,11 @@ jobs:
           GOOGLE_SERVICES_JSON: ${{ secrets.RAILWAY_MITRA_GOOGLE_SERVICES_JSON }}
         run: |
           if [ -z "$GOOGLE_SERVICES_JSON" ]; then
-            echo "Missing RAILWAY_MITRA_GOOGLE_SERVICES_JSON repository secret."
-            exit 1
+            echo "::warning::Missing RAILWAY_MITRA_GOOGLE_SERVICES_JSON repository secret; native Google sign-in will not be configured in this test build."
+          else
+            printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            node -e "const c=require('./android/app/google-services.json'); if(c.client?.[0]?.client_info?.android_client_info?.package_name !== 'com.railwaymitra.app') process.exit(1)"
           fi
-          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
-          node -e "const c=require('./android/app/google-services.json'); if(c.client?.[0]?.client_info?.android_client_info?.package_name !== 'com.railwaymitra.app') process.exit(1)"
       - name: Export Android debug signing fingerprint
         run: |
           cd android
