@@ -36,3 +36,13 @@ test("recovery submits only after the server explicitly reports a closed exam", 
   const source = readFileSync(new URL("../exam.js", import.meta.url), "utf8");
   assert.match(source, /error\?\.code !== "functions\/failed-precondition" \|\| error\?\.message !== "Exam is closed"\) throw error/);
 });
+
+
+test("exam controller treats only expected prior-result responses as recoverable", () => {
+  const source = readFileSync(new URL("../exam.js", import.meta.url), "utf8");
+  assert.match(source, /import \{ classifyCbtAttemptResultError \} from "\.\/attempt-recovery\.mjs"/);
+  assert.match(source, /const recovery = classifyCbtAttemptResultError\(error\)/);
+  assert.match(source, /const active = await getStudentActiveCbtAttempt\(app,testId\)/);
+  assert.match(source, /active\.status === "completed"/);
+  assert.match(source, /recovery !== "in_progress"/);
+});
