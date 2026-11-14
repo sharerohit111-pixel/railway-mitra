@@ -1047,22 +1047,22 @@ test("concurrent CBT start, answer-save and submit transactions preserve one aut
     assert.deepEqual(afterLateSave.answers, persisted.answers);
     assert.equal((await db.doc("testSeriesResults/" + attemptId).get()).data().score, persisted.score);
   } finally {
-    if (attemptId) {
-      await Promise.all([
-        db.doc(attemptRefPrefix + attemptId).delete().catch(() => {}),
-        db.doc("testSeriesResults/" + attemptId).delete().catch(() => {})
-      ]);
-    }
-    await Promise.all([
-      testRef.delete().catch(() => {}),
-      paperRef.delete().catch(() => {}),
-      keyRef.delete().catch(() => {}),
+    // Clean up every attempt created for this scenario, including an unexpected
+    // duplicate if the concurrency assertion ever catches a regression.
+    const scenarioAttempts = await db.collection("testSeriesAttempts")
+      .where("uid", "==", uid).where("testId", "==", concurrentTestId).get().catch(() => null);
+    const attemptIds = scenarioAttempts ? scenarioAttempts.docs.map(doc => doc.id) : [];
+    const cleanupRefs = [
+      ...attemptIds.map(id => db.doc(attemptRefPrefix + id)),
+      ...attemptIds.map(id => db.doc("testSeriesResults/" + id)),
+      testRef, paperRef, keyRef,
       ...(paidAccess ? [
-        paidAccess.paymentRef.delete().catch(() => {}),
-        paidAccess.orderRef.delete().catch(() => {}),
-        paidAccess.entitlementRef.delete().catch(() => {})
+        paidAccess.paymentRef,
+        paidAccess.orderRef,
+        paidAccess.entitlementRef
       ] : [])
-    ]);
+    ];
+    await Promise.all(cleanupRefs.map(ref => ref.delete().catch(() => {})));
     if (previousActive.exists) await activeRef.set(previousActive.data());
     else await activeRef.delete().catch(() => {});
   }
