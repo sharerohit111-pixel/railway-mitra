@@ -587,9 +587,15 @@ exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
     db.doc("testSeriesAnswerKeys/" + testId).get()
   ]);
   if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
+  if (!questionsSnap.exists || !answerKeySnap.exists) {
+    throw new HttpsError("failed-precondition", "Test question paper or private answer key is missing; editing is blocked");
+  }
   const t = testSnap.data();
-  const publicQuestions = questionsSnap.exists ? questionsSnap.data().questions || [] : [];
-  const answerMap = answerKeySnap.exists ? answerKeySnap.data().questions || {} : {};
+  const publicQuestions = questionsSnap.data().questions;
+  const answerMap = answerKeySnap.data().questions;
+  if (!Array.isArray(publicQuestions) || publicQuestions.length < 1 || publicQuestions.length > 500) {
+    throw new HttpsError("failed-precondition", "Test question paper is empty or invalid; editing is blocked");
+  }
   let questions;
   try {
     questions = restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap);
