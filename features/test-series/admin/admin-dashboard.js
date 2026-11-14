@@ -131,7 +131,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   el("rm-owner-link-email").addEventListener("click", async () => {
     try {
       providerStatus("Email provider को इसी Owner खाते से जोड़ा जा रहा है…");
-      const result = await linkOwnerEmailProvider(auth, el("rm-owner-link-email").value, el("rm-owner-link-password").value);
+      const result = await linkOwnerEmailProvider(auth, el("rm-owner-link-email-address").value, el("rm-owner-link-password").value);
       providerStatus(result.linked ? "Email/Password provider इसी Owner UID से जुड़ गया।" : "Email/Password provider पहले से इसी Owner खाते से जुड़ा है।");
       el("rm-owner-link-password").value = "";
     } catch (error) {
