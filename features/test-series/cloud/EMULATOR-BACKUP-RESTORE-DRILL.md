@@ -34,13 +34,15 @@ npx firebase-tools emulators:start --config firebase.test-series-emulator.json -
 
 2. In a separate terminal, run only synthetic emulator tests/fixtures against the local endpoints. Do not import production data or use real student/payment records.
 
-3. Stop the emulator cleanly with Ctrl+C and export its local emulator state:
+3. While the emulators are still running, open a second terminal and export the current local state:
 
 ```bash
 npx firebase-tools emulators:export .local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt
 ```
 
-4. Confirm the command completed successfully and inspect the export directory. Record the local commit SHA, timestamp, test scenario and export outcome in a local drill note. Keep the export directory out of Git.
+Alternatively, start the emulators with `--export-on-exit=.local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS` and stop them cleanly with Ctrl+C; the CLI then exports on shutdown. Do not run both methods against the same export directory in one drill.
+
+4. Confirm the export command (or clean shutdown export) completed successfully and inspect the export directory, including `firebase-export-metadata.json`. Record the local commit SHA, timestamp, test scenario and export outcome in a local drill note. Keep the export directory out of Git.
 
 ## Restore into a clean local emulator
 
@@ -49,7 +51,7 @@ npx firebase-tools emulators:export .local-emulator-backups/cbt-drill-YYYYMMDD-H
 3. Start the emulator using the saved export:
 
 ```bash
-npx firebase-tools emulators:start --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt --import .local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS
+npx firebase-tools emulators:start --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt --import=.local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS
 ```
 
 4. Run the CBT unit and Firestore Rules emulator tests using the same isolated project ID and test configuration.
