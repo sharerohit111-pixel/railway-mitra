@@ -561,7 +561,6 @@ export function initOwnerAdminDashboard(auth, functions) {
       el("rm-test-price").value = t.price;
       el("rm-test-marks").value = t.marksPerQuestion;
       el("rm-test-negative").value = t.negativeMarks;
-      el("rm-test-status").value = cloneAsDraft ? "draft" : t.status;
       // datetime-local inputs represent the user's local wall-clock time;
       // do not slice an ISO UTC string, which silently shifts scheduled exams.
       el("rm-test-start").value = toLocalDateTimeInput(t.scheduleStartAt);
@@ -602,7 +601,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         price: el("rm-test-price").value,
         marksPerQuestion: el("rm-test-marks").value,
         negativeMarks: el("rm-test-negative").value,
-        status: el("rm-test-status").value,
+        status: "draft",
         questions,
         sections: questionSections,
         scheduleStartAt: el("rm-test-start").value,
