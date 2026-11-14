@@ -1,8 +1,13 @@
 import { listAvailableCbtTests, claimFreeCbtAttempt, startCbtExam } from "../cloud/student-client.js";
 import { startStudentTestCheckout } from "./payment-checkout.js";
+import {
+  requirePaymentSessionStorage,
+  hasPaymentBeenSubmitted,
+  markPaymentSubmitted,
+  clearPaymentSubmitted
+} from "./payment-request-session.mjs";
 
-// Keep payment-submitted state across catalogue refreshes in this tab. A pending
-// webhook must never turn the same card back into a fresh checkout action.
+// Keep payment-submitted state across catalogue refreshes and page reloads in this tab.
 const pendingPaymentChecks = new Set();
 
 export async function initStudentTestCatalogue({ app, root = document, onStart }) {
@@ -18,6 +23,8 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
       return { tests: [] };
     }
     status.textContent = tests.length + " tests available";
+    let storage = null;
+    try { storage = requirePaymentSessionStorage(root); } catch { /* Checkout remains unavailable without session storage. */ }
     for (const test of tests) {
       const card = root.createElement("article");
       card.className = "rm-catalogue-card";
@@ -37,17 +44,19 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
       details.forEach(value => { const tag = root.createElement("span"); tag.textContent = value; meta.append(tag); });
       const button = root.createElement("button");
       button.type = "button";
-      const paymentSubmitted = pendingPaymentChecks.has(test.testId);
+      const paymentSubmitted = pendingPaymentChecks.has(test.testId) || hasPaymentBeenSubmitted(storage, test.testId);
+      if (paymentSubmitted) pendingPaymentChecks.add(test.testId);
       button.textContent = paymentSubmitted ? "Check Payment Status" : test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : test.accessType === "unlocked" ? "Start Test" : "Not Available";
-      button.disabled = test.accessType !== "free_trial" && test.accessType !== "paid" && test.accessType !== "unlocked";
+      button.disabled = paymentSubmitted ? false : test.accessType !== "free_trial" && test.accessType !== "paid" && test.accessType !== "unlocked";
       button.addEventListener("click", async () => {
-        if (pendingPaymentChecks.has(test.testId)) {
+        if (pendingPaymentChecks.has(test.testId) || hasPaymentBeenSubmitted(storage, test.testId)) {
           button.disabled = true;
           status.textContent = "Checking server-verified payment status…";
           const refreshed = await initStudentTestCatalogue({ app, root, onStart });
           const latest = refreshed.tests.find(item => item.testId === test.testId);
           if (latest?.accessType === "unlocked") {
             pendingPaymentChecks.delete(test.testId);
+            clearPaymentSubmitted(storage, test.testId);
             await initStudentTestCatalogue({ app, root, onStart });
             status.textContent = "Payment verified. Your test is unlocked.";
           } else {
@@ -68,6 +77,7 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
               app, test, root,
               onStatus: message => { status.textContent = message; }
             });
+            markPaymentSubmitted(storage, test.testId);
             pendingPaymentChecks.add(test.testId);
             button.textContent = "Check Payment Status";
             button.disabled = false;
@@ -77,8 +87,6 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
           try { claim = await claimFreeCbtAttempt(app); }
           catch (error) {
             if (!String(error.code || "").includes("already-exists")) throw error;
-            // The one-time claim already exists. Start/resume the timed exam only
-            // after the student presses Start on the exam screen.
             claim = { alreadyClaimed: true };
           }
           await onStart({ test, session: claim });
