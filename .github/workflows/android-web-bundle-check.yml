@@ -68,6 +68,21 @@ jobs:
         run: node scripts/configure-android-auth.mjs
       - name: Sync Capacitor Android project
         run: npx cap sync android
+      - name: Add Firebase Android configuration
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.RAILWAY_MITRA_GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "Missing RAILWAY_MITRA_GOOGLE_SERVICES_JSON repository secret."
+            exit 1
+          fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          node -e "const c=require('./android/app/google-services.json'); if(c.client?.[0]?.client_info?.android_client_info?.package_name !== 'com.railwaymitra.app') process.exit(1)"
+      - name: Export Android debug signing fingerprint
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew signingReport | tee ../android-signing-report.txt
       - name: Build debug APK
         run: |
           cd android
@@ -78,5 +93,12 @@ jobs:
         with:
           name: railway-mitra-android-debug
           path: android-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
+      - name: Upload Android signing fingerprint report
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-mitra-android-signing-report
+          path: android-wrapper/android-signing-report.txt
           if-no-files-found: error
           retention-days: 7
