@@ -218,9 +218,12 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
         }catch(_){/* Not submitted yet; inspect the original server attempt. */}
         try{
           paper=await getCbtExamQuestions(app,attemptId);
-        }catch(_){
+        }catch(error){
           if (!isActive()) return;
-          // If the server deadline has passed, submit only server-persisted answers.
+          // Only the server's explicit closed-attempt response proves the deadline
+          // has passed. Network, permission, and configuration errors must never
+          // trigger an irreversible submission during recovery.
+          if (error?.code !== "functions/failed-precondition" || error?.message !== "Exam is closed") throw error;
           const recovered=await submitCbtExam(app,attemptId);
           if (!isActive()) return;
           try{localStorage.removeItem(draftKey());}catch(_){}
