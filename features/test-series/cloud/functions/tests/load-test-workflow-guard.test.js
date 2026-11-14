@@ -69,6 +69,11 @@ test("callable load fixtures satisfy paid entitlement ledger checks and clean up
   assert.match(callableLoadScript, /razorpayOrderId:\s*student\.orderId/);
   assert.match(callableLoadScript, /amount:\s*100/);
   assert.match(callableLoadScript, /currency:\s*"INR"/);
+  assert.match(callableLoadScript, /Capture the server-created attempt before validating the response/);
+  assert.ok(
+    callableLoadScript.indexOf("attemptIds.push(result.attemptId)") <
+    callableLoadScript.indexOf('if (!student.attemptId || result.resumed)')
+  );
   assert.match(callableLoadScript, /cleanupRefs/);
   assert.match(callableLoadScript, /testSeriesPayments\/" \+ s\.paymentId/);
   assert.match(callableLoadScript, /testSeriesPaymentOrders\/" \+ s\.orderId/);
