@@ -43,7 +43,7 @@ function paymentStudentTestLockDocumentId({ uid, testId } = {}) {
     throw new Error("Authenticated student and test identifiers are required");
   }
   return crypto.createHash("sha256")
-    .update(uid + "\\0" + testId, "utf8")
+    .update(uid + "\0" + testId, "utf8")
     .digest("hex");
 }
 
