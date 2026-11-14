@@ -51,3 +51,15 @@ test("Question Bank save, delete and bulk-import continuations are fenced by Own
   assert.match(bulkHandler, /await httpsCallable\(functions, "rmOwnerBulkSaveQuestionBank"\)[\s\S]*?if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
   assert.match(bulkHandler, /catch \(error\) \{\s*if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
 });
+
+
+test("Test Management save errors cannot update the dashboard after Owner session changes", () => {
+  const start = source.indexOf('testForm.addEventListener("submit"');
+  const end = source.indexOf('\n  });', start);
+  assert.notEqual(start, -1);
+  assert.notEqual(end, -1);
+  const handler = source.slice(start, end);
+  assert.match(handler, /const generation = testManagementGeneration/);
+  assert.match(handler, /await httpsCallable\(functions, "rmOwnerSaveTest"\)[\s\S]*?if \(generation !== testManagementGeneration\) return;/);
+  assert.match(handler, /catch \(e\) \{\s*if \(generation !== testManagementGeneration\) return;/);
+});
