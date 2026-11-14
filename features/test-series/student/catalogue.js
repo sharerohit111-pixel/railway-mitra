@@ -51,7 +51,7 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
       button.textContent = paymentSubmitted ? "Check Payment Status" : test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : test.accessType === "unlocked" ? "Start Test" : "Not Available";
       button.disabled = paymentSubmitted ? false : test.accessType !== "free_trial" && test.accessType !== "paid" && test.accessType !== "unlocked";
       button.addEventListener("click", async () => {
-        if (pendingPaymentChecks.has(paymentStateKey) || hasPaymentBeenSubmitted(storage, test.testId)) {
+        if (pendingPaymentChecks.has(paymentStateKey) || hasPaymentBeenSubmitted(storage, studentUid, test.testId)) {
           button.disabled = true;
           status.textContent = "Checking server-verified payment status…";
           const refreshed = await initStudentTestCatalogue({ app, studentUid, root, onStart });
@@ -80,7 +80,7 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
               onStatus: message => { status.textContent = message; }
             });
             markPaymentSubmitted(storage, studentUid, test.testId);
-            pendingPaymentChecks.add(test.testId);
+            pendingPaymentChecks.add(paymentStateKey);
             button.textContent = "Check Payment Status";
             button.disabled = false;
             return;
