@@ -7,11 +7,11 @@ if (!fs.existsSync(variablesPath)) {
 }
 let source = fs.readFileSync(variablesPath, 'utf8');
 if (!source.includes('rgcfaIncludeGoogle')) {
-  const extMatch = source.match(/ext\\s*\\{/);
+  const extMatch = source.match(/ext\s*\{/);
   if (!extMatch) throw new Error('Could not find the Gradle ext block safely.');
   const insertAt = extMatch.index + extMatch[0].length;
   source = source.slice(0, insertAt) +
-    "\\n    rgcfaIncludeGoogle = true\\n    androidxCredentialsVersion = '1.3.0'" +
+    "\n    rgcfaIncludeGoogle = true\n    androidxCredentialsVersion = '1.3.0'" +
     source.slice(insertAt);
 }
 fs.writeFileSync(variablesPath, source);
