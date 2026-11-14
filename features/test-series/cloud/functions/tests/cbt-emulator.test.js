@@ -388,6 +388,39 @@ test("CBT rejects a persisted question whose section has no canonical test confi
   }
 });
 
+test("exam question delivery allowlists student-safe question fields", async () => {
+  const privateTestId = "emulator-question-safe-projection";
+  const attemptId = "emulator-question-safe-projection-attempt";
+  const testRef = db.doc("testSeriesTests/" + privateTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + privateTestId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  try {
+    await testRef.set({
+      title: "Safe Projection", status: "published", price: 0,
+      mode: "mock", durationMinutes: 20, questionCount: 1
+    });
+    await paperRef.set({ questions: [{
+      id: "safe-q1", text: "Which option?", options: ["A", "B"],
+      correctIndex: 1, correctAnswer: "1", explanation: "Private explanation",
+      ownerNote: "Internal note", tags: ["private"]
+    }] });
+    await attemptRef.set({
+      uid, testId: privateTestId, status: "in_progress",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), answers: {}
+    });
+
+    const paper = await callable("rmGetExamQuestions", { attemptId });
+    assert.deepEqual(paper.questions[0], {
+      id: "safe-q1", text: "Which option?", options: ["A", "B"]
+    });
+    for (const field of ["correctIndex", "correctAnswer", "explanation", "ownerNote", "tags"]) {
+      assert.equal(Object.hasOwn(paper.questions[0], field), false, field + " must not be exposed");
+    }
+  } finally {
+    await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("student catalogue returns published metadata only and never answer keys", async () => {
   const catalogue = await callable("rmListAvailableTests");
   const listed = catalogue.tests.find(item => item.testId === testId);
