@@ -64,6 +64,8 @@ jobs:
           test -f web/assets/js/firebase.js
       - name: Generate native Android project
         run: npx cap add android
+      - name: Configure native Google Credential Manager
+        run: node scripts/configure-android-auth.mjs
       - name: Sync Capacitor Android project
         run: npx cap sync android
       - name: Build debug APK
