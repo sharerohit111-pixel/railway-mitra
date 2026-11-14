@@ -49,3 +49,7 @@ The Student Performance dashboard displays the latest 100 submitted results, ord
 - `single-flight.mjs` deduplicates concurrent operations for the same object key and returns the same pending promise to every caller.
 - The pending entry is cleared after success or failure, so a later refresh can retry; separate controls remain independent.
 - The student test suite covers shared concurrent calls, retry after asynchronous or synchronous failure, independent keys, and invalid arguments, and shared synchronous throws (six test cases).
+
+## Keyboard focus after answer selection
+
+When a student selects an answer, the option list is re-rendered to update its pressed state. The CBT now restores keyboard focus to the same option index after that render, so keyboard users can continue from the answer they just selected instead of losing focus when the old button node is replaced. The isolated `exam-focus.mjs` helper safely ignores missing, disabled, or invalid targets. Regression tests cover the helper and verify that the answer-click render path supplies the selected option index. This is a client-side accessibility improvement; server-side answer saving and submission remain authoritative.
