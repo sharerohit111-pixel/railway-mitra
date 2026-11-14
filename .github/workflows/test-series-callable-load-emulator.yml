@@ -69,4 +69,4 @@ jobs:
           CALLABLE_LOAD_CONCURRENCY: ${{ inputs.concurrency || '50' }}
           CALLABLE_LOAD_QUESTIONS: ${{ inputs.questions || '50' }}
         run: |
-          npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-callable-load --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:callable:emulator"
+          npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-callable-load --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:callable:emulator"
