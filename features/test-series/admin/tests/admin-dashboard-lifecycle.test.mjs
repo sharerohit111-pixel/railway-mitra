@@ -23,3 +23,31 @@ test("Owner publish completion and errors cannot update a logged-out or changed-
   assert.match(handler, /const result = await httpsCallable\(functions, "rmOwnerPublishTest"\)\(\{ testId: publishingTestId \}\);\s*if \(generation !== testManagementGeneration\) return;/);
   assert.match(handler, /catch \(error\) \{\s*if \(generation !== testManagementGeneration\) return;/);
 });
+
+
+test("Question Bank save, delete and bulk-import continuations are fenced by Owner session generation", () => {
+  assert.match(source, /let questionBankSessionGeneration = 0/);
+  assert.match(source, /function clearQuestionBank\(\)\s*\{\s*questionBankSessionGeneration \+= 1/);
+
+  const deleteStart = source.indexOf('remove.addEventListener("click"');
+  const deleteEnd = source.indexOf('\n      });', deleteStart);
+  const deleteHandler = source.slice(deleteStart, deleteEnd);
+  assert.match(deleteHandler, /const sessionGeneration = questionBankSessionGeneration/);
+  assert.match(deleteHandler, /await httpsCallable\(functions, "rmOwnerDeleteQuestionBankItem"\)[\s\S]*?if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
+  assert.match(deleteHandler, /catch \(error\) \{\s*if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
+
+  const saveStart = source.indexOf('questionBankForm.addEventListener("submit"');
+  const saveEnd = source.indexOf('\n  });', saveStart);
+  const saveHandler = source.slice(saveStart, saveEnd);
+  assert.match(saveHandler, /const sessionGeneration = questionBankSessionGeneration/);
+  assert.match(saveHandler, /await httpsCallable\(functions, "rmOwnerSaveQuestionBankItem"\)[\s\S]*?if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
+  assert.match(saveHandler, /catch \(error\) \{\s*if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
+
+  const bulkStart = source.indexOf('el("rm-qb-bulk-import").addEventListener("click"');
+  const bulkEnd = source.indexOf('\n  });', bulkStart);
+  const bulkHandler = source.slice(bulkStart, bulkEnd);
+  assert.match(bulkHandler, /const sessionGeneration = questionBankSessionGeneration/);
+  assert.match(bulkHandler, /if \(sessionGeneration !== questionBankSessionGeneration\) return;\s*const result = await httpsCallable\(functions, "rmOwnerBulkSaveQuestionBank"\)/);
+  assert.match(bulkHandler, /await httpsCallable\(functions, "rmOwnerBulkSaveQuestionBank"\)[\s\S]*?if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
+  assert.match(bulkHandler, /catch \(error\) \{\s*if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
+});
