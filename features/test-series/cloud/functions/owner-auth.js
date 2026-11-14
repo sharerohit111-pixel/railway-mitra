@@ -1,3 +1,5 @@
+"use strict";
+
 function hasVerifiedPhoneMfa(token) {
   return Boolean(
     token &&
@@ -6,4 +8,15 @@ function hasVerifiedPhoneMfa(token) {
   );
 }
 
-module.exports = { hasVerifiedPhoneMfa };
+function isAuthorizedOwner({ uid, token, ownerUid } = {}) {
+  return Boolean(
+    typeof ownerUid === "string" &&
+    ownerUid.length > 0 &&
+    typeof uid === "string" &&
+    uid.length > 0 &&
+    uid === ownerUid &&
+    hasVerifiedPhoneMfa(token)
+  );
+}
+
+module.exports = { hasVerifiedPhoneMfa, isAuthorizedOwner };
