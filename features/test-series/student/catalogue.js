@@ -10,10 +10,11 @@ import {
 // Keep payment-submitted state across catalogue refreshes and page reloads in this tab.
 const pendingPaymentChecks = new Set();
 
-export async function initStudentTestCatalogue({ app, root = document, onStart }) {
+export async function initStudentTestCatalogue({ app, studentUid, root = document, onStart }) {
   const status = root.getElementById("rm-catalogue-status");
   const list = root.getElementById("rm-catalogue-list");
   if (typeof onStart !== "function") throw new Error("onStart callback is required");
+  if (typeof studentUid !== "string" || !studentUid) throw new Error("A verified student account is required");
   status.textContent = "Loading published tests…";
   list.replaceChildren();
   try {
@@ -44,7 +45,7 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
       details.forEach(value => { const tag = root.createElement("span"); tag.textContent = value; meta.append(tag); });
       const button = root.createElement("button");
       button.type = "button";
-      const paymentSubmitted = pendingPaymentChecks.has(test.testId) || hasPaymentBeenSubmitted(storage, test.testId);
+      const paymentSubmitted = pendingPaymentChecks.has(test.testId) || hasPaymentBeenSubmitted(storage, studentUid, test.testId);
       if (paymentSubmitted) pendingPaymentChecks.add(test.testId);
       button.textContent = paymentSubmitted ? "Check Payment Status" : test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : test.accessType === "unlocked" ? "Start Test" : "Not Available";
       button.disabled = paymentSubmitted ? false : test.accessType !== "free_trial" && test.accessType !== "paid" && test.accessType !== "unlocked";
@@ -52,11 +53,11 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
         if (pendingPaymentChecks.has(test.testId) || hasPaymentBeenSubmitted(storage, test.testId)) {
           button.disabled = true;
           status.textContent = "Checking server-verified payment status…";
-          const refreshed = await initStudentTestCatalogue({ app, root, onStart });
+          const refreshed = await initStudentTestCatalogue({ app, studentUid, root, onStart });
           const latest = refreshed.tests.find(item => item.testId === test.testId);
           if (latest?.accessType === "unlocked") {
             pendingPaymentChecks.delete(test.testId);
-            clearPaymentSubmitted(storage, test.testId);
+            clearPaymentSubmitted(storage, studentUid, test.testId);
             await initStudentTestCatalogue({ app, root, onStart });
             status.textContent = "Payment verified. Your test is unlocked.";
           } else {
@@ -74,10 +75,10 @@ export async function initStudentTestCatalogue({ app, root = document, onStart }
           }
           if (test.accessType === "paid") {
             await startStudentTestCheckout({
-              app, test, root,
+              app, test, studentUid, root,
               onStatus: message => { status.textContent = message; }
             });
-            markPaymentSubmitted(storage, test.testId);
+            markPaymentSubmitted(storage, studentUid, test.testId);
             pendingPaymentChecks.add(test.testId);
             button.textContent = "Check Payment Status";
             button.disabled = false;
