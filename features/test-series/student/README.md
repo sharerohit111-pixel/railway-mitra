@@ -53,3 +53,7 @@ The Student Performance dashboard displays the latest 100 submitted results, ord
 ## Keyboard focus after answer selection
 
 When a student selects an answer, the option list is re-rendered to update its pressed state. The CBT now restores keyboard focus to the same option index after that render, so keyboard users can continue from the answer they just selected instead of losing focus when the old button node is replaced. The isolated `exam-focus.mjs` helper safely ignores missing, disabled, or invalid targets. Regression tests cover the helper and verify that the answer-click render path supplies the selected option index. This is a client-side accessibility improvement; server-side answer saving and submission remain authoritative.
+
+## Bounded local answer-draft recovery
+
+Pending answer drafts are best-effort browser recovery data, not the authoritative answer record. The store accepts at most 500 pending answers (matching the CBT paper limit) and at most 128 KiB of serialized data. Oversized or malformed stored payloads are discarded before restoration; an oversized write is refused without replacing an earlier recoverable draft. Storage failures remain non-fatal and are never reported as server-confirmed saves. Regression tests cover the exact 500-answer boundary, oversized entry arrays, oversized serialized data, preservation of the previous draft after a rejected write, and cleanup of oversized stored payloads.
