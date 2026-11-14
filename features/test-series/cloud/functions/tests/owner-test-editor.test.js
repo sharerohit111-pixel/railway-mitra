@@ -65,4 +65,8 @@ test("blocks publish for metadata, question count, duplicate IDs, malformed opti
   assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [{ ...questions[0], options: ["A"] }, questions[1]], validAnswerMap), /options/);
   assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, questions, { ...validAnswerMap, extra: { correctAnswer: "0" } }), /exactly match/);
   assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, questions, { q1: { correctAnswer: "0" } }), /exactly match/);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata,
+    [{ ...questions[0], correctIndex: 0 }, questions[1]], validAnswerMap), /must not contain private answer indexes/);
+  assert.throws(() => validateOwnerQuestionPaper({ ...validTestMetadata, mode: "scheduled", scheduleStartAt: "bad", scheduleEndAt: "also bad" },
+    questions, validAnswerMap), /Scheduled test window/);
 });
