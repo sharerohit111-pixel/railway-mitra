@@ -71,6 +71,10 @@ test("security-sensitive Firestore Rules and App Check changes trigger the right
       "Functions " + eventName + " validation must run when App Check initialization changes");
     assert.ok(functionsPaths.includes("features/test-series/cloud/firebase-app-check-init.js"),
       "Functions " + eventName + " validation must run when Firebase/App Check bootstrap changes");
+    assert.ok(cbtPaths.includes("features/test-series/cloud/firebase-emulator-config.mjs"),
+      "CBT " + eventName + " must run when the emulator safety gate changes");
+    assert.ok(functionsPaths.includes("features/test-series/cloud/firebase-emulator-config.mjs"),
+      "Functions " + eventName + " validation must run when the emulator safety gate changes");
   }
 });
 

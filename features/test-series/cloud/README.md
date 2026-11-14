@@ -146,3 +146,12 @@ The separate Firestore and callable load-test workflows remain manual-only and r
 ## Security-sensitive CI path coverage
 
 The normal CBT Emulator workflow must run for every change to `features/test-series/cloud/firestore.rules`, on both feature-branch pushes and pull requests, because that workflow executes the Firestore Rules Emulator suite. The Functions validation workflow also runs for changes to those rules and to `app-check.js` or `firebase-app-check-init.js`, so security bootstrap and rules changes cannot bypass the routine validation path. A regression test in `functions/tests/load-test-workflow-guard.test.js` asserts these path filters for both events. The shared root `firestore.indexes.json` is intentionally not included in this Test Series-only trigger list because it is shared repository configuration and may change for unrelated Railway Mitra modules.
+
+
+## Local browser integration testing — emulator-only bootstrap
+
+The Student and Owner portals support an explicit local Firebase Emulator mode for browser integration tests. Serve the repository from a loopback origin and open the portal with the exact query flag `?rmFirebaseEmulator=1`. The flag is accepted only on `localhost`, `127.0.0.1` or the IPv6 loopback address. If the flag is malformed, repeated, or used on any hosted/non-loopback origin, the bootstrap throws before Firebase app initialization; it does not silently fall back to the production project.
+
+Emulator mode uses the demo project ID `demo-railway-mitra-cbt`, connects Auth to `127.0.0.1:9099`, Firestore to `127.0.0.1:8080`, and Functions in `asia-south1` to `127.0.0.1:5001`. It deliberately skips web App Check because the local Functions Emulator uses its isolated emulator-only policy. Auth, Firestore and Functions are connected to their emulators before portal modules can issue requests. No real phone SMS or production OTP is required; use synthetic Auth Emulator verification sessions/codes only.
+
+Without the exact flag, the production bootstrap remains unchanged in behavior: it uses the existing Railway Mitra Firebase config and initializes reCAPTCHA Enterprise App Check before Auth, Firestore and Functions. Do not open a local portal without the emulator flag for emulator testing, because that is the normal production bootstrap. This mode is local test infrastructure only; it does not deploy, change Firebase Console settings, or alter live App Check enforcement.
