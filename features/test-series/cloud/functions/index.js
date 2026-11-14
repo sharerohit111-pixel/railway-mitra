@@ -29,6 +29,7 @@ const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliati
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const { getCallableOptions } = require("./app-check-policy");
 const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require("./question-bank-validation");
+const { selectQuestionBankPage } = require("./question-bank-pagination");
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
