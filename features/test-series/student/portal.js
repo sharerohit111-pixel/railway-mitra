@@ -48,7 +48,7 @@ async function showView(name) {
     const response = await fetch("./dashboard.html");
     const markup = await response.text();
     if (!response.ok) throw new Error("Student results could not be loaded.");
-    if (!isCurrentStudentSession(sessionVersion, sessionUid)) return;
+    if (requestVersion !== viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
     view.innerHTML = markup;
     // initStudentDashboard owns the single refresh listener; do not attach a
     // second handler here or each click will issue duplicate dashboard requests.
