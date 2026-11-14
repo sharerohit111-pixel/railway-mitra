@@ -44,7 +44,7 @@ test("rejects malformed question collections and records", () => {
 
 
 const validTestMetadata = {
-  title: "Civil JE Mock", mode: "mock", durationMinutes: 30, price: 0,
+  title: "Civil JE Mock", category: "GDCE JE", folder: "Civil / Mock", mode: "mock", durationMinutes: 30, price: 0,
   marksPerQuestion: 1, negativeMarks: 0.25, questionCount: 2
 };
 const validAnswerMap = {
