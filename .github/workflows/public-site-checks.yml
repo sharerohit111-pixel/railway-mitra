@@ -74,6 +74,11 @@ jobs:
           for page in public_pages:
               content = Path(page).read_text()
               assert 'href="/' not in content and 'src="/' not in content, f'Root-relative asset or link found in {page}'
-          assert 'https://sharerohit111-pixel.github.io/railway-mitra/sitemap.xml' in Path('robots.txt').read_text()
+          assert 'Sitemap: https://railwaymitra.com/sitemap.xml' in Path('robots.txt').read_text(), 'Custom-domain sitemap declaration missing'
+          assert Path('features/home-explore/home-explore.js').is_file(), 'Explore Features module missing'
+          assert Path('features/home-explore/home-explore.css').is_file(), 'Explore Features styles missing'
+          assert 'features/home-explore/home-explore.js' in app and 'features/home-explore/home-explore.css' in app, 'Explore Features assets are not wired into app.html'
+          for route in ['features/salary/index.html', 'features/income-tax/index.html', 'employee-benefits-calculators/index.html', 'features/retirement/index.html', 'features/pay-commission-8th/index.html', 'features/allowances/index.html', 'features/arrears/index.html', 'features/nh-holidays/index.html', 'features/duty-diary/index.html', 'features/personal-diary/index.html', 'features/profile/index.html', 'features/rules/index.html', 'features/p-way-manuals/index.html', 'features/p-way-quick-reference/index.html', 'features/p-way-civil-engineering-tools/index.html', 'features/updates/index.html', 'features/map/index.html', 'features/compliance/index.html', 'features/settings/index.html']:
+              assert Path(route).is_file(), f'Explore Features route missing: {route}'
           print('Public pages and PWA manifest checks passed')
           PY
