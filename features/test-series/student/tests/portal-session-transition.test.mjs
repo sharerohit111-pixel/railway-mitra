@@ -14,7 +14,11 @@ function makeFixture(controller = null) {
   const ui = {
     workspace: { hidden: false },
     login: { hidden: true },
-    logoutButton: { hidden: false }
+    logoutButton: { hidden: false },
+    view: {
+      children: ["previous student exam"],
+      replaceChildren() { this.children = []; this.cleared = true; }
+    }
   };
   return { state, ui };
 }
@@ -35,6 +39,8 @@ test("invalidates pending views and destroys the previous student's exam before 
   assert.equal(ui.workspace.hidden, true);
   assert.equal(ui.login.hidden, false);
   assert.equal(ui.logoutButton.hidden, true);
+  assert.deepEqual(ui.view.children, []);
+  assert.equal(ui.view.cleared, true);
 });
 
 test("keeps the workspace hidden even if stale exam cleanup throws", () => {
@@ -45,6 +51,8 @@ test("keeps the workspace hidden even if stale exam cleanup throws", () => {
   assert.equal(ui.workspace.hidden, true);
   assert.equal(ui.login.hidden, false);
   assert.equal(ui.logoutButton.hidden, true);
+  assert.deepEqual(ui.view.children, []);
+  assert.equal(ui.view.cleared, true);
 });
 
 test("auth listener invalidates the old workspace before awaiting new token claims", () => {
@@ -55,5 +63,7 @@ test("auth listener invalidates the old workspace before awaiting new token clai
 
   assert.ok(handlerStart >= 0, "auth-state listener exists");
   assert.ok(invalidation > handlerStart, "auth-state listener immediately invalidates the old workspace");
+  const invalidationCallEnd = portal.indexOf("});", invalidation);
+  assert.match(portal.slice(invalidation, invalidationCallEnd), /\\bview\\b/, "the previous student's rendered view is passed for synchronous clearing");
   assert.ok(tokenLookup > invalidation, "token verification happens only after teardown");
 });
