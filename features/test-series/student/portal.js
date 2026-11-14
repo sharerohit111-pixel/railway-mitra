@@ -4,6 +4,7 @@ import { initStudentTestCatalogue } from "./catalogue.js";
 import { initStudentCbtExam } from "./exam.js";
 import { initStudentDashboard } from "./dashboard.js";
 import { invalidateStudentPortalSession } from "./session-transition.mjs";
+import { createStudentOtpFlowGuard } from "./otp-flow-guard.mjs";
 
 const el = id => document.getElementById(id);
 const login = el("rm-portal-login"), workspace = el("rm-portal-app"), view = el("rm-portal-view");
@@ -16,7 +17,8 @@ const portalState = {
   viewRequestVersion: 0,
   activeExamController: null
 };
-let confirmation = null, recaptcha = null;
+const otpFlow = createStudentOtpFlowGuard();
+let confirmation = null, confirmationVersion = null, recaptcha = null;
 
 function setBusy(button, busy, label) {
   button.disabled = busy;
@@ -100,32 +102,45 @@ async function sendOtp() {
     authStatus.textContent = "Enter a valid phone number with country code, for example +91XXXXXXXXXX.";
     return;
   }
+  const requestVersion = otpFlow.begin();
+  confirmation = null;
+  confirmationVersion = null;
+  el("rm-student-otp-panel").hidden = true;
   setBusy(button, true, "Sending OTP…");
   try {
-    confirmation = await signInWithPhoneNumber(auth, phone, getRecaptcha());
+    const nextConfirmation = await signInWithPhoneNumber(auth, phone, getRecaptcha());
+    if (!otpFlow.isCurrent(requestVersion)) return;
+    confirmation = nextConfirmation;
+    confirmationVersion = requestVersion;
     el("rm-student-otp-panel").hidden = false;
     authStatus.textContent = "OTP sent. Enter the 6-digit code to continue.";
   } catch (error) {
+    if (!otpFlow.isCurrent(requestVersion)) return;
     authStatus.textContent = error.message || "OTP could not be sent. Please retry.";
     if (recaptcha) { try { recaptcha.clear(); } catch (_) {} recaptcha = null; }
   } finally {
-    setBusy(button, false, "Send OTP");
+    // A stale request must never re-enable controls after logout or an auth change.
+    if (otpFlow.isCurrent(requestVersion)) setBusy(button, false, "Send OTP");
   }
 }
 async function verifyOtp() {
   const button = el("rm-student-verify-otp"), code = el("rm-student-otp").value.trim();
-  if (!confirmation || !/^\d{6}$/.test(code)) {
+  const requestVersion = confirmationVersion;
+  const activeConfirmation = confirmation;
+  if (!activeConfirmation || !otpFlow.isCurrent(requestVersion) || !/^\d{6}$/.test(code)) {
     authStatus.textContent = "Enter the 6-digit OTP sent to your phone.";
     return;
   }
   setBusy(button, true, "Verifying…");
   try {
-    await confirmation.confirm(code);
+    await activeConfirmation.confirm(code);
+    if (!otpFlow.isCurrent(requestVersion)) return;
     authStatus.textContent = "Phone verified.";
   } catch (error) {
+    if (!otpFlow.isCurrent(requestVersion)) return;
     authStatus.textContent = error.message || "OTP verification failed.";
   } finally {
-    setBusy(button, false, "Verify & Sign in");
+    if (otpFlow.isCurrent(requestVersion)) setBusy(button, false, "Verify & Sign in");
   }
 }
 
@@ -133,6 +148,10 @@ el("rm-student-send-otp").addEventListener("click", sendOtp);
 el("rm-student-verify-otp").addEventListener("click", verifyOtp);
 const logoutButton = el("rm-portal-logout");
 logoutButton.addEventListener("click", async () => {
+  // Invalidate pending OTP promises before starting any asynchronous logout work.
+  otpFlow.invalidate();
+  confirmation = null;
+  confirmationVersion = null;
   // Lock and clear the previous student's workspace synchronously, before
   // waiting for Firebase signOut or its asynchronous auth-state callback.
   invalidateStudentPortalSession(portalState, {
@@ -141,7 +160,6 @@ logoutButton.addEventListener("click", async () => {
     logoutButton,
     view
   });
-  confirmation = null;
   el("rm-student-otp-panel").hidden = true;
   el("rm-student-otp").value = "";
   if (recaptcha) {
@@ -169,6 +187,9 @@ document.querySelectorAll("[data-view]").forEach(button => button.addEventListen
 }));
 
 onAuthStateChanged(auth, async user => {
+  otpFlow.invalidate();
+  confirmation = null;
+  confirmationVersion = null;
   const version = ++portalState.authStateVersion;
   invalidateStudentPortalSession(portalState, {
     workspace,
