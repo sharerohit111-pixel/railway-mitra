@@ -1,0 +1,11 @@
+{
+  "appId": "com.railwaymitra.app",
+  "appName": "Railway Mitra",
+  "webDir": "web",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
