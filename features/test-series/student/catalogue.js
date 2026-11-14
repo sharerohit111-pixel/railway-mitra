@@ -10,7 +10,8 @@ import {
 // Keep payment-submitted state across catalogue refreshes and page reloads in this tab.
 const pendingPaymentChecks = new Set();
 
-export async function initStudentTestCatalogue({ app, studentUid, root = document, onStart }) {
+export async function initStudentTestCatalogue({ app, studentUid, root = document, onStart, isSessionActive = () => true }) {
+  const sessionIsActive = () => typeof isSessionActive === "function" && isSessionActive();
   const status = root.getElementById("rm-catalogue-status");
   const list = root.getElementById("rm-catalogue-list");
   if (typeof onStart !== "function") throw new Error("onStart callback is required");
@@ -39,6 +40,7 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
     if (loadButton) loadButton.disabled = true;
     try {
       const page = await listAvailableCbtTests(app, { pageSize: 50, cursor });
+      if (!sessionIsActive()) return { tests: [], stale: true };
       const tests = page.tests || [];
       cursor = page.nextCursor || null;
       hasMore = Boolean(page.hasMore);
@@ -118,12 +120,13 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
           try {
             if (test.accessType === "unlocked") {
               const session = await startCbtExam(app, test.testId);
+              if (!sessionIsActive()) return;
               await onStart({ test, session });
               return;
             }
             if (test.accessType === "paid") {
               await startStudentTestCheckout({
-                app, test, studentUid, root,
+                app, test, studentUid, root, isSessionActive: sessionIsActive,
                 onStatus: message => { status.textContent = message; }
               });
               markPaymentSubmitted(storage, studentUid, test.testId);
@@ -138,6 +141,7 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
               if (!String(error.code || "").includes("already-exists")) throw error;
               claim = { alreadyClaimed: true };
             }
+            if (!sessionIsActive()) return;
             await onStart({ test, session: claim });
           } catch (error) {
             status.textContent = error.message || "Test could not be started.";
