@@ -953,6 +953,121 @@ test("student can start, save answers and submit with server-side scoring", asyn
   await db.doc("testSeriesResults/foreign-student-result").delete();
 });
 
+test("concurrent CBT start, answer-save and submit transactions preserve one authoritative attempt and result", async () => {
+  const concurrentTestId = "emulator-cbt-concurrency";
+  const attemptRefPrefix = "testSeriesAttempts/";
+  const testRef = db.doc("testSeriesTests/" + concurrentTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + concurrentTestId);
+  const keyRef = db.doc("testSeriesAnswerKeys/" + concurrentTestId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  let paidAccess;
+  let attemptId;
+  try {
+    await testRef.set({
+      title: "Concurrent CBT Regression", status: "published", price: 25,
+      mode: "mock", durationMinutes: 15, marksPerQuestion: 2,
+      negativeMarks: 0.5, questionCount: 2
+    });
+    await paperRef.set({ questions: [
+      { id: "race-q1", text: "Concurrent answer?", options: ["A", "B"] },
+      { id: "race-q2", text: "Submit race?", options: ["A", "B"] }
+    ] });
+    await keyRef.set({ questions: {
+      "race-q1": { correctAnswer: "0" },
+      "race-q2": { correctAnswer: "1" }
+    } });
+    paidAccess = await seedPaidAccess({
+      testId: concurrentTestId,
+      paymentId: "pay_emulator_cbt_concurrency",
+      orderId: "order_emulator_cbt_concurrency",
+      amount: 2500
+    });
+
+    // Simultaneous requests must converge on the same active attempt.
+    const starts = await Promise.all([
+      callable("rmStartExam", { testId: concurrentTestId }),
+      callable("rmStartExam", { testId: concurrentTestId })
+    ]);
+    attemptId = starts[0].attemptId;
+    assert.ok(attemptId);
+    assert.equal(starts[1].attemptId, attemptId);
+    assert.equal(new Set(starts.map(item => item.attemptId)).size, 1);
+    const active = (await activeRef.get()).data();
+    assert.equal(active.attemptId, attemptId);
+    assert.equal(active.testId, concurrentTestId);
+    assert.equal(active.status, "in_progress");
+
+    // Concurrent writes to one answer may serialize in either order, but
+    // the persisted value must be one complete valid selection.
+    const saves = await Promise.all([
+      callable("rmSaveAnswer", { attemptId, questionId: "race-q1", answer: "0" }),
+      callable("rmSaveAnswer", { attemptId, questionId: "race-q1", answer: "1" })
+    ]);
+    assert.equal(saves.every(item => item.saved === true), true);
+    let persisted = (await db.doc(attemptRefPrefix + attemptId).get()).data();
+    assert.ok(["0", "1"].includes(persisted.answers["race-q1"]));
+
+    // Race one final answer save against submission. If the save commits
+    // first it is included; if submit commits first the save must be rejected.
+    const saveSubmitRace = await Promise.allSettled([
+      callable("rmSaveAnswer", { attemptId, questionId: "race-q2", answer: "1" }),
+      callable("rmSubmitExam", { attemptId })
+    ]);
+    assert.equal(saveSubmitRace[1].status, "fulfilled");
+    if (saveSubmitRace[0].status === "rejected") {
+      assert.match(saveSubmitRace[0].reason.code, /failed-precondition/);
+    } else {
+      assert.equal(saveSubmitRace[0].value.saved, true);
+    }
+
+    persisted = (await db.doc(attemptRefPrefix + attemptId).get()).data();
+    assert.equal(persisted.status, "submitted");
+    const savedResult = (await db.doc("testSeriesResults/" + attemptId).get()).data();
+    assert.ok(savedResult);
+    assert.equal(savedResult.attemptId, attemptId);
+    assert.equal(savedResult.correct, persisted.correct);
+    assert.equal(savedResult.wrong, persisted.wrong);
+    assert.equal(savedResult.score, persisted.score);
+
+    // Concurrent retries must all return the one committed result.
+    const duplicateSubmissions = await Promise.all([
+      callable("rmSubmitExam", { attemptId }),
+      callable("rmSubmitExam", { attemptId })
+    ]);
+    assert.deepEqual(duplicateSubmissions[0], duplicateSubmissions[1]);
+    assert.equal(duplicateSubmissions[0].score, persisted.score);
+    assert.equal((await db.collection("testSeriesResults").where("attemptId", "==", attemptId).get()).size, 1);
+
+    await assert.rejects(
+      callable("rmSaveAnswer", { attemptId, questionId: "race-q1", answer: "1" }),
+      error => error.code === "functions/failed-precondition"
+    );
+    const afterLateSave = (await db.doc(attemptRefPrefix + attemptId).get()).data();
+    assert.deepEqual(afterLateSave.answers, persisted.answers);
+    assert.equal((await db.doc("testSeriesResults/" + attemptId).get()).data().score, persisted.score);
+  } finally {
+    if (attemptId) {
+      await Promise.all([
+        db.doc(attemptRefPrefix + attemptId).delete().catch(() => {}),
+        db.doc("testSeriesResults/" + attemptId).delete().catch(() => {})
+      ]);
+    }
+    await Promise.all([
+      testRef.delete().catch(() => {}),
+      paperRef.delete().catch(() => {}),
+      keyRef.delete().catch(() => {}),
+      ...(paidAccess ? [
+        paidAccess.paymentRef.delete().catch(() => {}),
+        paidAccess.orderRef.delete().catch(() => {}),
+        paidAccess.entitlementRef.delete().catch(() => {})
+      ] : [])
+    ]);
+    if (previousActive.exists) await activeRef.set(previousActive.data());
+    else await activeRef.delete().catch(() => {});
+  }
+});
+
 test("free test cannot start until the one-time claim is created", async () => {
   const unclaimedTestId = "emulator-unclaimed-free-test";
   await db.doc(`testSeriesTests/${unclaimedTestId}`).set({
