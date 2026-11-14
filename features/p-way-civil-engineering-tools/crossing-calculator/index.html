@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Railway Crossing Fittings Calculator</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #2563eb;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #cbd5e1;
+      --accent: #eff6ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+    .container { max-width: 900px; margin: 0 auto; }
+    header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; padding: 20px 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    header h1 { font-size: 1.5rem; margin-bottom: 4px; }
+    header p { font-size: 0.9rem; opacity: 0.9; }
+    .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border: 1px solid var(--border); }
+    .card-title { font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+    .form-group { display: flex; flex-direction: column; }
+    label { font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background-color: #fff; color: var(--text); cursor: pointer; }
+    select:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+    .result-box { margin-top: 18px; background: var(--accent); border-left: 5px solid var(--primary-light); padding: 15px 20px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    .result-item { display: flex; flex-direction: column; }
+    .result-label { font-size: 0.8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+    .result-value { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+    .tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+    .tab-btn { padding: 8px 14px; border: 1px solid var(--border); background: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--muted); transition: all 0.2s; }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+    th { background-color: #f8fafc; color: var(--primary); font-weight: 700; }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    .badge { display: inline-block; padding: 4px 10px; background: #dbeafe; color: #1e40af; border-radius: 999px; font-weight: 700; font-size: 0.85rem; }
+    @media (max-width: 600px) { .result-value { font-size: 1.2rem; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🚂 Railway Crossing Fittings Calculator</h1>
+    <p>क्रॉसिंग बोल्ट, रबर पैड, हील ब्लॉक, बियरिंग प्लेट और सुइयों की सटीक जानकारी</p>
+  </header>
+  <!-- Section 1: Quick Crossing Bolt Lookup -->
+  <div class="card">
+    <div class="card-title">⚡ Crossing Bolt Quick Lookup (क्रॉसिंग बोल्ट खोजें)</div>
+    <div class="grid-3">
+      <div class="form-group">
+        <label for="boltAngle">Crossing Angle (क्रॉसिंग एंगल)</label>
+        <select id="boltAngle" onchange="updateBoltLookup()">
+          <option value="1:12">1:12</option>
+          <option value="1:8.5">1:8½</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="boltRail">Rail Section (रेल सेक्शन)</label>
+        <select id="boltRail" onchange="updateBoltLookup()">
+          <option value="60 Kg">60 Kg</option>
+          <option value="52 Kg">52 Kg</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="boltSerial">Bolt Serial No. (बोल्ट क्रम संख्या 1 - 12)</label>
+        <select id="boltSerial" onchange="updateBoltLookup()">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option>
+          <option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option>
+          <option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        </select>
+      </div>
+    </div>
+    <div class="result-box">
+      <div class="result-item"><span class="result-label">चुना गया संयोजन (Selection)</span><span class="result-value" id="resSelection" style="font-size: 1.05rem;">1:12 (60 Kg) - Serial #5</span></div>
+      <div class="result-item"><span class="result-label">Bolt Drawing No. (ड्राइंग नंबर)</span><span class="result-value" id="resDrawing">11529</span></div>
+      <div class="result-item"><span class="result-label">Bolt Size (साइज़ मि.मी. में)</span><span class="result-value" id="resSize">340 mm</span></div>
+    </div>
+  </div>
+  <!-- Section 2: Complete Fittings Calculator -->
+  <div class="card">
+    <div class="card-title">📋 Complete Crossing Fittings Details (अन्य फिटिंग्स विवरण)</div>
+    <div class="grid-3" style="margin-bottom: 15px;">
+      <div class="form-group">
+        <label for="mainAngle">Crossing Angle (क्रॉसिंग एंगल)</label>
+        <select id="mainAngle" onchange="renderAllTables()"><option value="1:12">1:12</option><option value="1:8.5">1:8½</option></select>
+      </div>
+      <div class="form-group">
+        <label for="mainRail">Rail Section (रेल सेक्शन)</label>
+        <select id="mainRail" onchange="renderAllTables()"><option value="60 Kg">60 Kg</option><option value="52 Kg">52 Kg</option></select>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('rubberPads', this)">रबर पैड (Rubber Pads)</button>
+      <button class="tab-btn" onclick="switchTab('heelJoint', this)">हील जोड़ गुटके व बोल्ट</button>
+      <button class="tab-btn" onclick="switchTab('bearingPlates', this)">स्पेशल बियरिंग प्लेट</button>
+      <button class="tab-btn" onclick="switchTab('checkRailNeedles', this)">चेक रेल व सुइयाँ</button>
+    </div>
+    <div id="tabContent"></div>
+  </div>
+</div>
+<script>
+  // Master Verified Data from PDF Chart
+  const crossingData = {
+    bolts: {
+      "1:12": {
+        "60 Kg": {
+          1: { drg: "11535", size: "400" }, 2: { drg: "11533", size: "380" }, 3: { drg: "11532", size: "370" },
+          4: { drg: "11531", size: "360" }, 5: { drg: "11529", size: "340" }, 6: { drg: "11528", size: "330" },
+          7: { drg: "11524", size: "290" }, 8: { drg: "11525", size: "300" }, 9: { drg: "11527", size: "320" },
+          10: { drg: "11528", size: "330" }, 11: { drg: "11529", size: "340" }, 12: { drg: "11531", size: "360" }
+        },
+        "52 Kg": {
+          1: { drg: "11534", size: "390" }, 2: { drg: "11532", size: "270" }, 3: { drg: "11531", size: "360" },
+          4: { drg: "11530", size: "350" }, 5: { drg: "11528", size: "330" }, 6: { drg: "11527", size: "320" },
+          7: { drg: "11524", size: "290" }, 8: { drg: "11525", size: "300" }, 9: { drg: "11527", size: "320" },
+          10: { drg: "11528", size: "330" }, 11: { drg: "11529", size: "340" }, 12: { drg: "11531", size: "360" }
+        }
+      },
+      "1:8.5": {
+        "60 Kg": {
+          1: { drg: "11536", size: "410" }, 2: { drg: "11534", size: "390" }, 3: { drg: "11532", size: "370" },
+          4: { drg: "11530", size: "350" }, 5: { drg: "11528", size: "330" }, 6: { drg: "11526", size: "310" },
+          7: { drg: "11525", size: "300" }, 8: { drg: "11527", size: "320" }, 9: { drg: "11529", size: "340" },
+          10: { drg: "11531", size: "360" }, 11: { drg: "11533", size: "380" }, 12: { drg: "11535", size: "400" }
+        },
+        "52 Kg": {
+          1: { drg: "11535", size: "400" }, 2: { drg: "11533", size: "380" }, 3: { drg: "11531", size: "360" },
+          4: { drg: "11529", size: "340" }, 5: { drg: "11527", size: "320" }, 6: { drg: "11526", size: "310" },
+          7: { drg: "11525", size: "300" }, 8: { drg: "11527", size: "320" }, 9: { drg: "11529", size: "340" },
+          10: { drg: "11531", size: "360" }, 11: { drg: "11533", size: "380" }, 12: { drg: "11535", size: "400" }
+        }
+      }
+    },
+    rubberPads: {
+      "1:12": [
+        { sleeper: 64, pad: "6842" }, { sleeper: 65, pad: "6845" }, { sleeper: 66, pad: "6204" },
+        { sleeper: 67, pad: "6205" }, { sleeper: 68, pad: "6206" }, { sleeper: 69, pad: "6207" },
+        { sleeper: 70, pad: "6208" }, { sleeper: 71, pad: "6209" }, { sleeper: 72, pad: "6210" },
+        { sleeper: 73, pad: "6211" }, { sleeper: 74, pad: "6846" }, { sleeper: 75, pad: "6843" },
+        { sleeper: 76, pad: "6844" }
+      ],
+      "1:8.5": [
+        { sleeper: 41, pad: "6800/1" }, { sleeper: 42, pad: "6800" }, { sleeper: 43, pad: "6198" },
+        { sleeper: 44, pad: "6199" }, { sleeper: 45, pad: "6200" }, { sleeper: 46, pad: "6201" },
+        { sleeper: 47, pad: "6202" }, { sleeper: 48, pad: "6203" }, { sleeper: 49, pad: "6601" },
+        { sleeper: 50, pad: "6801/1" }
+      ]
+    },
+    heelJoint: {
+      "1:12": {
+        "60 Kg": [
+          { pos: "पहला (1st)", block: "2611", bolt: "11522", size: "270" },
+          { pos: "दूसरा (2nd)", block: "2612", bolt: "11526", size: "310" },
+          { pos: "तीसरा (3rd)", block: "4359", bolt: "11531", size: "360" },
+          { pos: "चौथा (4th)", block: "4360", bolt: "11533", size: "380" }
+        ],
+        "52 Kg": [
+          { pos: "पहला (1st)", block: "4760", bolt: "11522", size: "270" },
+          { pos: "दूसरा (2nd)", block: "4761", bolt: "11525", size: "300" },
+          { pos: "तीसरा (3rd)", block: "4762", bolt: "11531", size: "360" },
+          { pos: "चौथा (4th)", block: "4763", bolt: "11533", size: "380" }
+        ]
+      },
+      "1:8.5": {
+        "60 Kg": [
+          { pos: "पहला (1st)", block: "4978", bolt: "11522", size: "270" },
+          { pos: "दूसरा (2nd)", block: "4979", bolt: "11526", size: "310" },
+          { pos: "तीसरा (3rd)", block: "4880", bolt: "11521", size: "310" },
+          { pos: "चौथा (4th)", block: "-", bolt: "-", size: "-" }
+        ],
+        "52 Kg": [
+          { pos: "पहला (1st)", block: "15561", bolt: "11522", size: "270" },
+          { pos: "दूसरा (2nd)", block: "15562", bolt: "11525", size: "300" },
+          { pos: "तीसरा (3rd)", block: "4878", bolt: "-", size: "360" },
+          { pos: "चौथा (4th)", block: "-", bolt: "-", size: "-" }
+        ]
+      }
+    },
+    bearingPlates: {
+      "1:12": {
+        "60 Kg": [
+          { si: 21, pad: "4611", l: "4597", r: "-" },
+          { si: 22, pad: "4612", l: "4604", r: "-" },
+          { si: 23, pad: "4612", l: "4605", r: "-" },
+          { si: 24, pad: "4612", l: "4606", r: "-" },
+          { si: 25, pad: "4613", l: "4607", r: "-" },
+          { si: 26, pad: "4613", l: "4608", r: "-" },
+          { si: 27, pad: "4613", l: "4609", r: "-" }
+        ],
+        "52 Kg": [
+          { si: 21, pad: "-", l: "4726", r: "4736" },
+          { si: 22, pad: "-", l: "4743", r: "4737" },
+          { si: 23, pad: "-", l: "4744", r: "4738" },
+          { si: 24, pad: "-", l: "4745", r: "8016" },
+          { si: 25, pad: "-", l: "8314", r: "8017" },
+          { si: 26, pad: "-", l: "8315", r: "8018" },
+          { si: 27, pad: "-", l: "8316", r: "8019" }
+        ]
+      },
+      "1:8.5": {
+        "60 Kg": [
+          { si: 14, pad: "4876", l: "4974", r: "-" },
+          { si: 15, pad: "4876", l: "4975", r: "-" },
+          { si: 16, pad: "4876", l: "4976", r: "-" }
+        ],
+        "52 Kg": [
+          { si: 14, pad: "-", l: "4872", r: "4869" },
+          { si: 15, pad: "-", l: "4873", r: "4870" },
+          { si: 16, pad: "-", l: "4874", r: "4871" }
+        ]
+      }
+    },
+    checkRail: {
+      "60 Kg": { pad: "8294", block: "2082", bolt: "11514", size: "190 mm" },
+      "52 Kg": { pad: "8294", block: "4774", bolt: "11513", size: "180 mm" }
+    },
+    needles: {
+      "1:12": {
+        "60 Kg": { toc: "4121", hoc: "2716" },
+        "52 Kg": { toc: "4775", hoc: "4776" }
+      },
+      "1:8.5": {
+        "60 Kg": { toc: "4987", hoc: "4988" },
+        "52 Kg": { toc: "4894", hoc: "4895" }
+      }
+    }
+  };
+
+  let currentTab = 'rubberPads';
+
+  function updateBoltLookup() {
+    const angle = document.getElementById('boltAngle').value;
+    const rail = document.getElementById('boltRail').value;
+    const serial = document.getElementById('boltSerial').value;
+    const boltInfo = crossingData.bolts[angle][rail][serial];
+    const displayAngle = angle === "1:8.5" ? "1:8½" : angle;
+    document.getElementById('resSelection').textContent = `${displayAngle} (${rail}) - Serial #${serial}`;
+    document.getElementById('resDrawing').textContent = boltInfo.drg;
+    document.getElementById('resSize').textContent = `${boltInfo.size} mm`;
+  }
+
+  function switchTab(tabName, btnElement) {
+    currentTab = tabName;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+    renderAllTables();
+  }
+
+  function renderAllTables() {
+    const angle = document.getElementById('mainAngle').value;
+    const rail = document.getElementById('mainRail').value;
+    const container = document.getElementById('tabContent');
+
+    if (currentTab === 'rubberPads') {
+      const pads = crossingData.rubberPads[angle];
+      let html = `<table>
+        <thead><tr><th>Sleeper No. (स्लीपर नंबर)</th><th>Rubber Pad No. (रबर पैड नंबर)</th></tr></thead><tbody>`;
+      pads.forEach(item => {
+        html += `<tr><td><strong>${item.sleeper}</strong></td><td><span class="badge">${item.pad}</span></td></tr>`;
+      });
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+    else if (currentTab === 'heelJoint') {
+      const items = crossingData.heelJoint[angle][rail];
+      let html = `<table>
+        <thead><tr><th>क्रम (Position)</th><th>गुटका (Block No.)</th><th>बोल्ट (Bolt Drawing No.)</th><th>साइज़ (Size mm)</th></tr></thead><tbody>`;
+      items.forEach(item => {
+        html += `<tr><td><strong>${item.pos}</strong></td><td>${item.block}</td><td><span class="badge">${item.bolt}</span></td><td>${item.size}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+    else if (currentTab === 'bearingPlates') {
+      const plates = crossingData.bearingPlates[angle][rail];
+      let html = `<table>
+        <thead><tr><th>Sleeper (SI)</th><th>R/Pad No.</th><th>Left Plate (L)</th><th>Right Plate (R)</th></tr></thead><tbody>`;
+      plates.forEach(item => {
+        html += `<tr><td><strong>${item.si}</strong></td><td>${item.pad}</td><td><span class="badge">${item.l}</span></td><td>${item.r !== "-" ? `<span class="badge">${item.r}</span>` : "-"}</td></tr>`;
+      });
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+    else if (currentTab === 'checkRailNeedles') {
+      const cr = crossingData.checkRail[rail];
+      const nd = crossingData.needles[angle][rail];
+      container.innerHTML = `
+        <h4 style="margin: 10px 0; color: var(--primary);">क्रॉसिंग के सामने चेक रेल के गुटका, बोल्ट व रबर पैड (${rail})</h4>
+        <table>
+          <thead><tr><th>R/Pad No.</th><th>Block No.</th><th>Bolt No.</th><th>Size</th></tr></thead>
+          <tbody><tr>
+            <td><span class="badge">${cr.pad}</span></td><td><span class="badge">${cr.block}</span></td><td><span class="badge">${cr.bolt}</span></td><td><strong>${cr.size}</strong></td>
+          </tr></tbody>
+        </table>
+        <h4 style="margin: 20px 0 10px; color: var(--primary);">क्रॉसिंग की सुइयाँ (TOC & HOC)</h4>
+        <table>
+          <thead><tr><th>TOC (Toe of Crossing)</th><th>HOC (Heel of Crossing)</th></tr></thead>
+          <tbody><tr><td><span class="badge">${nd.toc}</span></td><td><span class="badge">${nd.hoc}</span></td></tr></tbody>
+        </table>
+      `;
+    }
+  }
+
+  // Initialize on page load
+  updateBoltLookup();
+  renderAllTables();
+</script>
+</body>
+</html>
