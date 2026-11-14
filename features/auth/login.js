@@ -5,6 +5,7 @@ import {
     signInWithPhoneNumber,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithCredential,
     signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
@@ -177,7 +178,17 @@ googleLoginBtn.addEventListener("click", async () => {
     googleLoginBtn.disabled = true;
     showMessage("Google Account से लॉगिन किया जा रहा है...");
     try {
-        await signInWithPopup(auth, googleProvider);
+        const nativeAuth = window.RailwayMitraNativeAuth;
+        if (nativeAuth?.isNativePlatform?.()) {
+            // Android: use Credential Manager through the native Firebase plugin,
+            // then exchange its Google ID token into the existing Firebase JS session.
+            const idToken = await nativeAuth.signInWithGoogle();
+            const credential = GoogleAuthProvider.credential(idToken);
+            await signInWithCredential(auth, credential);
+        } else {
+            // Website/PWA: preserve the existing browser popup flow.
+            await signInWithPopup(auth, googleProvider);
+        }
         window.location.href = postLoginUrl;
     } catch (error) {
         console.error("Google Login Error:", error);
