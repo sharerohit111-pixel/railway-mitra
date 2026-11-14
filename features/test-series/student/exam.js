@@ -1,16 +1,24 @@
 import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt, enterCbtSection } from "../cloud/student-client.js";
 import { readPendingAnswerDraft, writePendingAnswerDraft } from "./answer-draft-store.mjs";
+import { buildCbtStorageKey } from "./attempt-storage-key.mjs";
 import { lockCbtExamControls } from "./exam-interaction-lock.mjs";
 import { restoreCbtOptionFocus } from "./exam-focus.mjs";
 
-export function initStudentCbtExam({ app, testId, root = document }) {
+export function initStudentCbtExam({ app, testId, studentUid, root = document }) {
+  if (typeof studentUid !== "string" || !studentUid.trim()) {
+    throw new Error("A verified student UID is required for local CBT recovery.");
+  }
+  if (typeof testId !== "string" || !testId.trim()) {
+    throw new Error("A valid test ID is required for local CBT recovery.");
+  }
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
   let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
   const status = message => { el("rm-cbt-status").textContent=message; };
-  const attemptKey = () => "rm-cbt-attempt:" + (app?.options?.appId || "app") + ":" + testId;
-  const draftKey = () => "rm-cbt-pending:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
-  const positionKey = () => "rm-cbt-position:" + (app?.options?.appId || "app") + ":" + testId + ":" + attemptId;
+  const storageIdentity = { appId: app?.options?.appId || "app", studentUid, testId };
+  const attemptKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "attempt" });
+  const draftKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "pending", attemptId });
+  const positionKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "position", attemptId });
   function showResult(score, warning=""){
     clearInterval(timer);
     startPanel.hidden=true;workspace.hidden=true;resultPanel.hidden=false;

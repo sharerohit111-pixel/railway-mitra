@@ -68,7 +68,7 @@ async function showView(name) {
     back.textContent = "← Back to Available Tests";
     back.addEventListener("click", () => showView("catalogue"));
     view.prepend(back);
-    activeExamController = initStudentCbtExam({ app, testId, root: document });
+    activeExamController = initStudentCbtExam({ app, testId, studentUid: sessionUid, root: document });
   }
 }
 async function showExam(test) {
