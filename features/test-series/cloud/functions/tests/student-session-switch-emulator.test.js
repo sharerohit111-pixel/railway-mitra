@@ -12,12 +12,15 @@ const {
   getAuth,
   connectAuthEmulator,
   onAuthStateChanged,
-  signInWithCustomToken,
+  PhoneAuthProvider,
+  signInWithCredential,
   signOut
 } = require("firebase/auth");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const AUTH_EMULATOR_URL = "http://127.0.0.1:9099";
+const AUTH_EMULATOR_API_KEY = "fake-api-key";
+const { hasStudentPhoneSignIn } = require("../student-auth");
 
 async function waitFor(predicate, label, timeoutMs = 8000) {
   const deadline = Date.now() + timeoutMs;
@@ -28,13 +31,40 @@ async function waitFor(predicate, label, timeoutMs = 8000) {
   assert.ok(predicate(), "Timed out waiting for " + label);
 }
 
-async function signInAsEmulatorUid(auth, adminAuth, uid) {
-  const token = await adminAuth.createCustomToken(uid);
-  const credential = await signInWithCustomToken(auth, token);
-  return credential.user;
+async function authEmulatorRequest(path, { method = "GET", body } = {}) {
+  const response = await fetch(AUTH_EMULATOR_URL + path, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const payload = await response.json();
+  assert.equal(response.ok, true, "Auth Emulator request failed: " + (payload.error?.message || response.status));
+  return payload;
 }
 
-test("Auth Emulator clears Student A before Student B's unsupported provider is rejected", { timeout: 15000 }, async () => {
+async function getEmulatorSmsCode(phoneNumber) {
+  const deadline = Date.now() + 8000;
+  while (Date.now() < deadline) {
+    const payload = await authEmulatorRequest("/emulator/v1/projects/" + encodeURIComponent(PROJECT) + "/verificationCodes");
+    const match = Array.isArray(payload.verificationCodes) ? payload.verificationCodes.find(item => item.phoneNumber === phoneNumber) : null;
+    if (match && typeof match.sessionCode === "string" && match.sessionCode.length > 0) return match.sessionCode;
+    await delay(25);
+  }
+  assert.fail("Timed out waiting for the local Auth Emulator SMS code for " + phoneNumber);
+}
+
+async function signInAsEmulatorPhone(auth, phoneNumber) {
+  const verification = await authEmulatorRequest("/identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=" + AUTH_EMULATOR_API_KEY, {
+    method: "POST", body: { phoneNumber }
+  });
+  assert.equal(typeof verification.sessionInfo, "string");
+  assert.ok(verification.sessionInfo.length > 0);
+  const code = await getEmulatorSmsCode(phoneNumber);
+  const credential = PhoneAuthProvider.credential(verification.sessionInfo, code);
+  return (await signInWithCredential(auth, credential)).user;
+}
+
+test("Auth Emulator signs in Student A and Student B with phone OTP and clears A before B's workspace opens", { timeout: 20000 }, async () => {
   const adminApp = initializeApp({ projectId: PROJECT }, "student-switch-admin");
   const adminAuth = getAdminAuth(adminApp);
   const clientApp = initializeClientApp({
@@ -104,7 +134,7 @@ test("Auth Emulator clears Student A before Student B's unsupported provider is 
         const token = await user.getIdTokenResult();
         if (version !== state.authStateVersion || auth.currentUser?.uid !== user.uid) return;
         const provider = token.claims?.firebase?.sign_in_provider || null;
-        tokenChecks.push({ uid: user.uid, provider });
+        tokenChecks.push({ uid: user.uid, provider, studentAccess: hasStudentPhoneSignIn(token.claims) });
         if (provider !== "phone") {
           rejectedUids.add(user.uid);
           return;
@@ -121,19 +151,21 @@ test("Auth Emulator clears Student A before Student B's unsupported provider is 
     })();
   });
 
-  const suffix = String(Date.now());
-  const uidA = "student-a-session-switch-" + suffix;
-  const uidB = "student-b-session-switch-" + suffix;
+  const phoneA = "+16505550101";
+  const phoneB = "+16505550102";
   let userA = null;
   let userB = null;
 
   try {
     await initialState;
 
-    userA = await signInAsEmulatorUid(auth, adminAuth, uidA);
-    await waitFor(() => tokenChecks.some(item => item.uid === uidA), "Student A token claims");
-    assert.equal(tokenChecks.find(item => item.uid === uidA).provider, "custom");
-    assert.equal(ui.workspace.hidden, true, "custom-token sessions are not admitted as student phone sessions");
+    userA = await signInAsEmulatorPhone(auth, phoneA);
+    await waitFor(() => tokenChecks.some(item => item.uid === userA.uid), "Student A phone token claims");
+    const studentAToken = tokenChecks.find(item => item.uid === userA.uid);
+    assert.equal(studentAToken.provider, "phone");
+    assert.equal(studentAToken.studentAccess, true, "the server student policy must accept a real phone-provider claim");
+    assert.equal(state.currentUser?.uid, userA.uid);
+    assert.equal(ui.workspace.hidden, false, "Student A's phone session should open the student workspace");
 
     // Seed an already-open Student A exam view to exercise the shared teardown
     // helper used when a valid previous session is being explicitly signed out.
@@ -170,30 +202,32 @@ test("Auth Emulator clears Student A before Student B's unsupported provider is 
     );
     assert.equal(auth.currentUser, null);
 
-    userB = await signInAsEmulatorUid(auth, adminAuth, uidB);
+    userB = await signInAsEmulatorPhone(auth, phoneB);
     assert.notEqual(userA.uid, userB.uid, "Student B must be a different Firebase account");
-    await waitFor(() => tokenChecks.some(item => item.uid === uidB), "Student B token claims");
+    await waitFor(() => tokenChecks.some(item => item.uid === userB.uid), "Student B phone token claims");
 
-    const studentBTransition = [...snapshots].reverse().find(item => item.uid === uidB);
+    const studentBTransition = [...snapshots].reverse().find(item => item.uid === userB.uid);
     assert.ok(studentBTransition, "the Auth listener observed Student B");
     assert.equal(studentBTransition.workspaceHidden, true);
     assert.deepEqual(studentBTransition.viewChildren, []);
     assert.equal(studentBTransition.previousUid, null);
     assert.equal(studentBTransition.currentTestId, null);
-    assert.equal(tokenChecks.find(item => item.uid === uidB).provider, "custom");
-    assert.equal(rejectedUids.has(uidB), true, "the portal provider gate must reject B's non-phone session");
+    const studentBToken = tokenChecks.find(item => item.uid === userB.uid);
+    assert.equal(studentBToken.provider, "phone");
+    assert.equal(studentBToken.studentAccess, true, "the server student policy must accept Student B's phone-provider claim");
+    assert.equal(rejectedUids.has(userB.uid), false);
 
-    assert.equal(auth.currentUser?.uid, uidB);
-    assert.equal(state.currentUser, null);
-    assert.equal(ui.workspace.hidden, true);
-    assert.equal(ui.login.hidden, false);
-    assert.deepEqual(ui.view.children, []);
+    assert.equal(auth.currentUser?.uid, userB.uid);
+    assert.equal(state.currentUser?.uid, userB.uid);
+    assert.equal(ui.workspace.hidden, false, "Student B's workspace should open after the clean transition");
+    assert.equal(ui.login.hidden, true);
+    assert.deepEqual(ui.view.children, ["workspace:" + userB.uid]);
     assert.deepEqual(callbackErrors, []);
   } finally {
     unsubscribe();
     await signOut(auth).catch(() => {});
-    await adminAuth.deleteUser(uidA).catch(() => {});
-    await adminAuth.deleteUser(uidB).catch(() => {});
+    if (userA?.uid) await adminAuth.deleteUser(userA.uid).catch(() => {});
+    if (userB?.uid) await adminAuth.deleteUser(userB.uid).catch(() => {});
     await deleteClientApp(clientApp).catch(() => {});
     await deleteApp(adminApp).catch(() => {});
   }
