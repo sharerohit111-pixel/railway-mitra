@@ -10,7 +10,15 @@ const protectedCollections = [
   "testSeriesResults",
   "testSeriesEntitlements",
   "testSeriesFreeAttempts",
-  "testSeriesConfig"
+  "testSeriesConfig",
+  "testSeriesQuestionBank",
+  "testSeriesQuestionSets",
+  "testSeriesPaymentRequests",
+  "testSeriesPaymentLocks",
+  "testSeriesPaymentOrders",
+  "testSeriesPayments",
+  "testSeriesPaymentEvents",
+  "testSeriesPaymentAudit"
 ];
 
 async function expectStatus(label, response, expected) {
