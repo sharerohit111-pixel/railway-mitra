@@ -101,6 +101,7 @@ test("logout does not re-enable OTP controls when Firebase signOut fails", () =>
 test("phone and OTP input validation retain their required regular-expression escapes", () => {
   const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
 
-  assert.ok(portal.includes(String.raw`/^\\+[1-9]\\d{7,14}$/`), "phone input requires a country-coded E.164-like value");
-  assert.ok(portal.includes(String.raw`/^\\d{6}$/`), "OTP input requires exactly six digits");
+  const backslash = String.fromCharCode(92);
+  assert.ok(portal.includes("/^" + backslash + "+[1-9]" + backslash + "d{7,14}$/"), "phone input requires a country-coded E.164-like value");
+  assert.ok(portal.includes("/^" + backslash + "d{6}$/"), "OTP input requires exactly six digits");
 });
