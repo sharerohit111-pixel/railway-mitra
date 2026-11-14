@@ -3,34 +3,28 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 
 const APK_URL = 'https://github.com/sharerohit111-pixel/railway-mitra/releases/download/android-beta/Railway-Mitra-Android.apk';
 
-function toBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  const chunkSize = 0x8000;
-  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
-  }
-  return btoa(binary);
-}
-
 window.RailwayMitraNativeShare = {
   async shareApk() {
-    const response = await fetch(APK_URL, { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`APK download failed (HTTP ${response.status}).`);
-    }
-
-    const apkBlob = await response.arrayBuffer();
-    if (!apkBlob.byteLength) {
-      throw new Error('Downloaded APK file is empty.');
-    }
-
-    const saved = await Filesystem.writeFile({
+    // Download through Capacitor's native filesystem API. A WebView fetch can
+    // be blocked by GitHub's cross-origin redirect/CORS policy.
+    const saved = await Filesystem.downloadFile({
+      url: APK_URL,
       path: 'Railway-Mitra-Android.apk',
       directory: Directory.Cache,
-      recursive: true,
-      data: toBase64(apkBlob)
+      recursive: true
     });
+
+    if (!saved.uri) {
+      throw new Error('APK download completed without a local file URI.');
+    }
+
+    const fileInfo = await Filesystem.stat({
+      path: 'Railway-Mitra-Android.apk',
+      directory: Directory.Cache
+    });
+    if (!fileInfo.size) {
+      throw new Error('Downloaded APK file is empty.');
+    }
 
     return Share.share({
       title: 'Railway Mitra Android App',
