@@ -30,3 +30,9 @@ test("late exam start, section, answer-save and submit continuations check contr
   ];
   for (const guard of requiredGuards) assert.match(source, guard);
 });
+
+
+test("recovery submits only after the server explicitly reports a closed exam", () => {
+  const source = readFileSync(new URL("../exam.js", import.meta.url), "utf8");
+  assert.match(source, /error\?\.code !== "functions\/failed-precondition" \|\| error\?\.message !== "Exam is closed"\) throw error/);
+});
