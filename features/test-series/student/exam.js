@@ -223,7 +223,11 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
             // Browser storage is only a recovery hint. If that attempt no longer
             // belongs to this student, discard the stale key and ask the server
             // for the authenticated student's authoritative active-session pointer.
-            try{localStorage.removeItem(attemptKey());}catch(_){}
+            try{
+              localStorage.removeItem(attemptKey());
+              localStorage.removeItem(draftKey());
+              localStorage.removeItem(positionKey());
+            }catch(_){}
             const active = await getStudentActiveCbtAttempt(app,testId);
             if (!isActive()) return;
             if (!active?.found || typeof active.attemptId !== "string" || !active.attemptId) {
