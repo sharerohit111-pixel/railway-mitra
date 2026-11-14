@@ -1,5 +1,15 @@
 "use strict";
 
+const OWNER_PRIMARY_PROVIDERS = new Set(["google.com", "password"]);
+
+function hasAllowedOwnerPrimaryProvider(token) {
+  return Boolean(
+    token &&
+    token.firebase &&
+    OWNER_PRIMARY_PROVIDERS.has(token.firebase.sign_in_provider)
+  );
+}
+
 function hasVerifiedPhoneMfa(token) {
   return Boolean(
     token &&
@@ -15,8 +25,13 @@ function isAuthorizedOwner({ uid, token, ownerUid } = {}) {
     typeof uid === "string" &&
     uid.length > 0 &&
     uid === ownerUid &&
+    hasAllowedOwnerPrimaryProvider(token) &&
     hasVerifiedPhoneMfa(token)
   );
 }
 
-module.exports = { hasVerifiedPhoneMfa, isAuthorizedOwner };
+module.exports = {
+  hasAllowedOwnerPrimaryProvider,
+  hasVerifiedPhoneMfa,
+  isAuthorizedOwner
+};
