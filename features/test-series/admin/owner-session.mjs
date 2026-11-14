@@ -6,6 +6,7 @@ export function watchOwnerSession({
   verifyOwner,
   signOut,
   onSignedOut = () => {},
+  onChecking = () => {},
   onMfaRequired = () => {},
   onAuthorized = () => {},
   onError = () => {}
@@ -23,6 +24,15 @@ export function watchOwnerSession({
 
     if (!user) {
       onSignedOut();
+      return;
+    }
+
+    // Hide and clear the previous Owner workspace immediately on every
+    // authenticated account transition, before MFA checks or server calls.
+    try {
+      onChecking(user);
+    } catch (error) {
+      onError(error);
       return;
     }
 
