@@ -4,7 +4,7 @@
 (function () {
     "use strict";
 
-    const APP_URL = "https://railwaymitra.com/app.html";
+    const APP_URL = "https://railwaymitra.com";
     const SHARE_TITLE = "Railway Mitra";
     const SHARE_TEXT = "Railway Mitra – Your Railway Digital Companion. Salary, allowances, railway tools and useful employee services in one place.";
 
