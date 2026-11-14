@@ -86,7 +86,10 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     persistPending();
     el("rm-cbt-saved").textContent="Saving…";
     const entry={value,promise:null};
-    entry.promise=saving=saving.catch(()=>{}).then(()=>saveCbtAnswer(app,attemptId,qid,value)).then(()=>{
+    entry.promise=saving=saving.catch(()=>{}).then(()=>{
+      if (!isActive()) return;
+      return saveCbtAnswer(app,attemptId,qid,value);
+    }).then(()=>{
       if(pendingAnswers.get(qid)===value)pendingAnswers.delete(qid);
       if (!isActive()) return;
       persistPending();
