@@ -96,7 +96,14 @@ async function main() {
     // Provision independent emulator identities and exchange custom tokens for Auth ID tokens.
     for (let i = 0; i < STUDENTS; i++) {
       const user = await auth.createUser({ phoneNumber: "+1555" + String(1000000 + i).slice(-7) });
-      students.push({ uid: user.uid, token: null, attemptId: null });
+      const suffix = String(i).padStart(3, "0");
+      students.push({
+        uid: user.uid,
+        token: null,
+        attemptId: null,
+        paymentId: "loadpay-" + RUN + "-" + suffix,
+        orderId: "loadorder-" + RUN + "-" + suffix
+      });
     }
     await pool(students, CONCURRENCY, async student => {
       const customToken = await auth.createCustomToken(student.uid);
@@ -107,9 +114,27 @@ async function main() {
       const body = await response.json().catch(() => ({}));
       if (!response.ok || !body.idToken) throw new Error("Auth Emulator token exchange failed: " + JSON.stringify(body));
       student.token = body.idToken;
-      await db.doc("testSeriesEntitlements/" + student.uid + "_" + TEST_ID).set({
-        uid: student.uid, testId: TEST_ID, status: "active", grantedAt: FieldValue.serverTimestamp()
-      });
+      // Paid-test start now validates the complete captured-payment ledger.
+      // Seed synthetic, internally consistent payment + order records in the emulator.
+      const identity = {
+        uid: student.uid,
+        testId: TEST_ID,
+        paymentId: student.paymentId,
+        razorpayOrderId: student.orderId,
+        amount: 100,
+        currency: "INR"
+      };
+      await Promise.all([
+        db.doc("testSeriesPayments/" + student.paymentId).set({
+          ...identity, status: "captured", capturedAt: FieldValue.serverTimestamp()
+        }),
+        db.doc("testSeriesPaymentOrders/" + student.orderId).set({
+          ...identity, status: "paid", paidAt: FieldValue.serverTimestamp()
+        }),
+        db.doc("testSeriesEntitlements/" + student.uid + "_" + TEST_ID).set({
+          ...identity, status: "active", grantedAt: FieldValue.serverTimestamp()
+        })
+      ]);
     });
 
     const startedAt = Date.now();
@@ -152,17 +177,20 @@ async function main() {
     }));
     if (failures || attemptIds.length !== STUDENTS) process.exitCode = 1;
   } finally {
-    for (const collection of ["testSeriesEntitlements", "testSeriesAttempts", "testSeriesResults", "testSeriesActiveSessions"]) {
-      const refs = collection === "testSeriesActiveSessions"
-        ? students.map(s => db.doc(collection + "/" + s.uid))
-        : collection === "testSeriesEntitlements"
-          ? students.map(s => db.doc(collection + "/" + s.uid + "_" + TEST_ID))
-          : attemptIds.map(id => db.doc(collection + "/" + id));
-      for (let i = 0; i < refs.length; i += 400) {
-        const batch = db.batch();
-        refs.slice(i, i + 400).forEach(ref => batch.delete(ref));
-        if (refs.length) await batch.commit().catch(error => console.error("Cleanup failed:", error.message));
-      }
+    const cleanupRefs = [
+      ...students.map(s => db.doc("testSeriesEntitlements/" + s.uid + "_" + TEST_ID)),
+      ...students.map(s => db.doc("testSeriesPayments/" + s.paymentId)),
+      ...students.map(s => db.doc("testSeriesPaymentOrders/" + s.orderId)),
+      ...students.map(s => db.doc("testSeriesActiveSessions/" + s.uid)),
+      ...attemptIds.flatMap(id => [
+        db.doc("testSeriesAttempts/" + id),
+        db.doc("testSeriesResults/" + id)
+      ])
+    ];
+    for (let i = 0; i < cleanupRefs.length; i += 400) {
+      const batch = db.batch();
+      cleanupRefs.slice(i, i + 400).forEach(ref => batch.delete(ref));
+      await batch.commit().catch(error => console.error("Cleanup failed:", error.message));
     }
     for (const student of students) await auth.deleteUser(student.uid).catch(() => {});
     await db.doc("testSeriesTests/" + TEST_ID).delete().catch(() => {});
