@@ -170,8 +170,13 @@ const rdsoData = {
 
 function toggleLanguage() {
   currentLang = currentLang === 'en' ? 'hi' : 'en';
-  document.getElementById('btnEn').classList.toggle('active', currentLang === 'en');
-  document.getElementById('btnHi').classList.toggle('active', currentLang === 'hi');
+  const englishButton = document.getElementById('btnEn');
+  const hindiButton = document.getElementById('btnHi');
+  englishButton.classList.toggle('active', currentLang === 'en');
+  hindiButton.classList.toggle('active', currentLang === 'hi');
+  englishButton.setAttribute('aria-pressed', String(currentLang === 'en'));
+  hindiButton.setAttribute('aria-pressed', String(currentLang === 'hi'));
+  document.documentElement.lang = currentLang;
   updateLabels();
   calculateFittings();
 }
