@@ -40,6 +40,7 @@ test("student-test payment lock blocks a different tab request until explicit re
   const requestDocId = paymentRequestDocumentId(base);
   const lockId = paymentStudentTestLockDocumentId(base);
   assert.match(lockId, /^[a-f0-9]{64}$/);
+  assert.equal(lockId, "a09e045f461f314b69cd9338ff0dc4c6b1b0487cb0058b47f43b221f99a03093");
   assert.equal(paymentStudentTestLockDocumentId(base), lockId);
   assert.notEqual(paymentStudentTestLockDocumentId({ ...base, uid: "another_student" }), lockId);
   assert.notEqual(paymentStudentTestLockDocumentId({ ...base, testId: "another_test" }), lockId);
