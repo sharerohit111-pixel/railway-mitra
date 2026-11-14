@@ -690,20 +690,42 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
     if (!cursorSnap.exists) throw new HttpsError("invalid-argument", "Question bank cursor not found");
     query = query.startAfter(cursorSnap);
   }
-  // Filter the bounded scan in memory to avoid requiring composite indexes for
-  // every topic/chapter/folder filter combination.
-  const snap = await query.limit(500).get();
-  const matches = snap.docs.filter(doc => {
-    const row = doc.data();
-    const matchesFilters = Object.entries(filters).every(([field, value]) => row[field] === value);
-    const searchable = [row.question && row.question.text, row.topic, row.chapter, row.folder].filter(Boolean).join(" ").toLocaleLowerCase();
-    return matchesFilters && (!searchText || searchable.includes(searchText));
+
+  // Scan in small pages until one extra match proves there is another result,
+  // or 500 documents have been examined. The cursor is the last returned
+  // match when an extra match exists; otherwise it advances past every
+  // scanned document so sparse filters cannot strand older matching records.
+  const scannedDocs = [];
+  const matches = [];
+  let scanCursor = null;
+  let exhausted = false;
+  const scanLimit = 500;
+  while (scannedDocs.length < scanLimit && matches.length <= pageSize && !exhausted) {
+    const batchSize = Math.min(100, scanLimit - scannedDocs.length);
+    let pageQuery = query.limit(batchSize);
+    if (scanCursor) pageQuery = pageQuery.startAfter(scanCursor);
+    const snap = await pageQuery.get();
+    if (snap.empty) {
+      exhausted = true;
+      break;
+    }
+    scannedDocs.push(...snap.docs);
+    scanCursor = snap.docs[snap.docs.length - 1];
+    for (const doc of snap.docs) {
+      const row = doc.data();
+      const matchesFilters = Object.entries(filters).every(([field, value]) => row[field] === value);
+      const searchable = [row.question && row.question.text, row.topic, row.chapter, row.folder]
+        .filter(Boolean).join(" ").toLocaleLowerCase();
+      if (matchesFilters && (!searchText || searchable.includes(searchText))) matches.push(doc);
+    }
+    if (snap.size < batchSize) exhausted = true;
+  }
+
+  const { page, nextCursor, hasMore } = selectQuestionBankPage({
+    matches, pageSize,
+    lastScannedId: scanCursor ? scanCursor.id : null,
+    scanLimited: scannedDocs.length === scanLimit && matches.length <= pageSize && !exhausted
   });
-  const page = matches.slice(0, pageSize);
-  const hasMoreMatches = matches.length > pageSize;
-  const nextCursor = hasMoreMatches
-    ? page[page.length - 1].id
-    : snap.size === 500 ? snap.docs[snap.docs.length - 1].id : null;
   const items = page.map(doc => {
     const row = doc.data();
     return { itemId: doc.id, topic: row.topic, chapter: row.chapter, folder: row.folder,
@@ -711,14 +733,15 @@ exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
       createdAt: date(row.createdAt)?.toISOString() || null,
       updatedAt: date(row.updatedAt)?.toISOString() || null };
   });
-  const unique = field => [...new Set(snap.docs.map(doc => doc.data()[field]).filter(value => typeof value === "string" && value))].sort();
+  const unique = field => [...new Set(scannedDocs.map(doc => doc.data()[field])
+    .filter(value => typeof value === "string" && value))].sort();
   return {
     items,
     nextCursor,
-    hasMore: Boolean(nextCursor),
+    hasMore,
     filters: { topic: filters.topic || null, chapter: filters.chapter || null, folder: filters.folder || null, search: searchText || null },
     facets: { topics: unique("topic"), chapters: unique("chapter"), folders: unique("folder") },
-    scanLimited: snap.size === 500
+    scanLimited: scannedDocs.length === scanLimit && matches.length <= pageSize && !exhausted
   };
 });
 
