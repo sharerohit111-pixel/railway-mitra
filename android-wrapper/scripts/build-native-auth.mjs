@@ -18,3 +18,16 @@ await build({
 });
 
 console.log('Built isolated native Google authentication bridge.');
+
+const shareOutput = path.join(root, 'web', 'assets', 'js', 'native-share.js');
+await build({
+  entryPoints: [path.join(root, 'src', 'native-share.js')],
+  outfile: shareOutput,
+  bundle: true,
+  platform: 'browser',
+  format: 'iife',
+  target: ['es2020'],
+  minify: true,
+  legalComments: 'none'
+});
+console.log('Built isolated native Android share bridge.');
