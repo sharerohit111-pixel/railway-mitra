@@ -78,16 +78,16 @@ jobs:
             printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
             node -e "const c=require('./android/app/google-services.json'); if(c.client?.[0]?.client_info?.android_client_info?.package_name !== 'com.railwaymitra.app') process.exit(1)"
           fi
-      - name: Export Android debug signing fingerprint
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew signingReport | tee ../android-signing-report.txt
       - name: Build debug APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
+      - name: Export Android debug signing fingerprint
+        run: |
+          cd android
+          ./gradlew signingReport | tee ../android-signing-report.txt
+          grep -q 'SHA1:' ../android-signing-report.txt
       - name: Upload debug APK for device testing
         uses: actions/upload-artifact@v4
         with:
