@@ -11,7 +11,7 @@ on:
       students:
         description: "Synthetic students (1–500)"
         required: true
-        default: "50"
+        default: "20"
         type: string
       concurrency:
         description: "Concurrent students (1–500)"
@@ -56,9 +56,10 @@ jobs:
             functions.length !== 1 ||
             functions[0].codebase !== "test-series" ||
             functions[0].source !== "features/test-series/cloud/functions" ||
-            config.firestore?.rules !== "features/test-series/cloud/firestore.rules"
+            config.firestore?.rules !== "features/test-series/cloud/firestore.rules" ||
+  config.emulators?.singleProjectMode !== true
           ) {
-            throw new Error("Callable load must use only the isolated Test Series Functions codebase and CBT Firestore rules.");
+            throw new Error("Callable load must use only the isolated Test Series Functions codebase, CBT Firestore rules, and single-project emulator mode.");
           }
           console.log("Validated isolated Test Series emulator configuration.");
           NODE
