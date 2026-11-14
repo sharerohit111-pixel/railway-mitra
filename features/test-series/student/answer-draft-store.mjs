@@ -1,7 +1,12 @@
+"use strict";
+
 /**
  * Best-effort local recovery for answers that the server has not confirmed yet.
  * The server remains authoritative; this store never marks an answer as saved.
  */
+const MAX_PENDING_ANSWERS = 500;
+const MAX_PENDING_DRAFT_CHARS = 128 * 1024;
+
 export function readPendingAnswerDraft({ storage, key, questions }) {
   const answers = new Map();
   let discarded = 0;
@@ -18,6 +23,10 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
   if (raw === null || raw === undefined || raw === "") {
     return { answers, discarded, unavailable: false };
   }
+  if (typeof raw !== "string" || raw.length > MAX_PENDING_DRAFT_CHARS) {
+    try { storage.removeItem(key); } catch (_) {}
+    return { answers, discarded: 1, unavailable: false };
+  }
 
   let entries;
   try {
@@ -26,7 +35,7 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
     try { storage.removeItem(key); } catch (_) {}
     return { answers, discarded: 1, unavailable: false };
   }
-  if (!Array.isArray(entries)) {
+  if (!Array.isArray(entries) || entries.length > MAX_PENDING_ANSWERS) {
     try { storage.removeItem(key); } catch (_) {}
     return { answers, discarded: 1, unavailable: false };
   }
@@ -65,10 +74,16 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
 }
 
 export function writePendingAnswerDraft({ storage, key, entries }) {
-  if (!storage || typeof storage.setItem !== "function" || typeof storage.removeItem !== "function") return false;
+  if (!storage || typeof storage.setItem !== "function" || typeof storage.removeItem !== "function" || !Array.isArray(entries)) return false;
   try {
-    if (entries && entries.length) storage.setItem(key, JSON.stringify(entries));
-    else storage.removeItem(key);
+    if (entries.length) {
+      if (entries.length > MAX_PENDING_ANSWERS) return false;
+      const serialized = JSON.stringify(entries);
+      if (typeof serialized !== "string" || serialized.length > MAX_PENDING_DRAFT_CHARS) return false;
+      storage.setItem(key, serialized);
+    } else {
+      storage.removeItem(key);
+    }
     return true;
   } catch {
     return false;
