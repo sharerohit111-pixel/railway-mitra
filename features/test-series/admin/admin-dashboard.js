@@ -266,6 +266,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       reviewStatus.textContent = "पूरा पेपर जाँचें। हरे रंग में सही उत्तर दिखाया गया है; यह जानकारी केवल Owner Review में उपलब्ध है। सर्वर Publish के समय फिर से सभी जाँच करेगा।";
       reviewPublish.disabled = false;
     } catch (error) {
+      if (generation !== testManagementGeneration) return;
       reviewedTest = null;
       reviewStatus.textContent = error.message || "पूरा पेपर Review नहीं हो पाया। Publish रोक दिया गया है।";
       reviewPublish.disabled = true;
@@ -276,14 +277,20 @@ export function initOwnerAdminDashboard(auth, functions) {
   el("rm-admin-review-cancel").addEventListener("click", closePublishReview);
   reviewPublish.addEventListener("click", async () => {
     if (!reviewedTest) return;
+    const generation = testManagementGeneration;
+    const publishingTestId = reviewedTest.testId;
     reviewPublish.disabled = true;
     reviewStatus.textContent = "Server पर अंतिम प्रश्नपत्र और उत्तर-कुंजी जाँची जा रही है…";
     try {
-      const result = await httpsCallable(functions, "rmOwnerPublishTest")({ testId: reviewedTest.testId });
+      const result = await httpsCallable(functions, "rmOwnerPublishTest")({ testId: publishingTestId });
+      // A logout/account switch invalidates this UI continuation even if the
+      // server completed the already-authorized request successfully.
+      if (generation !== testManagementGeneration) return;
       status("टेस्ट प्रकाशित हुआ: " + result.data.testId);
       closePublishReview();
       await refreshTests();
     } catch (error) {
+      if (generation !== testManagementGeneration) return;
       reviewStatus.textContent = error.message || "टेस्ट प्रकाशित नहीं हुआ।";
       reviewPublish.disabled = false;
     }
