@@ -12,6 +12,46 @@ function safeId(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
 }
 
+// A duplicate provider delivery is acknowledged only while every authoritative
+// record still agrees. Captured payments may have a partial cumulative refund;
+// refunded payments must be fully refunded and have revoked access.
+function validateRefundLedgerRecords({ payment, paymentId, order, entitlement } = {}) {
+  const amountRefunded = payment && payment.amountRefunded === undefined ? 0 : payment && payment.amountRefunded;
+  const identityValid = payment &&
+    payment.paymentId === paymentId &&
+    safeId(payment.razorpayOrderId) &&
+    safeId(payment.uid) &&
+    safeId(payment.testId) &&
+    Number.isSafeInteger(payment.amount) && payment.amount > 0 &&
+    typeof payment.currency === "string" && /^[A-Z]{3}$/.test(payment.currency) &&
+    Number.isSafeInteger(amountRefunded) && amountRefunded >= 0 && amountRefunded <= payment.amount;
+  const isCaptured = identityValid && payment.status === "captured" && amountRefunded < payment.amount;
+  const isRefunded = identityValid && payment.status === "refunded" && amountRefunded === payment.amount;
+  const expectedOrderStatus = isRefunded ? "refunded" : "paid";
+  const expectedEntitlementStatus = isRefunded ? "revoked" : "active";
+  const orderMatches = (isCaptured || isRefunded) && order &&
+    order.status === expectedOrderStatus &&
+    order.paymentId === paymentId &&
+    order.razorpayOrderId === payment.razorpayOrderId &&
+    order.uid === payment.uid &&
+    order.testId === payment.testId &&
+    order.amount === payment.amount &&
+    order.currency === payment.currency;
+  const entitlementMatches = (isCaptured || isRefunded) && entitlement &&
+    entitlement.status === expectedEntitlementStatus &&
+    entitlement.paymentId === paymentId &&
+    entitlement.razorpayOrderId === payment.razorpayOrderId &&
+    entitlement.uid === payment.uid &&
+    entitlement.testId === payment.testId &&
+    entitlement.amount === payment.amount &&
+    entitlement.currency === payment.currency;
+
+  if (!orderMatches || !entitlementMatches) {
+    fail("refund_ledger_inconsistent", "Refund payment, order and entitlement records are not consistent");
+  }
+  return amountRefunded;
+}
+
 /**
  * Apply a verified refund.processed event. Partial refunds are recorded but
  * retain access; a full refund revokes the matching paid entitlement.
@@ -29,15 +69,19 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
       !providerPayment || providerPayment.id !== refund.payment_id) {
     fail("invalid_refund_event", "A processed refund and its matching payment snapshot are required");
   }
+  const providerRefundSnapshotValid = providerPayment &&
+    (providerPayment.refund_status === "full"
+      ? providerPayment.amount_refunded === providerPayment.amount
+      : providerPayment.refund_status === "partial" && providerPayment.amount_refunded < providerPayment.amount);
   if (!safeId(refund.id) || !safeId(refund.payment_id) ||
       !Number.isSafeInteger(refund.amount) || refund.amount <= 0 ||
       !Number.isSafeInteger(providerPayment.amount) || providerPayment.amount <= 0 ||
       !Number.isSafeInteger(providerPayment.amount_refunded) ||
       providerPayment.amount_refunded < refund.amount ||
       providerPayment.amount_refunded > providerPayment.amount ||
+      !providerRefundSnapshotValid ||
       typeof refund.currency !== "string" || !/^[A-Z]{3}$/.test(refund.currency) ||
-      providerPayment.currency !== refund.currency ||
-      !["partial", "full"].includes(providerPayment.refund_status)) {
+      providerPayment.currency !== refund.currency) {
     fail("invalid_refund_fields", "Refund amount, currency or provider payment snapshot is invalid");
   }
 
@@ -49,49 +93,90 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
     const [eventSnap, refundSnap, paymentSnap] = await Promise.all([
       tx.get(eventRef), tx.get(refundRef), tx.get(paymentRef)
     ]);
+
     if (eventSnap.exists || refundSnap.exists) {
-      const prior = refundSnap.exists ? refundSnap.data() : eventSnap.data();
-      if (prior.refundId !== refund.id || prior.paymentId !== refund.payment_id ||
-          prior.amount !== refund.amount || prior.currency !== refund.currency) {
-        fail("refund_id_conflict", "Refund or event ID was reused for a different refund");
+      // Event and refund records are created atomically. An event without its
+      // refund record is corruption, not a safe duplicate acknowledgement.
+      if (eventSnap.exists && !refundSnap.exists) {
+        fail("refund_ledger_inconsistent", "Processed refund event is missing its refund ledger record");
+      }
+      if (refundSnap.exists) {
+        const priorRefund = refundSnap.data();
+        if (priorRefund.status !== "processed" ||
+            priorRefund.refundId !== refund.id ||
+            priorRefund.paymentId !== refund.payment_id ||
+            priorRefund.amount !== refund.amount ||
+            priorRefund.currency !== refund.currency) {
+          fail("refund_id_conflict", "Refund ID was reused for a different or incomplete refund");
+        }
+      }
+      let priorEvent = null;
+      if (eventSnap.exists) {
+        priorEvent = eventSnap.data();
+        if (priorEvent.eventId !== eventId ||
+            priorEvent.status !== "refund_processed" ||
+            priorEvent.refundId !== refund.id ||
+            priorEvent.paymentId !== refund.payment_id ||
+            priorEvent.amount !== refund.amount ||
+            priorEvent.currency !== refund.currency) {
+          fail("refund_id_conflict", "Provider event ID was reused for a different refund");
+        }
       }
       if (!paymentSnap.exists) fail("refund_ledger_inconsistent", "Refund payment ledger is missing");
       const current = paymentSnap.data();
-      if (current.paymentId !== refund.payment_id || current.status !== "captured" && current.status !== "refunded") {
-        fail("refund_ledger_inconsistent", "Refund payment ledger is inconsistent");
+      if (current.paymentId !== refund.payment_id ||
+          current.amount !== providerPayment.amount ||
+          current.currency !== refund.currency) {
+        fail("refund_ledger_inconsistent", "Refund payment ledger does not match the provider snapshot");
       }
-      return { duplicate: true, revoked: current.status === "refunded", paymentId: refund.payment_id };
+      const orderRef = db.doc("testSeriesPaymentOrders/" + current.razorpayOrderId);
+      const entitlementRef = db.doc("testSeriesEntitlements/" + current.uid + "_" + current.testId);
+      const [orderSnap, entitlementSnap] = await Promise.all([tx.get(orderRef), tx.get(entitlementRef)]);
+      if (!orderSnap.exists || !entitlementSnap.exists) {
+        fail("refund_ledger_inconsistent", "Refund payment order or entitlement is missing");
+      }
+      const amountRefunded = validateRefundLedgerRecords({
+        payment: current,
+        paymentId: refund.payment_id,
+        order: orderSnap.data(),
+        entitlement: entitlementSnap.data()
+      });
+      if (priorEvent && (priorEvent.uid !== current.uid || priorEvent.testId !== current.testId)) {
+        fail("refund_ledger_inconsistent", "Refund event identity does not match its payment ledger");
+      }
+      return {
+        duplicate: true,
+        revoked: current.status === "refunded" && amountRefunded === current.amount,
+        paymentId: refund.payment_id
+      };
     }
+
     if (!paymentSnap.exists) fail("refund_payment_not_found", "Refund does not match a captured payment in this application");
     const payment = paymentSnap.data();
-    if (!["captured", "refunded"].includes(payment.status) || payment.paymentId !== refund.payment_id ||
-        payment.amount !== providerPayment.amount || payment.currency !== refund.currency ||
-        !Number.isSafeInteger(payment.amountRefunded || 0)) {
+    if (payment.paymentId !== refund.payment_id ||
+        payment.amount !== providerPayment.amount ||
+        payment.currency !== refund.currency) {
       fail("refund_payment_mismatch", "Refund does not match the captured payment ledger");
     }
-    // Razorpay webhook deliveries are not guaranteed to arrive in order.
-    // Keep the highest cumulative amount_refunded snapshot and never regress
-    // a previously completed full refund when an older event arrives later.
-    const nextAmountRefunded = Math.max(payment.amountRefunded || 0, providerPayment.amount_refunded);
     const orderRef = db.doc("testSeriesPaymentOrders/" + payment.razorpayOrderId);
     const entitlementRef = db.doc("testSeriesEntitlements/" + payment.uid + "_" + payment.testId);
     const [orderSnap, entitlementSnap] = await Promise.all([tx.get(orderRef), tx.get(entitlementRef)]);
     if (!orderSnap.exists || !entitlementSnap.exists) {
       fail("refund_ledger_inconsistent", "Refund payment order or entitlement is missing");
     }
-    const order = orderSnap.data(), entitlement = entitlementSnap.data();
-    const alreadyRevoked = payment.status === "refunded" &&
-      order.status === "refunded" && entitlement.status === "revoked";
-    if ((!alreadyRevoked && (order.status !== "paid" || entitlement.status !== "active")) ||
-        order.paymentId !== refund.payment_id ||
-        order.uid !== payment.uid || order.testId !== payment.testId ||
-        entitlement.paymentId !== refund.payment_id ||
-        entitlement.uid !== payment.uid || entitlement.testId !== payment.testId) {
-      fail("refund_ledger_inconsistent", "Refund order and entitlement do not match the captured payment");
-    }
+    const previousAmountRefunded = validateRefundLedgerRecords({
+      payment,
+      paymentId: refund.payment_id,
+      order: orderSnap.data(),
+      entitlement: entitlementSnap.data()
+    });
 
-    const fullyRefunded = alreadyRevoked ||
-      (nextAmountRefunded === payment.amount && providerPayment.refund_status === "full");
+    // Razorpay webhook deliveries are not guaranteed to arrive in order.
+    // Keep the highest cumulative amount_refunded snapshot and never regress
+    // a previously completed full refund when an older event arrives later.
+    const nextAmountRefunded = Math.max(previousAmountRefunded, providerPayment.amount_refunded);
+    const alreadyRevoked = payment.status === "refunded";
+    const fullyRefunded = alreadyRevoked || nextAmountRefunded === payment.amount;
     const record = {
       refundId: refund.id,
       paymentId: refund.payment_id,

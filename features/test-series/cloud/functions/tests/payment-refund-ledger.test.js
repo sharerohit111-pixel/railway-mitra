@@ -7,8 +7,8 @@ const { applyProcessedRefund } = require("../payment-refund-ledger");
 function harness({ refundAmount = 49900, amountRefunded = 49900, refundStatus = "full" } = {}) {
   const docs = new Map([
     ["testSeriesPayments/pay_refund_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "captured" }],
-    ["testSeriesPaymentOrders/order_refund_1", { paymentId: "pay_refund_1", uid: "student_1", testId: "test_1", status: "paid" }],
-    ["testSeriesEntitlements/student_1_test_1", { paymentId: "pay_refund_1", uid: "student_1", testId: "test_1", status: "active" }]
+    ["testSeriesPaymentOrders/order_refund_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "paid" }],
+    ["testSeriesEntitlements/student_1_test_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "active" }]
   ]);
   const db = {
     doc(path) { return { path }; },
@@ -63,6 +63,49 @@ test("duplicate refund delivery is idempotent", async () => {
   const duplicate = await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_1" });
   assert.equal(duplicate.duplicate, true);
   assert.equal(duplicate.revoked, true);
+});
+
+test("duplicate refund replay fails closed when the entitlement has drifted", async () => {
+  const h = harness();
+  await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_drift" });
+  h.docs.set("testSeriesEntitlements/student_1_test_1", {
+    ...h.docs.get("testSeriesEntitlements/student_1_test_1"),
+    status: "active"
+  });
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_drift" }),
+    { code: "refund_ledger_inconsistent" }
+  );
+});
+
+test("event ledger without its refund record is not acknowledged as a duplicate", async () => {
+  const h = harness();
+  await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_partial_record" });
+  h.docs.delete("testSeriesRefunds/rfnd_1");
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_partial_record" }),
+    { code: "refund_ledger_inconsistent" }
+  );
+});
+
+test("rejects impossible stored cumulative refund state", async () => {
+  const h = harness();
+  h.docs.set("testSeriesPayments/pay_refund_1", {
+    ...h.docs.get("testSeriesPayments/pay_refund_1"),
+    amountRefunded: 50000
+  });
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_bad_stored_refund_total" }),
+    { code: "refund_ledger_inconsistent" }
+  );
+});
+
+test("rejects a provider refund status that contradicts its cumulative amount", async () => {
+  const h = harness({ refundAmount: 10000, amountRefunded: 10000, refundStatus: "full" });
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_bad_provider_refund_status" }),
+    { code: "invalid_refund_fields" }
+  );
 });
 
 test("rejects refund identity, amount and payment mismatches", async () => {

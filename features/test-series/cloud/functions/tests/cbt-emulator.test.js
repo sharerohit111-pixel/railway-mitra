@@ -11,6 +11,7 @@ const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = requi
 const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signInWithEmailAndPassword, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
+const { applyProcessedRefund } = require("../payment-refund-ledger");
 const crypto = require("node:crypto");
 const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
 const { hasVerifiedPhoneMfa } = require("../owner-auth");
@@ -1658,6 +1659,101 @@ test("webhook safely recovers after a transient Firestore transaction failure", 
   }
 });
 
+
+test("verified full-refund webhook revokes paid catalogue and exam access", async () => {
+  const paidTestId = "emulator-refund-access-test";
+  const orderId = "order_emulator_refund_access";
+  const paymentId = "pay_emulator_refund_access";
+  const eventId = "evt_emulator_refund_access";
+  const refundId = "rfnd_emulator_refund_access";
+  const webhookSecret = "emulator-refund-webhook-secret";
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const refundRef = db.doc("testSeriesRefunds/" + refundId);
+  const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
+  const identity = {
+    uid, testId: paidTestId, paymentId, razorpayOrderId: orderId,
+    amount: 12550, currency: "INR"
+  };
+  const event = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: {
+        id: refundId, payment_id: paymentId, amount: 12550,
+        currency: "INR", status: "processed"
+      } },
+      payment: { entity: {
+        id: paymentId, amount: 12550, amount_refunded: 12550,
+        currency: "INR", refund_status: "full", status: "captured"
+      } }
+    }
+  };
+  const rawBody = Buffer.from(JSON.stringify(event));
+  const signature = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
+  function makeRequest() {
+    return {
+      method: "POST", rawBody, body: event,
+      get(name) {
+        if (name === "x-razorpay-signature") return signature;
+        if (name === "x-razorpay-event-id") return eventId;
+        return undefined;
+      }
+    };
+  }
+  function makeResponse() {
+    return {
+      code: null, body: null,
+      set() { return this; },
+      status(code) { this.code = code; return this; },
+      send(body) { this.body = body; return this; },
+      json(body) { this.body = body; return this; }
+    };
+  }
+
+  try {
+    await Promise.all([
+      testRef.set({ title: "Refund Access Test", status: "published", price: 125.5, mode: "mock", durationMinutes: 10, questionCount: 1 }),
+      orderRef.set({ ...identity, status: "paid" }),
+      paymentRef.set({ ...identity, status: "captured" }),
+      entitlementRef.set({ ...identity, status: "active" })
+    ]);
+    const before = await callable("rmListAvailableTests", { pageSize: 100 });
+    assert.equal(before.tests.find(row => row.testId === paidTestId).accessType, "unlocked");
+
+    const firstResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(), res: firstResponse, secret: webhookSecret, db,
+      applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+      applyRefund: applyProcessedRefund
+    });
+    assert.equal(firstResponse.code, 200);
+    assert.deepEqual(firstResponse.body, { received: true, duplicate: false, revoked: true });
+    assert.equal((await paymentRef.get()).data().status, "refunded");
+    assert.equal((await orderRef.get()).data().status, "refunded");
+    assert.equal((await entitlementRef.get()).data().status, "revoked");
+
+    const after = await callable("rmListAvailableTests", { pageSize: 100 });
+    assert.equal(after.tests.find(row => row.testId === paidTestId).accessType, "paid");
+    await assert.rejects(
+      () => callable("rmStartExam", { testId: paidTestId }),
+      error => error.code === "functions/permission-denied"
+    );
+
+    const replayResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(), res: replayResponse, secret: webhookSecret, db,
+      applyPayment: async () => assert.fail("refund replay must not reach the capture processor"),
+      applyRefund: applyProcessedRefund
+    });
+    assert.deepEqual(replayResponse.body, { received: true, duplicate: true, revoked: true });
+  } finally {
+    await Promise.all([
+      testRef, orderRef, paymentRef, entitlementRef, refundRef, eventRef
+    ].map(ref => ref.delete().catch(() => {})));
+  }
+});
 
 test("student test catalogue paginates published tests with stable document cursors", async () => {
   // Sort before all shared emulator fixtures so this test can coexist with them.
