@@ -5,6 +5,7 @@ import { initStudentCbtExam } from "./exam.js";
 import { initStudentDashboard } from "./dashboard.js";
 import { invalidateStudentPortalSession } from "./session-transition.mjs";
 import { createStudentOtpFlowGuard } from "./otp-flow-guard.mjs";
+import { createStudentLogoutRecovery } from "./logout-recovery.mjs";
 
 const el = id => document.getElementById(id);
 const login = el("rm-portal-login"), workspace = el("rm-portal-app"), view = el("rm-portal-view");
@@ -18,7 +19,28 @@ const portalState = {
   activeExamController: null
 };
 const otpFlow = createStudentOtpFlowGuard();
+const logoutRecovery = createStudentLogoutRecovery(() => window.localStorage);
+const retrySignOutButton = el("rm-student-retry-signout");
 let confirmation = null, confirmationVersion = null, recaptcha = null;
+
+function setOtpControlsLocked(locked) {
+  el("rm-student-send-otp").disabled = locked;
+  el("rm-student-verify-otp").disabled = locked;
+}
+async function retryPendingSignOut() {
+  setBusy(retrySignOutButton, true, "Retrying sign out…");
+  try {
+    await signOut(auth);
+    logoutRecovery.clear();
+    retrySignOutButton.hidden = true;
+    authStatus.textContent = "You have signed out.";
+    setOtpControlsLocked(false);
+  } catch (error) {
+    retrySignOutButton.disabled = false;
+    retrySignOutButton.textContent = "Retry sign out";
+    authStatus.textContent = error.message || "Sign-out is still unconfirmed. Keep this page open and retry.";
+  }
+}
 
 function setBusy(button, busy, label) {
   button.disabled = busy;
@@ -147,7 +169,9 @@ async function verifyOtp() {
 el("rm-student-send-otp").addEventListener("click", sendOtp);
 el("rm-student-verify-otp").addEventListener("click", verifyOtp);
 const logoutButton = el("rm-portal-logout");
+retrySignOutButton.addEventListener("click", retryPendingSignOut);
 logoutButton.addEventListener("click", async () => {
+  const signingOutUid = auth.currentUser?.uid || null;
   // Invalidate pending OTP promises before starting any asynchronous logout work.
   otpFlow.invalidate();
   confirmation = null;
@@ -197,7 +221,23 @@ onAuthStateChanged(auth, async user => {
     logoutButton: el("rm-portal-logout"),
     view
   });
-  if (!user) return;
+  if (!user) {
+    logoutRecovery.clear();
+    retrySignOutButton.hidden = true;
+    setOtpControlsLocked(false);
+    return;
+  }
+
+  if (logoutRecovery.shouldBlock(user.uid)) {
+    retrySignOutButton.hidden = false;
+    retrySignOutButton.disabled = false;
+    retrySignOutButton.textContent = "Retry sign out";
+    setOtpControlsLocked(true);
+    authStatus.textContent = "A previous sign-out is still unconfirmed. Retry sign out to unlock student access.";
+    return;
+  }
+  retrySignOutButton.hidden = true;
+  setOtpControlsLocked(false);
 
   try {
     const token = await user.getIdTokenResult();
