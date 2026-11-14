@@ -34,7 +34,8 @@ const translations = {
     qty2: "2 Nos. / Sleeper",
     jointNote: "For Fishplated / Glued Joints",
     warn52on60: "Note: Combination liners (different GS & NGS) are required when laying 52 kg rail on a 60 kg sleeper.",
-    warnNotRec: "Note: Laying 60 kg rail on a 52 kg sleeper (RT-2495) is generally not standard practice on Indian Railways."
+    warnNotRec: "Note: Laying 60 kg rail on a 52 kg sleeper (RT-2495) is generally not standard practice on Indian Railways.",
+    warn8527_52kg: "Important: The 52 kg rail combination for RT-8527 contains provisional drawing references marked “Check RDSO”. Do not use these references for field work until verified against the latest applicable RDSO drawing and railway instructions."
   },
   hi: {
     appTitle: "ट्रैक फिटिंग्स कैलकुलेटर",
@@ -69,7 +70,9 @@ const translations = {
     qty2: "2 नग / प्रति स्लीपर",
     jointNote: "फिशप्लेट / ग्लूड जॉइंट के लिए",
     warn52on60: "नोट: 60 kg स्लीपर पर 52 kg रेल बिछाने के लिए GS और NGS में अलग-अलग कॉम्बिनेशन लाइनर लगते हैं।",
-    warnNotRec: "नोट: 52 kg स्लीपर (RT-2495) पर 60 kg रेल बिछाना भारतीय रेलवे में मानक (Standard) नहीं है।"
+    warnNotRec: "नोट: 52 kg स्लीपर (RT-2495) पर 60 kg रेल बिछाना भारतीय रेलवे में मानक (Standard) नहीं है।",
+    warn8527_52kg: "महत्वपूर्ण: RT-8527 पर 52 kg रेल के लिए कुछ ड्राइंग संदर्भ “Check RDSO” के रूप में अस्थायी हैं। फील्ड में उपयोग से पहले नवीनतम लागू RDSO ड्राइंग और रेलवे निर्देशों से इनकी पुष्टि अवश्य करें।"
+
   }
 };
 
@@ -161,7 +164,7 @@ const rdsoData = {
     grsp: "RT-8528",
     insert: "RT-8526",
     cutLiner: "RT-4322",
-    warn: "warn52on60"
+    warn: "warn8527_52kg"
   }
 };
 
