@@ -149,7 +149,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       if (test.status === "draft") {
         const publish = document.createElement("button");
         publish.type = "button";
-        publish.textContent = "Preview & Publish";
+        publish.textContent = "Review & Publish";
         publish.addEventListener("click", async () => {
           const preview = [
             "प्रकाशित करने से पहले टेस्ट विवरण जाँचें:",
@@ -162,7 +162,7 @@ export function initOwnerAdminDashboard(auth, functions) {
             "अवधि: " + test.durationMinutes + " मिनट",
             "",
             "पुष्टि के बाद यह टेस्ट विद्यार्थियों के लिए Published हो जाएगा और फिर संपादन योग्य नहीं रहेगा।"
-          ].join("\\n");
+          ].join("\n");
           if (!window.confirm(preview)) return;
           publish.disabled = true;
           try {
