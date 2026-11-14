@@ -1,4 +1,4 @@
-name: Android packaging smoke test
+name: Android packaging smoke test # Rebuild with refreshed Firebase Android OAuth configuration
 
 on:
   push:
