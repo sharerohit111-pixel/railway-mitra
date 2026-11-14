@@ -207,12 +207,11 @@
         if(n.nodeType===Node.ELEMENT_NODE)translate(n);
         else if(n.nodeType===Node.TEXT_NODE&&n.nodeValue.trim()){
           if(!originals.has(n))originals.set(n,n.nodeValue);
-          if(lang==="en")n.nodeValue=replaceText(originals.get(n),HI_EN);
-          else n.nodeValue=originals.get(n);
+          n.nodeValue=replaceText(originals.get(n),lang==="hi"?EN_HI:HI_EN);
         }
       });
     }
   });
   observer.observe(document.documentElement,{childList:true,subtree:true});
-  window.RailwayMitraLanguage={get:()=>lang,set(value){if(!["en","mix"].includes(value))return;lang=value;localStorage.setItem(KEY,lang);if(document.body)translate(document.body);}};
+  window.RailwayMitraLanguage={get:()=>lang,set(value){if(!["en","hi"].includes(value))return;lang=value;localStorage.setItem(KEY,lang);if(document.body)translate(document.body);}};
 })();
