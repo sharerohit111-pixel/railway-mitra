@@ -45,20 +45,21 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
       details.forEach(value => { const tag = root.createElement("span"); tag.textContent = value; meta.append(tag); });
       const button = root.createElement("button");
       button.type = "button";
-      const paymentSubmitted = pendingPaymentChecks.has(test.testId) || hasPaymentBeenSubmitted(storage, studentUid, test.testId);
-      if (paymentSubmitted) pendingPaymentChecks.add(test.testId);
+      const paymentStateKey = studentUid + ":" + test.testId;
+      const paymentSubmitted = pendingPaymentChecks.has(paymentStateKey) || hasPaymentBeenSubmitted(storage, studentUid, test.testId);
+      if (paymentSubmitted) pendingPaymentChecks.add(paymentStateKey);
       button.textContent = paymentSubmitted ? "Check Payment Status" : test.accessType === "free_trial" ? "Start Free Test" : test.accessType === "paid" ? "Pay & Unlock Test" : test.accessType === "unlocked" ? "Start Test" : "Not Available";
       button.disabled = paymentSubmitted ? false : test.accessType !== "free_trial" && test.accessType !== "paid" && test.accessType !== "unlocked";
       button.addEventListener("click", async () => {
-        if (pendingPaymentChecks.has(test.testId) || hasPaymentBeenSubmitted(storage, test.testId)) {
+        if (pendingPaymentChecks.has(paymentStateKey) || hasPaymentBeenSubmitted(storage, test.testId)) {
           button.disabled = true;
           status.textContent = "Checking server-verified payment status…";
           const refreshed = await initStudentTestCatalogue({ app, studentUid, root, onStart });
           const latest = refreshed.tests.find(item => item.testId === test.testId);
           if (latest?.accessType === "unlocked") {
-            pendingPaymentChecks.delete(test.testId);
+            pendingPaymentChecks.delete(paymentStateKey);
             clearPaymentSubmitted(storage, studentUid, test.testId);
-            await initStudentTestCatalogue({ app, root, onStart });
+            await initStudentTestCatalogue({ app, studentUid, root, onStart });
             status.textContent = "Payment verified. Your test is unlocked.";
           } else {
             status.textContent = "Payment is not verified yet. Please wait for confirmation, then check again. Do not pay again.";
