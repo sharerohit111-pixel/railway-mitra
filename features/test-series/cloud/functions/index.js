@@ -1257,7 +1257,8 @@ exports.rmRazorpayWebhook = onRequest({
     res,
     secret: RAZORPAY_WEBHOOK_SECRET.value(),
     db,
-    applyPayment: applyCapturedPayment
+    applyPayment: applyCapturedPayment,
+    applyRefund: applyProcessedRefund
   });
 
 });
