@@ -12,7 +12,8 @@ const {
   getAuth,
   connectAuthEmulator,
   onAuthStateChanged,
-  signInWithPhoneNumber,
+  PhoneAuthProvider,
+  signInWithCredential,
   signOut
 } = require("firebase/auth");
 
@@ -31,15 +32,27 @@ async function waitFor(predicate, label, timeoutMs = 8000) {
 }
 
 async function signInWithEmulatorPhone(auth, phoneNumber) {
-  // The Auth Emulator bypasses real reCAPTCHA/SMS delivery. This verifier
-  // supplies only the SDK interface; the code is read from the emulator API.
-  const emulatorVerifier = {
-    type: "recaptcha",
-    verify: async () => "railway-mitra-auth-emulator-only",
-    render: async () => 0,
-    clear() {}
-  };
-  const confirmation = await signInWithPhoneNumber(auth, phoneNumber, emulatorVerifier);
+  // Use the Auth Emulator's local verification endpoint, then complete the
+  // phone credential with the Firebase client SDK. No browser reCAPTCHA or SMS
+  // gateway is involved, and this remains a real phone-provider auth session.
+  const sendResponse = await fetch(
+    AUTH_EMULATOR_URL + "/identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=fake-api-key",
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        phoneNumber,
+        recaptchaToken: "railway-mitra-auth-emulator-only"
+      })
+    }
+  );
+  if (!sendResponse.ok) {
+    throw new Error("Auth Emulator phone challenge returned HTTP " + sendResponse.status + ": " + await sendResponse.text());
+  }
+  const challenge = await sendResponse.json();
+  if (typeof challenge.sessionInfo !== "string" || !challenge.sessionInfo) {
+    throw new Error("Auth Emulator did not return a phone verification session.");
+  }
 
   const deadline = Date.now() + 5000;
   let verificationCode = null;
@@ -59,8 +72,9 @@ async function signInWithEmulatorPhone(auth, phoneNumber) {
   if (!verificationCode) {
     throw new Error("No SMS verification code appeared for the emulator-only phone number.");
   }
-  const credential = await confirmation.confirm(verificationCode);
-  return credential.user;
+  const credential = PhoneAuthProvider.credential(challenge.sessionInfo, verificationCode);
+  const userCredential = await signInWithCredential(auth, credential);
+  return userCredential.user;
 }
 
 test("Auth Emulator isolates Student A logout before Student B phone sign-in", { timeout: 25000 }, async () => {
