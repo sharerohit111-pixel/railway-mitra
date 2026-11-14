@@ -96,7 +96,7 @@ async function openWorkspace(user) {
 async function sendOtp() {
   const button = el("rm-student-send-otp");
   const phone = el("rm-student-phone").value.trim();
-  if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
+  if (!/^\\+[1-9]\\d{7,14}$/.test(phone)) {
     authStatus.textContent = "Enter a valid phone number with country code, for example +91XXXXXXXXXX.";
     return;
   }
@@ -114,7 +114,7 @@ async function sendOtp() {
 }
 async function verifyOtp() {
   const button = el("rm-student-verify-otp"), code = el("rm-student-otp").value.trim();
-  if (!confirmation || !/^\d{6}$/.test(code)) {
+  if (!confirmation || !/^\\d{6}$/.test(code)) {
     authStatus.textContent = "Enter the 6-digit OTP sent to your phone.";
     return;
   }
@@ -131,16 +131,38 @@ async function verifyOtp() {
 
 el("rm-student-send-otp").addEventListener("click", sendOtp);
 el("rm-student-verify-otp").addEventListener("click", verifyOtp);
-el("rm-portal-logout").addEventListener("click", async () => {
-  portalState.activeExamController?.destroy();
-  portalState.activeExamController = null;
-  await signOut(auth);
-  portalState.currentUser = null;
-  portalState.currentTestId = null;
-  workspace.hidden = true;
-  login.hidden = false;
-  el("rm-portal-logout").hidden = true;
-  authStatus.textContent = "You have signed out.";
+const logoutButton = el("rm-portal-logout");
+logoutButton.addEventListener("click", async () => {
+  // Lock and clear the previous student's workspace synchronously, before
+  // waiting for Firebase signOut or its asynchronous auth-state callback.
+  invalidateStudentPortalSession(portalState, {
+    workspace,
+    login,
+    logoutButton,
+    view
+  });
+  confirmation = null;
+  el("rm-student-otp-panel").hidden = true;
+  el("rm-student-otp").value = "";
+  if (recaptcha) {
+    try { recaptcha.clear(); } catch (_) {}
+    recaptcha = null;
+  }
+
+  const sendOtpButton = el("rm-student-send-otp");
+  const verifyOtpButton = el("rm-student-verify-otp");
+  sendOtpButton.disabled = true;
+  verifyOtpButton.disabled = true;
+  authStatus.textContent = "Signing out…";
+  try {
+    await signOut(auth);
+    authStatus.textContent = "You have signed out.";
+    sendOtpButton.disabled = false;
+    verifyOtpButton.disabled = false;
+  } catch (error) {
+    // Do not allow a new OTP flow to race an unconfirmed sign-out.
+    authStatus.textContent = error.message || "Sign-out could not be confirmed. The student workspace remains locked; reload before signing in again.";
+  }
 });
 document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => {
   showView(button.dataset.view).catch(error => { portalStatus.textContent = error.message; });
