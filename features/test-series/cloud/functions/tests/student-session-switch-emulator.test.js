@@ -216,6 +216,27 @@ test("Auth Emulator issues phone OTP tokens for Student A and B and the transiti
     assert.equal(ui.workspace.hidden, false, "Student B's workspace should open after the clean transition");
     assert.equal(ui.login.hidden, true);
     assert.deepEqual(ui.view.children, ["workspace:" + accountB.uid]);
+
+    // A slow token refresh for an older auth event must not replace the
+    // workspace opened by a newer Student B auth event.
+    let releaseLateToken;
+    const delayedStudentA = {
+      uid: accountA.uid,
+      getIdTokenResult() {
+        return new Promise(resolve => { releaseLateToken = resolve; });
+      }
+    };
+    const staleStudentARefresh = applyEmulatedAuthState(delayedStudentA);
+    assert.equal(typeof releaseLateToken, "function");
+    await applyEmulatedAuthState(makeEmulatorUser(accountB));
+    releaseLateToken({ claims: accountA.claims });
+    await staleStudentARefresh;
+
+    assert.equal(state.currentUser?.uid, accountB.uid,
+      "a stale Student A token result must not replace Student B");
+    assert.deepEqual(ui.view.children, ["workspace:" + accountB.uid]);
+    assert.equal(ui.workspace.hidden, false);
+    assert.equal(ui.login.hidden, true);
   } finally {
     if (accountA?.uid) await adminAuth.deleteUser(accountA.uid).catch(() => {});
     if (accountB?.uid) await adminAuth.deleteUser(accountB.uid).catch(() => {});
