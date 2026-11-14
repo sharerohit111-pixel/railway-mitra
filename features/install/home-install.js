@@ -1,30 +1,26 @@
 /* Railway Mitra — compact adaptive header action.
-   Before installation: offers PWA installation.
-   After installation: becomes a shortcut to Railway Updates. */
+   Before installation: blinking PWA install CTA.
+   After installation: What's New shortcut in the same header slot. */
 (function () {
   "use strict";
 
   let deferredInstallPrompt = null;
   let toastTimer = null;
+  let installedInThisSession = false;
 
-  const INSTALLED_KEY = "rm_pwa_installed_v1";
-
-  function isAppInstalled() {
-    const standalone = window.matchMedia("(display-mode: standalone)").matches ||
+  function isRunningInstalled() {
+    return window.matchMedia("(display-mode: standalone)").matches ||
       window.matchMedia("(display-mode: fullscreen)").matches ||
       window.navigator.standalone === true;
-    let remembered = false;
-    try { remembered = localStorage.getItem(INSTALLED_KEY) === "yes"; } catch (_) {}
-    return standalone || remembered;
   }
 
   function deviceHelp() {
     const ua = navigator.userAgent || "";
     if (/iphone|ipad|ipod/i.test(ua)) {
-      return "To install: open Safari Share → Add to Home Screen → Add.";
+      return "To install on iPhone/iPad: open this page in Safari → Share → Add to Home Screen → Add.";
     }
     if (/android/i.test(ua)) {
-      return "To install: open the browser menu (⋮) → Install app or Add to Home screen.";
+      return "If the install prompt does not open, use the browser menu (⋮) → Install app or Add to Home screen.";
     }
     return "Use your browser's install icon or menu and choose Install Railway Mitra.";
   }
@@ -44,7 +40,7 @@
     if (toastTimer) window.clearTimeout(toastTimer);
     toastTimer = window.setTimeout(function () {
       toast.classList.remove("is-visible");
-    }, 5200);
+    }, 5600);
   }
 
   function init() {
@@ -67,33 +63,39 @@
       const left = Math.max(0, refreshRect.right - headerRect.left + 8);
       const right = Math.max(left, founderRect.left - headerRect.left - 8);
       const available = Math.max(0, right - left);
+
       button.style.left = left + "px";
       button.style.width = available + "px";
-      button.hidden = available < 54;
-      button.classList.toggle("is-compact", available < 94);
+      button.hidden = available < 70;
+      button.classList.toggle("is-compact", available < 118);
+
+      if (button.classList.contains("is-installed")) {
+        button.textContent = available < 118 ? "Updates" : "What's New";
+      } else if (!button.classList.contains("is-installing")) {
+        button.textContent = available < 118 ? "Install" : "Install App";
+      }
     }
 
     function showInstalledAction() {
-      button.hidden = false;
       button.disabled = false;
-      button.classList.remove("is-installing");
+      button.classList.remove("is-installing", "is-install-pulse");
       button.classList.add("is-installed");
-      button.textContent = button.clientWidth < 94 ? "Updates" : "What's New";
       button.setAttribute("aria-label", "What's New — open Railway Updates");
       button.title = "See latest Railway updates and announcements";
       updateSlotPosition();
     }
 
     function showInstallAction() {
+      button.disabled = false;
       button.classList.remove("is-installed", "is-installing");
-      button.textContent = button.clientWidth < 94 ? "Install" : "Install App";
+      button.classList.add("is-install-pulse");
       button.setAttribute("aria-label", "Install Railway Mitra");
       button.title = "Install Railway Mitra on this device";
       updateSlotPosition();
     }
 
     function markInstalled() {
-      try { localStorage.setItem(INSTALLED_KEY, "yes"); } catch (_) {}
+      installedInThisSession = true;
       deferredInstallPrompt = null;
       showInstalledAction();
     }
@@ -103,14 +105,14 @@
     window.addEventListener("resize", updateSlotPosition, { passive: true });
     window.addEventListener("orientationchange", updateSlotPosition, { passive: true });
 
-    if (isAppInstalled()) {
+    if (isRunningInstalled()) {
       showInstalledAction();
     } else {
       showInstallAction();
     }
 
     button.addEventListener("click", async function () {
-      if (isAppInstalled() || button.classList.contains("is-installed")) {
+      if (installedInThisSession || button.classList.contains("is-installed") || isRunningInstalled()) {
         window.location.href = "features/updates/index.html";
         return;
       }
@@ -120,31 +122,35 @@
         return;
       }
 
+      const promptEvent = deferredInstallPrompt;
+      deferredInstallPrompt = null;
       button.disabled = true;
+      button.classList.remove("is-install-pulse");
       button.classList.add("is-installing");
       button.textContent = "Opening…";
+
       try {
-        deferredInstallPrompt.prompt();
-        const choice = await deferredInstallPrompt.userChoice;
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
         if (choice && choice.outcome === "accepted") {
           button.textContent = "Installing…";
-          showHelpToast("Installation accepted. The button will change to What's New after installation.");
+          showHelpToast("Install request accepted. This button will change to What's New when installation completes.");
         } else {
-          showHelpToast("Installation cancelled. You can install Railway Mitra later from the browser menu.");
           showInstallAction();
+          showHelpToast("Installation cancelled. You can try again whenever you're ready.");
         }
       } catch (error) {
         console.warn("Railway Mitra install prompt error:", error);
-        showHelpToast(deviceHelp());
         showInstallAction();
+        showHelpToast(deviceHelp());
       } finally {
-        deferredInstallPrompt = null;
         button.disabled = false;
+        if (!button.classList.contains("is-installed")) button.classList.remove("is-installing");
       }
     });
 
     window.addEventListener("beforeinstallprompt", function (event) {
-      if (isAppInstalled()) return;
+      if (isRunningInstalled() || installedInThisSession) return;
       event.preventDefault();
       deferredInstallPrompt = event;
       showInstallAction();
