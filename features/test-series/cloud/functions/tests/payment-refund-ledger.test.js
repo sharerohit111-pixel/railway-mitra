@@ -31,14 +31,16 @@ function harness({ refundAmount = 49900, amountRefunded = 49900, refundStatus = 
     event: "refund.processed",
     payload: {
       refund: { entity: { id: "rfnd_1", payment_id: "pay_refund_1", amount: refundAmount, currency: "INR", status: "processed" } },
-      payment: { entity: { id: "pay_refund_1", amount: 49900, amount_refunded: amountRefunded, currency: "INR", refund_status: refundStatus, status: "captured", captured: true } }
+      payment: { entity: { id: "pay_refund_1", amount: 49900, amount_refunded: amountRefunded, currency: "INR", refund_status: refundStatus, status: refundStatus === "full" ? "refunded" : "captured", captured: true } }
     }
   };
   return { db, event, docs };
 }
 
-test("fully processed refund revokes matching paid access atomically", async () => {
+test("full refund accepts Razorpay refunded status while captured remains true", async () => {
   const h = harness();
+  assert.equal(h.event.payload.payment.entity.status, "refunded");
+  assert.equal(h.event.payload.payment.entity.captured, true);
   const result = await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_1" });
   assert.equal(result.revoked, true);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "refunded");
@@ -179,6 +181,7 @@ test("separate partial refunds revoke access only when their cumulative total eq
   second.payload.refund.entity.amount = 29900;
   second.payload.payment.entity.amount_refunded = 49900;
   second.payload.payment.entity.refund_status = "full";
+  second.payload.payment.entity.status = "refunded";
   const result = await applyProcessedRefund({ db: h.db, event: second, eventId: "evt_partial_b" });
   assert.equal(result.revoked, true);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").amountRefunded, 49900);
@@ -207,6 +210,7 @@ test("older partial-refund webhook arriving after full refund cannot reactivate 
   older.payload.refund.entity.amount = 10000;
   older.payload.payment.entity.amount_refunded = 10000;
   older.payload.payment.entity.refund_status = "partial";
+  older.payload.payment.entity.status = "captured";
   const result = await applyProcessedRefund({ db: h.db, event: older, eventId: "evt_old_partial" });
   assert.equal(result.revoked, true);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "refunded");
