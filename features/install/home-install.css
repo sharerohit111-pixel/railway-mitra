@@ -22,10 +22,27 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+.rm-header-install-action.is-install-pulse {
+  animation: rm-install-cta-blink 1.15s ease-in-out infinite;
+}
+@keyframes rm-install-cta-blink {
+  0%, 100% {
+    opacity: 1;
+    filter: brightness(1);
+    box-shadow: 0 0 8px rgba(53,232,255,.32), inset 0 1px 2px rgba(255,255,255,.2);
+  }
+  50% {
+    opacity: .48;
+    filter: brightness(1.35);
+    box-shadow: 0 0 17px rgba(53,232,255,.78), 0 0 18px rgba(255,69,212,.5);
+  }
+}
 .rm-header-install-action.is-installed {
   border-color: rgba(255,69,212,.9);
   background: linear-gradient(105deg,#174a83,#6940c6,#b12c91);
   box-shadow: 0 0 10px rgba(255,69,212,.24),0 0 9px rgba(53,232,255,.2);
+  animation: none;
+  opacity: 1;
 }
 .rm-header-install-action:active { transform: scale(.96); }
 .rm-header-install-action:focus-visible {
@@ -71,5 +88,6 @@
   }
 }
 @media (prefers-reduced-motion:reduce) {
+  .rm-header-install-action.is-install-pulse { animation:none; }
   .rm-header-install-action,.rm-header-install-toast { transition:none; }
 }
