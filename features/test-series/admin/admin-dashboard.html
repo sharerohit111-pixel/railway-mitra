@@ -60,6 +60,15 @@
       <p class="rm-admin-hint">सूची 50 टेस्ट प्रति पेज लोड होती है। खोज और Folder फ़िल्टर अब तक लोड हुए टेस्ट पर लागू होंगे। अधिक टेस्ट देखने के लिए Load More दबाएँ।</p>
       <div id="rm-admin-tests-list" class="rm-admin-tests-list">अभी सूची लोड नहीं हुई।</div>
       <button id="rm-admin-tests-more" type="button" hidden>Load More Tests</button>
+      <div id="rm-admin-publish-review" class="rm-admin-review-overlay" role="dialog" aria-modal="true" aria-labelledby="rm-admin-review-title" hidden>
+        <section class="rm-admin-review-panel">
+          <div class="rm-admin-review-head"><div><small>OWNER REVIEW · PRIVATE ANSWER KEY</small><h3 id="rm-admin-review-title">Publish से पहले पूरा पेपर जाँचें</h3></div><button id="rm-admin-review-close" type="button" aria-label="Close review">✕</button></div>
+          <div id="rm-admin-review-summary" class="rm-admin-review-summary"></div>
+          <div id="rm-admin-review-questions" class="rm-admin-review-questions"></div>
+          <p id="rm-admin-review-status" class="rm-admin-status" role="status"></p>
+          <div class="rm-admin-review-actions"><button id="rm-admin-review-cancel" type="button">Cancel</button><button id="rm-admin-review-publish" class="rm-admin-primary" type="button" disabled>Confirm Publish</button></div>
+        </section>
+      </div>
     </section>
     <section id="rm-admin-question-bank-panel" class="rm-admin-panel" hidden>
       <h3>Question Bank</h3>
