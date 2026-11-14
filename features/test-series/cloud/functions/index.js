@@ -954,8 +954,20 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
     if (price > 0 && accessType !== "free_trial") {
       const entitlementSnap = await db.doc("testSeriesEntitlements/" + uid + "_" + d.id).get();
       const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
-      if (entitlement && entitlement.uid === uid && entitlement.testId === d.id && entitlement.status === "active") {
-        accessType = "unlocked";
+      const ledgerRefs = getPaidEntitlementLedgerReferences({ uid, testId: d.id, entitlement });
+      if (ledgerRefs) {
+        const [paymentSnap, orderSnap] = await Promise.all([
+          db.doc("testSeriesPayments/" + ledgerRefs.paymentId).get(),
+          db.doc("testSeriesPaymentOrders/" + ledgerRefs.orderId).get()
+        ]);
+        const access = validatePaidEntitlement({
+          uid,
+          testId: d.id,
+          entitlement,
+          payment: paymentSnap.exists ? paymentSnap.data() : null,
+          order: orderSnap.exists ? orderSnap.data() : null
+        });
+        if (access.valid) accessType = "unlocked";
       }
     }
     return {
