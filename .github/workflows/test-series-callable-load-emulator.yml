@@ -47,6 +47,22 @@ jobs:
           distribution: temurin
           java-version: "21"
 
+      - name: Verify isolated Test Series emulator configuration
+        run: |
+          node - <<'NODE'
+          const config = require("./firebase.test-series-cbt-emulator.json");
+          const functions = config.functions || [];
+          if (
+            functions.length !== 1 ||
+            functions[0].codebase !== "test-series" ||
+            functions[0].source !== "features/test-series/cloud/functions" ||
+            config.firestore?.rules !== "features/test-series/cloud/firestore.rules"
+          ) {
+            throw new Error("Callable load must use only the isolated Test Series Functions codebase and CBT Firestore rules.");
+          }
+          console.log("Validated isolated Test Series emulator configuration.");
+          NODE
+
       - name: Validate bounded workload inputs
         env:
           CALLABLE_LOAD_STUDENTS: ${{ inputs.students || '50' }}
