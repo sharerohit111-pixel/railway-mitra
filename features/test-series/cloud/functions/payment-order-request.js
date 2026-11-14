@@ -22,7 +22,7 @@ function paymentRequestDocumentId({ uid, testId, requestId } = {}) {
   }
   validatePaymentRequestId(requestId);
   return crypto.createHash("sha256")
-    .update(uid + "\0" + testId + "\0" + requestId, "utf8")
+    .update(uid + "\0" + testId, "utf8");
     .digest("hex");
 }
 
