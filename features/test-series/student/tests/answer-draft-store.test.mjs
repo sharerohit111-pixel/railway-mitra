@@ -77,3 +77,45 @@ test("reports unavailable storage without pretending the draft was saved", () =>
   assert.equal(writePendingAnswerDraft({ storage: blockedStorage, key: "draft", entries: [["q1", "0"]] }), false);
   assert.equal(writePendingAnswerDraft({ storage: null, key: "draft", entries: [] }), false);
 });
+
+test("rejects a draft larger than the 500-question CBT limit", () => {
+  const storage = makeStorage({ draft: JSON.stringify([["q1", "1"]]) });
+  const entries = Array.from({ length: 501 }, (_, index) => ["q" + index, "0"]);
+  assert.equal(writePendingAnswerDraft({ storage, key: "draft", entries }), false);
+  assert.equal(storage.getItem("draft"), JSON.stringify([["q1", "1"]]), "rejected writes must preserve the previous recoverable draft");
+
+  storage.setItem("draft", JSON.stringify(entries));
+  const restored = readPendingAnswerDraft({ storage, key: "draft", questions });
+  assert.equal(restored.answers.size, 0);
+  assert.equal(restored.discarded, 1);
+  assert.equal(storage.getItem("draft"), null);
+});
+
+test("rejects oversized serialized drafts without replacing an existing draft", () => {
+  const original = JSON.stringify([["q1", "1"]]);
+  const storage = makeStorage({ draft: original });
+  assert.equal(writePendingAnswerDraft({
+    storage,
+    key: "draft",
+    entries: [["x".repeat(129 * 1024), "0"]]
+  }), false);
+  assert.equal(storage.getItem("draft"), original);
+});
+
+test("discards oversized stored data before attempting JSON restoration", () => {
+  const storage = makeStorage({ draft: "x".repeat(129 * 1024) });
+  const restored = readPendingAnswerDraft({ storage, key: "draft", questions });
+  assert.equal(restored.answers.size, 0);
+  assert.equal(restored.discarded, 1);
+  assert.equal(storage.getItem("draft"), null);
+});
+
+test("accepts a full 500-answer draft within the configured bounds", () => {
+  const fullQuestions = Array.from({ length: 500 }, (_, index) => ({ id: "q" + index, options: ["A", "B", "C", "D"] }));
+  const entries = fullQuestions.map(question => [question.id, "2"]);
+  const storage = makeStorage();
+  assert.equal(writePendingAnswerDraft({ storage, key: "draft", entries }), true);
+  const restored = readPendingAnswerDraft({ storage, key: "draft", questions: fullQuestions });
+  assert.equal(restored.answers.size, 500);
+  assert.equal(restored.discarded, 0);
+});
