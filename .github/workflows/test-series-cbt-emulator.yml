@@ -6,11 +6,13 @@ on:
       - feature/test-series-cloud-access
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/student/**"
       - "firebase.json"
       - ".github/workflows/test-series-cbt-emulator.yml"
   pull_request:
     paths:
       - "features/test-series/cloud/functions/**"
+      - "features/test-series/student/**"
       - "firebase.json"
       - ".github/workflows/test-series-cbt-emulator.yml"
   workflow_dispatch:
