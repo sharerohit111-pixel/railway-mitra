@@ -4,6 +4,7 @@ import { buildCbtStorageKey } from "./attempt-storage-key.mjs";
 import { lockCbtExamControls } from "./exam-interaction-lock.mjs";
 import { restoreCbtOptionFocus } from "./exam-focus.mjs";
 import { createCbtExamLifecycle } from "./exam-lifecycle.mjs";
+import { classifyCbtAttemptResultError } from "./attempt-recovery.mjs";
 
 export function initStudentCbtExam({ app, testId, studentUid, root = document }) {
   if (typeof studentUid !== "string" || !studentUid.trim()) {
@@ -215,7 +216,35 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
           const previousResult=await getCbtAttemptResult(app,attemptId);
           if (!isActive()) return;
           showResult(previousResult);return;
-        }catch(_){/* Not submitted yet; inspect the original server attempt. */}
+        }catch(error){
+          if (!isActive()) return;
+          const recovery = classifyCbtAttemptResultError(error);
+          if (recovery === "missing") {
+            // Browser storage is only a recovery hint. If that attempt no longer
+            // belongs to this student, discard the stale key and ask the server
+            // for the authenticated student's authoritative active-session pointer.
+            try{localStorage.removeItem(attemptKey());}catch(_){}
+            const active = await getStudentActiveCbtAttempt(app,testId);
+            if (!isActive()) return;
+            if (!active?.found || typeof active.attemptId !== "string" || !active.attemptId) {
+              attemptId = null;
+              throw new Error("सहेजा हुआ परीक्षा सत्र सर्वर पर नहीं मिला। कृपया Start दबाकर दोबारा सत्र खोलें।");
+            }
+            attemptId = active.attemptId;
+            try{localStorage.setItem(attemptKey(),attemptId);}catch(_){}
+            if (active.status === "completed") {
+              const recoveredResult = await getCbtAttemptResult(app,attemptId);
+              if (!isActive()) return;
+              showResult(recoveredResult);return;
+            }
+            if (active.status !== "in_progress") throw new Error("सर्वर से परीक्षा सत्र की स्थिति सत्यापित नहीं हो सकी।");
+          } else if (recovery !== "in_progress") {
+            // Network, auth, permission and configuration failures are not proof
+            // that an attempt is unfinished or expired; never hide them by probing
+            // another endpoint or automatically submitting the exam.
+            throw error;
+          }
+        }
         try{
           paper=await getCbtExamQuestions(app,attemptId);
         }catch(error){
