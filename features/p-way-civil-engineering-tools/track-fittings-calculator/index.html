@@ -15,9 +15,9 @@
         <h1 id="appTitle">Track Fittings Calculator</h1>
         <p id="appSubtitle">RDSO Drawing No. Finder</p>
       </div>
-      <div class="lang-toggle" onclick="toggleLanguage()">
-        <button type="button" class="lang-btn active" id="btnEn">EN</button>
-        <button type="button" class="lang-btn" id="btnHi">हिंदी</button>
+      <div class="lang-toggle" role="group" aria-label="Select language" onclick="toggleLanguage()">
+        <button type="button" class="lang-btn active" id="btnEn" aria-pressed="true">EN</button>
+        <button type="button" class="lang-btn" id="btnHi" aria-pressed="false">हिंदी</button>
       </div>
     </div>
 
@@ -57,7 +57,7 @@
         <span class="badge-sleeper" id="sleeperBadge">RDSO/T-2496</span>
       </div>
 
-      <div class="cards-grid" id="cardsGrid">
+      <div class="cards-grid" id="cardsGrid" aria-live="polite" aria-atomic="true">
         <!-- Cards dynamically populated by JS -->
       </div>
 
