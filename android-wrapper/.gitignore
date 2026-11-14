@@ -1,0 +1,11 @@
+node_modules/
+web/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.jks
+*.keystore
+*.pem
+*.p12
