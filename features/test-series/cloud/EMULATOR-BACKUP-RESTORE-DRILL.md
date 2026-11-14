@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This is a local-only rehearsal for the Test Series Firestore Emulator. It does not back up Firebase production, staging, Razorpay, or real student data. It is not a substitute for managed Firestore backups or a production restore drill.
+This is a local-only rehearsal for the Test Series Auth and Firestore emulators. Firebase Emulator Suite export/import covers supported emulator data (including Auth and Firestore); it does not snapshot the running Cloud Functions process, deployed code, secrets, Razorpay state, production/staging Firebase, or real student data. It is not a substitute for managed Firestore backups or a production restore drill.
 
 ## Existing repository configuration
 
@@ -42,7 +42,7 @@ npx firebase-tools emulators:export .local-emulator-backups/cbt-drill-YYYYMMDD-H
 
 Alternatively, start the emulators with `--export-on-exit=.local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS` and stop them cleanly with Ctrl+C; the CLI then exports on shutdown. Do not run both methods against the same export directory in one drill.
 
-4. Confirm the export command (or clean shutdown export) completed successfully and inspect the export directory, including `firebase-export-metadata.json`. Record the local commit SHA, timestamp, test scenario and export outcome in a local drill note. Keep the export directory out of Git.
+4. Confirm the export command (or clean shutdown export) completed successfully and inspect the export directory, including `firebase-export-metadata.json`. Confirm the manifest lists the expected supported emulator services; the current config's relevant persisted data is Auth and Firestore. Record the local commit SHA, timestamp, test scenario and export outcome in a local drill note. Keep the export directory out of Git.
 
 ## Restore into a clean local emulator
 
@@ -79,4 +79,4 @@ Record:
 - Any missing records or rule regressions.
 - Operator and review outcome.
 
-A successful local drill proves only that the configured emulator state can be exported/imported for the tested local scenario. Production backup activation still requires confirmed Firebase project details, approved cost/retention, least-privilege IAM, a monitored backup schedule and a separately approved isolated cloud restore drill.
+A successful local drill proves only that the configured supported emulator data (Auth/Firestore for this setup) can be exported/imported for the tested local scenario. Functions source and runtime are recreated from the checked-out code and are not part of the emulator data export. Production backup activation still requires confirmed Firebase project details, approved cost/retention, least-privilege IAM, a monitored backup schedule and a separately approved isolated cloud restore drill.
