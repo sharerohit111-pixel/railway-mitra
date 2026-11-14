@@ -111,3 +111,19 @@ test("rejects cumulative processed refunds above original payment amount", async
   second.payload.payment.entity.refund_status = "full";
   await assert.rejects(() => applyProcessedRefund({ db: h.db, event: second, eventId: "evt_over_b" }), { code: "refund_amount_exceeds_payment" });
 });
+
+
+test("older partial-refund webhook arriving after full refund cannot reactivate access", async () => {
+  const h = harness();
+  await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_full_first" });
+  const older = structuredClone(h.event);
+  older.payload.refund.entity.id = "rfnd_older_partial";
+  older.payload.refund.entity.amount = 10000;
+  older.payload.payment.entity.amount_refunded = 10000;
+  older.payload.payment.entity.refund_status = "partial";
+  const result = await applyProcessedRefund({ db: h.db, event: older, eventId: "evt_old_partial" });
+  assert.equal(result.revoked, true);
+  assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "refunded");
+  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "revoked");
+  assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").amountRefunded, 49900);
+});
