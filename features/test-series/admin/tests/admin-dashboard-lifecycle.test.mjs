@@ -6,6 +6,18 @@ import { readFileSync } from "node:fs";
 
 const source = readFileSync(new URL("../admin-dashboard.js", import.meta.url), "utf8");
 
+test("Owner dashboard clears privileged data before a restored or changed account is verified", () => {
+  const start = source.indexOf("onChecking: () => {");
+  const end = source.indexOf("onSignedOut: () => {", start);
+  assert.ok(start >= 0 && end > start, "Owner session watcher has an immediate checking callback");
+  const handler = source.slice(start, end);
+  for (const reset of ["clearPaymentHistory()", "clearTestManagement()", "clearStudentActivity()", "clearAnalytics()", "clearQuestionBank()"]) {
+    assert.ok(handler.includes(reset), reset + " runs before authorization");
+  }
+  assert.match(handler, /home\.hidden = true/);
+  assert.match(handler, /login\.hidden = false/);
+});
+
 test("Owner publish review ignores late responses after the session generation changes", () => {
   assert.match(source, /async function openPublishReview\(test, button\)\s*\{\s*const generation = testManagementGeneration/);
   assert.match(source, /const response = await httpsCallable\(functions, "rmOwnerGetTest"\)\([\s\S]*?if \(generation !== testManagementGeneration\)/);
