@@ -14,6 +14,10 @@
       "providers": [
         "google.com"
       ]
+    },
+    "CapacitorUpdater": {
+      "autoUpdate": "off",
+      "version": "1.0.0"
     }
   }
 }
