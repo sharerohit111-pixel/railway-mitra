@@ -4,7 +4,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { applyProcessedRefund } = require("../payment-refund-ledger");
 
-function harness({ refundAmount = 49900 } = {}) {
+function harness({ refundAmount = 49900, amountRefunded = 49900, refundStatus = "full" } = {}) {
   const docs = new Map([
     ["testSeriesPayments/pay_refund_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "captured" }],
     ["testSeriesPaymentOrders/order_refund_1", { paymentId: "pay_refund_1", uid: "student_1", testId: "test_1", status: "paid" }],
@@ -30,7 +30,8 @@ function harness({ refundAmount = 49900 } = {}) {
   const event = {
     event: "refund.processed",
     payload: {
-      refund: { entity: { id: "rfnd_1", payment_id: "pay_refund_1", amount: refundAmount, currency: "INR", status: "processed" } }
+      refund: { entity: { id: "rfnd_1", payment_id: "pay_refund_1", amount: refundAmount, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_refund_1", amount: 49900, amount_refunded: amountRefunded, currency: "INR", refund_status: refundStatus, status: "captured" } }
     }
   };
   return { db, event, docs };
@@ -47,7 +48,7 @@ test("fully processed refund revokes matching paid access atomically", async () 
 });
 
 test("partial refund is recorded without revoking access", async () => {
-  const h = harness({ refundAmount: 10000 });
+  const h = harness({ refundAmount: 10000, amountRefunded: 10000, refundStatus: "partial" });
   const result = await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_partial_1" });
   assert.equal(result.revoked, false);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
@@ -75,8 +76,8 @@ test("rejects refund identity, amount and payment mismatches", async () => {
   await assert.rejects(() => applyProcessedRefund({ db: h.db, event: badAmount, eventId: "evt_bad_2" }), { code: "invalid_refund_fields" });
 
   const mismatch = structuredClone(h.event);
-  mismatch.payload.refund.entity.currency = "USD";
-  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: mismatch, eventId: "evt_bad_3" }), { code: "invalid_refund_fields" });
+  mismatch.payload.payment.entity.amount = 50000;
+  await assert.rejects(() => applyProcessedRefund({ db: h.db, event: mismatch, eventId: "evt_bad_3" }), { code: "refund_payment_mismatch" });
 });
 
 test("does not revoke access for refund events that are not processed", async () => {
@@ -87,11 +88,13 @@ test("does not revoke access for refund events that are not processed", async ()
 });
 
 test("separate partial refunds revoke access only when their cumulative total equals payment", async () => {
-  const h = harness({ refundAmount: 20000 });
+  const h = harness({ refundAmount: 20000, amountRefunded: 20000, refundStatus: "partial" });
   await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_partial_a" });
   const second = structuredClone(h.event);
   second.payload.refund.entity.id = "rfnd_2";
   second.payload.refund.entity.amount = 29900;
+  second.payload.payment.entity.amount_refunded = 49900;
+  second.payload.payment.entity.refund_status = "full";
   const result = await applyProcessedRefund({ db: h.db, event: second, eventId: "evt_partial_b" });
   assert.equal(result.revoked, true);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").amountRefunded, 49900);
@@ -99,10 +102,12 @@ test("separate partial refunds revoke access only when their cumulative total eq
 });
 
 test("rejects cumulative processed refunds above original payment amount", async () => {
-  const h = harness({ refundAmount: 30000 });
+  const h = harness({ refundAmount: 30000, amountRefunded: 30000, refundStatus: "partial" });
   await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_over_a" });
   const second = structuredClone(h.event);
   second.payload.refund.entity.id = "rfnd_over_2";
   second.payload.refund.entity.amount = 20000;
+  second.payload.payment.entity.amount_refunded = 50000;
+  second.payload.payment.entity.refund_status = "full";
   await assert.rejects(() => applyProcessedRefund({ db: h.db, event: second, eventId: "evt_over_b" }), { code: "refund_amount_exceeds_payment" });
 });
