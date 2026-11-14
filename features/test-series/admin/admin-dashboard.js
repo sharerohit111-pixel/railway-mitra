@@ -4,7 +4,7 @@ import { testAnalyticsCsv, testAnalyticsPrintHtml, filterAndSortTestAnalytics } 
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { watchOwnerSession } from "./owner-session.mjs";
-import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, hasPhoneMfa, signOut } from "./admin-auth.js";
+import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 
@@ -115,6 +115,32 @@ export function initOwnerAdminDashboard(auth, functions) {
       await signOut(auth); setup.hidden = true; login.hidden = false;
     } catch (e) { status(e.message || "OTP enrollment असफल।"); }
   });
+
+  const providerStatus = message => { el("rm-owner-provider-status").textContent = message; };
+  el("rm-owner-link-google").addEventListener("click", async () => {
+    try {
+      providerStatus("Google provider को इसी Owner खाते से जोड़ा जा रहा है…");
+      const result = await linkOwnerGoogleProvider(auth);
+      providerStatus(result.linked ? "Google provider इसी Owner UID से जुड़ गया।" : "Google provider पहले से इसी Owner खाते से जुड़ा है।");
+    } catch (error) {
+      providerStatus(error.code === "auth/credential-already-in-use"
+        ? "यह Google खाता किसी दूसरे Firebase UID से जुड़ा है। खातों को अपने-आप merge नहीं किया गया; पहले Firebase में UID की जाँच करें।"
+        : error.message || "Google provider link नहीं हो पाया।");
+    }
+  });
+  el("rm-owner-link-email").addEventListener("click", async () => {
+    try {
+      providerStatus("Email provider को इसी Owner खाते से जोड़ा जा रहा है…");
+      const result = await linkOwnerEmailProvider(auth, el("rm-owner-link-email").value, el("rm-owner-link-password").value);
+      providerStatus(result.linked ? "Email/Password provider इसी Owner UID से जुड़ गया।" : "Email/Password provider पहले से इसी Owner खाते से जुड़ा है।");
+      el("rm-owner-link-password").value = "";
+    } catch (error) {
+      providerStatus(error.code === "auth/credential-already-in-use"
+        ? "यह Email/Password credential किसी दूसरे Firebase UID से जुड़ा है। खातों को अपने-आप merge नहीं किया गया; पहले Firebase में UID की जाँच करें।"
+        : error.message || "Email provider link नहीं हो पाया।");
+    }
+  });
+
   el("rm-owner-logout").addEventListener("click", async () => { clearPaymentHistory(); await signOut(auth); home.hidden = true; login.hidden = false; });
   const testsPanel = el("rm-admin-tests-panel");
   const testsList = el("rm-admin-tests-list");
