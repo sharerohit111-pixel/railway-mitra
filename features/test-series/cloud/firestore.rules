@@ -25,6 +25,14 @@ service cloud.firestore {
     match /testSeriesFreeAttempts/{document=**} { allow read, write: if false; }
     match /testSeriesConfig/{document=**} { allow read, write: if false; }
     match /testSeriesQuestionBank/{document=**} { allow read, write: if false; }
+    match /testSeriesQuestionSets/{document=**} { allow read, write: if false; }
+    match /testSeriesPaymentRequests/{document=**} { allow read, write: if false; }
+    match /testSeriesPaymentLocks/{document=**} { allow read, write: if false; }
+    match /testSeriesPaymentOrders/{document=**} { allow read, write: if false; }
+    match /testSeriesPayments/{document=**} { allow read, write: if false; }
+    match /testSeriesPaymentEvents/{document=**} { allow read, write: if false; }
+    match /testSeriesPaymentAudit/{document=**} { allow read, write: if false; }
+    match /testSeriesRefunds/{document=**} { allow read, write: if false; }
 
     // Default deny for every other collection unless existing rules are added deliberately.
     match /{document=**} { allow read, write: if false; }
