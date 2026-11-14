@@ -14,6 +14,18 @@ export function createStudentLogoutRecovery(storageProvider) {
     }
   }
 
+  function clearMarker() {
+    memoryBlockedUid = null;
+    const target = storage();
+    if (!target) return false;
+    try {
+      target.removeItem(key);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function readUid() {
     const target = storage();
     if (!target) return memoryBlockedUid;
@@ -41,19 +53,11 @@ export function createStudentLogoutRecovery(storageProvider) {
       const blockedUid = readUid();
       if (!blockedUid) return false;
       if (blockedUid === uid) return true;
-      this.clear();
+      clearMarker();
       return false;
     },
     clear() {
-      memoryBlockedUid = null;
-      const target = storage();
-      if (!target) return false;
-      try {
-        target.removeItem(key);
-        return true;
-      } catch (_) {
-        return false;
-      }
+      return clearMarker();
     }
   });
 }

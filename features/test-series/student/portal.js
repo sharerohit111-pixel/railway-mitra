@@ -174,8 +174,6 @@ logoutButton.addEventListener("click", async () => {
   const signingOutUid = auth.currentUser?.uid || null;
   // Invalidate pending OTP promises before starting any asynchronous logout work.
   otpFlow.invalidate();
-  confirmation = null;
-  confirmationVersion = null;
   // Lock and clear the previous student's workspace synchronously, before
   // waiting for Firebase signOut or its asynchronous auth-state callback.
   invalidateStudentPortalSession(portalState, {
@@ -184,6 +182,8 @@ logoutButton.addEventListener("click", async () => {
     logoutButton,
     view
   });
+  confirmation = null;
+  confirmationVersion = null;
   el("rm-student-otp-panel").hidden = true;
   el("rm-student-otp").value = "";
   if (recaptcha) {
