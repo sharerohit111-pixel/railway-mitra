@@ -24,7 +24,7 @@ test("late exam start, section, answer-save and submit continuations check contr
   const requiredGuards = [
     /await getStudentActiveCbtAttempt\(app,testId\);\s*if \(!isActive\(\)\) return;/,
     /await enterCbtSection\(app, attemptId, question\.section\);[\s\S]{0,180}if\(!isActive\(\) \|\| finished \|\| request !== navigationRequest\) return;/,
-    /await saveCbtAnswer\(app,attemptId,qid,value\)\)\.then\(\(\)=>\{[\s\S]{0,180}if \(!isActive\(\)\) return;/,
+    /if \(!isActive\(\)\) return;[\s\S]{0,180}return saveCbtAnswer\(app,attemptId,qid,value\)\)\.then\(\(\)=>\{[\s\S]{0,180}if \(!isActive\(\)\) return;/,
     /await submitCbtExam\(app,attemptId\);\s*if \(!isActive\(\)\) return;/,
     /const onOnline=\(\)=>\{if \(!isActive\(\)\) return;/
   ];
