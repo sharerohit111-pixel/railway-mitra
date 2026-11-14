@@ -2,7 +2,7 @@
 
 const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
 
-async function handleRazorpayWebhook({ req, res, secret, db, applyPayment } = {}) {
+async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, applyRefund } = {}) {
   if (req.method !== "POST") {
     res.set("Allow", "POST").status(405).send("Method not allowed");
     return;
@@ -41,7 +41,7 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment } = {}
     const result = await applyPayment({ db, event, eventId });
     res.status(200).json({ received: true, duplicate: Boolean(result.duplicate) });
   } catch (error) {
-    console.error("Razorpay captured-payment ledger rejected event", {
+    console.error("Razorpay payment/refund ledger rejected event", {
       eventId,
       code: error && error.code ? error.code : "unknown"
     });
