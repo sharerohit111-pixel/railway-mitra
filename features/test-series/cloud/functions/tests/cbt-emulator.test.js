@@ -1660,12 +1660,13 @@ test("webhook safely recovers after a transient Firestore transaction failure", 
 
 
 test("student test catalogue paginates published tests with stable document cursors", async () => {
+  // Sort before all shared emulator fixtures so this test can coexist with them.
   const ids = [
-    "zzzz-emulator-catalogue-page-a",
-    "zzzz-emulator-catalogue-page-b",
-    "zzzz-emulator-catalogue-page-c",
-    "zzzz-emulator-catalogue-page-d",
-    "zzzz-emulator-catalogue-page-e"
+    "0000-emulator-catalogue-page-a",
+    "0000-emulator-catalogue-page-b",
+    "0000-emulator-catalogue-page-c",
+    "0000-emulator-catalogue-page-d",
+    "0000-emulator-catalogue-page-e"
   ];
   const refs = ids.map(id => db.doc("testSeriesTests/" + id));
   try {
@@ -1680,33 +1681,25 @@ test("student test catalogue paginates published tests with stable document curs
     }));
     await batch.commit();
 
-    const first = await callable("rmListAvailableTests", { pageSize: 2 });
-    assert.equal(first.tests.length, 2);
-    assert.equal(first.hasMore, true);
-    assert.ok(first.nextCursor);
-    assert.deepEqual(first.tests.map(item => item.testId), ids.slice(0, 2));
-
-    const second = await callable("rmListAvailableTests", {
-      pageSize: 2,
-      cursor: first.nextCursor
-    });
-    assert.equal(second.tests.length, 2);
-    assert.equal(second.hasMore, true);
-    assert.ok(second.nextCursor);
-    assert.deepEqual(second.tests.map(item => item.testId), ids.slice(2, 4));
-
-    const third = await callable("rmListAvailableTests", {
-      pageSize: 2,
-      cursor: second.nextCursor
-    });
-    assert.equal(third.tests.length, 1);
-    assert.equal(third.hasMore, false);
-    assert.equal(third.nextCursor, null);
-    assert.deepEqual(third.tests.map(item => item.testId), ids.slice(4));
-
-    const all = [...first.tests, ...second.tests, ...third.tests];
-    assert.equal(new Set(all.map(item => item.testId)).size, ids.length);
-    assert.deepEqual(all.map(item => item.testId), ids);
+    const collected = [];
+    let cursor = null;
+    let pageCount = 0;
+    let hasMore = true;
+    while (hasMore && pageCount < 20) {
+      const page = await callable("rmListAvailableTests", { pageSize: 2, ...(cursor ? { cursor } : {}) });
+      assert.ok(page.tests.length <= 2);
+      collected.push(...page.tests.map(item => item.testId));
+      hasMore = page.hasMore;
+      cursor = page.nextCursor;
+      pageCount++;
+      if (hasMore) assert.ok(cursor);
+      else assert.equal(cursor, null);
+    }
+    assert.equal(hasMore, false, "catalogue cursor must reach the end");
+    assert.ok(pageCount >= 3);
+    const fixtureIds = collected.filter(id => ids.includes(id));
+    assert.deepEqual(fixtureIds, ids);
+    assert.equal(new Set(collected).size, collected.length);
 
     await assert.rejects(
       callable("rmListAvailableTests", { pageSize: 0 }),
