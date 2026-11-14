@@ -7,32 +7,62 @@ This folder is the isolated Android packaging workstream for Railway Mitra.
 - The production PWA and public website remain the source of truth.
 - Do not change existing calculators, authentication, Firebase rules, CBT/Test Series, or payment flows as part of Android packaging.
 - Android-only changes stay in this folder and its dedicated branch.
-- Never commit keystores, signing passwords, service-account credentials, or private API secrets.
+- Never commit keystores, signing passwords, service-account credentials, Capgo API tokens, or private API secrets.
 - Do not enable AdMob until the Android app is built, tested, store-published, and approved for ads.
+
+## OTA update architecture
+
+The Android shell uses Capacitor 8 and the matching `@capgo/capacitor-updater` v8 plugin. OTA delivery is limited to the web layer packaged in the Android WebView: HTML, CSS, JavaScript and static assets. It does not replace native Android code, permissions, plugins, or the APK itself.
+
+The updater bridge is built from `src/native-updater.js` and injected by `scripts/prepare-web.mjs` into the staged Android-only copies of `index.html` and `app.html`. The production website files are not modified by this injection.
+
+### Current safe state
+
+- The plugin dependency and native bridge are wired into this isolated branch.
+- `CapacitorUpdater.autoUpdate` is deliberately set to `off`.
+- No update channel or Capgo app identifier has been configured.
+- No live update is being distributed and no user APK is being changed.
+- Automatic delivery must remain disabled until the owner creates/configures the Capgo app, supplies the non-secret app identifier, and completes device testing.
+
+### Activation checklist (owner approval required)
+
+1. Create the Railway Mitra Android app in the Capgo Console and select a production channel.
+2. Add the resulting app identifier to `plugins.CapacitorUpdater.appId`; keep API tokens only in local environment variables or GitHub Actions secrets.
+3. Change `autoUpdate` from `off` to `atBackground` only after the test channel passes.
+4. Build and install a new signed APK containing the updater plugin. Existing APKs do not contain the native updater and cannot gain it from a web-only bundle.
+5. Test fresh install and upgrade paths on physical Android devices: cold start, foreground/background, offline startup, interrupted download, failed bundle rollback, login, navigation, calculator flows, file downloads and CBT entry points.
+6. Publish a small test bundle to a private/test channel first. Verify rollback to the last successful bundle before enabling production delivery.
+7. Publish to the production channel only after owner approval and a successful staged rollout.
+
+### Release rules
+
+- Web-only HTML/CSS/JS/static asset changes may be delivered as OTA bundles after the bootstrap APK is installed.
+- Any change to Capacitor, native plugins, Android permissions, manifest, signing, or native code requires a newly built and distributed APK.
+- Never publish a bundle that calls a native plugin/API absent from the installed native binary.
+- Keep a known-good bundle available for rollback. Do not bypass bundle signing or integrity checks.
+- Keep update checks non-blocking and apply updates at a safe background/restart boundary; do not interrupt an active CBT attempt or form submission.
+- Capgo does not guarantee store approval. Keep OTA changes within the app's disclosed purpose and comply with current platform policies.
 
 ## Current repository audit
 
-- The repository is a static HTML/CSS/JavaScript PWA deployed from `main` using GitHub Pages.
-- The app entry point is `app.html`.
+- The repository is a static HTML/CSS/JavaScript PWA deployed from `main`.
+- The app entry point is `app.html`; the packaged web directory also includes `index.html`.
 - PWA metadata is in `manifest.json`; the service worker is `service-worker.js`.
-- Firebase Authentication is initialized in `assets/js/firebase.js`; `assets/js/auth-guard.js` redirects signed-out users to the login page.
-- No existing Capacitor configuration or Android Gradle project was found at the repository root.
+- Firebase Authentication is initialized in `assets/js/firebase.js`.
+- Android packaging stages a local copy using an explicit allowlist. It does not turn the APK into a thin remote-URL-only wrapper.
 
-## Proposed implementation
+## Build
 
-Use a dedicated Capacitor Android shell so a native Android project can be built and, after policy review, integrate the Google Mobile Ads SDK without injecting ad code into the PWA. The Android build must bundle the required web assets locally; it must not be a thin remote-URL-only wrapper.
+From `android-wrapper/`:
 
-Before generating the permanent Android application ID, confirm the final reverse-domain package name with the owner. The package ID is difficult to change after Play Store publication.
+```bash
+npm install
+npm run build:web
+npx cap sync android
+```
 
-## Planned milestones
-
-1. Confirm app ID, display name, icon, and minimum Android version.
-2. Add isolated Capacitor project configuration and a reproducible asset-staging process.
-3. Generate the Android project and debug build.
-4. Test login, navigation, file downloads, external links, offline behavior, and CBT flows on real devices.
-5. Prepare Play Store listing, privacy/data-safety disclosures, and signed Android App Bundle (AAB).
-6. Only after publication and AdMob eligibility, integrate and test ads behind a controlled feature flag.
+The native Android project must be generated with `npm run cap:add:android` if it does not yet exist. Do not commit signing credentials or local SDK paths.
 
 ## Status
 
-Planning branch created. No production PWA files or application behavior have been changed by this Android workstream yet.
+OTA integration scaffold added on `feature/android-ota-updates`. It is intentionally inactive pending Capgo app configuration and end-to-end device tests. No production PWA files or CBT/Test Series files are changed by this branch.
