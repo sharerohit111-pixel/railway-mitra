@@ -152,12 +152,16 @@ export function initOwnerAdminDashboard(auth, functions) {
     const generation = testManagementGeneration;
     button.disabled = true;
     reviewStatus.textContent = "सर्वर से पूरा प्रश्नपत्र और उत्तर-कुंजी सुरक्षित रूप से लोड हो रही है…";
+    reviewSummary.replaceChildren();
+    reviewQuestions.replaceChildren();
+    reviewPublish.disabled = true;
+    reviewedTest = null;
     reviewDialog.hidden = false;
     reviewedPublishButton = button;
     try {
       const response = await httpsCallable(functions, "rmOwnerGetTest")({ testId: test.testId });
       const data = response.data || {};
-      if (generation !== testManagementGeneration) return;
+      if (generation !== testManagementGeneration) { closePublishReview(); return; }
       if (data.testId !== test.testId || data.status !== "draft") {
         throw new Error("यह टेस्ट अब Draft नहीं है। सूची Refresh करके दोबारा जाँचें।");
       }
