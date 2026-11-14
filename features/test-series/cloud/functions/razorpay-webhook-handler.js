@@ -26,7 +26,9 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, apply
     return;
   }
 
-  if (!event || event.event !== "payment.captured") {
+  const isCapture = event && event.event === "payment.captured";
+  const isRefund = event && event.event === "refund.processed";
+  if (!isCapture && !isRefund) {
     res.status(200).send("Event ignored");
     return;
   }
@@ -38,8 +40,18 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, apply
   }
 
   try {
-    const result = await applyPayment({ db, event, eventId });
-    res.status(200).json({ received: true, duplicate: Boolean(result.duplicate) });
+    const processor = isRefund ? applyRefund : applyPayment;
+    if (typeof processor !== "function") {
+      throw Object.assign(new Error("The matching payment event processor is not configured"), {
+        code: "payment_processor_unavailable"
+      });
+    }
+    const result = await processor({ db, event, eventId });
+    res.status(200).json({
+      received: true,
+      duplicate: Boolean(result.duplicate),
+      ...(isRefund ? { revoked: Boolean(result.revoked) } : {})
+    });
   } catch (error) {
     console.error("Razorpay payment/refund ledger rejected event", {
       eventId,
@@ -60,7 +72,13 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, apply
       "payment_invalid_payment_fields",
       "payment_order_mismatch",
       "payment_amount_mismatch",
-      "payment_currency_mismatch"
+      "payment_currency_mismatch",
+      "invalid_refund_event",
+      "invalid_refund_fields",
+      "refund_id_conflict",
+      "refund_payment_not_found",
+      "refund_payment_mismatch",
+      "refund_amount_exceeds_payment"
     ]);
     if (permanentErrors.has(error && error.code)) {
       res.status(200).json({ received: true, rejected: true });
