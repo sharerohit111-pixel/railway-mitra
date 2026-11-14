@@ -1378,9 +1378,9 @@ test("verified Razorpay webhook reaches the Firestore ledger exactly once", asyn
   const rawBody = Buffer.from(JSON.stringify(event));
   const signature = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
 
-  function makeRequest(sig = signature) {
+  function makeRequest(sig = signature, parsedBody = event) {
     return {
-      method: "POST", rawBody, body: event,
+      method: "POST", rawBody, body: parsedBody,
       get(name) {
         if (name === "x-razorpay-signature") return sig;
         if (name === "x-razorpay-event-id") return eventId;
@@ -1418,8 +1418,19 @@ test("verified Razorpay webhook reaches the Firestore ledger exactly once", asyn
     assert.equal((await entitlementRef.get()).exists, false);
 
     const firstResponse = makeResponse();
+    // Middleware's parsed body is deliberately attacker-altered. The handler
+    // must parse only the exact raw bytes whose HMAC was verified.
+    const tamperedParsedBody = {
+      ...event,
+      payload: { payment: { entity: {
+        ...event.payload.payment.entity,
+        id: "pay_attacker_substitution",
+        order_id: "order_attacker_substitution",
+        amount: 1
+      } } }
+    };
     await handleRazorpayWebhook({
-      req: makeRequest(), res: firstResponse,
+      req: makeRequest(signature, tamperedParsedBody), res: firstResponse,
       secret: webhookSecret, db, applyPayment: applyCapturedPayment
     });
     assert.equal(firstResponse.code, 200);
