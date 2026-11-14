@@ -35,7 +35,8 @@ const translations = {
     jointNote: "For Fishplated / Glued Joints",
     warn52on60: "Note: Combination liners (different GS & NGS) are required when laying 52 kg rail on a 60 kg sleeper.",
     warnNotRec: "Note: Laying 60 kg rail on a 52 kg sleeper (RT-2495) is generally not standard practice on Indian Railways.",
-    warn8527_52kg: "Important: The 52 kg rail combination for RT-8527 contains provisional drawing references marked “Check RDSO”. Do not use these references for field work until verified against the latest applicable RDSO drawing and railway instructions."
+    warn8527_52kg: "Important: The 52 kg rail combination for RT-8527 contains provisional drawing references marked “Check RDSO”. Do not use these references for field work until verified against the latest applicable RDSO drawing and railway instructions.",
+    mappingUnavailable: "No verified fitting combination is available for this selection. Do not use a substitute; confirm the applicable RDSO drawing and railway instructions."
   },
   hi: {
     appTitle: "ट्रैक फिटिंग्स कैलकुलेटर",
@@ -71,7 +72,8 @@ const translations = {
     jointNote: "फिशप्लेट / ग्लूड जॉइंट के लिए",
     warn52on60: "नोट: 60 kg स्लीपर पर 52 kg रेल बिछाने के लिए GS और NGS में अलग-अलग कॉम्बिनेशन लाइनर लगते हैं।",
     warnNotRec: "नोट: 52 kg स्लीपर (RT-2495) पर 60 kg रेल बिछाना भारतीय रेलवे में मानक (Standard) नहीं है।",
-    warn8527_52kg: "महत्वपूर्ण: RT-8527 पर 52 kg रेल के लिए कुछ ड्राइंग संदर्भ “Check RDSO” के रूप में अस्थायी हैं। फील्ड में उपयोग से पहले नवीनतम लागू RDSO ड्राइंग और रेलवे निर्देशों से इनकी पुष्टि अवश्य करें।"
+    warn8527_52kg: "महत्वपूर्ण: RT-8527 पर 52 kg रेल के लिए कुछ ड्राइंग संदर्भ “Check RDSO” के रूप में अस्थायी हैं। फील्ड में उपयोग से पहले नवीनतम लागू RDSO ड्राइंग और रेलवे निर्देशों से इनकी पुष्टि अवश्य करें।",
+    mappingUnavailable: "इस चयन के लिए सत्यापित फिटिंग संयोजन उपलब्ध नहीं है। कोई दूसरा फिटिंग विकल्प स्वयं न चुनें; लागू RDSO ड्राइंग और रेलवे निर्देशों से पुष्टि करें।"
 
   }
 };
@@ -210,6 +212,16 @@ function calculateFittings() {
 
   const key = `${sleeper}_${rail}`;
   const data = rdsoData[key];
+  const cardsGrid = document.getElementById('cardsGrid');
+  const warnBox = document.getElementById('warningNote');
+
+  // Fail closed if a future UI option has no matching master-data entry.
+  if (!data || !['metal', 'gfn'].includes(circuit)) {
+    cardsGrid.innerHTML = '';
+    warnBox.style.display = 'block';
+    warnBox.innerText = t.mappingUnavailable;
+    return;
+  }
 
   const linerGS = circuit === 'metal' ? data.metalGS : data.gfnGS;
   const linerNGS = circuit === 'metal' ? data.metalNGS : data.gfnNGS;
@@ -252,9 +264,7 @@ function calculateFittings() {
     </div>
   `;
 
-  document.getElementById('cardsGrid').innerHTML = cardsHTML;
-
-  const warnBox = document.getElementById('warningNote');
+  cardsGrid.innerHTML = cardsHTML;
   if (data.warn) {
     warnBox.style.display = 'block';
     warnBox.innerText = t[data.warn];
