@@ -1,4 +1,4 @@
-name: Android web bundle check
+name: Android packaging smoke test
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - feature/android-app-shell
     paths:
       - "android-wrapper/**"
+      - ".github/workflows/android-web-bundle-check.yml"
       - "app.html"
       - "assets/**"
       - "config/**"
@@ -21,6 +22,7 @@ on:
       - main
     paths:
       - "android-wrapper/**"
+      - ".github/workflows/android-web-bundle-check.yml"
       - "app.html"
       - "assets/**"
       - "config/**"
@@ -33,7 +35,7 @@ on:
       - "service-worker.js"
 
 jobs:
-  prepare-web-bundle:
+  build-debug-apk:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -45,6 +47,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
       - name: Install Android workspace dependencies
         run: npm install
       - name: Prepare local Android web bundle
@@ -55,3 +62,19 @@ jobs:
           test -f web/features/auth/login.html
           test -f web/assets/js/auth-guard.js
           test -f web/assets/js/firebase.js
+      - name: Generate native Android project
+        run: npx cap add android
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Upload debug APK for device testing
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-mitra-android-debug
+          path: android-wrapper/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
