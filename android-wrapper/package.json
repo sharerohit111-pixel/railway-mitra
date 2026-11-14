@@ -4,7 +4,7 @@
   "private": true,
   "description": "Isolated native Android packaging workspace for Railway Mitra",
   "scripts": {
-    "build:web": "node scripts/prepare-web.mjs",
+    "build:web": "node scripts/prepare-web.mjs && node scripts/build-native-auth.mjs",
     "cap:add:android": "npm run build:web && cap add android",
     "cap:sync": "npm run build:web && cap sync android",
     "cap:open": "cap open android",
