@@ -1661,11 +1661,11 @@ test("webhook safely recovers after a transient Firestore transaction failure", 
 
 test("student test catalogue paginates published tests with stable document cursors", async () => {
   const ids = [
-    "emulator-catalogue-page-a",
-    "emulator-catalogue-page-b",
-    "emulator-catalogue-page-c",
-    "emulator-catalogue-page-d",
-    "emulator-catalogue-page-e"
+    "zzzz-emulator-catalogue-page-a",
+    "zzzz-emulator-catalogue-page-b",
+    "zzzz-emulator-catalogue-page-c",
+    "zzzz-emulator-catalogue-page-d",
+    "zzzz-emulator-catalogue-page-e"
   ];
   const refs = ids.map(id => db.doc("testSeriesTests/" + id));
   try {
@@ -1713,7 +1713,7 @@ test("student test catalogue paginates published tests with stable document curs
       error => error.code === "functions/invalid-argument"
     );
     await assert.rejects(
-      callable("rmListAvailableTests", { pageSize: 2, cursor: "emulator-missing-catalogue-cursor" }),
+      callable("rmListAvailableTests", { pageSize: 2, cursor: "zzzz-emulator-missing-catalogue-cursor" }),
       error => error.code === "functions/invalid-argument"
     );
   } finally {
