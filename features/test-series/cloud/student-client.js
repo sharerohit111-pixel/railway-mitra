@@ -65,8 +65,8 @@ export async function createStudentPaymentOrder(app, testId, requestId) {
   return (await callable(app, "rmCreatePaymentOrder")({ testId, requestId })).data;
 }
 
-export async function listAvailableCbtTests(app) {
-  return (await callable(app, "rmListAvailableTests")({})).data;
+export async function listAvailableCbtTests(app, { pageSize = 100, cursor = null } = {}) {
+  return (await callable(app, "rmListAvailableTests")({ pageSize, ...(cursor ? { cursor } : {}) })).data;
 }
 
 export async function getStudentCbtDashboard(app) {
