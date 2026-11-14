@@ -81,6 +81,6 @@ test("clears only the selected test key after an explicit definite provider reje
 test("rejects malformed test identifiers before touching storage", async () => {
   const { getOrCreatePaymentRequestId } = await sessionModule;
   const storage = createStorage();
-  assert.throws(() => getOrCreatePaymentRequestId(storage, "../private", () => REQUEST_ID), /valid test ID/);
+  assert.throws(() => getOrCreatePaymentRequestId(storage, STUDENT_UID, "../private", () => REQUEST_ID), /valid test ID/);
   assert.equal(storage.values.size, 0);
 });
