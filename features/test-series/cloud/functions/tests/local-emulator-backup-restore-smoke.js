@@ -5,36 +5,35 @@ const admin = require('firebase-admin');
 const projectId = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT;
 const firestoreHost = process.env.FIRESTORE_EMULATOR_HOST;
 const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+const expectedProjectId = 'demo-railway-mitra-cbt';
+const expectedFirestoreHost = '127.0.0.1:8080';
+const expectedAuthHost = '127.0.0.1:9099';
 const uid = 'cbt-backup-restore-smoke-user';
 const documentPath = 'testSeriesBackupRestoreDrill/synthetic-smoke-record';
 
-if (!projectId || !projectId.startsWith('demo-')) {
-  throw new Error('Refusing backup/restore smoke test without a demo-* project ID.');
+if (projectId !== expectedProjectId) {
+  throw new Error('Refusing backup/restore smoke test outside the exact demo project.');
 }
-if (!firestoreHost || !authHost) {
-  throw new Error('Auth and Firestore Emulator hosts must both be configured.');
+if (firestoreHost !== expectedFirestoreHost || authHost !== expectedAuthHost) {
+  throw new Error('Refusing backup/restore smoke test unless both SDKs target the exact loopback emulators.');
 }
 
-admin.initializeApp({ projectId });
+admin.initializeApp({ projectId }, 'cbt-backup-restore-smoke');
 const db = admin.firestore();
 const auth = admin.auth();
 
 async function seed() {
-  await db.doc(documentPath).set({
+  await auth.createUser({
+    uid,
+    email: 'cbt-backup-restore-smoke@example.invalid',
+    displayName: 'Synthetic CBT Backup Restore Test'
+  });
+  await db.doc(documentPath).create({
     marker: 'railway-mitra-cbt-emulator-backup-restore',
     schemaVersion: 1,
     synthetic: true,
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
-  try {
-    await auth.createUser({
-      uid,
-      email: 'cbt-backup-restore-smoke@example.invalid',
-      displayName: 'Synthetic CBT Backup Restore Test'
-    });
-  } catch (error) {
-    if (error.code !== 'auth/uid-already-exists') throw error;
-  }
   console.log('Seeded synthetic Firestore document and Auth user.');
 }
 
@@ -47,7 +46,7 @@ async function verify() {
     throw new Error('Restored Firestore smoke-test document does not match its expected values.');
   }
   const user = await auth.getUser(uid);
-  if (user.email !== 'cbt-backup-restore-smoke@example.invalid') {
+  if (user.uid !== uid || user.email !== 'cbt-backup-restore-smoke@example.invalid' || user.disabled) {
     throw new Error('Restored Auth smoke-test user does not match its expected values.');
   }
   console.log('Verified synthetic Firestore document and Auth user after import.');

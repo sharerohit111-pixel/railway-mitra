@@ -2,86 +2,73 @@
 
 ## Purpose
 
-This is a local-only rehearsal for the Test Series Auth and Firestore emulators. Firebase Emulator Suite export/import covers supported emulator data (including Auth and Firestore); it does not snapshot the running Cloud Functions process, deployed code, secrets, Razorpay state, production/staging Firebase, or real student data. It is not a substitute for managed Firestore backups or a production restore drill.
+This is a local-only rehearsal for synthetic Test Series Auth and Firestore emulator data. The automated smoke test verifies that a synthetic Auth user and an attempt-shaped Firestore document survive an Emulator Suite export/import round trip. It does not back up Firebase production, staging, Razorpay, real student data, deployed code, Functions runtime, or secrets. It is not a substitute for managed Firestore backups or a production restore drill.
 
-## Existing repository configuration
+## Isolated emulator configuration
 
-- Emulator configuration: `firebase.test-series-emulator.json`
-- Firestore emulator port: `8080`
-- Auth emulator port: `9099`
-- Functions emulator port: `5001`
-- Isolated CBT Functions package: `features/test-series/cloud/functions`
+Use `firebase.test-series-cbt-emulator.json` for this drill. It defines exactly one Functions codebase:
 
-The emulator configuration uses the CBT Firestore Rules file and both Functions codebases. Keep this drill isolated from production credentials and projects.
+- Source: `features/test-series/cloud/functions`
+- Codebase: `test-series`
+- Firestore rules: `features/test-series/cloud/firestore.rules`
+- Auth emulator: `127.0.0.1:9099`
+- Firestore emulator: `127.0.0.1:8080`
+- Functions emulator: `127.0.0.1:5001`
+
+The config intentionally omits the repository's default/GDCE Functions source. The CBT workflow validates that the config contains exactly this one codebase before starting the emulators. The backup/restore smoke step starts only Auth and Firestore.
 
 ## Prerequisites
 
 - Node.js 22
 - Java 21
 - Firebase CLI
-- Dependencies installed for both `functions` and `features/test-series/cloud/functions`
-- A clean local working copy of the repository
-
-Do not put exports inside a tracked source directory. Use a local ignored directory such as `.local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS`. Confirm the directory is ignored before running the drill; never commit emulator exports.
-
-## Automated CI smoke coverage
-
-The `Test Series CBT emulator tests` GitHub Actions workflow also runs a synthetic Auth + Firestore export/import smoke test. It creates one clearly synthetic Auth user and one Firestore document in a `demo-*` emulator project, exports emulator state on clean shutdown, starts a fresh emulator with that export imported, verifies both records, and deletes the synthetic records. The CI test does not connect to a Firebase project or use production credentials. Check the workflow run result before treating the smoke test as passed.
-
-## Create a synthetic local snapshot
-
-1. Start the emulators with the isolated configuration:
+- Dependencies installed only for the isolated CBT Functions package:
 
 ```bash
-npx firebase-tools emulators:start --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt
+npm --prefix features/test-series/cloud/functions install --no-audit --no-fund
 ```
 
-2. In a separate terminal, run only synthetic emulator tests/fixtures against the local endpoints. Do not import production data or use real student/payment records.
+## Synthetic local export/import round trip
 
-3. While the emulators are still running, open a second terminal and export the current local state:
+Run from the repository root. The demo project ID and exact loopback emulator endpoints are mandatory. Keep the export outside the repository checkout.
 
 ```bash
-npx firebase-tools emulators:export .local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt
+BACKUP_ROOT="$(mktemp -d)"
+BACKUP_DIR="$BACKUP_ROOT/export"
+
+npx firebase-tools emulators:exec \
+  --config firebase.test-series-cbt-emulator.json \
+  --project demo-railway-mitra-cbt \
+  --only auth,firestore \
+  --export-on-exit="$BACKUP_DIR" \
+  "node features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js seed"
+
+test -s "$BACKUP_DIR/firebase-export-metadata.json"
+
+npx firebase-tools emulators:exec \
+  --config firebase.test-series-cbt-emulator.json \
+  --project demo-railway-mitra-cbt \
+  --only auth,firestore \
+  --import="$BACKUP_DIR" \
+  "node features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js verify"
+
+rm -rf "$BACKUP_ROOT"
 ```
 
-Alternatively, start the emulators with `--export-on-exit=.local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS` and stop them cleanly with Ctrl+C; the CLI then exports on shutdown. Do not run both methods against the same export directory in one drill.
+The fixture refuses to run without a `demo-*` project and both local emulator host variables. It creates one synthetic Auth user and one document in the test-only `testSeriesBackupRestoreDrill` collection. The verify phase checks both records after import and deletes them from the restored emulator. No OTP is sent and no carrier gateway is contacted.
 
-4. Confirm the export command (or clean shutdown export) completed successfully and inspect the export directory, including `firebase-export-metadata.json`. Confirm the manifest lists the expected supported emulator services; the current config's relevant persisted data is Auth and Firestore. Record the local commit SHA, timestamp, test scenario and export outcome in a local drill note. Keep the export directory out of Git.
+## Automated CI
 
-## Restore into a clean local emulator
+The `Test Series CBT emulator tests` workflow runs the same seed/export/import/verify sequence in `RUNNER_TEMP`. Its main CBT test run starts Auth, Firestore and only the Test Series Functions codebase. The backup/restore phase starts Auth and Firestore only. The workflow does not install or start the default/GDCE Functions source, deploy anything, use Firebase project credentials, enable billing, or contact production services.
 
-1. Stop any running Firebase emulators.
-2. Move the previous local emulator state aside; do not overwrite the only copy.
-3. Start the emulator using the saved export:
+## What this drill proves—and what it does not
 
-```bash
-npx firebase-tools emulators:start --config firebase.test-series-emulator.json --project demo-railway-mitra-cbt --import=.local-emulator-backups/cbt-drill-YYYYMMDD-HHMMSS
-```
+A successful round trip proves only that the tested synthetic Auth identity and Firestore fixture can be exported and restored by the configured local emulators. It does not validate:
 
-4. Run the CBT unit and Firestore Rules emulator tests using the same isolated project ID and test configuration.
-5. Verify the expected synthetic tests, question records, attempts and results are present; verify answer keys remain inaccessible to student rules/client paths.
-6. Stop the emulator and preserve the drill notes. Delete local synthetic exports only after the drill is accepted and no longer needed.
+- Production or staging backup schedules, retention, IAM, monitoring, or restore objectives.
+- Cloud Functions source/runtime, environment configuration, secrets, or deployed versions.
+- Razorpay orders, captures, refunds, or external payment reconciliation state.
+- Production App Check enforcement, real OTP delivery, billing, or 500-user capacity.
+- Completeness of all CBT collections or the safety of restoring a live database.
 
-## Safety checks
-
-- Use a clearly synthetic project ID beginning with `demo-`; do not pass a real Firebase project ID.
-- Never run these commands with production credentials or a production project alias.
-- Never import real users, phone numbers, payment records, provider secrets or production answer keys.
-- Never interpret emulator export success as proof that production backups are enabled.
-- Never restore into a live database as part of this drill.
-- This process does not validate Razorpay external state, cloud IAM, production App Check, real OTP delivery, billing, or 500-user capacity.
-
-## Acceptance record
-
-Record:
-- Source commit SHA and local timestamp.
-- Emulator project ID and configuration file.
-- Synthetic fixture/test scenario.
-- Export command result and saved directory.
-- Restore command result.
-- CBT tests and Firestore Rules test outcomes.
-- Automated Auth/Firestore export-import smoke workflow result, if run.
-- Any missing records or rule regressions.
-- Operator and review outcome.
-
-A successful local drill proves only that the configured supported emulator data (Auth/Firestore for this setup) can be exported/imported for the tested local scenario. Functions source and runtime are recreated from the checked-out code and are not part of the emulator data export. Production backup activation still requires confirmed Firebase project details, approved cost/retention, least-privilege IAM, a monitored backup schedule and a separately approved isolated cloud restore drill.
+The separate CBT emulator tests remain responsible for callable behavior and Firestore Rules regression tests. Production backup activation still requires confirmed Firebase project details, approved cost/retention, least-privilege IAM, a monitored backup schedule, and a separately approved isolated cloud restore drill.

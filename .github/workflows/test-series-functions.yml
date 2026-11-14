@@ -8,6 +8,7 @@ on:
       - "features/test-series/student/**"
       - "features/test-series/admin/**"
       - "firebase.json"
+      - "firebase.test-series-cbt-emulator.json"
       - ".github/workflows/test-series-functions.yml"
   push:
     branches:
@@ -18,6 +19,7 @@ on:
       - "features/test-series/student/**"
       - "features/test-series/admin/**"
       - "firebase.json"
+      - "firebase.test-series-cbt-emulator.json"
       - ".github/workflows/test-series-functions.yml"
 
 jobs:
@@ -30,6 +32,8 @@ jobs:
           node-version: 22
       - name: Validate Firebase codebase configuration
         run: node -e "const c=require('./firebase.json'); if(!Array.isArray(c.functions)||!c.functions.some(x=>x.codebase==='test-series'&&x.source==='features/test-series/cloud/functions')) process.exit(1)"
+      - name: Validate isolated CBT emulator configuration
+        run: node -e "const c=require('./firebase.test-series-cbt-emulator.json'); const f=c.functions||[]; if(f.length!==1||f[0].codebase!=='test-series'||f[0].source!=='features/test-series/cloud/functions'||c.firestore?.rules!=='features/test-series/cloud/firestore.rules'||c.emulators?.singleProjectMode!==true) process.exit(1)"
       - name: Install isolated function dependencies
         working-directory: features/test-series/cloud/functions
         run: npm install --ignore-scripts
