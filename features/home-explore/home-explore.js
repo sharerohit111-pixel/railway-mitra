@@ -45,4 +45,105 @@
   } else {
     mount();
   }
+
+  // Expanded individual calculator shortcuts. Original feature folders remain the source of truth.
+  const mountCalculatorShelf = () => {
+    const explorer = document.querySelector(".rm-feature-explorer");
+    if (!explorer || document.querySelector(".rm-calculator-shelf")) return;
+
+    const groups = [
+      { title: "Track Engineering Calculators", note: "Individual P-Way engineering tools", icon: "🚦", items: [
+        ["Sleeper, Fastening & Ballast Quantity", "🧱", "features/p-way-civil-engineering-tools/sleeper-fastening-ballast-quantity-calculator/index.html", "Estimate sleepers, fittings and ballast quantities."],
+        ["SEJ Gap & Rail Expansion", "🛤️", "features/p-way-civil-engineering-tools/sej-gap-rail-expansion-calculator/index.html", "Estimate temperature-related SEJ gap change."],
+        ["Hot/Cold Weather Patrolling", "🌡️", "features/p-way-civil-engineering-tools/hot-cold-weather-patrolling-calculator/index.html", "Check LWR temperature and patrolling references."],
+        ["Cant & Safe Speed", "📏", "features/p-way-civil-engineering-tools/cant-safe-speed-calculator/index.html", "Calculate cant and theoretical safe speed."],
+        ["Railway Switch Fittings", "🔀", "features/p-way-civil-engineering-tools/switch-fittings-calculator/index.html", "Look up switch fittings and dimensions."],
+        ["Crossing Calculator", "🚦", "features/p-way-civil-engineering-tools/crossing-calculator/index.html", "Look up crossing fittings and components."],
+        ["Versine Calculator", "📐", "features/p-way-civil-engineering-tools/versine-calculator/index.html", "Calculate curve versine from track inputs."]
+      ]},
+      { title: "Allowance Calculators", note: "Open each calculator directly", icon: "💠", items: [
+        ["Dearness Allowance (DA)", "％", "features/allowances/da/index.html", "Calculate Dearness Allowance."],
+        ["DA Arrear Calculator", "＋", "features/allowances/da-arrear/index.html", "Calculate pending DA arrears."],
+        ["House Rent Allowance (HRA)", "🏠", "features/allowances/hra/index.html", "Calculate House Rent Allowance."],
+        ["Transport Allowance (TA)", "🚉", "features/allowances/ta/index.html", "Calculate Transport Allowance."],
+        ["Night Duty Allowance (NDA)", "🌙", "features/allowances/nda/index.html", "Calculate Night Duty Allowance."],
+        ["Overtime Allowance (OTA)", "⏱️", "features/allowances/ota/index.html", "Calculate Overtime Allowance."],
+        ["Kilometrage Allowance (KMA)", "🚴", "features/allowances/kma/index.html", "Calculate kilometre-based allowance."]
+      ]},
+      { title: "Salary & Employee Benefit Calculators", note: "Pay fixation, tax and retirement estimates", icon: "💰", items: [
+        ["Monthly Salary Calculator", "🧾", "features/salary/monthly-salary/", "Estimate monthly salary, allowances and deductions."],
+        ["Promotion & MACP Pay Fixation", "📈", "features/salary/promotion-macp/", "Estimate revised basic pay after promotion or MACP."],
+        ["Retirement Gratuity", "🏦", "employee-benefits-calculators/gratuity-calculator/index.html", "Estimate retirement gratuity."],
+        ["Leave Encashment", "🌴", "employee-benefits-calculators/leave-encashment-calculator/index.html", "Estimate leave encashment."],
+        ["Children's Education Allowance", "🎓", "employee-benefits-calculators/cea-calculator/index.html", "Calculate CEA claims."],
+        ["NPS vs UPS Calculator", "⚖️", "employee-benefits-calculators/nps-vs-ups-calculator/index.html", "Compare NPS and UPS estimates."],
+        ["Income Tax Calculator", "🧮", "features/income-tax/index.html", "Explore old and new tax regime calculations."],
+        ["8th Pay Commission Calculator", "📊", "features/pay-commission-8th/index.html", "Estimate revised pay and arrears."]
+      ]}
+    ];
+
+    const shelf = document.createElement("section");
+    shelf.className = "rm-calculator-shelf";
+    shelf.id = "rmCalculatorShelf";
+    shelf.setAttribute("aria-labelledby", "rmCalculatorShelfTitle");
+    shelf.innerHTML = `
+      <header class="rm-calculator-shelf__header">
+        <div><span class="rm-calculator-shelf__eyebrow">More tools · One-tap access</span><h2 id="rmCalculatorShelfTitle">Explore <span>Every Calculator</span></h2><p>Individual shortcuts to tools already available inside Railway Mitra.</p></div>
+        <button type="button" class="rm-calculator-shelf__rollback" id="rmClassicHomeBtn">Classic Home</button>
+      </header>
+      <div class="rm-calculator-shelf__groups"></div>
+      <p class="rm-calculator-shelf__foot">These are Home Screen shortcuts only. Original folders, pages and calculator logic remain unchanged.</p>
+    `;
+
+    const groupsRoot = shelf.querySelector(".rm-calculator-shelf__groups");
+    groups.forEach((group, groupIndex) => {
+      const block = document.createElement("section");
+      block.className = "rm-calculator-shelf__group";
+      const heading = document.createElement("div");
+      heading.className = "rm-calculator-shelf__group-heading";
+      heading.innerHTML = `<span class="rm-calculator-shelf__group-icon" aria-hidden="true">${group.icon}</span><div><h3>${group.title}</h3><p>${group.note}</p></div><span class="rm-calculator-shelf__count">${group.items.length}</span>`;
+      const grid = document.createElement("div");
+      grid.className = "rm-calculator-shelf__grid";
+      group.items.forEach((item, itemIndex) => {
+        const link = document.createElement("a");
+        link.className = "rm-calculator-shelf__tile";
+        link.href = item[2];
+        link.innerHTML = `<span class="rm-calculator-shelf__tile-icon" aria-hidden="true">${item[1]}</span><span class="rm-calculator-shelf__tile-copy"><strong></strong><small></small></span><span class="rm-calculator-shelf__arrow" aria-hidden="true">↗</span>`;
+        link.querySelector("strong").textContent = item[0];
+        link.querySelector("small").textContent = item[3];
+        grid.appendChild(link);
+      });
+      block.append(heading, grid);
+      groupsRoot.appendChild(block);
+    });
+
+    explorer.insertAdjacentElement("afterend", shelf);
+
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.id = "rmExpandedHomeRestore";
+    restore.className = "rm-expanded-home-restore";
+    restore.textContent = "Show all tools";
+    restore.setAttribute("aria-controls", "rmCalculatorShelf");
+    restore.hidden = true;
+    document.body.appendChild(restore);
+
+    const key = "rm_home_expanded_catalog_hidden_v1";
+    const setClassic = (classic) => {
+      shelf.hidden = classic;
+      restore.hidden = !classic;
+      try { localStorage.setItem(key, classic ? "yes" : "no"); } catch (_) {}
+    };
+    let classic = false;
+    try { classic = localStorage.getItem(key) === "yes"; } catch (_) {}
+    setClassic(classic);
+    shelf.querySelector("#rmClassicHomeBtn").addEventListener("click", () => setClassic(true));
+    restore.addEventListener("click", () => setClassic(false));
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mountCalculatorShelf, { once: true });
+  } else {
+    mountCalculatorShelf();
+  }
 })();
