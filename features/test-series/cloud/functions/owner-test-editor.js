@@ -33,7 +33,18 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
   }
   const title = typeof test.title === "string" ? test.title.trim() : "";
   if (!title || title.length > 160) throw new Error("Test title is invalid");
+  if (typeof test.category !== "string" || !test.category.trim() || test.category.length > 60 ||
+      typeof test.folder !== "string" || !test.folder.trim() || test.folder.length > 120) {
+    throw new Error("Test category or folder is invalid");
+  }
   if (!["mock", "scheduled"].includes(test.mode)) throw new Error("Test mode is invalid");
+  if (test.mode === "scheduled") {
+    const start = test.scheduleStartAt && (test.scheduleStartAt.toDate ? test.scheduleStartAt.toDate() : new Date(test.scheduleStartAt));
+    const end = test.scheduleEndAt && (test.scheduleEndAt.toDate ? test.scheduleEndAt.toDate() : new Date(test.scheduleEndAt));
+    if (!start || !end || !Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
+      throw new Error("Scheduled test window is invalid");
+    }
+  }
   if (!Number.isInteger(test.durationMinutes) || test.durationMinutes < 1 || test.durationMinutes > 240) {
     throw new Error("Test duration is invalid");
   }
@@ -57,6 +68,9 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
       throw new Error("Question " + (index + 1) + " ID is invalid or duplicated");
     }
     ids.add(question.id);
+    if (Object.prototype.hasOwnProperty.call(question, "correctIndex")) {
+      throw new Error("Public question paper must not contain private answer indexes");
+    }
     if (typeof question.text !== "string" || !question.text.trim() || question.text.length > 5000) {
       throw new Error("Question " + (index + 1) + " text is invalid");
     }
