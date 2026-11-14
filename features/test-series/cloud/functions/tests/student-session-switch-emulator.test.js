@@ -65,7 +65,8 @@ async function signInWithEmulatorPhone(auth, phoneNumber) {
     const match = (payload.verificationCodes || [])
       .filter(item => item.phoneNumber === phoneNumber)
       .at(-1);
-    verificationCode = match?.sessionCode || null;
+    verificationCode = match?.code || match?.sessionCode || null;
+    if (match?.sessionInfo) challenge.sessionInfo = match.sessionInfo;
     if (!verificationCode) await delay(20);
   }
 
