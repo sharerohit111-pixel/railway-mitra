@@ -22,6 +22,9 @@ on:
       - "firebase.test-series-cbt-emulator.json"
       - ".github/workflows/test-series-functions.yml"
 
+permissions:
+  contents: read
+
 jobs:
   syntax:
     runs-on: ubuntu-latest
