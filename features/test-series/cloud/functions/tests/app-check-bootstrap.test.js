@@ -33,6 +33,17 @@ test("deployed callable policy requires App Check and emulator bypass needs a de
     true,
     "the emulator marker must not bypass App Check for the real Railway Mitra project"
   );
+  for (const marker of ["K_SERVICE", "K_REVISION", "K_CONFIGURATION"]) {
+    assert.equal(
+      getCallableOptions({
+        FUNCTIONS_EMULATOR: "true",
+        GCLOUD_PROJECT: "demo-railway-mitra-cbt",
+        [marker]: "railway-mitra-test-series"
+      }).enforceAppCheck,
+      true,
+      marker + " identifies a Cloud Run runtime and must prevent the emulator bypass"
+    );
+  }
   assert.equal(
     getCallableOptions({ FUNCTIONS_EMULATOR: "true" }).enforceAppCheck,
     true,
