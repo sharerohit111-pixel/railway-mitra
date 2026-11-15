@@ -2522,9 +2522,10 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
     }
 
     const resumed = await callable("rmGetExamQuestions", { attemptId });
+    const resumedSavedAnswers = Object.fromEntries(resumed.savedAnswerEntries);
     for (const questionId of questionIds) {
-      assert.equal(Object.hasOwn(resumed.savedAnswers, questionId), true);
-      assert.equal(resumed.savedAnswers[questionId], "1");
+      assert.equal(Object.hasOwn(resumedSavedAnswers, questionId), true);
+      assert.equal(resumedSavedAnswers[questionId], "1");
     }
 
     const scored = await callable("rmSubmitExam", { attemptId });
