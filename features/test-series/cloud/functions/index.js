@@ -312,7 +312,7 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!isCanonicalStudentAnswerIndex(question, answer)) {
       throw new HttpsError("invalid-argument", "Answer must be a canonical option index for this question");
     }
-    tx.update(ref, { ["answers." + questionId]: answer, updatedAt: FieldValue.serverTimestamp() });
+    tx.update(ref, new FieldPath("answers", questionId), answer, "updatedAt", FieldValue.serverTimestamp());
   });
   return { saved: true };
 });
