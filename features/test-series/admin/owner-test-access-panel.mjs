@@ -14,7 +14,9 @@ export function initOwnerTestAccessPanel(functions) {
   const auditCall = httpsCallable(functions, "rmOwnerListStudentAccessAudit");
   let accessCursor = null;
   let auditCursor = null;
-  let generation = 0;
+  let accessGeneration = 0;
+  let auditGeneration = 0;
+  let sessionGeneration = 0;
 
   const say = message => { status.textContent = message; };
   const make = (tag, value, className) => {
@@ -61,7 +63,8 @@ export function initOwnerTestAccessPanel(functions) {
   }
 
   async function loadAccess(reset = false) {
-    const current = ++generation;
+    const currentSession = sessionGeneration;
+    const current = ++accessGeneration;
     if (reset) {
       accessCursor = null;
       accessList.replaceChildren();
@@ -82,7 +85,7 @@ export function initOwnerTestAccessPanel(functions) {
     try {
       say("Access records लोड हो रहे हैं…");
       const result = (await listCall(payload)).data || {};
-      if (current !== generation) return;
+      if (current !== accessGeneration || currentSession !== sessionGeneration) return;
       renderAccess(result.items || []);
       accessCursor = result.nextCursor || null;
       byId("rm-admin-access-more").hidden = !result.hasMore;
@@ -93,6 +96,8 @@ export function initOwnerTestAccessPanel(functions) {
   }
 
   async function loadAudit(reset = false) {
+    const currentSession = sessionGeneration;
+    const current = ++auditGeneration;
     if (reset) {
       auditCursor = null;
       auditList.replaceChildren();
@@ -112,6 +117,7 @@ export function initOwnerTestAccessPanel(functions) {
     if (!reset && auditCursor) payload.cursor = auditCursor;
     try {
       const result = (await auditCall(payload)).data || {};
+      if (current !== auditGeneration || currentSession !== sessionGeneration) return;
       (result.items || []).forEach(item => {
         const card = make("article", undefined, "rm-admin-access-item");
         card.append(
@@ -125,6 +131,7 @@ export function initOwnerTestAccessPanel(functions) {
       auditCursor = result.nextCursor || null;
       byId("rm-admin-access-audit-more").hidden = !result.hasMore;
     } catch (error) {
+      if (current !== auditGeneration || currentSession !== sessionGeneration) return;
       say(error.message || "Audit history लोड नहीं हुई।");
     }
   }
@@ -158,6 +165,24 @@ export function initOwnerTestAccessPanel(functions) {
     }
   });
 
+  function reset() {
+    sessionGeneration += 1;
+    accessGeneration += 1;
+    auditGeneration += 1;
+    accessCursor = null;
+    auditCursor = null;
+    accessList.replaceChildren();
+    auditList.replaceChildren();
+    status.textContent = "";
+    byId("rm-admin-access-more").hidden = true;
+    byId("rm-admin-access-audit-more").hidden = true;
+    byId("rm-admin-access-grant-form").reset();
+    byId("rm-admin-access-filter-uid").value = "";
+    byId("rm-admin-access-filter-test").value = "";
+    byId("rm-admin-access-filter-status").value = "";
+    byId("rm-admin-audit-filter-action").value = "";
+  }
+
   byId("rm-admin-access-refresh").addEventListener("click", () => {
     loadAccess(true);
     loadAudit(true);
@@ -172,4 +197,5 @@ export function initOwnerTestAccessPanel(functions) {
     loadAccess(true);
     loadAudit(true);
   });
+  return { reset };
 }
