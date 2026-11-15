@@ -46,6 +46,80 @@
     mount();
   }
 
+
+  // Show verified child tools directly beneath their dashboard folder cards.
+  // The folder card remains a normal link; child shortcuts are separate sibling links.
+  const mountDashboardShortcuts = () => {
+    const grid = document.querySelector(".feature-grid");
+    if (!grid || grid.querySelector(".rm-dashboard-shortcuts")) return;
+
+    const shortcutMap = {
+      "features/salary/index.html": [
+        ["Monthly Salary", "features/salary/monthly-salary/"],
+        ["Promotion & MACP", "features/salary/promotion-macp/"]
+      ],
+      "employee-benefits-calculators/index.html": [
+        ["Gratuity", "employee-benefits-calculators/gratuity-calculator/index.html"],
+        ["Leave Encashment", "employee-benefits-calculators/leave-encashment-calculator/index.html"],
+        ["CEA", "employee-benefits-calculators/cea-calculator/index.html"],
+        ["NPS vs UPS", "employee-benefits-calculators/nps-vs-ups-calculator/index.html"]
+      ],
+      "features/allowances/index.html": [
+        ["DA", "features/allowances/da/index.html"],
+        ["DA Arrear", "features/allowances/da-arrear/index.html"],
+        ["HRA", "features/allowances/hra/index.html"],
+        ["TA", "features/allowances/ta/index.html"],
+        ["NDA", "features/allowances/nda/index.html"],
+        ["OTA", "features/allowances/ota/index.html"],
+        ["KMA", "features/allowances/kma/index.html"]
+      ],
+      "features/p-way-civil-engineering-tools/index.html": [
+        ["Sleeper & Fittings", "features/p-way-civil-engineering-tools/sleeper-fastening-ballast-quantity-calculator/index.html"],
+        ["SEJ Gap", "features/p-way-civil-engineering-tools/sej-gap-rail-expansion-calculator/index.html"],
+        ["Weather Patrolling", "features/p-way-civil-engineering-tools/hot-cold-weather-patrolling-calculator/index.html"],
+        ["Cant & Safe Speed", "features/p-way-civil-engineering-tools/cant-safe-speed-calculator/index.html"],
+        ["Switch Fittings", "features/p-way-civil-engineering-tools/switch-fittings-calculator/index.html"],
+        ["Crossing", "features/p-way-civil-engineering-tools/crossing-calculator/index.html"],
+        ["Versine", "features/p-way-civil-engineering-tools/versine-calculator/index.html"]
+      ],
+      "features/rules/index.html": [
+        ["Rules in English", "features/rules/en/index.html"],
+        ["नियम हिंदी में", "features/rules/hi/index.html"]
+      ],
+      "features/retirement/index.html": [
+        ["NPS vs UPS Calculator", "employee-benefits-calculators/nps-vs-ups-calculator/index.html"]
+      ]
+    };
+
+    grid.querySelectorAll(":scope > .rm-favorite-card").forEach(wrapper => {
+      const card = wrapper.querySelector(":scope > .feature-card");
+      if (!card) return;
+      const key = (card.getAttribute("href") || "").replace(/^\.\//, "").split("?")[0];
+      const items = shortcutMap[key];
+      if (!items || !items.length) return;
+
+      const tray = document.createElement("div");
+      tray.className = "rm-dashboard-shortcuts";
+      tray.setAttribute("aria-label", "Quick links inside " + (card.querySelector("h3")?.textContent.trim() || "folder"));
+      items.forEach(([label, href], index) => {
+        const link = document.createElement("a");
+        link.className = "rm-dashboard-shortcut";
+        link.href = href;
+        link.textContent = label;
+        link.style.setProperty("--rm-chip-delay", (index * -0.43) + "s");
+        link.addEventListener("click", event => event.stopPropagation());
+        tray.appendChild(link);
+      });
+      wrapper.appendChild(tray);
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mountDashboardShortcuts, { once: true });
+  } else {
+    mountDashboardShortcuts();
+  }
+
   // Expanded individual calculator shortcuts. Original feature folders remain the source of truth.
   const mountCalculatorShelf = () => {
     const explorer = document.querySelector(".rm-feature-explorer");
