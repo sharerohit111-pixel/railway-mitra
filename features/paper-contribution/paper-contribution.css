@@ -28,3 +28,7 @@
 .rm-paper-home-cta__button{display:flex;align-items:center;justify-content:center;gap:10px;min-height:40px;margin-top:12px;padding:8px 12px;border:1px solid #63eaff;border-radius:12px;background:linear-gradient(110deg,#087ab8,#6544d9 60%,#c22a9d);color:#fff;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 0 10px #35e8ff22}
 .rm-paper-home-cta__button span{font-size:18px}
 @media(max-width:380px){.rm-paper-home-cta{gap:10px;padding:14px 11px}.rm-paper-home-cta__icon{flex-basis:40px;width:40px;height:40px;font-size:22px}.rm-paper-home-cta h2{font-size:16px}}
+
+.rm-paper-header-actions{display:flex;align-items:center;gap:12px}
+.rm-paper-lang{border:1px solid #53def5;border-radius:999px;padding:8px 13px;background:linear-gradient(110deg,#087ab8,#6544d9 60%,#c22a9d);color:#fff;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 12px #35e8ff22}
+.rm-paper-form input:optional,.rm-paper-form select:optional{outline-offset:2px}
