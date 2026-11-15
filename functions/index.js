@@ -1172,6 +1172,55 @@ exports.submitPreviousPaper = onCall({ region: REGION, timeoutSeconds: 120, memo
   }) };
 });
 
+
+exports.adminRecordEmailPaperContribution = onCall({ region: REGION, timeoutSeconds: 120, memory: "512MiB" }, async request => {
+  requireAdmin(request);
+  const contributorEmail = cleanString(request.data.contributorEmail, "Contributor email", 254).toLowerCase();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(contributorEmail)) {
+    throw new HttpsError("invalid-argument", "Enter the contributor's registered Railway Mitra email.");
+  }
+  const examCategory = cleanString(request.data.examCategory, "Exam category", 40);
+  if (!PAPER_CATEGORIES.includes(examCategory)) throw new HttpsError("invalid-argument", "Choose LDCE, GDCE or Other Competitive Exam.");
+  const examName = optionalPaperString(request.data.examName, "Exam name", 140);
+  const heldOn = optionalPaperDate(request.data.heldOn);
+  const originalFileName = cleanString(request.data.fileName, "PDF file name", 120);
+  const encoded = request.data.fileBase64;
+  if (typeof encoded !== "string" || encoded.length < 8 || encoded.length > Math.ceil(MAX_PAPER_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
+    throw new HttpsError("invalid-argument", "Please select a valid PDF up to 5 MB.");
+  }
+  const pdf = Buffer.from(encoded, "base64");
+  if (!pdf.length || pdf.length > MAX_PAPER_BYTES || pdf.subarray(0, 5).toString("ascii") !== "%PDF-") {
+    throw new HttpsError("invalid-argument", "The selected file is not a valid PDF or exceeds 5 MB.");
+  }
+  let user;
+  try { user = await require("firebase-admin/auth").getAuth().getUserByEmail(contributorEmail); }
+  catch (error) {
+    if (error.code === "auth/user-not-found") throw new HttpsError("not-found", "No Railway Mitra account is registered with this email.");
+    throw error;
+  }
+  const fileHash = crypto.createHash("sha256").update(pdf).digest("hex");
+  const ref = db.collection("previousPaperSubmissions").doc();
+  const storagePath = "previous-paper-submissions/" + user.uid + "/" + ref.id + ".pdf";
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  await bucket.file(storagePath).save(pdf, {
+    resumable: false, validation: "crc32c",
+    metadata: { contentType: "application/pdf", cacheControl: "private, no-store",
+      metadata: { ownerUid: user.uid, submissionId: ref.id, source: "email-admin-entry" } }
+  });
+  try {
+    await ref.set({
+      uid: user.uid, contributorName: String(user.displayName || user.email || "Railway Mitra Contributor").slice(0, 80),
+      contributorEmail, source: "email", fileHash, examCategory, examName, heldOn,
+      originalFileName, fileSize: pdf.length, storagePath, status: "received",
+      receivedByAdmin: request.auth.uid, createdAt: FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    await bucket.file(storagePath).delete().catch(() => {});
+    throw error;
+  }
+  return { success: true, submission: paperSummary(ref.id, { examCategory, examName, heldOn, originalFileName, fileSize: pdf.length, status: "received" }) };
+});
+
 exports.listMyPreviousPaperSubmissions = onCall({ region: REGION }, async request => {
   const uid = requireUser(request);
   const snap = await db.collection("previousPaperSubmissions").where("uid", "==", uid).limit(50).get();
