@@ -333,10 +333,12 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     if (a.status !== "in_progress") throw new HttpsError("failed-precondition", "Attempt cannot be submitted");
     const expiresAt = date(a.expiresAt);
     if (!expiresAt || !Number.isFinite(expiresAt.getTime())) throw new HttpsError("failed-precondition", "Attempt deadline is missing or invalid");
-    const [testSnap, keySnap, paperSnap] = await Promise.all([
+    const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+    const [testSnap, keySnap, paperSnap, activeSnap] = await Promise.all([
       tx.get(db.doc("testSeriesTests/" + a.testId)),
       tx.get(db.doc("testSeriesAnswerKeys/" + a.testId)),
-      tx.get(db.doc("testSeriesQuestionSets/" + a.testId))
+      tx.get(db.doc("testSeriesQuestionSets/" + a.testId)),
+      tx.get(activeRef)
     ]);
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
     if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
@@ -377,7 +379,12 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const score = correct * scoring.marksPerQuestion - wrong * scoring.negativeMarks;
     tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions });
     tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions, submittedAt: FieldValue.serverTimestamp() });
-    tx.set(db.doc("testSeriesActiveSessions/" + uid), { uid, status: "completed", attemptId, testId: a.testId, completedAt: FieldValue.serverTimestamp() });
+    // An expired older attempt may be submitted after the student has already
+    // started another exam. Never let that late submission overwrite the newer
+    // active-session pointer.
+    if (activeSnap.exists && activeSnap.data().uid === uid && activeSnap.data().attemptId === attemptId) {
+      tx.set(activeRef, { uid, status: "completed", attemptId, testId: a.testId, completedAt: FieldValue.serverTimestamp() });
+    }
     return { submitted: true, timedOut, correct, wrong, unattempted, score, totalQuestions };
   });
 });
