@@ -143,6 +143,10 @@ The provider snapshot must identify the underlying payment as captured (`capture
 
 The CBT Firestore Emulator regression sends a raw-body-HMAC-verified full-refund webhook through the same handler and ledger processor, verifies that the student catalogue no longer reports the test as unlocked, confirms `rmStartExam` denies access, and checks that a replay is acknowledged only against the intact revoked ledger. Partial refunds currently remain recorded without revoking access; that is the present product policy and must be explicitly reviewed before real paid tests launch.
 
+## Paid entitlement cumulative-refund validation
+
+The shared `validatePaidEntitlement` check is used both when the student catalogue labels a paid test as unlocked and inside the transactional `rmStartExam` authorization path. In addition to matching the active entitlement, captured payment and paid order, it validates the payment ledger's cumulative `amountRefunded` field. Older captured-payment records with the field absent are treated as zero for backward compatibility. If present, the value must be a safe integer from zero up to (but not including) the original payment amount. A captured-status record with a full, negative, fractional, non-finite, over-payment or non-numeric refund total is treated as inconsistent and cannot unlock or start a paid test. Legitimate partial refunds continue to retain access under the current product policy; a full refund must be reflected as `status: "refunded"` with a revoked entitlement by the refund ledger. Unit regressions cover legacy records, partial refunds and malformed/full cumulative totals. This validation is a fail-closed consistency check, not a substitute for reconciling provider records before production launch.
+
 ## Test Series CI token permissions
 
 The automated Test Series Functions validation and CBT Emulator workflows grant the GitHub Actions token only `contents: read`. Their syntax, Owner/student regression and emulator checks do not require repository write access. A regression test in `functions/tests/load-test-workflow-guard.test.js` keeps this least-privilege policy explicit for both workflows.

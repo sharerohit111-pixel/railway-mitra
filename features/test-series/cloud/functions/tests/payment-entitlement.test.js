@@ -93,6 +93,36 @@ test("rejects any mismatch or non-captured state in the payment ledger", () => {
   }
 });
 
+test("accepts a valid partial refund while the captured payment remains active", () => {
+  const records = validRecords();
+  const result = validatePaidEntitlement({
+    ...records,
+    payment: { ...records.payment, amountRefunded: 12000 }
+  });
+  assert.equal(result.valid, true);
+});
+
+test("rejects a full or malformed cumulative refund total on a captured payment", () => {
+  const records = validRecords();
+  for (const amountRefunded of [
+    49900,
+    50000,
+    -1,
+    49900.5,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    null,
+    "12000"
+  ]) {
+    const result = validatePaidEntitlement({
+      ...records,
+      payment: { ...records.payment, amountRefunded }
+    });
+    assert.equal(result.valid, false, "amountRefunded=" + String(amountRefunded));
+    assert.equal(result.reason, "payment_ledger_mismatch");
+  }
+});
+
 test("rejects any mismatch or non-paid state in the provider order ledger", () => {
   const records = validRecords();
   for (const order of [

@@ -42,8 +42,17 @@ function validatePaidEntitlement({ uid, testId, entitlement, payment, order } = 
     return { valid: false, reason: "invalid_entitlement_amount_or_currency" };
   }
 
+  // A legacy captured-payment record without amountRefunded represents zero.
+  // When the field exists, it must be a valid partial-refund total. A stale
+  // "captured" status must never keep access active after a full refund.
+  const amountRefunded = payment && payment.amountRefunded === undefined
+    ? 0
+    : payment && payment.amountRefunded;
   const paymentMatches = payment &&
     payment.status === "captured" &&
+    Number.isSafeInteger(amountRefunded) &&
+    amountRefunded >= 0 &&
+    amountRefunded < amount &&
     payment.paymentId === refs.paymentId &&
     payment.razorpayOrderId === refs.orderId &&
     payment.uid === uid &&
