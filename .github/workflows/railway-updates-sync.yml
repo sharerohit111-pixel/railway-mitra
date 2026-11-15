@@ -21,7 +21,7 @@ concurrency:
 jobs:
   sync-official-notices:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout Railway Mitra
         uses: actions/checkout@v4
