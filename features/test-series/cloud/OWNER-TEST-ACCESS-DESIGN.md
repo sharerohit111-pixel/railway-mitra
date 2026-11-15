@@ -66,10 +66,12 @@ Manual access is a separate source and must not overwrite, synthesize, or mutate
 Student access resolution must explicitly distinguish:
 1. verified paid entitlement (existing strict payment/order/refund consistency checks remain authoritative);
 2. configured free first-attempt claim (existing one-time claim rules remain authoritative);
-3. active Owner manual grant for the exact student + test, within its expiry;
+3. active Owner manual grant for the exact student + test, within its expiry, but only for a published zero-price test that is not the configured one-time free test;
 4. otherwise denied.
 
-A manual grant must never mark a payment as paid, unlock a refunded payment, reset a consumed free claim, or extend an in-progress attempt. Revoking manual access blocks future starts/resumes only according to a reviewed policy; it must not silently delete or rewrite an already-started attempt. The final product policy for active attempts at revoke time must be explicit and tested before enabling the feature.
+A manual grant is never an alternate payment method: any test with a positive price must pass the existing captured-payment + paid-order + entitlement + refund-consistency checks. A grant cannot unlock a paid test even if the manual-access document is active. The configured free test must always use the student's existing one-time free claim; a manual grant cannot create, reset or replace that claim. Manual grants are limited to separate zero-price complimentary tests.
+
+A manual grant must never mark a payment as paid, unlock a refunded payment, reset a consumed free claim, or extend an in-progress attempt. Revoking manual access blocks future starts/resumes only according to a reviewed policy; it must not silently delete or rewrite an already-started attempt. The implemented policy is: revocation or expiry blocks creation of a new manual-access attempt, but does not delete or extend an already-started attempt. That same attempt may resume only until its original server deadline; all answer writes and submission remain bound to the original attempt and deadline. This policy must remain covered by emulator regression tests.
 
 ## UI requirements (currently disabled)
 
