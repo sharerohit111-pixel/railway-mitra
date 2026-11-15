@@ -2453,12 +2453,17 @@ test("a fully refunded captured payment stays locked in the catalogue and rmStar
 test("CBT save, resume and scoring preserve prototype-sensitive question IDs as literal fields", async () => {
   const specialTestId = "emulator-prototype-question-id";
   const attemptId = "emulator-prototype-question-attempt";
+  const unansweredAttemptId = "emulator-prototype-question-unanswered-attempt";
   const questionIds = ["__proto__", "constructor", "toString"];
   const testRef = db.doc("testSeriesTests/" + specialTestId);
   const paperRef = db.doc("testSeriesQuestionSets/" + specialTestId);
   const keyRef = db.doc("testSeriesAnswerKeys/" + specialTestId);
   const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
   const resultRef = db.doc("testSeriesResults/" + attemptId);
+  const unansweredAttemptRef = db.doc("testSeriesAttempts/" + unansweredAttemptId);
+  const unansweredResultRef = db.doc("testSeriesResults/" + unansweredAttemptId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
   const answerQuestions = {};
   for (const questionId of questionIds) {
     Object.defineProperty(answerQuestions, questionId, {
@@ -2525,13 +2530,36 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
     assert.equal(scored.correct, questionIds.length);
     assert.equal(scored.wrong, 0);
     assert.equal(scored.score, questionIds.length * 2);
+
+    // An empty answer map must not inherit Object.prototype members for special IDs.
+    await unansweredAttemptRef.set({
+      uid,
+      testId: specialTestId,
+      mode: "mock",
+      status: "in_progress",
+      startedAt: new Date(),
+      expiresAt: new Date(Date.now() + 10 * 60_000),
+      answers: {}
+    });
+    const unansweredPayload = await callable("rmGetExamQuestions", { attemptId: unansweredAttemptId });
+    assert.deepEqual(unansweredPayload.savedAnswers, {});
+    const unanswered = await callable("rmSubmitExam", { attemptId: unansweredAttemptId });
+    assert.equal(unanswered.submitted, true);
+    assert.equal(unanswered.correct, 0);
+    assert.equal(unanswered.wrong, 0);
+    assert.equal(unanswered.unattempted, questionIds.length);
+    assert.equal(unanswered.score, 0);
   } finally {
     await Promise.all([
       testRef.delete().catch(() => {}),
       paperRef.delete().catch(() => {}),
       keyRef.delete().catch(() => {}),
       attemptRef.delete().catch(() => {}),
-      resultRef.delete().catch(() => {})
+      resultRef.delete().catch(() => {}),
+      unansweredAttemptRef.delete().catch(() => {}),
+      unansweredResultRef.delete().catch(() => {})
     ]);
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
   }
 });
