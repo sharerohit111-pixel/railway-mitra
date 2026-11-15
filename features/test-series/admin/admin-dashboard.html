@@ -32,6 +32,34 @@
       <button type="button" disabled aria-disabled="true" title="यह सुविधा अभी उपलब्ध नहीं है"><i>☁️</i><b>Cloud Backup</b><small>अभी उपलब्ध नहीं · विकास बाकी</small></button>
       <button type="button" disabled aria-disabled="true" title="यह सुविधा अभी उपलब्ध नहीं है"><i>⚙️</i><b>System Settings</b><small>अभी उपलब्ध नहीं · विकास बाकी</small></button>
     </div>
+    <section id="rm-admin-access-panel" class="rm-admin-panel" hidden>
+      <h3>Test Access Management</h3>
+      <p>केवल प्रकाशित और ₹0 मूल्य वाले complimentary tests के लिए Owner access दें। Paid tests और configured first-free-test claim इस सुविधा से bypass नहीं होंगे। हर बदलाव का कारण Audit Log में सुरक्षित होगा।</p>
+      <form id="rm-admin-access-grant-form">
+        <div class="rm-admin-form-grid">
+          <label>Student Firebase UID<input id="rm-admin-access-student-uid" required maxlength="128" pattern="[A-Za-z0-9_-]{1,128}" autocomplete="off" placeholder="Student UID"></label>
+          <label>Published Test ID<input id="rm-admin-access-test-id" required maxlength="100" pattern="[A-Za-z0-9_-]{1,100}" autocomplete="off" placeholder="Test ID"></label>
+          <label>Expiry (वैकल्पिक)<input id="rm-admin-access-expiry" type="datetime-local"></label>
+        </div>
+        <label>Grant का कारण<textarea id="rm-admin-access-reason" required minlength="5" maxlength="300" rows="2" placeholder="जैसे: Approved complimentary attempt"></textarea></label>
+        <button id="rm-admin-access-grant-submit" class="rm-admin-primary" type="submit">Grant Complimentary Access</button>
+      </form>
+      <div id="rm-admin-access-status" class="rm-admin-status" role="status" aria-live="polite"></div>
+      <h4>Access Records</h4>
+      <div class="rm-admin-form-grid">
+        <label>Student UID Filter<input id="rm-admin-access-filter-uid" maxlength="128" placeholder="Optional UID"></label>
+        <label>Test ID Filter<input id="rm-admin-access-filter-test" maxlength="100" placeholder="Optional Test ID"></label>
+        <label>Status Filter<select id="rm-admin-access-filter-status"><option value="">All statuses</option><option value="active">Active</option><option value="revoked">Revoked</option></select></label>
+        <button id="rm-admin-access-refresh" type="button">Refresh Access & Audit</button>
+        <button id="rm-admin-access-clear-filters" type="button">Clear Filters</button>
+      </div>
+      <div id="rm-admin-access-list" class="rm-admin-payments-list" aria-live="polite"></div>
+      <button id="rm-admin-access-more" type="button" hidden>Load More Access</button>
+      <h4>Append-only Audit History</h4>
+      <label>Audit Action Filter<select id="rm-admin-audit-filter-action"><option value="">All actions</option><option value="grant">Grant</option><option value="revoke">Revoke</option></select></label>
+      <div id="rm-admin-access-audit-list" class="rm-admin-payments-list" aria-live="polite"></div>
+      <button id="rm-admin-access-audit-more" type="button" hidden>Load More Audit</button>
+    </section>
     <section id="rm-admin-tests-panel" class="rm-admin-panel" hidden>
       <h3>Test Management</h3>
       <div class="rm-admin-panel" aria-label="Free test configuration">
