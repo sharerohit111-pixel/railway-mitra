@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>Seniority & Transfer Advisor | Railway Mitra</title><link rel="stylesheet" href="advisor.css?v=1"></head>
+<body><main class="shell">
+<a class="back" href="../../app.html">← Back to Railway Mitra</a>
+<header><span class="eyebrow">EMPLOYEE SERVICE · CASE REVIEW</span><h1>Seniority &amp; Transfer Advisor</h1><p>Organise your posting and transfer details, identify the rules and documents to verify, and prepare a clear case summary.</p></header>
+<section class="notice"><strong>Important:</strong> This tool provides a preliminary checklist, not an official eligibility decision. Seniority consequences depend on the applicable Railway Board orders, cadre, recruitment channel, transfer type and competent authority's decision. Verify every conclusion against current official instructions.</section>
+<form id="caseForm">
+<section class="panel"><h2>1. Employee details</h2><div class="grid">
+<label>Employee name<input name="name" autocomplete="name" placeholder="Optional"></label>
+<label>Department<select name="department" required><option value="">Select department</option><option>Engineering</option><option>Mechanical</option><option>Electrical</option><option>Operating</option><option>Commercial</option><option>Signal & Telecom</option><option>Other</option></select></label>
+<label>Designation / cadre<input name="designation" required placeholder="e.g. Track Maintainer"></label>
+<label>Pay level<input name="level" placeholder="e.g. Level 1 / Level 4"></label>
+<label>Category<select name="category"><option value="">Select (optional)</option><option>UR</option><option>SC</option><option>ST</option><option>OBC</option><option>EWS</option></select></label>
+<label>Recruitment / appointment date<input name="appointment" type="date"></label>
+</div></section>
+<section class="panel"><h2>2. Current posting</h2><div class="grid">
+<label>Railway zone<input name="zone" placeholder="e.g. NWR"></label>
+<label>Division<input name="division" placeholder="e.g. Bikaner"></label>
+<label>Station / unit<input name="station" placeholder="Station or unit"></label>
+<label>Section / department unit<input name="section" placeholder="Section / gang / unit"></label>
+<label>Current posting date<input name="posting" type="date"></label>
+<label>Present cadre seniority position<input name="seniority" placeholder="If known; optional"></label>
+</div></section>
+<section class="panel"><h2>3. Transfer case</h2><div class="grid">
+<label>Transfer type<select name="type" required><option value="">Select transfer type</option><option>Own Request Transfer</option><option>Mutual Transfer</option><option>Administrative Transfer</option><option>Medical / compassionate grounds</option><option>Other</option></select></label>
+<label>Requested Railway / zone<input name="targetZone" placeholder="Destination zone"></label>
+<label>Requested division / station<input name="target" placeholder="Destination division or station"></label>
+<label>Reason for request<select name="reason"><option value="">Select reason (optional)</option><option>Family circumstances</option><option>Medical grounds</option><option>Spouse ground</option><option>Personal request</option><option>Administrative requirement</option><option>Other</option></select></label>
+<label class="wide">Case details<textarea name="details" rows="4" placeholder="Describe your situation, any order/reference number, and what you want to know. Do not enter passwords, bank details or full PF/employee IDs."></textarea></label>
+</div><button class="primary" type="submit">Generate my case review</button><button class="secondary" type="reset">Clear form</button></section>
+</form>
+<section id="result" class="panel result" hidden aria-live="polite"><h2>Your case summary</h2><div id="summary"></div><div class="actions"><button id="copy" class="primary" type="button">Copy summary</button><button id="print" class="secondary" type="button">Print / Save PDF</button></div></section>
+<footer>Railway Mitra · Owned &amp; Developed by Rohit Kumar</footer>
+</main><script src="advisor.js?v=1"></script></body></html>
