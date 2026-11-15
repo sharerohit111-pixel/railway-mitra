@@ -1044,7 +1044,8 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
   return {
     success: true,
     retainedPaymentRecords: payments.size,
-    deletedFeedbackThreads: feedback.size
+    deletedFeedbackThreads: feedback.size,
+    deletedPreviousPapers: paperSubmissions.size
   };
 });
 
@@ -1162,6 +1163,6 @@ exports.adminGetPreviousPaperDownloadUrl = onCall({ region: REGION }, async requ
   if (!snap.exists) throw new HttpsError("not-found", "Previous paper submission not found.");
   const item = snap.data();
   const [url] = await require("firebase-admin/storage").getStorage().bucket().file(item.storagePath)
-    .getSignedUrl({ action: "read", expires: Date.now() + 5 * 60 * 1000, version: "v4" });
+    .getSignedUrl({ action: "read", expires: Date.now() + 5 * 60 * 1000, version: "v4", responseDisposition: 'attachment; filename="railway-mitra-previous-paper.pdf"' });
   return { url, expiresInSeconds: 300, fileName: item.originalFileName || "previous-paper.pdf" };
 });
