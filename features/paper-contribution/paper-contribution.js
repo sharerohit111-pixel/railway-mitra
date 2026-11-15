@@ -101,20 +101,19 @@ document.getElementById("paperEmailSubmit").addEventListener("click", async () =
  const heldOn=document.getElementById("paperHeldOn").value;
  const recipient="sharerohit111@gmail.com";
  const subject="[Railway Mitra] "+category+" Previous Paper"+(examName?" - "+examName:"");
- const body="To: "+recipient+"\n\nHello Railway Mitra Team,\n\nI am sharing my previous exam paper. Please review it for the Railway Mitra paper contribution and rewards programme.\n\nExam Category: "+category+"\nPaper / Exam Name: "+(examName||"Not provided")+"\nExam Date: "+(heldOn||"Not provided")+"\nPDF File: "+file.name+"\n\nI confirm that I am permitted to share this paper and that it does not contain unnecessary personal information.\n\nThank you.";
+ const body="To: "+recipient+"\n\nHello Railway Mitra Team,\n\nI am sharing my previous exam paper for review under the Railway Mitra contribution programme.\n\nExam Category: "+category+"\nPaper / Exam Name: "+(examName||"Not provided")+"\nExam Date: "+(heldOn||"Not provided")+"\nPDF File: "+file.name+"\n\nI confirm that I am permitted to share this paper and that it contains no unnecessary personal information.\n\nThank you.";
  const button=document.getElementById("paperEmailSubmit");
  button.disabled=true;message.classList.remove("error");
  try{
-  if(navigator.canShare && navigator.share && navigator.canShare({files:[file]})){
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
    await navigator.share({files:[file],title:subject,text:body});
-   message.textContent=language==="hi"?"शेयर मेन्यू खुल गया है। Gmail चुनें; प्राप्तकर्ता, विषय, विवरण और चुनी हुई PDF साथ साझा की जाएँगी। भेजने से पहले Gmail में जाँच लें।":"Share menu opened. Choose Gmail; the recipient, subject, details and selected PDF are included for sharing. Review before sending.";
+   message.textContent=language==="hi"?"शेयर मेन्यू खुल गया है। Gmail चुनें। संदेश और PDF साथ साझा होंगे; Gmail में प्राप्तकर्ता sharerohit111@gmail.com भरकर भेजें।":"Share menu opened. Choose Gmail. The message and PDF are shared together; enter sharerohit111@gmail.com as recipient in Gmail and send.";
   }else{
-   const mailto="mailto:"+recipient+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
-   window.location.href=mailto;
-   message.textContent=language==="hi"?"ईमेल ड्राफ्ट खुल गया है। इस विकल्प में PDF अपने आप Attach नहीं हो सकती; कृपया PDF Attach करके भेजें।":"Email draft opened. This fallback cannot attach the PDF automatically; please attach it before sending.";
+   window.location.href="mailto:"+recipient+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+   message.textContent=language==="hi"?"Gmail/Email ड्राफ्ट खुल गया है और प्राप्तकर्ता, विषय व पेपर की जानकारी भरी है। चुनी हुई PDF को Attach करके भेजें।":"Email draft opened with recipient, subject and paper details. Attach the selected PDF and send.";
   }
  }catch(error){
-  if(error?.name!=="AbortError") message.textContent=language==="hi"?"शेयर मेन्यू नहीं खुल पाया। सामान्य Upload विकल्प इस्तेमाल करें।":"Could not open the share menu. Please use the normal Upload option.";
+  if(error?.name!=="AbortError") message.textContent=language==="hi"?"शेयर मेन्यू नहीं खुल पाया। Email विकल्प के लिए सामान्य Upload बटन इस्तेमाल करें।":"Could not open the share menu. Please use the normal Upload option.";
  }finally{button.disabled=false;}
 });
 document.getElementById("paperRefresh").addEventListener("click",loadHistory);
