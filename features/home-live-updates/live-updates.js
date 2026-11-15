@@ -16,7 +16,7 @@
   section.innerHTML = '<span class="rm-live-updates__label"><i class="rm-live-updates__dot" aria-hidden="true"></i><span>🔔 LATEST UPDATES</span></span><div class="rm-live-updates__viewport"><div class="rm-live-updates__track" aria-live="off"></div></div>';
 
   const cards = Array.from(grid.children).filter(el => el.classList.contains("feature-card"));
-  const anchor = cards[4] || cards[cards.length - 1];
+  const anchor = cards[2] || cards[cards.length - 1];
   if (anchor) anchor.insertAdjacentElement("afterend", section);
   else grid.appendChild(section);
   section.style.gridColumn = "1 / -1";
