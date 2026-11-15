@@ -1583,6 +1583,38 @@ test("non-owner cannot create a test", async () => {
 });
 
 
+test("manual Owner access never bypasses paid payment-ledger authorization", async () => {
+  const paidTestId = "emulator-manual-must-not-unlock-paid";
+  const accessId = require("../owner-test-access").manualAccessDocumentId(uid, paidTestId);
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  const accessRef = db.doc("testSeriesManualAccess/" + accessId);
+  try {
+    await testRef.set({
+      title: "Paid test manual-access boundary",
+      status: "published",
+      price: 499,
+      mode: "mock",
+      durationMinutes: 10,
+      questionCount: 1
+    });
+    await accessRef.set({
+      uid,
+      testId: paidTestId,
+      status: "active",
+      source: "owner_manual",
+      expiresAt: null
+    });
+    await assert.rejects(
+      callable("rmStartExam", { testId: paidTestId }),
+      error => error.code === "functions/permission-denied"
+    );
+    assert.equal((await db.collection("testSeriesAttempts").where("uid", "==", uid).where("testId", "==", paidTestId).get()).empty, true);
+  } finally {
+    await accessRef.delete().catch(() => {});
+    await testRef.delete().catch(() => {});
+  }
+});
+
 test("captured payment ledger grants one paid entitlement and deduplicates webhook retries", async () => {
   const paidTestId = "emulator-payment-ledger-test";
   const orderId = "order_ledger_primary";
