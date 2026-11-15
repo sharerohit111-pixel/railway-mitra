@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>Previous Paper Inbox | Railway Mitra Admin</title><link rel="stylesheet" href="../../assets/css/main.css"><link rel="stylesheet" href="./paper-contribution.css?v=2"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>Previous Paper Inbox | Railway Mitra Admin</title><link rel="stylesheet" href="../../assets/css/main.css"><link rel="stylesheet" href="./paper-contribution.css?v=3"></head>
 <body class="rm-paper-page">
 <header class="rm-paper-header"><a href="../../index.html" class="rm-paper-brand"><span>🚆</span><b>Railway Mitra · Admin</b></a><a href="../../app.html" class="rm-paper-home">⌂ App</a></header>
 <main class="rm-paper-shell">
@@ -8,14 +8,14 @@
 <section id="emailContributionForm" class="rm-paper-panel" hidden>
 <h2>Record an Email Contribution</h2>
 <p>After receiving a paper by email, select the PDF, enter the contributor's registered Railway Mitra email and details. The PDF will be stored privately and will enter the same approval and rewards flow.</p>
-<form id="emailPaperForm">
-<label>Contributor's registered email<input id="emailContributorAddress" type="email" required maxlength="254" placeholder="employee@example.com"></label>
-<label>Exam category<select id="emailPaperCategory" required><option value="LDCE">Railway LDCE</option><option value="GDCE">Railway GDCE</option><option value="Other Competitive Exam">Other Competitive Exam</option></select></label>
-<label>Paper / Exam name<input id="emailPaperName" maxlength="140" placeholder="e.g. GDCE JE Civil"></label>
-<label>Exam date<input id="emailPaperDate" type="date"></label>
-<label>Received PDF<input id="emailPaperFile" type="file" accept="application/pdf,.pdf" required></label>
-<button class="rm-paper-submit" type="submit" id="emailPaperSave">Save Email Contribution for Review</button>
-<p id="emailPaperMessage" class="rm-paper-message" role="status"></p>
+<form id="emailPaperForm" class="rm-email-form">
+<div class="rm-email-field"><label for="emailContributorAddress">1. Contributor's registered email</label><input id="emailContributorAddress" type="email" required maxlength="254" placeholder="employee@example.com" autocomplete="email"></div>
+<div class="rm-email-field"><label for="emailPaperCategory">2. Exam category</label><select id="emailPaperCategory" required><option value="LDCE">Railway LDCE · 200 points</option><option value="GDCE">Railway GDCE · 150 points</option><option value="Other Competitive Exam">Other Competitive Exam · 50 points</option></select></div>
+<div class="rm-email-field"><label for="emailPaperName">3. Paper / Exam name</label><input id="emailPaperName" maxlength="140" placeholder="e.g. GDCE JE Civil"></div>
+<div class="rm-email-field"><label for="emailPaperDate">4. Exam date</label><input id="emailPaperDate" type="date"></div>
+<div class="rm-email-field rm-email-file"><label for="emailPaperFile">5. Received PDF</label><input id="emailPaperFile" type="file" accept="application/pdf,.pdf" required><small>Select the PDF attachment downloaded from the contributor's email. Maximum 5 MB.</small></div>
+<button class="rm-paper-submit rm-email-save" type="submit" id="emailPaperSave">Save Email Contribution for Review <span aria-hidden="true">→</span></button>
+<p id="emailPaperMessage" class="rm-paper-message" role="status" aria-live="polite"></p>
 </form></section>
 <section id="adminInbox" class="rm-paper-panel" hidden><div class="rm-paper-panel-title"><span>📚</span><div><h2>Received Papers</h2><p>Latest 100 submissions</p></div><button id="adminRefresh" class="rm-paper-refresh" type="button">↻</button></div><div id="adminList" class="rm-paper-history-list"></div></section>
 </main>
