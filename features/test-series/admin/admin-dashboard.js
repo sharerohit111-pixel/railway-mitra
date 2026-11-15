@@ -7,6 +7,7 @@ import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
+import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 
 export function initOwnerAdminDashboard(auth, functions) {
   const el = id => document.getElementById(id);
@@ -109,6 +110,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       login.hidden = true;
       setup.hidden = true;
       home.hidden = false;
+      initOwnerTestAccessPanel(functions);
       el("rm-admin-owner-email").textContent = authorization.email || user.email || "Owner";
       el("rm-admin-module-status").textContent = "Login सफल। वास्तविक डेटा और बदलाव तभी उपलब्ध होंगे जब server-side Owner authorization तथा cloud modules deploy होंगे।";
     },
@@ -170,6 +172,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       status(error.message || "Sign-out could not be confirmed. The Owner dashboard remains locked; retry sign-out before continuing.");
     }
   });
+  const accessPanel = el("rm-admin-access-panel");
   const testsPanel = el("rm-admin-tests-panel");
   const testsList = el("rm-admin-tests-list");
   const testsMore = el("rm-admin-tests-more");
@@ -1403,12 +1406,15 @@ export function initOwnerAdminDashboard(auth, functions) {
   el("rm-admin-refresh-analytics").addEventListener("click", refreshAnalytics);
   document.querySelectorAll("[data-admin-module]").forEach(button => button.addEventListener("click", () => {
     const module = button.dataset.adminModule;
+    accessPanel.hidden = module !== "access";
     testsPanel.hidden = module !== "tests";
     paymentsPanel.hidden = module !== "payments";
     studentsPanel.hidden = module !== "students";
     analyticsPanel.hidden = module !== "analytics";
     questionBankPanel.hidden = module !== "questions";
-    el("rm-admin-module-status").textContent = module === "tests"
+    el("rm-admin-module-status").textContent = module === "access"
+      ? "Owner-only complimentary test access और append-only audit history।"
+      : module === "tests"
       ? "Test Management खुला है।"
       : module === "payments"
         ? "सत्यापित भुगतान और अस्पष्ट Razorpay Order परिणामों की सुरक्षित Owner-only सूची।"
