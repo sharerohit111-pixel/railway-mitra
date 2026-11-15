@@ -5,6 +5,7 @@ import { lockCbtExamControls } from "./exam-interaction-lock.mjs";
 import { restoreCbtOptionFocus } from "./exam-focus.mjs";
 import { createCbtExamLifecycle } from "./exam-lifecycle.mjs";
 import { classifyCbtAttemptResultError } from "./attempt-recovery.mjs";
+import { createStudentAnswerState } from "./student-answer-state.mjs";
 
 export function initStudentCbtExam({ app, testId, studentUid, root = document }) {
   if (typeof studentUid !== "string" || !studentUid.trim()) {
@@ -15,7 +16,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   }
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
-  let attemptId=null, paper=null, index=0, answers={}, pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
+  let attemptId=null, paper=null, index=0, answers=createStudentAnswerState(), pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
   const lifecycle = createCbtExamLifecycle();
   const isActive = () => lifecycle.isActive();
   const status = message => { if (isActive()) el("rm-cbt-status").textContent=message; };
@@ -135,18 +136,18 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     sectionHeading.hidden = !q.section;
     el("rm-cbt-question").textContent=q.text;
     const options=el("rm-cbt-options"); options.replaceChildren();
-    q.options.forEach((value,i)=>{const b=document.createElement("button");b.type="button";b.className="rm-cbt-option";b.setAttribute("aria-pressed",String(String(answers[q.id])===String(i)));const mark=document.createElement("b");mark.textContent=String.fromCharCode(65+i)+".";
+    q.options.forEach((value,i)=>{const b=document.createElement("button");b.type="button";b.className="rm-cbt-option";b.setAttribute("aria-pressed",String(Object.hasOwn(answers,q.id)&&String(answers[q.id])===String(i)));const mark=document.createElement("b");mark.textContent=String.fromCharCode(65+i)+".";
       const label=document.createElement("span");label.textContent=value;b.append(mark,label);b.addEventListener("click",()=>{if(finished)return;answers[q.id]=String(i);render({ focusOptionIndex: i });queueSave(q.id,String(i)).catch(()=>{});});options.append(b);});
     el("rm-cbt-prev").disabled=index===0;el("rm-cbt-next").disabled=index===paper.questions.length-1;
     const palette=el("rm-cbt-palette");palette.replaceChildren();
-    paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(answers[item.id]!==undefined);b.disabled=!isQuestionAvailable(item);b.addEventListener("click",()=>{activateQuestion(i).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});palette.append(b);});
+    paper.questions.forEach((item,i)=>{const b=document.createElement("button");b.type="button";b.textContent=String(i+1);b.setAttribute("aria-current",String(i===index));b.dataset.answered=String(Object.hasOwn(answers,item.id));b.disabled=!isQuestionAvailable(item);b.addEventListener("click",()=>{activateQuestion(i).catch(error=>status(error.message||"सेक्शन नहीं खुला।"));});palette.append(b);});
     const sectionProgress = el("rm-cbt-section-progress");
     const sectionNames = [...new Set(paper.questions.map(item => typeof item.section === "string" ? item.section.trim() : "").filter(Boolean))];
     sectionProgress.replaceChildren();
     sectionProgress.hidden = sectionNames.length === 0;
     sectionNames.forEach(name => {
       const indices = paper.questions.map((item, i) => item.section === name ? i : -1).filter(i => i >= 0);
-      const answeredCount = indices.filter(i => answers[paper.questions[i].id] !== undefined).length;
+      const answeredCount = indices.filter(i => Object.hasOwn(answers,paper.questions[i].id)).length;
       const button = document.createElement("button");
       button.type = "button";
       button.className = "rm-cbt-section-chip";
@@ -273,7 +274,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
         if (!isActive()) return;
       }
       if (!isActive()) return;
-      answers={...paper.savedAnswers};restorePending();
+      answers=createStudentAnswerState(paper.savedAnswers);restorePending();
       for(const [qid,value] of pendingAnswers)answers[qid]=value;
       expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;
       let resumeIndex=0;
