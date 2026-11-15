@@ -15,11 +15,18 @@ permissions:
 
 jobs:
   deploy-functions:
-    if: ${{ inputs.confirm_project == 'railway-mitra' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
+      - name: Validate deployment confirmation
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          if [ "$CONFIRM_PROJECT" != "railway-mitra" ]; then
+            echo "Confirmation must be exactly railway-mitra."
+            exit 1
+          fi
       - name: Checkout repository
         uses: actions/checkout@v4
 
