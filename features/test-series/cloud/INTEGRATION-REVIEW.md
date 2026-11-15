@@ -15,7 +15,7 @@ This is a source-level integration review, not a live Firebase or real-device ce
 
 ## Integration gaps / next work
 
-1. **Student leaderboard entry point:** decide and implement a safe test-specific route from a submitted result or test catalogue to the existing leaderboard module. Preserve server-side anonymization and own-rank behavior.
+1. **Student leaderboard entry point — implemented in the isolated portal:** each submitted result now exposes a `View Test Leaderboard` action. The portal passes that result's `testId` to the existing leaderboard module, checks the active student-session/view generation before navigation, and provides a return path to My Results. The dashboard remains a bounded latest-100 history; ranking is loaded separately from the server. Functions Validation and CBT Emulator workflows passed on the code commit `8c4e9d4153229801fa4c0c6a008475437207f288`; later documentation-only commits are not themselves runtime tests.
 2. **Owner access management:** keep the disabled UI disabled until a complete server-authorized module exists for grants/revocations, audit history and safeguards. Do not infer access from client state.
 3. **Backup and system settings:** keep disabled until export/restore, retention, auditability, restore verification and Owner authorization are implemented and tested. Never expose backup controls as functional placeholders.
 4. **Main-app entry points:** integration into the main app is a separate controlled step. Do not alter existing navigation or authentication guard without explicit approval and regression review.
