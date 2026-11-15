@@ -48,6 +48,7 @@ export function initOwnerTestAccessPanel(functions) {
               reason: "Owner revoked access from Access Management panel",
               requestId: crypto.randomUUID()
             });
+            if (currentSession !== sessionGeneration) return;
             say("Access revoke हो गया। नया attempt अब शुरू नहीं किया जा सकेगा।");
             await loadAccess(true);
             await loadAudit(true);
@@ -139,6 +140,7 @@ export function initOwnerTestAccessPanel(functions) {
   byId("rm-admin-access-grant-form").addEventListener("submit", async event => {
     event.preventDefault();
     const button = byId("rm-admin-access-grant-submit");
+    const currentSession = sessionGeneration;
     button.disabled = true;
     const studentUid = byId("rm-admin-access-student-uid").value.trim();
     const testId = byId("rm-admin-access-test-id").value.trim();
@@ -154,14 +156,16 @@ export function initOwnerTestAccessPanel(functions) {
     }
     try {
       const result = (await grantCall(payload)).data || {};
+      if (currentSession !== sessionGeneration) return;
       say(result.replayed ? "यह अनुरोध पहले ही सफलतापूर्वक लागू हो चुका था।" : "Complimentary test access grant हो गया।");
       byId("rm-admin-access-reason").value = "";
       await loadAccess(true);
       await loadAudit(true);
     } catch (error) {
+      if (currentSession !== sessionGeneration) return;
       say(error.message || "Access grant नहीं हो पाया।");
     } finally {
-      button.disabled = false;
+      if (currentSession === sessionGeneration) button.disabled = false;
     }
   });
 
