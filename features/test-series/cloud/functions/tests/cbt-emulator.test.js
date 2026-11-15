@@ -1583,6 +1583,49 @@ test("non-owner cannot create a test", async () => {
 });
 
 
+test("manual grant starts only a complimentary test and revocation preserves the active attempt", async () => {
+  const complimentaryTestId = "emulator-manual-complimentary";
+  const accessId = require("../owner-test-access").manualAccessDocumentId(uid, complimentaryTestId);
+  const testRef = db.doc("testSeriesTests/" + complimentaryTestId);
+  const accessRef = db.doc("testSeriesManualAccess/" + accessId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  let attemptId = null;
+  try {
+    await testRef.set({
+      title: "Complimentary manual-access test",
+      status: "published",
+      price: 0,
+      mode: "mock",
+      durationMinutes: 10,
+      questionCount: 1
+    });
+    await accessRef.set({
+      uid,
+      testId: complimentaryTestId,
+      status: "active",
+      source: "owner_manual",
+      expiresAt: null
+    });
+    const started = await callable("rmStartExam", { testId: complimentaryTestId });
+    attemptId = started.attemptId;
+    assert.equal(started.resumed, false);
+    const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+    const attempt = (await attemptRef.get()).data();
+    assert.equal(attempt.accessSource, "owner_manual");
+    assert.equal(attempt.testId, complimentaryTestId);
+
+    await accessRef.update({ status: "revoked" });
+    const resumed = await callable("rmStartExam", { testId: complimentaryTestId });
+    assert.equal(resumed.attemptId, attemptId);
+    assert.equal(resumed.resumed, true);
+  } finally {
+    await activeRef.delete().catch(() => {});
+    if (attemptId) await db.doc("testSeriesAttempts/" + attemptId).delete().catch(() => {});
+    await accessRef.delete().catch(() => {});
+    await testRef.delete().catch(() => {});
+  }
+});
+
 test("manual Owner access never bypasses paid payment-ledger authorization", async () => {
   const paidTestId = "emulator-manual-must-not-unlock-paid";
   const accessId = require("../owner-test-access").manualAccessDocumentId(uid, paidTestId);
