@@ -28,6 +28,7 @@ export function initOwnerTestAccessPanel(functions) {
   const dateLabel = value => value ? new Date(value).toLocaleString() : "कोई समाप्ति तिथि नहीं";
 
   function renderAccess(items) {
+    const renderedSession = sessionGeneration;
     items.forEach(item => {
       const card = make("article", undefined, "rm-admin-access-item");
       const title = make("strong", item.testId + " · " + item.status.toUpperCase());
@@ -48,11 +49,12 @@ export function initOwnerTestAccessPanel(functions) {
               reason: "Owner revoked access from Access Management panel",
               requestId: crypto.randomUUID()
             });
-            if (currentSession !== sessionGeneration) return;
+            if (renderedSession !== sessionGeneration) return;
             say("Access revoke हो गया। नया attempt अब शुरू नहीं किया जा सकेगा।");
             await loadAccess(true);
             await loadAudit(true);
           } catch (error) {
+            if (renderedSession !== sessionGeneration) return;
             say(error.message || "Access revoke नहीं हो पाया।");
             revoke.disabled = false;
           }
