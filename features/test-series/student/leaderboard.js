@@ -1,4 +1,5 @@
 import { getCbtTestLeaderboard } from "../cloud/student-client.js";
+import { getLeaderboardPresentation } from "./leaderboard-presentation.mjs";
 
 export async function initStudentLeaderboard({ app, testId, root = document }) {
   const status = root.getElementById("rm-leaderboard-status");
@@ -14,7 +15,8 @@ export async function initStudentLeaderboard({ app, testId, root = document }) {
   note.textContent = "";
   try {
     const data = await getCbtTestLeaderboard(app, testId);
-    status.textContent = data.participantCount + " submitted participant(s)";
+    const presentation = getLeaderboardPresentation(data);
+    status.textContent = presentation.submissionCountText;
     if (data.myRank) {
       const heading = root.createElement("strong");
       heading.textContent = "Your rank: #" + data.myRank;
@@ -23,7 +25,7 @@ export async function initStudentLeaderboard({ app, testId, root = document }) {
       mine.append(heading, score);
       mine.hidden = false;
     } else {
-      mine.textContent = "Your submitted result is not in the current leaderboard data.";
+      mine.textContent = presentation.rankUnavailableText;
       mine.hidden = false;
     }
     (data.top || []).forEach(row => {
@@ -35,11 +37,7 @@ export async function initStudentLeaderboard({ app, testId, root = document }) {
       item.append(label, score);
       list.append(item);
     });
-    if (!data.leaderboardComplete) {
-      note.textContent = "Showing the first 1,000 result records only. The participant count and your rank may be incomplete until scalable rank aggregation is added.";
-    } else {
-      note.textContent = "Names and personal details are hidden. Equal scores share the same competition rank; earlier submission breaks ordering within a tie.";
-    }
+    note.textContent = presentation.note;
     return data;
   } catch (error) {
     status.textContent = error.message || "Leaderboard could not be loaded.";

@@ -37,8 +37,11 @@ As soon as manual submission or the server-timeout finalizer begins, the CBT cli
 
 - `leaderboard.html` and `leaderboard.js` render a published test's top 20 anonymous scores and the signed-in student's own rank.
 - Initialize with `initStudentLeaderboard({ app, testId, root })` after phone-OTP authentication.
-- The callable never returns UID, phone, email or attempt ID. It currently reads at most 1,000 submitted result records per test; if the cap is reached, the UI explicitly marks counts/rank as potentially incomplete. A production-scale leaderboard needs a dedicated aggregation design before large cohorts.
-- Tied scores share competition rank; earlier submission determines ordering within the tie.
+- The callable uses Firestore aggregate counts and bounded indexed queries for the Top 20 and the requesting student's best attempt. A second aggregate count determines how many submitted scores are strictly higher than that best score; the resulting rank is a competition rank.
+- The compatibility response field `participantCount` counts submitted result documents (attempts), not distinct students. The UI therefore labels it as submitted attempts. A student with multiple attempts may appear more than once in the attempt-based Top 20; the student's personal rank is based on their best submitted attempt.
+- The callable never returns UID, phone, email or attempt ID. Public rows contain only rank, score and an anonymous candidate label. If `leaderboardComplete` is not explicitly true, the UI identifies the result as a partial sample instead of claiming the count or rank is complete.
+- The Top 20 query uses the `testSeriesResults(testId ASC, score DESC, submittedAt ASC)` index. The personal-best query uses `testSeriesResults(testId ASC, uid ASC, score DESC, submittedAt ASC)`; both are additive indexes in the root `firestore.indexes.json`.
+- Tied scores share competition rank; earlier submission determines ordering within the tie. The isolated `leaderboard-presentation.mjs` helper and `leaderboard-presentation.test.mjs` cover singular/plural attempt labels, invalid counts, complete/partial copy and the UI's use of the shared presentation contract. The student Node test suite runs in Test Series Functions CI.
 
 
 ## Student performance dashboard scope
