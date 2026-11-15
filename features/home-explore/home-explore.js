@@ -98,6 +98,7 @@
       const items = shortcutMap[key];
       if (!items || !items.length) return;
 
+      wrapper.classList.add("has-dashboard-shortcuts");
       const tray = document.createElement("div");
       tray.className = "rm-dashboard-shortcuts";
       tray.setAttribute("aria-label", "Quick links inside " + (card.querySelector("h3")?.textContent.trim() || "folder"));
