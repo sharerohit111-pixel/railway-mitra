@@ -2560,3 +2560,54 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
     else await activeRef.delete().catch(() => {});
   }
 });
+
+
+test("late submission of an expired attempt does not replace a newer active exam session", async () => {
+  const oldAttemptId = "emulator-late-submit-old-attempt";
+  const newAttemptId = "emulator-late-submit-new-attempt";
+  const oldAttemptRef = db.doc("testSeriesAttempts/" + oldAttemptId);
+  const newAttemptRef = db.doc("testSeriesAttempts/" + newAttemptId);
+  const oldResultRef = db.doc("testSeriesResults/" + oldAttemptId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  const now = Date.now();
+
+  try {
+    await Promise.all([
+      oldAttemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: new Date(now - 60 * 60_000),
+        expiresAt: new Date(now - 30 * 60_000),
+        answers: {}
+      }),
+      newAttemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: new Date(now),
+        expiresAt: new Date(now + 30 * 60_000),
+        answers: {}
+      }),
+      activeRef.set({
+        uid, testId, attemptId: newAttemptId, status: "in_progress",
+        startedAt: new Date(now), expiresAt: new Date(now + 30 * 60_000)
+      })
+    ]);
+
+    const submitted = await callable("rmSubmitExam", { attemptId: oldAttemptId });
+    assert.equal(submitted.submitted, true);
+    assert.equal(submitted.timedOut, true);
+    assert.equal((await oldAttemptRef.get()).data().status, "submitted");
+
+    const activeAfterLateSubmit = (await activeRef.get()).data();
+    assert.equal(activeAfterLateSubmit.status, "in_progress");
+    assert.equal(activeAfterLateSubmit.attemptId, newAttemptId);
+    assert.equal((await newAttemptRef.get()).data().status, "in_progress");
+  } finally {
+    await Promise.all([
+      oldAttemptRef.delete().catch(() => {}),
+      newAttemptRef.delete().catch(() => {}),
+      oldResultRef.delete().catch(() => {})
+    ]);
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
+  }
+});
