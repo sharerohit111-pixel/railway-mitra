@@ -4,7 +4,7 @@ import { runSingleFlight } from "./single-flight.mjs";
 // Keep one click listener per refresh button even if the dashboard is mounted again.
 const refreshHandlers = new WeakMap();
 
-export async function initStudentDashboard({ app, root = document }) {
+export async function initStudentDashboard({ app, root = document, onLeaderboard = () => {} }) {
   const status = root.getElementById("rm-dashboard-status");
   const summary = root.getElementById("rm-dashboard-summary");
   const resultsNode = root.getElementById("rm-dashboard-results");
@@ -63,7 +63,16 @@ export async function initStudentDashboard({ app, root = document }) {
             timingLine.textContent = item.timedOut ? "Time expired — submitted using saved answers" : "Submitted within the exam time";
             const dateLine = root.createElement("p");
             dateLine.textContent = item.submittedAt ? "Submitted: " + new Date(item.submittedAt).toLocaleString() : "Submission date unavailable";
-            card.append(heading, score, detail, totalLine, timingLine, dateLine);
+            const leaderboard = root.createElement("button");
+            leaderboard.type = "button";
+            leaderboard.className = "rm-dashboard-leaderboard";
+            leaderboard.textContent = "View Test Leaderboard";
+            leaderboard.addEventListener("click", () => {
+              if (typeof onLeaderboard === "function" && item.testId) onLeaderboard(item.testId);
+              else status.textContent = "Leaderboard is unavailable for this result.";
+            });
+            leaderboard.disabled = !item.testId;
+            card.append(heading, score, detail, totalLine, timingLine, dateLine, leaderboard);
             resultsNode.append(card);
           });
         }
