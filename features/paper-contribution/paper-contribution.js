@@ -68,7 +68,7 @@ function element(tag,className,text){const node=document.createElement(tag);if(c
 async function loadRewardSummary(){
  const section=document.getElementById("paperRewardSummary");
  const text=document.getElementById("paperRewardText");
- try { const result=await getMyReward({}); const reward=result.data||{}; const badge=reward.badge ? " · "+reward.badge.emoji+" "+reward.badge.label : ""; text.textContent=(reward.totalPoints||0)+" points"+badge+" · Free mock tests earned: "+(reward.freeMockTestsEarned||0); section.hidden=false; } catch(error) { section.hidden=true; }
+ try { const result=await getMyReward({}); const reward=result.data||{}; const badge=reward.badge ? " · "+reward.badge.emoji+" "+reward.badge.label : ""; text.textContent=(reward.totalPoints||0)+" points"+badge+" · Free mock tests available: "+(reward.freeMockTestsEarned||0); section.hidden=false; } catch(error) { section.hidden=true; }
 }
 async function loadHistory(){
  const list=document.getElementById("paperHistoryList");list.replaceChildren(element("p","",t("loading")));
