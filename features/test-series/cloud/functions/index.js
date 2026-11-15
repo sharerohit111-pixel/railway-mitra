@@ -1,6 +1,6 @@
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
 const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
