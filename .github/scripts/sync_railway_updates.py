@@ -65,11 +65,11 @@ def extract_railway_portal(html, source_url, allowed_hosts, source_name):
         if not match:
             continue
         title = best_text
-        title = re.sub(r"\\bTitle\\s*:\\s*", " ", title, flags=re.I)
-        title = re.sub(r"\\bDate\\s*:\\s*" + re.escape(match.group(0)), " ", title, flags=re.I)
-        title = re.sub(r"\\bType/Size\\s*:\\s*", " ", title, flags=re.I)
-        title = re.sub(r"\\bView\\b|\\bDownload\\b|\\bPDF\\b", " ", title, flags=re.I)
-        title = re.sub(r"\\b\\d+(?:\\.\\d+)?\\s*(?:KB|MB)\\b", " ", title, flags=re.I)
+        title = re.sub(r"\bTitle\s*:\s*", " ", title, flags=re.I)
+        title = re.sub(r"\bDate\s*:\s*" + re.escape(match.group(0)), " ", title, flags=re.I)
+        title = re.sub(r"\bType/Size\s*:\s*", " ", title, flags=re.I)
+        title = re.sub(r"\bView\b|\bDownload\b|\bPDF\b", " ", title, flags=re.I)
+        title = re.sub(r"\b\d+(?:\.\d+)?\s*(?:KB|MB)\b", " ", title, flags=re.I)
         title = clean_title(title)
         if not 12 <= len(title) <= 300:
             continue
