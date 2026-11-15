@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 FEED_PATH = "features/updates/notices.json"
 RB_SOURCE = "https://rb.indianrailways.gov.in/documents/press-release"
-PIB_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=6"
+PIB_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=3"
 HEADERS = {"User-Agent": "RailwayMitra-OfficialUpdatesBot/1.0 (+https://github.com/sharerohit111-pixel/railway-mitra)"}
 DATE_RE = re.compile(r"\b(\d{2})-(\d{2})-(\d{4})\b")
 PIB_DATE_RE = re.compile(r"(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})", re.I)
@@ -99,7 +99,7 @@ def extract_pib_railway(html):
         for link in links:
             href = urljoin(PIB_SOURCE, link["href"])
             parsed = urlparse(href)
-            if parsed.hostname != "www.pib.gov.in" or "PressReleseDetailm.aspx" not in parsed.path:
+            if parsed.hostname != "www.pib.gov.in" or "PressReleseDetail" not in parsed.path and "PressReleaseDetail" not in parsed.path:
                 continue
             prid = parse_qs(parsed.query).get("PRID", [""])[0]
             title = clean_title(link.get_text(" ", strip=True))
@@ -177,18 +177,20 @@ def main():
 
     session = requests.Session()
     session.headers.update(HEADERS)
-    retry = Retry(total=3, connect=3, read=3, backoff_factor=1.5,
+    retry = Retry(total=1, connect=1, read=1, backoff_factor=1,
                   status_forcelist=(429, 500, 502, 503, 504),
                   allowed_methods=frozenset(["GET"]))
     session.mount("https://", HTTPAdapter(max_retries=retry))
     discovered = []
     errors = []
     for name, url, parser in (
-        ("Railway Board", RB_SOURCE, extract_railway_board),
+        # PIB is the primary source because its Ministry of Railways section
+        # remains reachable when the Railway Board host is intermittently down.
         ("PIB Ministry of Railways", PIB_SOURCE, extract_pib_railway),
+        ("Railway Board", RB_SOURCE, extract_railway_board),
     ):
         try:
-            response = session.get(url, timeout=(20, 60))
+            response = session.get(url, timeout=(8, 25))
             response.raise_for_status()
             items = parser(response.text)
             discovered.extend(items)
