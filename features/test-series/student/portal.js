@@ -3,6 +3,7 @@ import { RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut }
 import { initStudentTestCatalogue } from "./catalogue.js";
 import { initStudentCbtExam } from "./exam.js";
 import { initStudentDashboard } from "./dashboard.js";
+import { initStudentLeaderboard } from "./leaderboard.js";
 import { invalidateStudentPortalSession } from "./session-transition.mjs";
 import { createStudentOtpFlowGuard } from "./otp-flow-guard.mjs";
 import { createStudentLogoutRecovery } from "./logout-recovery.mjs";
@@ -87,7 +88,27 @@ async function showView(name) {
     view.innerHTML = markup;
     // initStudentDashboard owns the single refresh listener; do not attach a
     // second handler here or each click will issue duplicate dashboard requests.
-    await initStudentDashboard({ app, root: document });
+    await initStudentDashboard({ app, root: document, onLeaderboard: testId => {
+      if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
+      portalState.currentTestId = testId;
+      showView("leaderboard").catch(error => { portalStatus.textContent = error.message || "Leaderboard could not be opened."; });
+    }});
+    if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
+  } else if (name === "leaderboard") {
+    const testId = portalState.currentTestId;
+    if (!testId) throw new Error("Submit or select a test before opening its leaderboard.");
+    const response = await fetch("./leaderboard.html");
+    const markup = await response.text();
+    if (!response.ok) throw new Error("Leaderboard screen could not be loaded.");
+    if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
+    view.innerHTML = markup;
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "rm-portal-back";
+    back.textContent = "← Back to My Results";
+    back.addEventListener("click", () => showView("dashboard"));
+    view.prepend(back);
+    await initStudentLeaderboard({ app, testId, root: document });
     if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
   } else if (name === "exam") {
     const testId = portalState.currentTestId;
