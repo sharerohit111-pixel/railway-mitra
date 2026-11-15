@@ -230,3 +230,105 @@
   .rm-feature-explorer__link,
   .rm-feature-explorer__link::after {animation:none!important}
 }
+
+
+/* MAIN DASHBOARD FOLDERS — animate the actual cards visible in the user's screenshot. */
+.feature-grid > .rm-favorite-card,
+.feature-grid > .feature-card {
+  position:relative;
+  isolation:isolate;
+}
+.feature-grid .feature-card {
+  overflow:hidden;
+  animation:rm-main-folder-cyan 5.2s ease-in-out infinite;
+}
+.feature-grid .feature-card::before {
+  content:"";
+  position:absolute;
+  z-index:0;
+  top:-65%;
+  left:-58%;
+  width:38%;
+  height:230%;
+  pointer-events:none;
+  opacity:0;
+  transform:skewX(-22deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(91,234,255,.36),rgba(255,255,255,.1),transparent);
+  animation:rm-main-folder-sweep 7s ease-in-out infinite;
+}
+.feature-grid .feature-card > span,
+.feature-grid .feature-card > h3,
+.feature-grid .feature-card > p {
+  position:relative;
+  z-index:1;
+}
+.feature-grid .feature-card > span {
+  animation:rm-main-folder-icon 3.8s ease-in-out infinite;
+}
+.feature-grid .rm-favorite-card:nth-child(6n+2) .feature-card {animation-name:rm-main-folder-pink;animation-delay:-1.1s}
+.feature-grid .rm-favorite-card:nth-child(6n+2) .feature-card::before {animation-delay:-2.1s;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(255,91,220,.38),rgba(255,255,255,.1),transparent)}
+.feature-grid .rm-favorite-card:nth-child(6n+3) .feature-card {animation-name:rm-main-folder-blue;animation-delay:-2.2s}
+.feature-grid .rm-favorite-card:nth-child(6n+3) .feature-card::before {animation-delay:-3.2s;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(89,160,255,.38),rgba(255,255,255,.1),transparent)}
+.feature-grid .rm-favorite-card:nth-child(6n+4) .feature-card {animation-name:rm-main-folder-gold;animation-delay:-.8s}
+.feature-grid .rm-favorite-card:nth-child(6n+4) .feature-card::before {animation-delay:-4.1s;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(255,205,92,.38),rgba(255,255,255,.1),transparent)}
+.feature-grid .rm-favorite-card:nth-child(6n+5) .feature-card {animation-name:rm-main-folder-violet;animation-delay:-1.8s}
+.feature-grid .rm-favorite-card:nth-child(6n+5) .feature-card::before {animation-delay:-2.8s;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(172,118,255,.4),rgba(255,255,255,.1),transparent)}
+.feature-grid .rm-favorite-card:nth-child(6n) .feature-card {animation-name:rm-main-folder-teal;animation-delay:-2.6s}
+.feature-grid .rm-favorite-card:nth-child(6n) .feature-card::before {animation-delay:-5s;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),rgba(73,255,205,.36),rgba(255,255,255,.1),transparent)}
+.feature-grid .rm-favorite-card:nth-child(6n+2) .feature-card > span {animation-delay:-.8s}
+.feature-grid .rm-favorite-card:nth-child(6n+3) .feature-card > span {animation-delay:-1.5s}
+.feature-grid .rm-favorite-card:nth-child(6n+4) .feature-card > span {animation-delay:-2.2s}
+.feature-grid .rm-favorite-card:nth-child(6n+5) .feature-card > span {animation-delay:-2.9s}
+.feature-grid .rm-favorite-card:nth-child(6n) .feature-card > span {animation-delay:-1.2s}
+
+/* The favorite/star control also gets a restrained independent glow. */
+.feature-grid .rm-favorite-toggle {
+  animation:rm-folder-star-glow 3.6s ease-in-out infinite;
+}
+.feature-grid .rm-favorite-card:nth-child(2n) .rm-favorite-toggle {animation-delay:-1.3s}
+.feature-grid .rm-favorite-card:nth-child(3n) .rm-favorite-toggle {animation-delay:-2.1s}
+
+@keyframes rm-main-folder-sweep {
+  0%,12% {left:-58%;opacity:0}
+  23% {opacity:.72}
+  55% {left:145%;opacity:.46}
+  56%,100% {left:145%;opacity:0}
+}
+@keyframes rm-main-folder-cyan {
+  0%,100% {border-color:rgba(53,232,255,.42);box-shadow:0 5px 18px #0005,inset 0 0 12px rgba(53,232,255,.07),0 0 5px rgba(53,232,255,.06)}
+  50% {border-color:rgba(53,232,255,.96);box-shadow:0 5px 18px #0005,inset 0 0 17px rgba(53,232,255,.13),0 0 17px rgba(53,232,255,.22)}
+}
+@keyframes rm-main-folder-pink {
+  0%,100% {border-color:rgba(255,91,220,.4);box-shadow:0 5px 18px #0005,inset 0 0 12px rgba(255,91,220,.05),0 0 5px rgba(255,91,220,.05)}
+  50% {border-color:rgba(255,91,220,.96);box-shadow:0 5px 18px #0005,inset 0 0 17px rgba(255,91,220,.12),0 0 17px rgba(255,91,220,.2)}
+}
+@keyframes rm-main-folder-blue {
+  0%,100% {border-color:rgba(89,160,255,.4);box-shadow:0 5px 18px #0005,inset 0 0 12px rgba(89,160,255,.05),0 0 5px rgba(89,160,255,.05)}
+  50% {border-color:rgba(89,160,255,.96);box-shadow:0 5px 18px #0005,inset 0 0 17px rgba(89,160,255,.12),0 0 17px rgba(89,160,255,.2)}
+}
+@keyframes rm-main-folder-gold {
+  0%,100% {border-color:rgba(255,205,92,.4);box-shadow:0 5px 18px #0005,inset 0 0 12px rgba(255,205,92,.05),0 0 5px rgba(255,205,92,.05)}
+  50% {border-color:rgba(255,205,92,.96);box-shadow:0 5px 18px #0005,inset 0 0 17px rgba(255,205,92,.12),0 0 17px rgba(255,205,92,.2)}
+}
+@keyframes rm-main-folder-violet {
+  0%,100% {border-color:rgba(172,118,255,.4);box-shadow:0 5px 18px #0005,inset 0 0 12px rgba(172,118,255,.05),0 0 5px rgba(172,118,255,.05)}
+  50% {border-color:rgba(172,118,255,.96);box-shadow:0 5px 18px #0005,inset 0 0 17px rgba(172,118,255,.12),0 0 17px rgba(172,118,255,.2)}
+}
+@keyframes rm-main-folder-teal {
+  0%,100% {border-color:rgba(73,255,205,.4);box-shadow:0 5px 18px #0005,inset 0 0 12px rgba(73,255,205,.05),0 0 5px rgba(73,255,205,.05)}
+  50% {border-color:rgba(73,255,205,.96);box-shadow:0 5px 18px #0005,inset 0 0 17px rgba(73,255,205,.12),0 0 17px rgba(73,255,205,.2)}
+}
+@keyframes rm-main-folder-icon {
+  0%,100% {filter:brightness(1);transform:translateY(0);box-shadow:0 0 12px rgba(53,232,255,.18)}
+  50% {filter:brightness(1.18);transform:translateY(-2px);box-shadow:0 0 20px rgba(53,232,255,.38),0 0 25px rgba(255,69,212,.13)}
+}
+@keyframes rm-folder-star-glow {
+  0%,100% {box-shadow:0 2px 9px #0005,0 0 4px rgba(83,210,255,.05)}
+  50% {box-shadow:0 2px 9px #0005,0 0 13px rgba(83,210,255,.24)}
+}
+@media(prefers-reduced-motion:reduce) {
+  .feature-grid .feature-card,
+  .feature-grid .feature-card::before,
+  .feature-grid .feature-card > span,
+  .feature-grid .rm-favorite-toggle {animation:none!important}
+}
