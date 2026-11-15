@@ -175,6 +175,29 @@ test("acknowledges permanent conflicts but asks the provider to retry transient 
   assert.equal(transientRes.code, 500);
 });
 
+test("retries a refund webhook when its captured-payment ledger has not arrived yet", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_before_capture", payment_id: "pay_before_capture", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_before_capture", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_refund_before_capture" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("Captured payment ledger has not arrived yet");
+      error.code = "refund_payment_not_found";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});
+
 test("keeps inconsistent replay ledgers retryable instead of acknowledging a damaged grant", async () => {
   const res = response();
   await handleRazorpayWebhook({
