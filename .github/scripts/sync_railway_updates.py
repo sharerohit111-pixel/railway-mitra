@@ -7,6 +7,8 @@ import os
 import re
 from datetime import datetime, timezone
 from urllib.parse import urljoin, urlparse, parse_qs
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 import requests
 from bs4 import BeautifulSoup
@@ -118,6 +120,35 @@ def extract_pib_railway(html):
                 continue
             records.append(make_record("pib-rail-" + prid, title, published, href, "Ministry of Railways / PIB"))
             seen.add(prid)
+    # Fallback for PIB layout changes: require Ministry of Railways and a date
+    # in the containing card, never accept another ministry's releases.
+    if not records:
+        for link in soup.find_all("a", href=True):
+            href = urljoin(PIB_SOURCE, link["href"])
+            parsed = urlparse(href)
+            if parsed.hostname != "www.pib.gov.in" or "PressReleseDetailm.aspx" not in parsed.path:
+                continue
+            prid = parse_qs(parsed.query).get("PRID", [""])[0]
+            title = clean_title(link.get_text(" ", strip=True))
+            if not prid or len(title) < 12 or prid in seen:
+                continue
+            node, context = link, ""
+            for _ in range(8):
+                if node is None:
+                    break
+                context = clean_title(node.get_text(" ", strip=True))
+                if "Ministry of Railways" in context and PIB_DATE_RE.search(context):
+                    break
+                node = node.parent
+            match = PIB_DATE_RE.search(context)
+            if "Ministry of Railways" not in context or not match:
+                continue
+            try:
+                published = datetime.strptime(" ".join(match.groups()), "%d %b %Y").date().isoformat()
+            except ValueError:
+                continue
+            records.append(make_record("pib-rail-" + prid, title, published, href, "Ministry of Railways / PIB"))
+            seen.add(prid)
     if not records:
         raise RuntimeError("No dated Ministry of Railways releases parsed from PIB")
     return records
@@ -146,6 +177,10 @@ def main():
 
     session = requests.Session()
     session.headers.update(HEADERS)
+    retry = Retry(total=3, connect=3, read=3, backoff_factor=1.5,
+                  status_forcelist=(429, 500, 502, 503, 504),
+                  allowed_methods=frozenset(["GET"]))
+    session.mount("https://", HTTPAdapter(max_retries=retry))
     discovered = []
     errors = []
     for name, url, parser in (
@@ -153,14 +188,14 @@ def main():
         ("PIB Ministry of Railways", PIB_SOURCE, extract_pib_railway),
     ):
         try:
-            response = session.get(url, timeout=45)
+            response = session.get(url, timeout=(20, 60))
             response.raise_for_status()
             items = parser(response.text)
             discovered.extend(items)
             print(f"{name}: parsed {len(items)} official releases")
         except Exception as exc:
-            errors.append(f"{name}: {exc}")
-            print(f"WARNING - {name} source unavailable: {exc}")
+            errors.append(f"{name}: {type(exc).__name__}: {exc}")
+            print(f"WARNING - {name} source unavailable: {type(exc).__name__}: {exc}")
 
     if not discovered:
         raise RuntimeError("No official releases parsed from either source; refusing to overwrite the feed. " + "; ".join(errors))
