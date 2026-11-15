@@ -15,6 +15,7 @@ const { applyProcessedRefund } = require("../payment-refund-ledger");
 const crypto = require("node:crypto");
 const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
 const { hasVerifiedPhoneMfa } = require("../owner-auth");
+const { studentAnswerStorageKey } = require("../student-question-delivery");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
@@ -2515,8 +2516,9 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
 
     const storedAttempt = (await attemptRef.get()).data();
     for (const questionId of questionIds) {
-      assert.equal(Object.prototype.hasOwnProperty.call(storedAttempt.answers, questionId), true);
-      assert.equal(storedAttempt.answers[questionId], "1");
+      const storageKey = studentAnswerStorageKey(questionId);
+      assert.equal(Object.prototype.hasOwnProperty.call(storedAttempt.answers, storageKey), true);
+      assert.equal(storedAttempt.answers[storageKey], "1");
     }
 
     const resumed = await callable("rmGetExamQuestions", { attemptId });
