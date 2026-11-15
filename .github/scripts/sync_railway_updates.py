@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 FEED_PATH = "features/updates/notices.json"
 RB_SOURCE = "https://rb.indianrailways.gov.in/documents/press-release"
 PIB_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=3"
+PIB_ALT_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=1"
 PIB_RSS_SOURCE = "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3&reg=48"
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36", "Accept": "application/rss+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.8", "Accept-Language": "en-IN,en;q=0.9", "Referer": "https://www.pib.gov.in/"}
 DATE_RE = re.compile(r"\b(\d{2})-(\d{2})-(\d{4})\b")
@@ -99,7 +100,7 @@ def extract_indian_railways(html):
         "Ministry of Railways / Indian Railways"
     )
 
-def extract_pib_railway(html):
+def extract_pib_railway(html, source_url=PIB_SOURCE):
     soup = BeautifulSoup(html, "html.parser")
     records, seen = [], set()
     # PIB groups releases beneath an h3 ministry heading; the heading is a
@@ -113,7 +114,7 @@ def extract_pib_railway(html):
             break
         links = section.find_all("a", href=True) if getattr(section, "find_all", None) else []
         for link in links:
-            href = urljoin(PIB_SOURCE, link["href"])
+            href = urljoin(source_url, link["href"])
             parsed = urlparse(href)
             if parsed.hostname != "www.pib.gov.in" or "PressReleseDetail" not in parsed.path and "PressReleaseDetail" not in parsed.path:
                 continue
@@ -290,6 +291,7 @@ def main():
         # remains reachable when the Railway Board host is intermittently down.
         ("PIB Ministry of Railways RSS", PIB_RSS_SOURCE, extract_pib_rss),
         ("PIB Ministry of Railways page", PIB_SOURCE, extract_pib_railway),
+        ("PIB alternate official release listing", PIB_ALT_SOURCE, lambda html: extract_pib_railway(html, PIB_ALT_SOURCE)),
         ("Ministry of Railways portal", "https://indianrailways.gov.in/documents/press-release", extract_indian_railways),
         ("Railway Board", RB_SOURCE, extract_railway_board),
     ):
