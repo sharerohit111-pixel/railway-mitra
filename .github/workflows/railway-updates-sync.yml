@@ -2,7 +2,7 @@ name: Automatic Railway Updates Sync
 
 on:
   schedule:
-    - cron: "30 2 * * *"
+    - cron: "17 */6 * * *"
   workflow_dispatch:
 
 permissions:
