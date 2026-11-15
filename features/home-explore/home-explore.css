@@ -434,3 +434,90 @@
 
 .rm-dashboard-shortcut.is-label {cursor:default}
 .rm-dashboard-shortcut.is-label:focus-visible {outline:none}
+
+
+/* =========================================================
+   MOBILE PERFORMANCE PASS
+   Keep the neon identity, but animate only compositor-friendly
+   opacity/transform effects on elements near the viewport.
+   ========================================================= */
+
+/* Stop expensive continuous paint effects on the main dashboard cards. */
+.feature-grid .feature-card,
+.rm-feature-explorer__card {
+  animation:none!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.28),inset 0 0 10px rgba(53,232,255,.055);
+}
+.feature-grid .feature-card::before,
+.rm-feature-explorer__card::before,
+.rm-feature-explorer__link::after,
+.rm-dashboard-shortcut::after {
+  left:0!important;
+  opacity:0!important;
+  transform:translate3d(-160%,0,0) skewX(-22deg)!important;
+  animation:none!important;
+  will-change:auto;
+}
+.feature-grid .feature-card > span,
+.rm-feature-explorer__card-top .rm-feature-explorer__icon,
+.feature-grid .rm-favorite-toggle {
+  animation:none!important;
+  filter:none!important;
+}
+.rm-feature-explorer__link,
+.rm-dashboard-shortcut {
+  animation:none!important;
+  box-shadow:inset 0 0 7px rgba(53,232,255,.055),0 0 5px rgba(53,232,255,.055);
+}
+
+/* Static, lightweight glow; no animated box-shadow or filter repaint. */
+.feature-grid .feature-card {
+  border-color:rgba(70,190,235,.66);
+}
+.rm-favorite-card:nth-child(6n+2) > .feature-card {border-color:rgba(255,91,220,.58)}
+.rm-favorite-card:nth-child(6n+3) > .feature-card {border-color:rgba(89,160,255,.62)}
+.rm-favorite-card:nth-child(6n+4) > .feature-card {border-color:rgba(255,205,92,.62)}
+.rm-favorite-card:nth-child(6n+5) > .feature-card {border-color:rgba(172,118,255,.62)}
+.rm-favorite-card:nth-child(6n) > .feature-card {border-color:rgba(73,220,205,.62)}
+
+/* One subtle sheen per visible card/chip, using transform + opacity only. */
+.feature-grid .feature-card.rm-motion-visible::before,
+.rm-feature-explorer__card.rm-motion-visible::before {
+  opacity:.68!important;
+  animation:rm-perf-sheen 8.5s ease-in-out infinite!important;
+}
+.rm-feature-explorer__link.rm-motion-visible::after,
+.rm-dashboard-shortcut.rm-motion-visible::after {
+  opacity:.7!important;
+  animation:rm-perf-sheen 9.5s ease-in-out infinite!important;
+}
+@keyframes rm-perf-sheen {
+  0%,18% {opacity:0;transform:translate3d(-160%,0,0) skewX(-22deg)}
+  30% {opacity:.72}
+  58% {opacity:.38;transform:translate3d(420%,0,0) skewX(-22deg)}
+  59%,100% {opacity:0;transform:translate3d(420%,0,0) skewX(-22deg)}
+}
+
+/* Keep touch scrolling native and avoid smooth-scroll interpolation. */
+html,body {
+  scroll-behavior:auto!important;
+  -webkit-overflow-scrolling:touch;
+}
+@media(max-width:700px) {
+  .feature-grid .feature-card,
+  .rm-feature-explorer__card {
+    box-shadow:0 4px 12px rgba(0,0,0,.24),inset 0 0 7px rgba(53,232,255,.045);
+  }
+  .feature-grid .feature-card.rm-motion-visible::before,
+  .rm-feature-explorer__card.rm-motion-visible::before,
+  .rm-feature-explorer__link.rm-motion-visible::after,
+  .rm-dashboard-shortcut.rm-motion-visible::after {
+    animation-duration:11s!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .feature-grid .feature-card::before,
+  .rm-feature-explorer__card::before,
+  .rm-feature-explorer__link::after,
+  .rm-dashboard-shortcut::after {animation:none!important;opacity:0!important}
+}
