@@ -1,28 +1,30 @@
 #!/usr/bin/env python3
-"""Sync official Railway Board press releases into Railway Mitra's public feed."""
+"""Sync official Railway Board and PIB Ministry of Railways releases into Railway Mitra."""
+import base64
 import hashlib
 import json
 import os
 import re
-import sys
 from datetime import datetime, timezone
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, parse_qs
 
 import requests
 from bs4 import BeautifulSoup
 
 FEED_PATH = "features/updates/notices.json"
-SOURCE = "https://rb.indianrailways.gov.in/documents/press-release"
+RB_SOURCE = "https://rb.indianrailways.gov.in/documents/press-release"
+PIB_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=6"
 HEADERS = {"User-Agent": "RailwayMitra-OfficialUpdatesBot/1.0 (+https://github.com/sharerohit111-pixel/railway-mitra)"}
 DATE_RE = re.compile(r"\b(\d{2})-(\d{2})-(\d{4})\b")
+PIB_DATE_RE = re.compile(r"(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})", re.I)
 MAX_ITEMS = 120
 
 
 def category_for(title):
     t = title.lower()
-    if any(x in t for x in ("recruit", "vacanc", "rrb", "exam", "answer key", "selection")):
+    if any(x in t for x in ("recruit", "vacanc", "rrb", "exam", "answer key", "selection", "gdce", "ldce")):
         return "exam"
-    if any(x in t for x in ("bonus", "allowance", "salary", "pay commission", "pension", "employee", "staff", "rbe")):
+    if any(x in t for x in ("bonus", "allowance", "salary", "pay commission", "pension", "employee", "staff", "rbe", "dearness")):
         return "pay"
     if any(x in t for x in ("safety", "kavach", "accident", "rpf", "security", "maintenance", "track")):
         return "transfer"
@@ -33,26 +35,24 @@ def category_for(title):
     return "rbe"
 
 
-def extract_records(html):
+def clean_title(value):
+    return " ".join(value.replace("\xa0", " ").split()).strip(" :-|")
+
+
+def extract_railway_board(html):
     soup = BeautifulSoup(html, "html.parser")
-    records = []
-    seen = set()
+    records, seen = [], set()
     for link in soup.find_all("a"):
-        label = " ".join(link.get_text(" ", strip=True).split()).lower()
-        href = urljoin(SOURCE, link.get("href", ""))
+        label = clean_title(link.get_text(" ", strip=True)).lower()
+        href = urljoin(RB_SOURCE, link.get("href", ""))
         parsed = urlparse(href)
-        if label not in {"view", "download", "pdf"}:
+        if label not in {"view", "download", "pdf"} or parsed.scheme != "https" or parsed.hostname != "rb.indianrailways.gov.in" or href in seen:
             continue
-        if parsed.scheme != "https" or parsed.hostname != "rb.indianrailways.gov.in":
-            continue
-        if href in seen:
-            continue
-        node = link
-        best_text = ""
+        node, best_text = link, ""
         for _ in range(7):
             if node is None:
                 break
-            text = " ".join(node.get_text(" ", strip=True).split())
+            text = clean_title(node.get_text(" ", strip=True))
             if DATE_RE.search(text):
                 best_text = text
                 break
@@ -60,15 +60,14 @@ def extract_records(html):
         match = DATE_RE.search(best_text)
         if not match:
             continue
-        # Remove labels, date and file-size text to recover the notice title.
         title = best_text
         title = re.sub(r"\bTitle\s*:\s*", " ", title, flags=re.I)
         title = re.sub(r"\bDate\s*:\s*" + re.escape(match.group(0)), " ", title, flags=re.I)
         title = re.sub(r"\bType/Size\s*:\s*", " ", title, flags=re.I)
         title = re.sub(r"\bView\b|\bDownload\b|\bPDF\b", " ", title, flags=re.I)
         title = re.sub(r"\b\d+(?:\.\d+)?\s*(?:KB|MB)\b", " ", title, flags=re.I)
-        title = " ".join(title.split()).strip(" :-|")
-        if not title or len(title) < 12 or len(title) > 300:
+        title = clean_title(title)
+        if not 12 <= len(title) <= 300:
             continue
         day, month, year = match.groups()
         published = f"{year}-{month}-{day}"
@@ -77,21 +76,59 @@ def extract_records(html):
         except ValueError:
             continue
         digest = hashlib.sha1((published + "|" + title + "|" + href).encode()).hexdigest()[:12]
-        records.append({
-            "id": "rb-auto-" + digest,
-            "category": category_for(title),
-            "verified": True,
-            "publishedAt": published,
-            "titleEn": title,
-            "titleHi": "रेलवे बोर्ड की आधिकारिक सूचना",
-            "summaryEn": "Official Railway Board press release. Open the original release for complete details, applicable conditions and any deadlines.",
-            "summaryHi": "यह रेलवे बोर्ड की आधिकारिक प्रेस विज्ञप्ति है। पूरी जानकारी, लागू शर्तों और अंतिम तिथि के लिए मूल विज्ञप्ति खोलें।",
-            "sourceName": "Railway Board Press Release",
-            "sourceUrl": href,
-            "keywords": "Indian Railways Railway Board official press release"
-        })
+        records.append(make_record("rb-auto-" + digest, title, published, href, "Railway Board"))
         seen.add(href)
     return records
+
+
+def extract_pib_railway(html):
+    soup = BeautifulSoup(html, "html.parser")
+    records, seen = [], set()
+    for link in soup.find_all("a", href=True):
+        href = urljoin(PIB_SOURCE, link["href"])
+        parsed = urlparse(href)
+        if parsed.hostname != "www.pib.gov.in" or "PressReleseDetailm.aspx" not in parsed.path:
+            continue
+        prid = parse_qs(parsed.query).get("PRID", [""])[0]
+        title = clean_title(link.get_text(" ", strip=True))
+        if not prid or len(title) < 12 or prid in seen:
+            continue
+        node, context = link, ""
+        for _ in range(6):
+            if node is None:
+                break
+            context = clean_title(node.get_text(" ", strip=True))
+            if "Ministry of Railways" in context and PIB_DATE_RE.search(context):
+                break
+            node = node.parent
+        if "Ministry of Railways" not in context:
+            continue
+        match = PIB_DATE_RE.search(context)
+        if not match:
+            continue
+        try:
+            published = datetime.strptime(" ".join(match.groups()), "%d %b %Y").date().isoformat()
+        except ValueError:
+            continue
+        records.append(make_record("pib-rail-" + prid, title, published, href, "Ministry of Railways / PIB"))
+        seen.add(prid)
+    return records
+
+
+def make_record(record_id, title, published, url, source_name):
+    return {
+        "id": record_id,
+        "category": category_for(title),
+        "verified": True,
+        "publishedAt": published,
+        "titleEn": title,
+        "titleHi": "रेल मंत्रालय की आधिकारिक सूचना",
+        "summaryEn": "Official release published by the Ministry of Railways. Open the original PIB/Railway Board release for complete details and applicable dates.",
+        "summaryHi": "रेल मंत्रालय द्वारा जारी आधिकारिक सूचना। पूरी जानकारी और लागू तिथियों के लिए मूल सरकारी विज्ञप्ति देखें।",
+        "sourceName": source_name,
+        "sourceUrl": url,
+        "keywords": "Indian Railways Ministry of Railways Railway Board PIB official release"
+    }
 
 
 def main():
@@ -99,17 +136,33 @@ def main():
     repo = os.environ.get("GITHUB_REPOSITORY", "sharerohit111-pixel/railway-mitra")
     if not token:
         raise RuntimeError("GITHUB_TOKEN is required")
-    response = requests.get(SOURCE, headers=HEADERS, timeout=45)
-    response.raise_for_status()
-    discovered = extract_records(response.text)
+
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    discovered = []
+    errors = []
+    for name, url, parser in (
+        ("Railway Board", RB_SOURCE, extract_railway_board),
+        ("PIB Ministry of Railways", PIB_SOURCE, extract_pib_railway),
+    ):
+        try:
+            response = session.get(url, timeout=45)
+            response.raise_for_status()
+            items = parser(response.text)
+            discovered.extend(items)
+            print(f"{name}: parsed {len(items)} official releases")
+        except Exception as exc:
+            errors.append(f"{name}: {exc}")
+            print(f"WARNING - {name} source unavailable: {exc}")
+
     if not discovered:
-        raise RuntimeError("No official notice records parsed; refusing to overwrite the feed")
+        raise RuntimeError("No official releases parsed from either source; refusing to overwrite the feed. " + "; ".join(errors))
+
     api = f"https://api.github.com/repos/{repo}/contents/{FEED_PATH}"
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
     current = requests.get(api, headers=headers, timeout=30)
     current.raise_for_status()
     meta = current.json()
-    import base64
     payload = json.loads(base64.b64decode(meta["content"]).decode("utf-8"))
     existing = payload.get("notices", [])
     by_id = {item.get("id"): item for item in existing if isinstance(item, dict) and item.get("id")}
@@ -123,12 +176,12 @@ def main():
     payload["version"] = max(2, int(payload.get("version", 1)))
     payload["updatedAt"] = datetime.now(timezone.utc).date().isoformat()
     payload["notices"] = existing[:MAX_ITEMS]
-    body = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
     if added == 0:
-        print(f"No new official press releases. Existing feed has {len(existing)} records.")
+        print(f"No new official releases. Existing feed has {len(payload['notices'])} records; source checks completed.")
         return
+    body = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
     commit = {
-        "message": f"chore(updates): sync {added} official Railway Board releases",
+        "message": f"chore(updates): sync {added} official Railway/PIB releases",
         "content": base64.b64encode(body.encode("utf-8")).decode("ascii"),
         "sha": meta["sha"],
         "branch": "main"
@@ -137,7 +190,7 @@ def main():
     if saved.status_code == 409:
         raise RuntimeError("Feed changed during sync; retry on next scheduled run")
     saved.raise_for_status()
-    print(f"Published {added} new official Railway Board press releases; total feed records: {len(payload['notices'])}")
+    print(f"Published {added} new official releases; total feed records: {len(payload['notices'])}")
 
 
 if __name__ == "__main__":
