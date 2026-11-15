@@ -25,7 +25,7 @@ const translations = {
     uploadTitle:"Previous Paper Upload करें", uploadSubtitle:"जानकारी भरें और PDF फ़ाइल चुनें।", categoryLabel:"Exam Category", ldce:"Railway LDCE", gdce:"Railway GDCE", otherExam:"Other Competitive Exam",
     examNameLabel:"Exam का नाम / Post (Optional)", heldOnLabel:"यह परीक्षा कब आयोजित हुई थी? (Optional)", choosePdf:"PDF चुनें / Upload PDF", pdfHint:"केवल PDF · अधिकतम 5 MB", pdfLabel:"Question Paper की PDF",
     privacyTitle:"आपकी व्यक्तिगत जानकारी गोपनीय रखी जाएगी", privacyText:"आपका पेपर private storage में रखा जाएगा। इसे केवल अधिकृत Railway Mitra admin देख सकेगा। हम access controls और सुरक्षित data handling का उपयोग करते हैं। इंटरनेट पर कोई भी सेवा 100% सुरक्षा की गारंटी नहीं दे सकती। कृपया PDF में Aadhaar, बैंक विवरण या अन्य अनावश्यक संवेदनशील जानकारी हो तो उसे छिपाकर अपलोड करें।",
-    consent:"मैं पुष्टि करता/करती हूँ कि मुझे यह पेपर साझा करने की अनुमति है और इसमें अनावश्यक निजी जानकारी नहीं है।", submit:"पेपर साझा करें",
+    consent:"मैं पुष्टि करता/करती हूँ कि मुझे यह पेपर साझा करने की अनुमति है और इसमें अनावश्यक निजी जानकारी नहीं है।", submit:"पेपर साझा करें", emailShare:"ईमेल से PDF भेजें",
     historyTitle:"मेरे साझा किए गए पेपर", historySubtitle:"आपके द्वारा भेजे गए पेपर की स्थिति।", refresh:"Refresh", loading:"लोड हो रहा है…", footer:"Railway Mitra · Your Railway Digital Companion",
     pdfOnly:"केवल PDF · अधिकतम 5 MB", tooLarge:"PDF का आकार 5 MB से कम होना चाहिए।", choosePaper:"कृपया Previous Paper की PDF चुनें।", invalidPdf:"केवल 5 MB तक की PDF फ़ाइल अपलोड करें।", consentRequired:"कृपया sharing confirmation स्वीकार करें।",
     uploading:"आपकी PDF सुरक्षित रूप से जमा की जा रही है…", uploaded:"धन्यवाद! आपका Previous Paper Railway Mitra को सफलतापूर्वक मिल गया है।", noHistory:"अभी तक आपने कोई पेपर साझा नहीं किया है।",
@@ -38,7 +38,7 @@ const translations = {
     uploadTitle:"Upload a Previous Paper", uploadSubtitle:"Add the details and choose a PDF file.", categoryLabel:"Exam Category", ldce:"Railway LDCE", gdce:"Railway GDCE", otherExam:"Other Competitive Exam",
     examNameLabel:"Exam name / Post (Optional)", heldOnLabel:"When was the exam held? (Optional)", choosePdf:"Choose PDF / Upload PDF", pdfHint:"PDF only · Maximum 5 MB", pdfLabel:"Question Paper PDF",
     privacyTitle:"Your personal information will be kept private", privacyText:"Your paper will be stored in private storage and can only be viewed by an authorised Railway Mitra admin. We use access controls and secure data handling. No internet service can guarantee 100% security. Please hide Aadhaar, bank details or other unnecessary sensitive information before uploading.",
-    consent:"I confirm that I am allowed to share this paper and that it contains no unnecessary personal information.", submit:"Submit Paper",
+    consent:"I confirm that I am allowed to share this paper and that it contains no unnecessary personal information.", submit:"Submit Paper", emailShare:"Send PDF by Email",
     historyTitle:"My Shared Papers", historySubtitle:"Status of papers you have submitted.", refresh:"Refresh", loading:"Loading…", footer:"Railway Mitra · Your Railway Digital Companion",
     pdfOnly:"PDF only · Maximum 5 MB", tooLarge:"The PDF must be smaller than 5 MB.", choosePaper:"Please choose the previous paper PDF.", invalidPdf:"Upload a valid PDF up to 5 MB only.", consentRequired:"Please accept the sharing confirmation.",
     uploading:"Submitting your PDF securely…", uploaded:"Thank you! Railway Mitra has received your previous paper.", noHistory:"You have not shared any papers yet.",
@@ -89,6 +89,31 @@ form.addEventListener("submit",async event=>{
   const payload={examCategory:document.getElementById("paperCategory").value,examName:document.getElementById("paperName").value.trim(),heldOn:document.getElementById("paperHeldOn").value,fileName:file.name,fileBase64:toBase64(await file.arrayBuffer())};
   await submitPaper(payload);form.reset();fileName.textContent=t("pdfHint");message.textContent=t("uploaded");await loadHistory();
  }catch(error){message.textContent=readableError(error);message.classList.add("error");}finally{submitButton.disabled=false;}
+});
+
+document.getElementById("paperEmailSubmit").addEventListener("click", async () => {
+ const file=fileInput.files?.[0];
+ if(!file){message.textContent=t("choosePaper");message.classList.add("error");return;}
+ if(file.size<=0||file.size>MAX_FILE_BYTES||(!file.type.includes("pdf")&&!file.name.toLowerCase().endsWith(".pdf"))){message.textContent=t("invalidPdf");message.classList.add("error");return;}
+ if(!document.getElementById("paperConsent").checked){message.textContent=t("consentRequired");message.classList.add("error");return;}
+ const category=document.getElementById("paperCategory").value;
+ const examName=document.getElementById("paperName").value.trim();
+ const heldOn=document.getElementById("paperHeldOn").value;
+ const subject="[Railway Mitra] "+category+" Previous Paper"+(examName?" - "+examName:"");
+ const body="Please find my previous paper attached.\\nCategory: "+category+"\\nExam: "+(examName||"Not provided")+"\\nHeld on: "+(heldOn||"Not provided")+"\\nI confirm that I am allowed to share this paper.";
+ const button=document.getElementById("paperEmailSubmit");
+ button.disabled=true;
+ try{
+  if(navigator.canShare && navigator.share && navigator.canShare({files:[file]})){
+   await navigator.share({files:[file],title:subject,text:"To: sharerohit111@gmail.com\\n"+body});
+   message.textContent="Share menu opened. Select Gmail and send it to sharerohit111@gmail.com.";
+  }else{
+   window.location.href="mailto:sharerohit111@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+   message.textContent="Email draft opened. Attach the selected PDF and send it to sharerohit111@gmail.com.";
+  }
+ }catch(error){
+  if(error?.name!=="AbortError") message.textContent="Could not open sharing. Please use the normal Upload button.";
+ }finally{button.disabled=false;}
 });
 document.getElementById("paperRefresh").addEventListener("click",loadHistory);
 const today=new Date();document.getElementById("paperHeldOn").max=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-");
