@@ -1,39 +1,117 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#071326">
-<meta name="description" content="Railway Mitra is an independent railway employee digital companion with practical salary and allowance calculators, railway learning guides and employee tools.">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#061126">
+<meta name="description" content="Railway Mitra is an independent railway employee digital companion with practical calculators, railway learning guides and employee tools.">
 <meta name="robots" content="index,follow">
 <meta name="google-adsense-account" content="ca-pub-9436419215613686">
 <title>Railway Mitra – Your Railway Digital Companion</title>
 <link rel="canonical" href="https://railwaymitra.com/">
 <link rel="icon" href="./assets/icons/icon-192.png">
 <style>
-:root{color-scheme:dark;--bg:#071326;--panel:#10223a;--line:#244563;--cyan:#6ee7f9;--muted:#b8cadd}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#12385b 0,transparent 42%),var(--bg);color:#edf6ff;font:16px/1.7 system-ui,-apple-system,Segoe UI,sans-serif}a{color:var(--cyan)}.wrap{width:min(1100px,calc(100% - 32px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 0}.brand{font-weight:800;font-size:1.3rem;color:white;text-decoration:none}.nav{display:flex;flex-wrap:wrap;gap:16px}.nav a{text-decoration:none}.hero{padding:70px 0 48px}.eyebrow{color:var(--cyan);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem}.hero h1{font-size:clamp(2.3rem,6vw,4.3rem);line-height:1.08;max-width:850px;margin:14px 0}.hero p{color:var(--muted);max-width:780px;font-size:1.12rem}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.btn{display:inline-block;padding:12px 20px;border-radius:12px;background:linear-gradient(120deg,#087fa8,#1764bc);color:white;text-decoration:none;font-weight:700;border:1px solid #55d7f2}.btn.alt{background:#10243b;border-color:var(--line)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:25px 0 50px}.card{background:linear-gradient(145deg,#10243b,#0c1a2d);border:1px solid var(--line);border-radius:18px;padding:22px}.card h2{margin-top:0}.card p,.muted{color:var(--muted)}.section{padding:20px 0}.section h2{font-size:1.8rem}.footer{border-top:1px solid var(--line);padding:26px 0 42px;color:var(--muted);font-size:.92rem}.footer nav{display:flex;flex-wrap:wrap;gap:16px}.credit{color:#91a9c2;font-size:.9rem}@media(max-width:620px){.top{align-items:flex-start;flex-direction:column}.hero{padding-top:42px}}
+:root{color-scheme:dark;--bg:#050d1d;--navy:#081832;--panel:#0d203b;--line:rgba(91,219,255,.25);--cyan:#58e5ff;--blue:#168bff;--purple:#8257ff;--pink:#ed4bc5;--text:#f4f8ff;--muted:#b8c9df;--green:#70f0d1}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 8% 5%,rgba(0,150,255,.2),transparent 34%),radial-gradient(ellipse at 92% 30%,rgba(157,54,255,.18),transparent 36%),radial-gradient(ellipse at 50% 100%,rgba(236,57,192,.1),transparent 42%),var(--bg)}
+a{color:var(--cyan)}
+.wrap{width:min(1120px,calc(100% - 36px));margin:auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 0;border-bottom:1px solid rgba(103,211,255,.12)}
+.brand{display:inline-flex;align-items:center;gap:11px;color:#fff;text-decoration:none;font-weight:850;font-size:1.28rem;letter-spacing:-.02em}
+.brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:linear-gradient(140deg,#087fb9,#3d52d9 60%,#9b40ce);box-shadow:0 0 22px rgba(44,185,255,.25);font-size:1.35rem}
+.nav{display:flex;flex-wrap:wrap;gap:20px}
+.nav a,.footer a{color:#c7d9ef;text-decoration:none;font-size:.93rem}
+.nav a:hover,.footer a:hover{color:var(--cyan)}
+.hero{position:relative;overflow:hidden;margin:42px 0 36px;padding:clamp(28px,6vw,66px);border:1px solid rgba(81,218,255,.32);border-radius:30px;background:linear-gradient(130deg,rgba(12,36,68,.96),rgba(13,25,56,.94) 58%,rgba(39,18,67,.9));box-shadow:0 24px 70px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.06)}
+.hero:before{content:"";position:absolute;width:330px;height:330px;right:-120px;top:-170px;border-radius:50%;background:rgba(53,204,255,.13);filter:blur(14px);pointer-events:none}
+.hero:after{content:"";position:absolute;width:260px;height:260px;right:15%;bottom:-220px;border-radius:50%;background:rgba(202,58,255,.14);filter:blur(20px);pointer-events:none}
+.hero-content{position:relative;z-index:1;max-width:850px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;color:var(--cyan);font-size:.8rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.eyebrow:before{content:"";width:25px;height:2px;background:linear-gradient(90deg,var(--cyan),var(--pink));border-radius:4px}
+h1{font-size:clamp(2.45rem,6.5vw,4.9rem);line-height:1.06;letter-spacing:-.045em;margin:18px 0 20px;max-width:900px}
+.gradient-text{background:linear-gradient(95deg,#fff 4%,#8ceeff 45%,#d4a2ff 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-copy{max-width:760px;color:#c1d1e6;font-size:clamp(1.02rem,2vw,1.18rem);margin:0}
+.login-hint{display:flex;align-items:center;gap:10px;margin:30px 0 13px;color:#d8eaff;font-weight:750;font-size:.98rem}
+.login-hint .dot{width:9px;height:9px;flex:none;border-radius:50%;background:var(--green);box-shadow:0 0 13px var(--green);animation:dotPulse 1.5s infinite}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:15px;margin-top:12px}
+.btn{position:relative;isolation:isolate;display:inline-flex;justify-content:center;align-items:center;gap:13px;min-height:62px;padding:16px 25px;border:1px solid rgba(112,237,255,.95);border-radius:17px;background:linear-gradient(105deg,#087fb9 0%,#176be0 48%,#873bd2 100%);box-shadow:0 0 0 1px rgba(69,207,255,.16),0 0 24px rgba(25,151,255,.4),0 10px 30px rgba(0,0,0,.22);color:#fff;text-decoration:none;font-weight:850;font-size:1.08rem;animation:loginPulse 2.1s ease-in-out infinite;transition:transform .2s,filter .2s}
+.btn:before{content:"";position:absolute;inset:-5px;border:1px solid rgba(91,228,255,.62);border-radius:21px;z-index:-1;animation:ringPulse 2.1s ease-out infinite}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.13)}
+.btn:focus-visible{outline:3px solid white;outline-offset:7px}
+.btn .arrow{font-size:1.35rem;transition:transform .2s}
+.btn:hover .arrow{transform:translateX(5px)}
+.btn.alt{background:rgba(11,30,54,.72);border-color:rgba(134,165,211,.35);box-shadow:inset 0 1px rgba(255,255,255,.05);animation:none}
+.btn.alt:before{display:none}
+.credit{margin:24px 0 0;color:#9eb5d0;font-size:.96rem}
+.credit strong{color:#d9e9ff}
+.quick-points{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin:0 0 48px}
+.quick-point{display:flex;align-items:center;gap:12px;padding:16px 17px;border:1px solid rgba(86,202,255,.18);border-radius:17px;background:rgba(10,27,50,.72);color:#c6d8ed}
+.quick-icon{display:grid;place-items:center;flex:none;width:39px;height:39px;border-radius:12px;background:linear-gradient(145deg,rgba(24,145,220,.24),rgba(136,63,205,.22));border:1px solid rgba(104,218,255,.2);font-size:1.1rem}
+.section{padding:14px 0 30px}
+.section-head{margin-bottom:20px}
+.section-kicker{color:var(--cyan);font-size:.78rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.section h2{font-size:clamp(1.55rem,3vw,2rem);letter-spacing:-.025em;margin:6px 0}
+.section-intro{margin:0;color:var(--muted);max-width:720px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:16px;margin:22px 0 42px}
+.card{position:relative;overflow:hidden;min-height:190px;padding:23px;border:1px solid rgba(91,192,239,.2);border-radius:20px;background:linear-gradient(145deg,rgba(15,37,65,.94),rgba(9,23,43,.96));box-shadow:0 12px 32px rgba(0,0,0,.14);transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-3px);border-color:rgba(92,226,255,.55)}
+.card h3{margin:0 0 9px;font-size:1.12rem;color:#f3f8ff}
+.card p{margin:0 0 17px;color:var(--muted);font-size:.94rem}
+.card a{font-weight:750;text-decoration:none}
+.card a:hover{text-decoration:underline}
+.notice{margin:8px 0 42px;padding:22px 24px;border:1px solid rgba(168,119,255,.3);border-radius:19px;background:linear-gradient(110deg,rgba(41,29,74,.52),rgba(11,29,52,.75))}
+.notice h2{font-size:1.15rem;margin:0 0 7px;color:#e6d6ff}
+.notice p{margin:0;color:#c2cce0;font-size:.93rem}
+.footer{border-top:1px solid rgba(102,199,239,.18);padding:26px 0 40px;color:#94a9c4;font-size:.9rem}
+.footer nav{display:flex;flex-wrap:wrap;gap:15px 20px}
+.footer p{margin:18px 0 0}
+@keyframes loginPulse{0%,100%{box-shadow:0 0 0 1px rgba(69,207,255,.2),0 0 18px rgba(25,151,255,.3),0 10px 30px rgba(0,0,0,.2)}50%{box-shadow:0 0 0 4px rgba(69,207,255,.12),0 0 34px rgba(25,151,255,.62),0 10px 34px rgba(0,0,0,.25)}}
+@keyframes ringPulse{0%{transform:scale(.99);opacity:.8}80%,100%{transform:scale(1.045);opacity:0}}
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.45;box-shadow:0 0 5px var(--green)}}
+@media(max-width:700px){.top{align-items:flex-start;flex-direction:column;padding:17px 0}.nav{gap:13px}.hero{margin-top:24px;padding:27px 22px;border-radius:24px}.actions{align-items:stretch;flex-direction:column}.btn{width:100%;min-height:60px}.quick-points{grid-template-columns:1fr;gap:9px}.quick-point{padding:12px 14px}.grid{grid-template-columns:1fr}.footer nav{gap:12px 16px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><a class="brand" href="./">🚆 Railway Mitra</a><nav class="nav" aria-label="Main navigation"><a href="./about.html">About</a><a href="./guides/">Learning Guides</a><a href="./features/privacy/index.html">Privacy</a><a href="./contact.html">Contact</a></nav></header>
+<header class="top">
+<a class="brand" href="./"><span class="brand-mark" aria-hidden="true">🚆</span><span>Railway Mitra</span></a>
+<nav class="nav" aria-label="Main navigation"><a href="./about.html">About</a><a href="./guides/">Learning Guides</a><a href="./features/privacy/index.html">Privacy</a><a href="./contact.html">Contact</a></nav>
+</header>
 <main>
-<section class="hero">
+<section class="hero" aria-labelledby="hero-title">
+<div class="hero-content">
 <p class="eyebrow">Your Railway Digital Companion</p>
-<h1>Useful railway employee tools, information and learning resources.</h1>
-<p>Railway Mitra is an independent platform designed to make selected railway employee calculations, reference material and everyday digital tools easier to explore. Read our public guides or sign in to use account-based features.</p>
-<div class="actions"><a class="btn" href="./features/auth/login.html?redirect=%2Fapp.html">Sign in &amp; Open Railway Mitra</a><a class="btn alt" href="./guides/">Explore Learning Guides</a></div>
-<p class="credit">Owned &amp; Developed by Rohit Kumar</p>
-</section>
-<section class="section"><h2>Explore Railway Mitra</h2><div class="grid">
-<article class="card"><h2>Salary &amp; Allowance Learning</h2><p>Understand basic pay, DA and duty-linked allowance concepts, with reminders to verify rates and eligibility against current official orders.</p><a href="./guides/allowance-basics.html">Read the allowance guide →</a></article>
-<article class="card"><h2>Permanent Way References</h2><p>Learn how to locate applicable manuals, correction slips and local instructions before relying on technical information.</p><a href="./guides/track-maintenance-reference.html">Read the track maintenance guide →</a></article>
-<article class="card"><h2>Calculator Best Practices</h2><p>Use correct inputs, effective dates and eligibility checks to make estimates more useful and easier to verify.</p><a href="./guides/calculator-checklist.html">Read the calculator checklist →</a></article>
-<article class="card"><h2>Employee Tools</h2><p>Signed-in users can access available employee profile, diary and calculator features inside the Railway Mitra application.</p><a href="./features/auth/login.html?redirect=%2Fapp.html">Open the app →</a></article>
-<article class="card"><h2>About the Platform</h2><p>Learn about Railway Mitra, its independent status and the principles behind the service.</p><a href="./about.html">About Railway Mitra →</a></article>
-<article class="card"><h2>Privacy &amp; Data</h2><p>Review what information supported account features may process and how privacy or deletion requests work.</p><a href="./features/privacy/index.html">Read the Privacy Policy →</a></article>
-</div></section>
-<section class="section"><h2>Important notice</h2><p class="muted">Railway Mitra is an independent informational and utility platform. It is not an official website of Indian Railways or the Ministry of Railways. Calculators and articles are general information only; current official rules, orders and competent-authority decisions always take precedence.</p><p><a href="./disclaimer.html">Read the full Disclaimer</a>.</p></section>
-</main>
-<footer class="footer"><nav><a href="./about.html">About Us</a><a href="./contact.html">Contact</a><a href="./features/privacy/index.html">Privacy Policy</a><a href="./disclaimer.html">Disclaimer</a><a href="./terms-and-conditions.html">Terms &amp; Conditions</a><a href="./guides/">Learning Guides</a><a href="./app.html">Sign in</a></nav><p>© 2026 Railway Mitra. All rights reserved.</p></footer>
+<h1 id="hero-title"><span class="gradient-text">Railway tools.</span><br>Learning made simpler.</h1>
+<p class="hero-copy">Railway Mitra is an independent platform designed to make selected railway employee calculations, reference material and everyday digital tools easier to explore. Read public guides or sign in to use account-based features.</p>
+<p class="login-hint"><span class="dot" aria-hidden="true"></span> New here? Start by signing in to open the app.</p>
+<div class="actions">
+<a class="btn" href="./features/auth/login.html?redirect=%2Fapp.html" aria-label="Sign in and open Railway Mitra">Sign in &amp; Open Railway Mitra <span class="arrow" aria-hidden="true">→</span></a>
+<a class="btn alt" href="./guides/">Explore Learning Guides <span aria-hidden="true">↗</span></a>
 </div>
-</body></html>
+<p class="credit">Owned &amp; Developed by <strong>Rohit Kumar</strong></p>
+</div>
+</section>
+<section class="quick-points" aria-label="Platform highlights">
+<div class="quick-point"><span class="quick-icon" aria-hidden="true">🧮</span><span>Practical railway calculators</span></div>
+<div class="quick-point"><span class="quick-icon" aria-hidden="true">📘</span><span>Learning guides &amp; references</span></div>
+<div class="quick-point"><span class="quick-icon" aria-hidden="true">🔐</span><span>Account-based employee tools</span></div>
+</section>
+<section class="section">
+<div class="section-head"><span class="section-kicker">Discover</span><h2>Explore Railway Mitra</h2><p class="section-intro">Start with a public guide or sign in to access the available employee tools.</p></div>
+<div class="grid">
+<article class="card"><h3>Salary &amp; Allowance Learning</h3><p>Understand basic pay, DA and duty-linked allowance concepts, with reminders to verify rates and eligibility against current official orders.</p><a href="./guides/allowance-basics.html">Read the allowance guide →</a></article>
+<article class="card"><h3>Permanent Way References</h3><p>Learn how to locate applicable manuals, correction slips and local instructions before relying on technical information.</p><a href="./guides/track-maintenance-reference.html">Read the track maintenance guide →</a></article>
+<article class="card"><h3>Calculator Best Practices</h3><p>Use correct inputs, effective dates and eligibility checks to make estimates more useful and easier to verify.</p><a href="./guides/calculator-checklist.html">Read the calculator checklist →</a></article>
+<article class="card"><h3>Employee Tools</h3><p>Signed-in users can access available employee profile, diary and calculator features inside the Railway Mitra application.</p><a href="./features/auth/login.html?redirect=%2Fapp.html">Open the app →</a></article>
+<article class="card"><h3>About the Platform</h3><p>Learn about Railway Mitra, its independent status and the principles behind the service.</p><a href="./about.html">About Railway Mitra →</a></article>
+<article class="card"><h3>Privacy &amp; Data</h3><p>Review what information supported account features may process and how privacy or deletion requests work.</p><a href="./features/privacy/index.html">Read the Privacy Policy →</a></article>
+</div>
+</section>
+<section class="notice"><h2>Important notice</h2><p>Railway Mitra is an independent informational and utility platform. It is not an official website of Indian Railways or the Ministry of Railways. Calculators and articles are general information only; current official rules, orders and competent-authority decisions always take precedence. <a href="./disclaimer.html">Read the full Disclaimer</a>.</p></section>
+</main>
+<footer class="footer"><nav><a href="./about.html">About Us</a><a href="./contact.html">Contact</a><a href="./features/privacy/index.html">Privacy Policy</a><a href="./disclaimer.html">Disclaimer</a><a href="./terms-and-conditions.html">Terms &amp; Conditions</a><a href="./guides/">Learning Guides</a><a href="./features/auth/login.html?redirect=%2Fapp.html">Sign in</a></nav><p>© 2026 Railway Mitra. All rights reserved.</p></footer>
+</div>
+</body>
+</html>
