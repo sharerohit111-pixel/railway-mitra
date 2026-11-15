@@ -51,7 +51,7 @@ function projectStudentSavedAnswers(questions, answers) {
   const projectedEntries = [];
   for (const [questionId, answer] of Object.entries(answers)) {
     const question = questionById.get(questionId);
-    if (!question || typeof answer !== "string" || !/^(0|[1-9]\\d*)$/.test(answer)) {
+    if (!question || typeof answer !== "string" || !/^(0|[1-9]\d*)$/.test(answer)) {
       throw new Error("Attempt contains invalid saved student answers");
     }
     const optionIndex = Number(answer);
