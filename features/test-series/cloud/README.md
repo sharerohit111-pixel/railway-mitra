@@ -199,3 +199,8 @@ When `rmGetExamQuestions` resumes an attempt, it no longer returns the stored `a
 ## Canonical answer-save integrity
 
 The rmSaveAnswer callable uses the same pure validator as saved-answer projection. It accepts only canonical decimal strings such as 0 or 2 that identify an existing option in the current question. It rejects leading-zero aliases (00, 01), numeric JSON values, booleans, null, negative/fractional values and indexes outside the option list before writing to the attempt. This keeps the answer-save contract aligned with resume projection so an answer accepted during the exam cannot make the next resume fail closed. Pure unit tests and a callable Functions Emulator regression cover the canonical format and verify rejected values do not mutate the saved-answer map.
+
+
+## Prototype-safe private answer-key fields
+
+Question IDs such as "__proto__" are valid under the existing identifier contract. Owner draft creation now defines answer-key entries as own enumerable data properties rather than assigning through JavaScript's special prototype setter. Scoring also requires each answer-key entry to be an own property; inherited values can never satisfy a question's private key. This preserves the existing Firestore document shape and does not expose answer keys to students. Unit tests cover "__proto__", "constructor", inherited entries and malformed indexes; the CBT Functions Emulator regression exercises save, resume and server-side scoring with a "__proto__" question ID.

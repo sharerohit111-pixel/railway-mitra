@@ -32,7 +32,7 @@ const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require(
 const { selectQuestionBankPage } = require("./question-bank-pagination");
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
-const { getExamAnswerKey } = require("./exam-answer-key");
+const { getExamAnswerKey, addExamAnswerKeyEntry } = require("./exam-answer-key");
 const {
   projectStudentQuestions,
   projectStudentSavedAnswers,
@@ -505,7 +505,7 @@ function ownerTestPayload(data) {
     const section = typeof q.section === "string" ? q.section.trim() : "";
     if (section.length > 80) throw new HttpsError("invalid-argument", "Question section name is too long");
     publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options, ...(section ? { section } : {}) });
-    answerQuestions[qid] = { correctAnswer: String(q.correctIndex) };
+    addExamAnswerKeyEntry(answerQuestions, qid, q.correctIndex);
   }
   const sectionNames = [...new Set(publicQuestions.map(question => question.section).filter(Boolean))];
   const suppliedSections = Array.isArray(data.sections) ? data.sections : [];

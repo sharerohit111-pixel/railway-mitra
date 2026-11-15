@@ -31,6 +31,7 @@ function getExamAnswerKey(questions, answerQuestions) {
     }
     seen.add(question.id);
 
+    if (!Object.prototype.hasOwnProperty.call(answerQuestions, question.id)) throw invalidAnswerKey();
     const answer = answerQuestions[question.id];
     if (!isRecord(answer) || typeof answer.correctAnswer !== "string" ||
         !/^(0|[1-9]\d*)$/.test(answer.correctAnswer)) {
@@ -51,4 +52,26 @@ function getExamAnswerKey(questions, answerQuestions) {
   return Object.freeze(validated);
 }
 
-module.exports = { getExamAnswerKey };
+/**
+ * Add a private answer-key entry without invoking Object.prototype setters.
+ * In particular, "__proto__" is a valid question ID and must remain an own
+ * enumerable Firestore field rather than changing the map's prototype.
+ */
+function addExamAnswerKeyEntry(answerQuestions, questionId, correctIndex) {
+  if (!isRecord(answerQuestions) ||
+      typeof questionId !== "string" ||
+      !/^[A-Za-z0-9_-]{1,100}$/.test(questionId) ||
+      Object.prototype.hasOwnProperty.call(answerQuestions, questionId) ||
+      !Number.isSafeInteger(correctIndex) || correctIndex < 0) {
+    throw invalidAnswerKey();
+  }
+  Object.defineProperty(answerQuestions, questionId, {
+    value: { correctAnswer: String(correctIndex) },
+    enumerable: true,
+    configurable: true,
+    writable: true
+  });
+  return answerQuestions;
+}
+
+module.exports = { getExamAnswerKey, addExamAnswerKeyEntry };

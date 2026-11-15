@@ -2,7 +2,7 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { getExamAnswerKey } = require("../exam-answer-key");
+const { getExamAnswerKey, addExamAnswerKeyEntry } = require("../exam-answer-key");
 
 const paper = [
   { id: "q1", options: ["A", "B"] },
@@ -60,4 +60,42 @@ test("answer-key integrity rejects missing, array, or oversized paper data", () 
   for (const answerQuestions of [null, [], "invalid"]) {
     assert.throws(() => getExamAnswerKey(paper, answerQuestions), error => error.code === "invalid_exam_answer_key");
   }
+});
+
+
+test("private answer-key maps preserve prototype-sensitive question IDs as own fields", () => {
+  const answerMap = {};
+  addExamAnswerKeyEntry(answerMap, "__proto__", 1);
+  addExamAnswerKeyEntry(answerMap, "constructor", 0);
+
+  assert.equal(Object.getPrototypeOf(answerMap), Object.prototype);
+  assert.deepEqual(Object.keys(answerMap), ["__proto__", "constructor"]);
+  assert.deepEqual(getExamAnswerKey([
+    { id: "__proto__", options: ["A", "B"] },
+    { id: "constructor", options: ["A", "B"] }
+  ], answerMap), [
+    { questionId: "__proto__", correctAnswer: "1" },
+    { questionId: "constructor", correctAnswer: "0" }
+  ]);
+});
+
+test("answer-key validation never accepts inherited answer entries", () => {
+  const inherited = Object.create({ q1: { correctAnswer: "0" } });
+  assert.throws(
+    () => getExamAnswerKey([{ id: "q1", options: ["A", "B"] }], inherited),
+    error => error.code === "invalid_exam_answer_key"
+  );
+});
+
+test("answer-key entry builder rejects malformed IDs, duplicate keys and invalid indexes", () => {
+  const answerMap = {};
+  for (const [questionId, correctIndex] of [
+    ["bad/id", 0], ["q1", -1], ["q2", 1.5], ["q3", Number.MAX_SAFE_INTEGER + 1]
+  ]) {
+    assert.throws(() => addExamAnswerKeyEntry(answerMap, questionId, correctIndex),
+      error => error.code === "invalid_exam_answer_key");
+  }
+  addExamAnswerKeyEntry(answerMap, "q1", 0);
+  assert.throws(() => addExamAnswerKeyEntry(answerMap, "q1", 1),
+    error => error.code === "invalid_exam_answer_key");
 });

@@ -2448,3 +2448,82 @@ test("a fully refunded captured payment stays locked in the catalogue and rmStar
     }
   }
 });
+
+
+test("CBT save, resume and scoring preserve a prototype-sensitive question ID safely", async () => {
+  const specialTestId = "emulator-prototype-question-id";
+  const attemptId = "emulator-prototype-question-attempt";
+  const testRef = db.doc("testSeriesTests/" + specialTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + specialTestId);
+  const keyRef = db.doc("testSeriesAnswerKeys/" + specialTestId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  const resultRef = db.doc("testSeriesResults/" + attemptId);
+  const answerQuestions = {};
+  Object.defineProperty(answerQuestions, "__proto__", {
+    value: { correctAnswer: "1" },
+    enumerable: true,
+    configurable: true,
+    writable: true
+  });
+
+  try {
+    await Promise.all([
+      testRef.set({
+        title: "Prototype ID Regression",
+        status: "published",
+        price: 0,
+        mode: "mock",
+        durationMinutes: 10,
+        marksPerQuestion: 2,
+        negativeMarks: 0.5,
+        questionCount: 1,
+        sections: []
+      }),
+      paperRef.set({
+        questions: [{ id: "__proto__", text: "Prototype-safe question?", options: ["A", "B"] }]
+      }),
+      keyRef.set({ questions: answerQuestions }),
+      attemptRef.set({
+        uid,
+        testId: specialTestId,
+        mode: "mock",
+        status: "in_progress",
+        startedAt: new Date(),
+        expiresAt: new Date(Date.now() + 10 * 60_000),
+        answers: {}
+      })
+    ]);
+
+    const delivered = await callable("rmGetExamQuestions", { attemptId });
+    assert.equal(delivered.questions[0].id, "__proto__");
+    assert.equal(Object.hasOwn(delivered.savedAnswers, "__proto__"), false);
+
+    await callable("rmSaveAnswer", {
+      attemptId,
+      questionId: "__proto__",
+      answer: "1"
+    });
+
+    const storedAttempt = (await attemptRef.get()).data();
+    assert.equal(Object.prototype.hasOwnProperty.call(storedAttempt.answers, "__proto__"), true);
+    assert.equal(storedAttempt.answers["__proto__"], "1");
+
+    const resumed = await callable("rmGetExamQuestions", { attemptId });
+    assert.equal(Object.hasOwn(resumed.savedAnswers, "__proto__"), true);
+    assert.equal(resumed.savedAnswers["__proto__"], "1");
+
+    const scored = await callable("rmSubmitExam", { attemptId });
+    assert.equal(scored.submitted, true);
+    assert.equal(scored.correct, 1);
+    assert.equal(scored.wrong, 0);
+    assert.equal(scored.score, 2);
+  } finally {
+    await Promise.all([
+      testRef.delete().catch(() => {}),
+      paperRef.delete().catch(() => {}),
+      keyRef.delete().catch(() => {}),
+      attemptRef.delete().catch(() => {}),
+      resultRef.delete().catch(() => {})
+    ]);
+  }
+});
