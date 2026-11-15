@@ -1,6 +1,6 @@
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
-const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
@@ -312,7 +312,8 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!isCanonicalStudentAnswerIndex(question, answer)) {
       throw new HttpsError("invalid-argument", "Answer must be a canonical option index for this question");
     }
-    tx.update(ref, new FieldPath("answers", questionId), answer, "updatedAt", FieldValue.serverTimestamp());
+    const nextAnswers = Object.fromEntries([...Object.entries(a.answers || {}), [questionId, answer]]);
+    tx.update(ref, { answers: nextAnswers, updatedAt: FieldValue.serverTimestamp() });
   });
   return { saved: true };
 });
