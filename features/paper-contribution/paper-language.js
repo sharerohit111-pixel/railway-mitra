@@ -42,12 +42,12 @@
     if(date)date.title=lang==="hi"?"वैकल्पिक":"Optional";
     if(file&&!document.getElementById("paperPdf")?.files?.length)file.textContent=translations[lang].pdfHint;
   }
-  document.addEventListener("DOMContentLoaded",()=>{
-    const button=document.getElementById("paperLanguageToggle");
-    if(button)button.addEventListener("click",()=>{
-      localStorage.setItem(key,localStorage.getItem(key)==="en"?"hi":"en");
-      apply();
-    });
+  window.togglePaperLanguage = function(){
+    const next=localStorage.getItem(key)==="en"?"hi":"en";
+    localStorage.setItem(key,next);
     apply();
-  });
+  };
+  const button=document.getElementById("paperLanguageToggle");
+  if(button) button.addEventListener("click",window.togglePaperLanguage);
+  apply();
 })();
