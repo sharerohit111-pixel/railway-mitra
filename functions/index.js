@@ -1151,7 +1151,7 @@ exports.submitPreviousPaper = onCall({ region: REGION, timeoutSeconds: 120, memo
   try {
     await ref.set({
       uid,
-      contributorName: String(request.auth.token.name || request.auth.token.email || "Railway Mitra Contributor").slice(0, 80),
+      contributorName: String(request.auth.token.name || "Railway Mitra Contributor").slice(0, 80),
       fileHash: crypto.createHash("sha256").update(pdf).digest("hex"),
       examCategory,
       examName,
