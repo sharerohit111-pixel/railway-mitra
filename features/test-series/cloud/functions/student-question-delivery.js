@@ -2,7 +2,7 @@
 
 const QUESTION_ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
 const PROTOTYPE_SENSITIVE_IDS = new Set(["__proto__", "constructor", "toString", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "valueOf", "__defineGetter__", "__defineSetter__"]);
-const ENCODED_QUESTION_ID_PREFIX = "__rm_qid__";
+const ENCODED_QUESTION_ID_PREFIX = "q:";
 function studentAnswerStorageKey(questionId) {
   if (!PROTOTYPE_SENSITIVE_IDS.has(questionId)) return questionId;
   return ENCODED_QUESTION_ID_PREFIX + Buffer.from(questionId, "utf8").toString("base64url");

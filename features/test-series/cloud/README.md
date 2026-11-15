@@ -205,9 +205,13 @@ The rmSaveAnswer callable uses the same pure validator as saved-answer projectio
 
 Question IDs such as "__proto__" are valid under the existing identifier contract. Owner draft creation now defines answer-key entries as own enumerable data properties rather than assigning through JavaScript's special prototype setter. Scoring also requires each answer-key entry to be an own property; inherited values can never satisfy a question's private key. This preserves the existing Firestore document shape and does not expose answer keys to students. Unit tests cover "__proto__", "constructor", inherited entries and malformed indexes; the CBT Functions Emulator regression exercises save, resume and server-side scoring with a "__proto__" question ID.
 
-## Literal Firestore answer-field paths
+## Prototype-safe Firestore answer-map keys
 
-Student answer saves update the answer map through a Firestore `FieldPath("answers", questionId)` segment rather than constructing a dotted field-path string. This preserves the question ID as one literal map-key segment (including prototype-sensitive IDs such as `__proto__`) and avoids routing a nested map through Firestore's object-merge parser. The CBT Functions Emulator regression covers saving, resuming and scoring question IDs `__proto__`, `constructor` and `toString`; each persisted answer must remain an own field and the result must still be calculated by the server-side answer key.
+The attempt document retains its `answers` map. Only JavaScript prototype-sensitive question IDs (for example `__proto__`, `constructor` and `toString`) are encoded for Firestore storage as `q:` plus canonical base64url UTF-8 bytes. Ordinary question IDs remain unchanged. The `q:` prefix contains a colon, which is excluded by the question-ID validation pattern, so an encoded key cannot be mistaken for a valid raw question ID.
+
+The storage-key decoder accepts only canonical encodings of the explicitly listed prototype-sensitive IDs. A previous prefix made only from underscores and letters could collide with a legitimate raw question ID; the reserved `q:` namespace removes that ambiguity. Student resume and server-side scoring decode the stored keys back to the original question IDs, and the callable response contract remains unchanged.
+
+The CBT Functions Emulator regression saves, resumes and scores `__proto__`, `constructor` and `toString`. A pure unit regression also uses the former-prefix string as a valid raw question ID beside `__proto__` and verifies both answers remain distinct. No collection or top-level Firestore field was added.
 
 
 ## Prototype-safe answer scoring

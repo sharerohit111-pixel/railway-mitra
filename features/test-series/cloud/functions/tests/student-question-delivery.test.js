@@ -3,7 +3,9 @@ const assert = require("node:assert/strict");
 const {
   projectStudentQuestions,
   projectStudentSavedAnswers,
-  isCanonicalStudentAnswerIndex
+  isCanonicalStudentAnswerIndex,
+  studentAnswerStorageKey,
+  studentAnswerQuestionId
 } = require("../student-question-delivery");
 
 test("projects an allowlisted student question and omits private fields", () => {
@@ -76,6 +78,27 @@ test("preserves prototype-sensitive question IDs as own answer data properties",
   assert.equal(Object.getPrototypeOf(projected), Object.prototype);
 });
 
+
+test("encoded answer-key namespace cannot collide with a valid raw question ID", () => {
+  // This was the old prefix plus the base64url encoding of "__proto__".
+  // It is itself a valid ID under QUESTION_ID_PATTERN.
+  const rawQuestionId = "__rm_qid__X19wcm90b19f";
+  const questionIds = [rawQuestionId, "__proto__"];
+  const questions = questionIds.map(id => ({ id, text: "Question " + id, options: ["A", "B"] }));
+  const rawKey = studentAnswerStorageKey(rawQuestionId);
+  const prototypeKey = studentAnswerStorageKey("__proto__");
+
+  assert.equal(rawKey, rawQuestionId);
+  assert.equal(studentAnswerQuestionId(rawKey), rawQuestionId);
+  assert.ok(prototypeKey.startsWith("q:"));
+  assert.notEqual(prototypeKey, rawKey);
+
+  const stored = Object.fromEntries([[rawKey, "0"], [prototypeKey, "1"]]);
+  const projected = projectStudentSavedAnswers(questions, stored);
+  assert.equal(projected[rawQuestionId], "0");
+  assert.equal(Object.hasOwn(projected, "__proto__"), true);
+  assert.equal(projected["__proto__"], "1");
+});
 
 test("answer saving accepts only canonical decimal indexes for the current option list", () => {
   const question = { id: "q1", options: ["A", "B", "C"] };
