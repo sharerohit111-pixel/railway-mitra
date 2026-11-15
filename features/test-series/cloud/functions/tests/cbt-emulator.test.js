@@ -1941,6 +1941,116 @@ test("webhook safely recovers after a transient Firestore transaction failure", 
 });
 
 
+test("refund webhook is retried when it arrives before the captured-payment ledger", async () => {
+  const paidTestId = "emulator-refund-before-capture-test";
+  const orderId = "order_emulator_refund_before_capture";
+  const paymentId = "pay_emulator_refund_before_capture";
+  const captureEventId = "evt_emulator_capture_after_refund";
+  const refundEventId = "evt_emulator_refund_before_capture";
+  const refundId = "rfnd_emulator_refund_before_capture";
+  const webhookSecret = "emulator-refund-ordering-secret";
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const refundRef = db.doc("testSeriesRefunds/" + refundId);
+  const captureEventRef = db.doc("testSeriesPaymentEvents/" + captureEventId);
+  const refundEventRef = db.doc("testSeriesPaymentEvents/" + refundEventId);
+  const identity = {
+    uid, testId: paidTestId, paymentId, razorpayOrderId: orderId,
+    amount: 12550, currency: "INR"
+  };
+  const captureEvent = {
+    event: "payment.captured",
+    payload: { payment: { entity: {
+      id: paymentId, order_id: orderId, amount: 12550,
+      currency: "INR", status: "captured"
+    } } }
+  };
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: {
+        id: refundId, payment_id: paymentId, amount: 12550,
+        currency: "INR", status: "processed"
+      } },
+      payment: { entity: {
+        id: paymentId, amount: 12550, amount_refunded: 12550,
+        currency: "INR", refund_status: "full", status: "refunded", captured: true
+      } }
+    }
+  };
+  function makeRequest(event, eventId) {
+    const rawBody = Buffer.from(JSON.stringify(event));
+    const signature = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
+    return {
+      method: "POST", rawBody, body: event,
+      get(name) {
+        if (name === "x-razorpay-signature") return signature;
+        if (name === "x-razorpay-event-id") return eventId;
+        return undefined;
+      }
+    };
+  }
+  function makeResponse() {
+    return {
+      code: null, body: null,
+      set() { return this; },
+      status(code) { this.code = code; return this; },
+      send(body) { this.body = body; return this; },
+      json(body) { this.body = body; return this; }
+    };
+  }
+
+  try {
+    await Promise.all([
+      testRef.set({ title: "Refund Ordering Test", status: "published", price: 125.5, mode: "mock", durationMinutes: 10, questionCount: 1 }),
+      orderRef.set({ ...identity, status: "created" })
+    ]);
+
+    const earlyRefundResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(refundEvent, refundEventId),
+      res: earlyRefundResponse, secret: webhookSecret, db,
+      applyPayment: applyCapturedPayment,
+      applyRefund: applyProcessedRefund
+    });
+    assert.equal(earlyRefundResponse.code, 500, "refund must remain retryable until the captured-payment ledger exists");
+    assert.equal((await paymentRef.get()).exists, false);
+    assert.equal((await entitlementRef.get()).exists, false);
+    assert.equal((await refundRef.get()).exists, false);
+    assert.equal((await refundEventRef.get()).exists, false);
+
+    const captureResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(captureEvent, captureEventId),
+      res: captureResponse, secret: webhookSecret, db,
+      applyPayment: applyCapturedPayment,
+      applyRefund: applyProcessedRefund
+    });
+    assert.equal(captureResponse.code, 200);
+    assert.deepEqual(captureResponse.body, { received: true, duplicate: false });
+
+    const retriedRefundResponse = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(refundEvent, refundEventId),
+      res: retriedRefundResponse, secret: webhookSecret, db,
+      applyPayment: applyCapturedPayment,
+      applyRefund: applyProcessedRefund
+    });
+    assert.equal(retriedRefundResponse.code, 200);
+    assert.deepEqual(retriedRefundResponse.body, { received: true, duplicate: false, revoked: true });
+    assert.equal((await paymentRef.get()).data().status, "refunded");
+    assert.equal((await orderRef.get()).data().status, "refunded");
+    assert.equal((await entitlementRef.get()).data().status, "revoked");
+    assert.equal((await refundRef.get()).data().status, "processed");
+  } finally {
+    await Promise.all([
+      testRef, orderRef, paymentRef, entitlementRef, refundRef, captureEventRef, refundEventRef
+    ].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("verified full-refund webhook revokes paid catalogue and exam access", async () => {
   const paidTestId = "emulator-refund-access-test";
   const orderId = "order_emulator_refund_access";
