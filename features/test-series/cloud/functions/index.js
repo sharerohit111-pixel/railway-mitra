@@ -162,7 +162,8 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
           manual.testId === testId &&
           manual.source === "owner_manual" &&
           manual.status === "active" &&
-          (!date(manual.expiresAt) || date(manual.expiresAt) > now)
+          (manual.expiresAt === null || manual.expiresAt === undefined ||
+            (date(manual.expiresAt) && date(manual.expiresAt) > now))
         );
         if (!manualGrantValid) {
           // A revoked/expired grant cannot create a new attempt. It does not
