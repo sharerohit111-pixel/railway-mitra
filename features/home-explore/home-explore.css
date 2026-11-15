@@ -431,3 +431,6 @@
 @media(prefers-reduced-motion:reduce) {
   .rm-dashboard-shortcut,.rm-dashboard-shortcut::after {animation:none!important}
 }
+
+.rm-dashboard-shortcut.is-label {cursor:default}
+.rm-dashboard-shortcut.is-label:focus-visible {outline:none}
