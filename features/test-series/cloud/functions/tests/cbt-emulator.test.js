@@ -1544,6 +1544,14 @@ test("ordinary student cannot grant or revoke manual test access", async () => {
     assert.equal((await db.doc("testSeriesManualAccess/" + accessId).get()).exists, false);
     const audit = await db.collection("testSeriesAccessAudit").where("targetUid", "==", uid).get();
     assert.equal(audit.empty, true);
+    await assert.rejects(
+      callable("rmOwnerListStudentTestAccess", { studentUid: uid }),
+      error => error.code === "functions/permission-denied"
+    );
+    await assert.rejects(
+      callable("rmOwnerListStudentAccessAudit", { studentUid: uid }),
+      error => error.code === "functions/permission-denied"
+    );
   } finally {
     if (originalOwnerUid === undefined) delete process.env.OWNER_UID;
     else process.env.OWNER_UID = originalOwnerUid;
