@@ -145,3 +145,23 @@ test("ignores an earlier account authorization when the signed-in Owner account 
   assert.equal(h.calls.authorized[0].result.email, "second@example.test");
   assert.equal(h.calls.signOut, 0);
 });
+
+
+test("Owner logout hides privileged content synchronously before awaiting Firebase signOut", async () => {
+  const dashboard = readFileSync(new URL("../admin-dashboard.js", import.meta.url), "utf8");
+  const logoutStart = dashboard.indexOf('el("rm-owner-logout").addEventListener("click", async () => {');
+  const hideHome = dashboard.indexOf("home.hidden = true", logoutStart);
+  const hideSetup = dashboard.indexOf("setup.hidden = true", logoutStart);
+  const showLogin = dashboard.indexOf("login.hidden = false", logoutStart);
+  const clearHistory = dashboard.indexOf("clearPaymentHistory()", logoutStart);
+  const signOutCall = dashboard.indexOf("await signOut(auth)", logoutStart);
+  const catchBlock = dashboard.indexOf("} catch (error) {", signOutCall);
+
+  assert.ok(logoutStart >= 0, "Owner logout handler exists");
+  assert.ok(hideHome > logoutStart && hideHome < signOutCall, "privileged dashboard is hidden before sign-out");
+  assert.ok(hideSetup > logoutStart && hideSetup < signOutCall, "MFA setup is hidden before sign-out");
+  assert.ok(showLogin > logoutStart && showLogin < signOutCall, "login panel is restored before sign-out");
+  assert.ok(clearHistory > logoutStart && clearHistory < signOutCall, "sensitive payment history is cleared before sign-out");
+  assert.ok(catchBlock > signOutCall, "sign-out failures are handled without reopening the dashboard");
+  assert.match(dashboard.slice(catchBlock, catchBlock + 500), /Owner dashboard remains locked/);
+});
