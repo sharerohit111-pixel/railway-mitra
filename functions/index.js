@@ -1156,6 +1156,83 @@ exports.adminListPreviousPaperSubmissions = onCall({ region: REGION }, async req
   return { submissions };
 });
 
+
+const CONTRIBUTOR_BADGES = [
+  { min: 5000, id: "champion", label: "Champion Contributor", emoji: "👑" },
+  { min: 2500, id: "platinum", label: "Platinum Contributor", emoji: "💎" },
+  { min: 1000, id: "gold", label: "Gold Contributor", emoji: "🥇" },
+  { min: 500, id: "silver", label: "Silver Contributor", emoji: "🥈" },
+  { min: 100, id: "bronze", label: "Bronze Contributor", emoji: "🥉" }
+];
+function contributorBadge(points) {
+  return CONTRIBUTOR_BADGES.find(b => points >= b.min) || null;
+}
+
+exports.adminApprovePreviousPaperSubmission = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const submissionId = cleanId(request.data.submissionId, "submissionId", 140);
+  const paperRef = db.collection("previousPaperSubmissions").doc(submissionId);
+  return db.runTransaction(async tx => {
+    const paperSnap = await tx.get(paperRef);
+    if (!paperSnap.exists) throw new HttpsError("not-found", "Paper submission not found.");
+    const paper = paperSnap.data();
+    if (paper.status === "approved") {
+      return { success: true, alreadyApproved: true, pointsAwarded: paper.pointsAwarded || 0 };
+    }
+    if (paper.status !== "received") {
+      throw new HttpsError("failed-precondition", "Only received papers can be approved.");
+    }
+    const pointsAwarded = paper.examCategory === "LDCE" ? 200 : paper.examCategory === "GDCE" ? 150 : 100;
+    const rewardRef = db.collection("contributorRewards").doc(paper.uid);
+    const rewardSnap = await tx.get(rewardRef);
+    const previous = rewardSnap.exists ? rewardSnap.data() : {};
+    const totalPoints = Number(previous.totalPoints || 0) + pointsAwarded;
+    const freeMockTestsEarned = Math.floor(totalPoints / 200);
+    const badge = contributorBadge(totalPoints);
+    const displayName = String(request.auth.token.name || previous.displayName || "Railway Mitra Contributor").slice(0, 80);
+    tx.set(rewardRef, {
+      uid: paper.uid, displayName, totalPoints,
+      freeMockTestsEarned,
+      badgeId: badge ? badge.id : null,
+      badgeLabel: badge ? badge.label : null,
+      badgeEmoji: badge ? badge.emoji : null,
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    tx.update(paperRef, {
+      status: "approved", pointsAwarded, approvedAt: FieldValue.serverTimestamp(),
+      approvedBy: request.auth.uid
+    });
+    tx.set(db.collection("contributorRewardTransactions").doc(submissionId), {
+      uid: paper.uid, submissionId, points: pointsAwarded,
+      category: paper.examCategory, createdAt: FieldValue.serverTimestamp()
+    });
+    return { success: true, pointsAwarded, totalPoints, freeMockTestsEarned, badge };
+  });
+});
+
+exports.getMyContributorReward = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const snap = await db.collection("contributorRewards").doc(uid).get();
+  if (!snap.exists) return { totalPoints: 0, freeMockTestsEarned: 0, badge: null };
+  const x = snap.data();
+  return {
+    totalPoints: Number(x.totalPoints || 0),
+    freeMockTestsEarned: Number(x.freeMockTestsEarned || 0),
+    badge: x.badgeId ? { id: x.badgeId, label: x.badgeLabel, emoji: x.badgeEmoji } : null
+  };
+});
+
+exports.listContributorRewardBadges = onCall({ region: REGION }, async request => {
+  requireUser(request);
+  const snap = await db.collection("contributorRewards").where("totalPoints", ">=", 100).orderBy("totalPoints", "desc").limit(100).get();
+  return {
+    contributors: snap.docs.map(d => {
+      const x = d.data();
+      return { name: String(x.displayName || "Railway Mitra Contributor"), badgeLabel: x.badgeLabel || "Contributor", badgeEmoji: x.badgeEmoji || "🌟" };
+    })
+  };
+});
+
 exports.adminGetPreviousPaperDownloadUrl = onCall({ region: REGION }, async request => {
   requireAdmin(request);
   const submissionId = cleanId(request.data.submissionId, "submissionId", 140);
