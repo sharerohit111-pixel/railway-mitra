@@ -140,10 +140,55 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
       });
       if (!access.valid) throw new HttpsError("permission-denied", "Paid test access required");
     } else {
-      // A free test can only be started through the one-time claim flow.
-      freeClaimSnap = await tx.get(db.doc("testSeriesFreeAttempts/" + uid));
-      if (!freeClaimSnap.exists || freeClaimSnap.data().testId !== testId) {
+      // The configured free trial always uses its one-time claim; a manual grant
+      // must never reset or bypass that claim.
+      const [claimSnap, freeConfigSnap] = await Promise.all([
+        tx.get(db.doc("testSeriesFreeAttempts/" + uid)),
+        tx.get(db.doc("testSeriesConfig/freeTest"))
+      ]);
+      const configuredFreeTestId = freeConfigSnap.exists ? freeConfigSnap.data().testId : null;
+      if (claimSnap.exists && claimSnap.data().testId === testId) {
+        freeClaimSnap = claimSnap;
+      } else if (configuredFreeTestId === testId) {
         throw new HttpsError("permission-denied", "Claim the free test before starting");
+      } else {
+        const accessId = manualAccessDocumentId(uid, testId);
+        const manualRef = db.doc("testSeriesManualAccess/" + accessId);
+        const manualSnap = await tx.get(manualRef);
+        const manual = manualSnap.exists ? manualSnap.data() : null;
+        const manualGrantValid = Boolean(
+          manual &&
+          manual.uid === uid &&
+          manual.testId === testId &&
+          manual.source === "owner_manual" &&
+          manual.status === "active" &&
+          (!date(manual.expiresAt) || date(manual.expiresAt) > now)
+        );
+        if (!manualGrantValid) {
+          // A revoked/expired grant cannot create a new attempt. It does not
+          // interrupt an already-started manual-access attempt: that attempt
+          // may be resumed until its original server deadline.
+          const activeSnap = await tx.get(db.doc("testSeriesActiveSessions/" + uid));
+          if (activeSnap.exists && activeSnap.data().testId === testId &&
+              activeSnap.data().status === "in_progress" && date(activeSnap.data().expiresAt) > now) {
+            const priorAttemptId = id(activeSnap.data().attemptId);
+            const priorAttempt = await tx.get(db.doc("testSeriesAttempts/" + priorAttemptId));
+            const prior = priorAttempt.exists ? priorAttempt.data() : null;
+            const isValidManualResume = Boolean(
+              prior &&
+              prior.uid === uid &&
+              prior.testId === testId &&
+              prior.accessSource === "owner_manual" &&
+              prior.status === "in_progress" &&
+              date(prior.expiresAt) > now
+            );
+            if (!isValidManualResume) {
+              throw new HttpsError("permission-denied", "Active Owner manual access required");
+            }
+          } else {
+            throw new HttpsError("permission-denied", "Active Owner manual access required");
+          }
+        }
       }
     }
     const activeRef = db.doc("testSeriesActiveSessions/" + uid), active = await tx.get(activeRef);
@@ -206,7 +251,12 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
       }
       tx.update(attemptRef, { status: "in_progress", startedAt, expiresAt, answers: {}, updatedAt: FieldValue.serverTimestamp() });
     } else {
-      tx.create(attemptRef, { uid, testId, mode: test.mode || "mock", status: "in_progress", startedAt, expiresAt, answers: {}, updatedAt: FieldValue.serverTimestamp() });
+      tx.create(attemptRef, {
+        uid, testId, mode: test.mode || "mock", status: "in_progress",
+        startedAt, expiresAt, answers: {},
+        ...(Number(test.price || 0) === 0 ? { accessSource: "owner_manual" } : {}),
+        updatedAt: FieldValue.serverTimestamp()
+      });
     }
     tx.set(activeRef, { uid, testId, attemptId: attemptRef.id, status: "in_progress", startedAt, expiresAt });
     return { attemptId: attemptRef.id, startedAt: startedAt.toDate().toISOString(), expiresAt: expiresAt.toDate().toISOString(), resumed: false };
