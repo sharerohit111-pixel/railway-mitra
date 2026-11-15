@@ -174,3 +174,8 @@ On a non-loopback hosted origin without the flag, the production bootstrap uses 
 For compatibility, `participantCount` counts submitted result documents (attempts), not distinct student UIDs, and the public top-20 list remains attempt-based; a student with multiple attempts may appear more than once. Public rows expose only rank, score and an anonymous candidate label.
 
 The top-20 query requires `testSeriesResults(testId ASC, score DESC, submittedAt ASC)`; the bounded personal-best query requires `testSeriesResults(testId ASC, uid ASC, score DESC, submittedAt ASC)`. Both are additive composite indexes in the root `firestore.indexes.json`. The CBT emulator suite seeds more than 1,000 results and verifies the exact count, best-attempt rank, top-20 scores, tie ranking and UID/attempt-ID privacy. This is an emulator regression, not a production load test.
+
+
+## Delayed capture webhook after a full refund
+
+A signed `payment.captured` webhook may be redelivered after the corresponding full-refund webhook has already committed. The capture ledger treats this only as a no-op duplicate when the payment is consistently `status: refunded` with `amountRefunded === amount`, the order is `refunded`, and the matching entitlement is `revoked`. The original capture event ID and a new provider event ID are both acknowledged without creating a new event ledger entry or restoring access. Captured payments with valid partial-refund totals still require a `paid` order and `active` entitlement. Any identity, amount, currency, status or entitlement mismatch remains fail-closed for reconciliation. The CBT emulator webhook-ordering regression covers both same-event and new-event capture redelivery after full refund.

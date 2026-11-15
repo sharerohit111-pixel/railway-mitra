@@ -24,6 +24,47 @@ function samePaymentRecord(record, payment) {
 }
 
 /**
+ * A verified capture webhook may be redelivered after a full refund has
+ * already committed. Treat it as a no-op only when the complete payment,
+ * order and revoked-entitlement ledger still agrees. Partial refunds remain
+ * captured/paid/active; a full refund must be refunded/refunded/revoked.
+ */
+function matchesExistingPaymentState({ payment, order, entitlement, paymentId, orderId, validation } = {}) {
+  if (!payment || !order || !entitlement || !validation) return false;
+  const amountRefunded = payment.amountRefunded === undefined ? 0 : payment.amountRefunded;
+  const isCaptured = payment.status === "captured" &&
+    Number.isSafeInteger(amountRefunded) && amountRefunded >= 0 && amountRefunded < validation.amount;
+  const isRefunded = payment.status === "refunded" &&
+    Number.isSafeInteger(amountRefunded) && amountRefunded === validation.amount;
+  if (!isCaptured && !isRefunded) return false;
+
+  const expectedOrderStatus = isRefunded ? "refunded" : "paid";
+  const expectedEntitlementStatus = isRefunded ? "revoked" : "active";
+  return samePaymentRecord({
+    paymentId: payment.paymentId,
+    razorpayOrderId: payment.razorpayOrderId,
+    uid: payment.uid,
+    testId: payment.testId,
+    amount: payment.amount,
+    currency: payment.currency
+  }, validation) &&
+    order.status === expectedOrderStatus &&
+    order.paymentId === paymentId &&
+    order.razorpayOrderId === orderId &&
+    order.uid === validation.uid &&
+    order.testId === validation.testId &&
+    order.amount === validation.amount &&
+    order.currency === validation.currency &&
+    entitlement.status === expectedEntitlementStatus &&
+    entitlement.uid === validation.uid &&
+    entitlement.testId === validation.testId &&
+    entitlement.paymentId === paymentId &&
+    entitlement.razorpayOrderId === orderId &&
+    entitlement.amount === validation.amount &&
+    entitlement.currency === validation.currency;
+}
+
+/**
  * Atomically records a signature-verified captured payment and grants one
  * entitlement. Call only after the HTTP webhook's raw-body signature passes.
  *
@@ -71,7 +112,7 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
       }
 
       const order = orderSnap.data();
-      const duplicateOrder = order.status === "paid" && order.paymentId === paymentId
+      const duplicateOrder = ["paid", "refunded"].includes(order.status) && order.paymentId === paymentId
         ? { ...order, status: "created" }
         : order;
       const duplicateValidation = validateCapturedPayment({ event, order: duplicateOrder });
@@ -91,36 +132,21 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
         previousEvent.testId === duplicateValidation.testId &&
         previousEvent.amount === duplicateValidation.amount &&
         previousEvent.currency === duplicateValidation.currency;
-      const paymentMatches = previousPayment.status === "captured" && samePaymentRecord({
-        paymentId: previousPayment.paymentId,
-        razorpayOrderId: previousPayment.razorpayOrderId,
-        uid: previousPayment.uid,
-        testId: previousPayment.testId,
-        amount: previousPayment.amount,
-        currency: previousPayment.currency
-      }, duplicateValidation);
-      const orderMatches = order.status === "paid" &&
-        order.paymentId === paymentId &&
-        order.razorpayOrderId === duplicateValidation.orderId &&
-        order.uid === duplicateValidation.uid &&
-        order.testId === duplicateValidation.testId &&
-        order.amount === duplicateValidation.amount &&
-        order.currency === duplicateValidation.currency;
-      const entitlementMatches = entitlement &&
-        entitlement.status === "active" &&
-        entitlement.uid === duplicateValidation.uid &&
-        entitlement.testId === duplicateValidation.testId &&
-        entitlement.paymentId === paymentId &&
-        entitlement.razorpayOrderId === orderId &&
-        entitlement.amount === duplicateValidation.amount &&
-        entitlement.currency === duplicateValidation.currency;
+      const ledgerMatches = matchesExistingPaymentState({
+        payment: previousPayment, order, entitlement, paymentId, orderId,
+        validation: duplicateValidation
+      });
 
-      // A replay is a no-op only while the complete original ledger and access
-      // grant still agree. Do not silently accept a damaged or partial record.
-      if (!eventMatches || !paymentMatches || !orderMatches || !entitlementMatches) {
+      // A replay is a no-op only while the complete payment/order/entitlement
+      // state agrees. A fully refunded purchase is terminal: acknowledge its
+      // old capture event without restoring the revoked entitlement.
+      if (!eventMatches || !ledgerMatches) {
         fail("event_ledger_inconsistent", "Previously processed event is not backed by a complete matching payment ledger");
       }
-      return { granted: false, duplicate: true, paymentId, orderId };
+      return {
+        granted: false, duplicate: true, paymentId, orderId,
+        refunded: previousPayment.status === "refunded"
+      };
     }
 
     if (!orderSnap.exists) fail("order_not_found", "Server-created payment order was not found");
@@ -130,7 +156,7 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
       // A repeated payment delivery may have a new provider event ID. Validate
       // the payload against the same trusted order, then confirm the original
       // transaction already committed both the paid order and entitlement.
-      const duplicateOrder = order.status === "paid" && order.paymentId === paymentId
+      const duplicateOrder = ["paid", "refunded"].includes(order.status) && order.paymentId === paymentId
         ? { ...order, status: "created" }
         : order;
       const duplicateValidation = validateCapturedPayment({ event, order: duplicateOrder });
@@ -141,34 +167,22 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
       const entitlementRef = db.doc("testSeriesEntitlements/" + duplicateValidation.uid + "_" + duplicateValidation.testId);
       const entitlementSnap = await tx.get(entitlementRef);
       const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
-      const entitlementMatches = entitlement &&
-        entitlement.status === "active" &&
-        entitlement.uid === duplicateValidation.uid &&
-        entitlement.testId === duplicateValidation.testId &&
-        entitlement.paymentId === paymentId &&
-        entitlement.razorpayOrderId === orderId &&
-        entitlement.amount === duplicateValidation.amount &&
-        entitlement.currency === duplicateValidation.currency;
-      if (!samePaymentRecord({
-        paymentId: previousPayment.paymentId,
-        razorpayOrderId: previousPayment.razorpayOrderId,
-        uid: previousPayment.uid,
-        testId: previousPayment.testId,
-        amount: previousPayment.amount,
-        currency: previousPayment.currency
-      }, duplicateValidation) ||
-          order.status !== "paid" ||
-          order.paymentId !== paymentId ||
-          !entitlementMatches) {
+      if (!matchesExistingPaymentState({
+        payment: previousPayment, order, entitlement, paymentId, orderId,
+        validation: duplicateValidation
+      })) {
         fail("payment_id_conflict", "Payment ID is already recorded against a different or incomplete purchase");
       }
       // The provider event ID is supplied in a header, outside the raw-body
       // HMAC. Once this payment is already ledgered, do not create an audit
       // document for each caller-selected replay ID: a captured signed payload
       // could otherwise amplify Firestore writes without changing access.
-      // The complete payment/order/entitlement comparison above is still
-      // required before acknowledging the duplicate.
-      return { granted: false, duplicate: true, paymentId, orderId };
+      // A terminal full-refund ledger is also acknowledged as a no-op; it can
+      // never reactivate the revoked entitlement.
+      return {
+        granted: false, duplicate: true, paymentId, orderId,
+        refunded: previousPayment.status === "refunded"
+      };
     }
 
     if (order.status !== "created") {

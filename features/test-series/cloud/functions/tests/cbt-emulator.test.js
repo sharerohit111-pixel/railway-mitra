@@ -2122,6 +2122,34 @@ test("refund webhook is retried when it arrives before the captured-payment ledg
     assert.equal((await orderRef.get()).data().status, "refunded");
     assert.equal((await entitlementRef.get()).data().status, "revoked");
     assert.equal((await refundRef.get()).data().status, "processed");
+
+    // A delayed or duplicate capture webhook after the full refund is terminal:
+    // acknowledge it, but never reactivate the entitlement or create replay
+    // event documents for caller-selected event IDs.
+    const sameCaptureReplay = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(captureEvent, captureEventId),
+      res: sameCaptureReplay, secret: webhookSecret, db,
+      applyPayment: applyCapturedPayment,
+      applyRefund: applyProcessedRefund
+    });
+    assert.equal(sameCaptureReplay.code, 200);
+    assert.deepEqual(sameCaptureReplay.body, { received: true, duplicate: true });
+
+    const delayedCaptureReplayId = "evt_capture_after_full_refund";
+    const delayedCaptureReplay = makeResponse();
+    await handleRazorpayWebhook({
+      req: makeRequest(captureEvent, delayedCaptureReplayId),
+      res: delayedCaptureReplay, secret: webhookSecret, db,
+      applyPayment: applyCapturedPayment,
+      applyRefund: applyProcessedRefund
+    });
+    assert.equal(delayedCaptureReplay.code, 200);
+    assert.deepEqual(delayedCaptureReplay.body, { received: true, duplicate: true });
+    assert.equal((await db.doc("testSeriesPaymentEvents/" + delayedCaptureReplayId).get()).exists, false);
+    assert.equal((await paymentRef.get()).data().status, "refunded");
+    assert.equal((await orderRef.get()).data().status, "refunded");
+    assert.equal((await entitlementRef.get()).data().status, "revoked");
   } finally {
     await Promise.all([
       testRef, orderRef, paymentRef, entitlementRef, refundRef, captureEventRef, refundEventRef
