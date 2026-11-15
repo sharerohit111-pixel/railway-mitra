@@ -1,6 +1,17 @@
 "use strict";
 
 const QUESTION_ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
+const PROTOTYPE_SENSITIVE_IDS = new Set(["__proto__", "constructor", "toString", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "valueOf", "__defineGetter__", "__defineSetter__"]);
+const ENCODED_QUESTION_ID_PREFIX = "__rm_qid__";
+function studentAnswerStorageKey(questionId) {
+  if (!PROTOTYPE_SENSITIVE_IDS.has(questionId)) return questionId;
+  return ENCODED_QUESTION_ID_PREFIX + Buffer.from(questionId, "utf8").toString("base64url");
+}
+function studentAnswerQuestionId(storageKey) {
+  if (typeof storageKey !== "string" || !storageKey.startsWith(ENCODED_QUESTION_ID_PREFIX)) return storageKey;
+  const decoded = Buffer.from(storageKey.slice(ENCODED_QUESTION_ID_PREFIX.length), "base64url").toString("utf8");
+  return PROTOTYPE_SENSITIVE_IDS.has(decoded) && studentAnswerStorageKey(decoded) === storageKey ? decoded : storageKey;
+}
 
 function fail() {
   throw new Error("Question paper contains invalid student question data");
@@ -64,8 +75,12 @@ function projectStudentSavedAnswers(questions, answers) {
 
   const questionById = new Map(safeQuestions.map(question => [question.id, question]));
   const projectedEntries = [];
-  for (const [questionId, answer] of Object.entries(answers)) {
+  const seenQuestionIds = new Set();
+  for (const [storageKey, answer] of Object.entries(answers)) {
+    const questionId = studentAnswerQuestionId(storageKey);
     const question = questionById.get(questionId);
+    if (seenQuestionIds.has(questionId)) throw new Error("Attempt contains duplicate saved student answers");
+    seenQuestionIds.add(questionId);
     if (!question || typeof answer !== "string" || !/^(0|[1-9]\d*)$/.test(answer)) {
       throw new Error("Attempt contains invalid saved student answers");
     }
@@ -84,5 +99,7 @@ function projectStudentSavedAnswers(questions, answers) {
 module.exports = {
   projectStudentQuestions,
   projectStudentSavedAnswers,
-  isCanonicalStudentAnswerIndex
+  isCanonicalStudentAnswerIndex,
+  studentAnswerStorageKey,
+  studentAnswerQuestionId
 };
