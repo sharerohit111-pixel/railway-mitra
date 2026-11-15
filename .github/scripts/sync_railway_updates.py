@@ -157,7 +157,7 @@ def extract_pib_railway(html):
 
 def extract_pib_rss(xml_text):
     """Parse PIB's official RSS feed and retain only Ministry of Railways releases."""
-    soup = BeautifulSoup(xml_text, "xml")
+    soup = BeautifulSoup(xml_text, "html.parser")
     records, seen = [], set()
     for item in soup.find_all("item"):
         title = clean_title(item.title.get_text(" ", strip=True) if item.title else "")
