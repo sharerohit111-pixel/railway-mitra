@@ -1016,7 +1016,7 @@ test("leaderboard count, personal rank and top 20 remain exact beyond 1000 submi
 
     const result = await callable("rmGetTestLeaderboard", { testId: scaleTestId });
     const expectedHigher = records.filter(row => row.score > 50).length;
-    const expectedTop = [...records].sort((a, b) => b.score - a.score).slice(0, 20);
+    const expectedTop = [...records].sort((a, b) => b.score - a.score || a.submittedAt - b.submittedAt).slice(0, 20);
     let expectedRank = 0, previousScore = null;
     const expected = expectedTop.map((row, index) => {
       if (index === 0 || row.score !== previousScore) expectedRank = index + 1;

@@ -33,7 +33,7 @@ async function getTestLeaderboard({ db, uid, testId } = {}) {
   const forTest = results.where("testId", "==", testId);
   const [countSnapshot, topSnapshot, mineSnapshot] = await Promise.all([
     forTest.count().get(),
-    forTest.orderBy("score", "desc").limit(20).get(),
+    forTest.orderBy("score", "desc").orderBy("submittedAt", "asc").limit(20).get(),
     forTest.where("uid", "==", uid).get()
   ]);
 
@@ -50,6 +50,7 @@ async function getTestLeaderboard({ db, uid, testId } = {}) {
     const higherSnapshot = await forTest
       .where("score", ">", mine.score)
       .orderBy("score", "desc")
+      .orderBy("submittedAt", "asc")
       .count()
       .get();
     myRank = Number(higherSnapshot.data().count || 0) + 1;

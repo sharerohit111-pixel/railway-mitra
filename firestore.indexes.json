@@ -43,6 +43,10 @@
         {
           "fieldPath": "score",
           "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "submittedAt",
+          "order": "ASCENDING"
         }
       ]
     }

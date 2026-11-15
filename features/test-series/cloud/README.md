@@ -165,8 +165,8 @@ On a non-loopback hosted origin without the flag, the production bootstrap uses 
 
 ## Leaderboard scaling and ranking contract
 
-`rmGetTestLeaderboard` no longer loads a capped 1,000-result sample into memory. It uses a Firestore aggregate count for the submitted-result count, an indexed descending-score query for the top 20 attempts, and a second aggregate count for the number of scores strictly above the requesting student's best score. Tied scores share competition rank. The personal rank is based on that student's best submitted attempt.
+`rmGetTestLeaderboard` no longer loads a capped 1,000-result sample into memory. It uses a Firestore aggregate count for the submitted-result count, an indexed descending-score/ascending-submission-time query for the top 20 attempts, and a second aggregate count for the number of scores strictly above the requesting student's best score. Tied scores share competition rank. The personal rank is based on that student's best submitted attempt.
 
 For compatibility, `participantCount` counts submitted result documents (attempts), not distinct student UIDs, and the public top-20 list remains attempt-based; a student with multiple attempts may appear more than once. Public rows expose only rank, score and an anonymous candidate label.
 
-The query requires the additive `testSeriesResults(testId ASC, score DESC)` composite index in the root `firestore.indexes.json`. The CBT emulator suite seeds more than 1,000 results and verifies the exact count, best-attempt rank, top-20 scores, tie ranking and UID/attempt-ID privacy. This is an emulator regression, not a production load test.
+The query requires the additive `testSeriesResults(testId ASC, score DESC, submittedAt ASC)` composite index in the root `firestore.indexes.json`. The CBT emulator suite seeds more than 1,000 results and verifies the exact count, best-attempt rank, top-20 scores, tie ranking and UID/attempt-ID privacy. This is an emulator regression, not a production load test.
