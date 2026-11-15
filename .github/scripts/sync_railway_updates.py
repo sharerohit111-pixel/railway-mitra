@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 FEED_PATH = "features/updates/notices.json"
 RB_SOURCE = "https://rb.indianrailways.gov.in/documents/press-release"
 PIB_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=3"
+PIB_RSS_SOURCE = "https://www.pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3"
 HEADERS = {"User-Agent": "RailwayMitra-OfficialUpdatesBot/1.0 (+https://github.com/sharerohit111-pixel/railway-mitra)"}
 DATE_RE = re.compile(r"\b(\d{2})-(\d{2})-(\d{4})\b")
 PIB_DATE_RE = re.compile(r"(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})", re.I)
@@ -153,6 +154,53 @@ def extract_pib_railway(html):
         raise RuntimeError("No dated Ministry of Railways releases parsed from PIB")
     return records
 
+def extract_pib_rss(xml_text):
+    """Parse PIB's official RSS feed and retain only Ministry of Railways releases."""
+    soup = BeautifulSoup(xml_text, "xml")
+    records, seen = [], set()
+    for item in soup.find_all("item"):
+        title = clean_title(item.title.get_text(" ", strip=True) if item.title else "")
+        link = item.link.get_text(" ", strip=True) if item.link else ""
+        description = clean_title(item.description.get_text(" ", strip=True) if item.description else "")
+        combined = (title + " " + description).lower()
+        if not any(term in combined for term in ("ministry of railways", "indian railways", "railway board")):
+            continue
+        parsed = urlparse(link)
+        if parsed.hostname not in {"www.pib.gov.in", "pib.gov.in"}:
+            continue
+        query = parse_qs(parsed.query)
+        prid = query.get("PRID", [""])[0]
+        if not prid:
+            continue
+        date_text = ""
+        for tag in ("pubdate", "published", "dc:date"):
+            node = item.find(tag)
+            if node:
+                date_text = node.get_text(" ", strip=True)
+                break
+        published = None
+        for fmt in ("%a, %d %b %Y %H:%M:%S %z", "%d %b %Y", "%Y-%m-%d"):
+            try:
+                published = datetime.strptime(date_text.strip(), fmt).date().isoformat()
+                break
+            except (ValueError, TypeError):
+                pass
+        if not published:
+            match = PIB_DATE_RE.search(description)
+            if match:
+                try:
+                    published = datetime.strptime(" ".join(match.groups()), "%d %b %Y").date().isoformat()
+                except ValueError:
+                    pass
+        if not published or len(title) < 12 or prid in seen:
+            continue
+        records.append(make_record("pib-rail-" + prid, title, published, link, "Ministry of Railways / PIB RSS"))
+        seen.add(prid)
+    if not records:
+        raise RuntimeError("PIB RSS returned no identifiable dated Railway releases")
+    return records
+
+
 def make_record(record_id, title, published, url, source_name):
     return {
         "id": record_id,
@@ -186,7 +234,8 @@ def main():
     for name, url, parser in (
         # PIB is the primary source because its Ministry of Railways section
         # remains reachable when the Railway Board host is intermittently down.
-        ("PIB Ministry of Railways", PIB_SOURCE, extract_pib_railway),
+        ("PIB Ministry of Railways RSS", PIB_RSS_SOURCE, extract_pib_rss),
+        ("PIB Ministry of Railways page", PIB_SOURCE, extract_pib_railway),
         ("Railway Board", RB_SOURCE, extract_railway_board),
     ):
         try:
