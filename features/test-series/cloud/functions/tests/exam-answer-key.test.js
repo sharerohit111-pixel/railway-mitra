@@ -2,7 +2,7 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { getExamAnswerKey, addExamAnswerKeyEntry } = require("../exam-answer-key");
+const { getExamAnswerKey, addExamAnswerKeyEntry, answerKeyStorageKey } = require("../exam-answer-key");
 
 const paper = [
   { id: "q1", options: ["A", "B"] },
@@ -69,7 +69,7 @@ test("private answer-key maps preserve prototype-sensitive question IDs as own f
   addExamAnswerKeyEntry(answerMap, "constructor", 0);
 
   assert.equal(Object.getPrototypeOf(answerMap), Object.prototype);
-  assert.deepEqual(Object.keys(answerMap), ["__proto__", "constructor"]);
+  assert.deepEqual(Object.keys(answerMap), [answerKeyStorageKey("__proto__"), answerKeyStorageKey("constructor")]);
   assert.deepEqual(getExamAnswerKey([
     { id: "__proto__", options: ["A", "B"] },
     { id: "constructor", options: ["A", "B"] }
