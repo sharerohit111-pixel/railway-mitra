@@ -1,34 +1,34 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>Seniority & Transfer Advisor | Railway Mitra</title><link rel="stylesheet" href="advisor.css?v=1"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071326"><title>Seniority & Transfer Advisor | Railway Mitra</title><link rel="stylesheet" href="advisor.css?v=2"></head>
 <body><main class="shell">
-<a class="back" href="../../app.html">← Back to Railway Mitra</a>
-<header><span class="eyebrow">EMPLOYEE SERVICE · CASE REVIEW</span><h1>Seniority &amp; Transfer Advisor</h1><p>Organise your posting and transfer details, identify the rules and documents to verify, and prepare a clear case summary.</p></header>
-<section class="notice"><strong>Important:</strong> This tool provides a preliminary checklist, not an official eligibility decision. Seniority consequences depend on the applicable Railway Board orders, cadre, recruitment channel, transfer type and competent authority's decision. Verify every conclusion against current official instructions.</section>
+<div class="topbar"><a class="back" href="../../app.html" data-i18n="back">← Back to Railway Mitra</a><div class="lang-switch" role="group" aria-label="Choose language"><button type="button" id="langEn" class="lang-btn" aria-pressed="true">English</button><button type="button" id="langHi" class="lang-btn" aria-pressed="false">हिंदी</button></div></div>
+<header><span class="eyebrow" data-i18n="eyebrow">EMPLOYEE SERVICE · CASE REVIEW</span><h1 data-i18n="title">Seniority &amp; Transfer Advisor</h1><p data-i18n="intro">Organise your posting and transfer details, identify the rules and documents to verify, and prepare a clear case summary.</p></header>
+<section class="notice"><strong data-i18n="important">Important:</strong> <span data-i18n="notice">This tool provides a preliminary checklist, not an official eligibility decision. Seniority consequences depend on the applicable Railway Board orders, cadre, recruitment channel, transfer type and competent authority's decision. Verify every conclusion against current official instructions.</span></section>
 <form id="caseForm">
-<section class="panel"><h2>1. Employee details</h2><div class="grid">
-<label>Employee name<input name="name" autocomplete="name" placeholder="Optional"></label>
-<label>Department<select name="department" required><option value="">Select department</option><option>Engineering</option><option>Mechanical</option><option>Electrical</option><option>Operating</option><option>Commercial</option><option>Signal & Telecom</option><option>Other</option></select></label>
-<label>Designation / cadre<input name="designation" required placeholder="e.g. Track Maintainer"></label>
-<label>Pay level<input name="level" placeholder="e.g. Level 1 / Level 4"></label>
-<label>Category<select name="category"><option value="">Select (optional)</option><option>UR</option><option>SC</option><option>ST</option><option>OBC</option><option>EWS</option></select></label>
-<label>Recruitment / appointment date<input name="appointment" type="date"></label>
+<section class="panel"><h2 data-i18n="employeeHeading">1. Employee details</h2><div class="grid">
+<label data-i18n="employeeName">Employee name<input name="name" autocomplete="name" placeholder="Optional" data-placeholder="optional"></label>
+<label data-i18n="department">Department<select name="department" required><option value="" data-i18n="selectDepartment">Select department</option><option>Engineering</option><option>Mechanical</option><option>Electrical</option><option>Operating</option><option>Commercial</option><option>Signal &amp; Telecom</option><option>Other</option></select></label>
+<label data-i18n="designation">Designation / cadre<input name="designation" required placeholder="e.g. Track Maintainer" data-placeholder="designationHint"></label>
+<label data-i18n="payLevel">Pay level<input name="level" placeholder="e.g. Level 1 / Level 4" data-placeholder="levelHint"></label>
+<label data-i18n="category">Category<select name="category"><option value="" data-i18n="selectOptional">Select (optional)</option><option>UR</option><option>SC</option><option>ST</option><option>OBC</option><option>EWS</option></select></label>
+<label data-i18n="appointmentDate">Recruitment / appointment date<input name="appointment" type="date"></label>
 </div></section>
-<section class="panel"><h2>2. Current posting</h2><div class="grid">
-<label>Railway zone<input name="zone" placeholder="e.g. NWR"></label>
-<label>Division<input name="division" placeholder="e.g. Bikaner"></label>
-<label>Station / unit<input name="station" placeholder="Station or unit"></label>
-<label>Section / department unit<input name="section" placeholder="Section / gang / unit"></label>
-<label>Current posting date<input name="posting" type="date"></label>
-<label>Present cadre seniority position<input name="seniority" placeholder="If known; optional"></label>
+<section class="panel"><h2 data-i18n="postingHeading">2. Current posting</h2><div class="grid">
+<label data-i18n="zone">Railway zone<input name="zone" placeholder="e.g. NWR" data-placeholder="zoneHint"></label>
+<label data-i18n="division">Division<input name="division" placeholder="e.g. Bikaner" data-placeholder="divisionHint"></label>
+<label data-i18n="station">Station / unit<input name="station" placeholder="Station or unit" data-placeholder="stationHint"></label>
+<label data-i18n="section">Section / department unit<input name="section" placeholder="Section / gang / unit" data-placeholder="sectionHint"></label>
+<label data-i18n="postingDate">Current posting date<input name="posting" type="date"></label>
+<label data-i18n="seniorityPosition">Present cadre seniority position<input name="seniority" placeholder="If known; optional" data-placeholder="seniorityHint"></label>
 </div></section>
-<section class="panel"><h2>3. Transfer case</h2><div class="grid">
-<label>Transfer type<select name="type" required><option value="">Select transfer type</option><option>Own Request Transfer</option><option>Mutual Transfer</option><option>Administrative Transfer</option><option>Medical / compassionate grounds</option><option>Other</option></select></label>
-<label>Requested Railway / zone<input name="targetZone" placeholder="Destination zone"></label>
-<label>Requested division / station<input name="target" placeholder="Destination division or station"></label>
-<label>Reason for request<select name="reason"><option value="">Select reason (optional)</option><option>Family circumstances</option><option>Medical grounds</option><option>Spouse ground</option><option>Personal request</option><option>Administrative requirement</option><option>Other</option></select></label>
-<label class="wide">Case details<textarea name="details" rows="4" placeholder="Describe your situation, any order/reference number, and what you want to know. Do not enter passwords, bank details or full PF/employee IDs."></textarea></label>
-</div><button class="primary" type="submit">Generate my case review</button><button class="secondary" type="reset">Clear form</button></section>
+<section class="panel"><h2 data-i18n="transferHeading">3. Transfer case</h2><div class="grid">
+<label data-i18n="transferType">Transfer type<select name="type" required><option value="" data-i18n="selectTransfer">Select transfer type</option><option value="Own Request Transfer" data-i18n="ownRequest">Own Request Transfer</option><option value="Mutual Transfer" data-i18n="mutual">Mutual Transfer</option><option value="Administrative Transfer" data-i18n="administrative">Administrative Transfer</option><option value="Medical / compassionate grounds" data-i18n="medical">Medical / compassionate grounds</option><option value="Other" data-i18n="other">Other</option></select></label>
+<label data-i18n="requestedZone">Requested Railway / zone<input name="targetZone" placeholder="Destination zone" data-placeholder="destinationZone"></label>
+<label data-i18n="requestedDestination">Requested division / station<input name="target" placeholder="Destination division or station" data-placeholder="destination"></label>
+<label data-i18n="reason">Reason for request<select name="reason"><option value="" data-i18n="selectReason">Select reason (optional)</option><option value="Family circumstances" data-i18n="family">Family circumstances</option><option value="Medical grounds" data-i18n="medicalGrounds">Medical grounds</option><option value="Spouse ground" data-i18n="spouse">Spouse ground</option><option value="Personal request" data-i18n="personal">Personal request</option><option value="Administrative requirement" data-i18n="adminReq">Administrative requirement</option><option value="Other" data-i18n="other">Other</option></select></label>
+<label class="wide" data-i18n="caseDetails">Case details<textarea name="details" rows="4" placeholder="Describe your situation, any order/reference number, and what you want to know. Do not enter passwords, bank details or full PF/employee IDs." data-placeholder="detailsHint"></textarea></label>
+</div><button class="primary" type="submit" data-i18n="generate">Generate my case review</button><button class="secondary" type="reset" data-i18n="clear">Clear form</button></section>
 </form>
-<section id="result" class="panel result" hidden aria-live="polite"><h2>Your case summary</h2><div id="summary"></div><div class="actions"><button id="copy" class="primary" type="button">Copy summary</button><button id="print" class="secondary" type="button">Print / Save PDF</button></div></section>
-<footer>Railway Mitra · Owned &amp; Developed by Rohit Kumar</footer>
-</main><script src="advisor.js?v=1"></script></body></html>
+<section id="result" class="panel result" hidden aria-live="polite"><h2 data-i18n="summaryHeading">Your case summary</h2><div id="summary"></div><div class="actions"><button id="copy" class="primary" type="button" data-i18n="copy">Copy summary</button><button id="print" class="secondary" type="button" data-i18n="print">Print / Save PDF</button></div></section>
+<footer data-i18n="footer">Railway Mitra · Owned &amp; Developed by Rohit Kumar</footer>
+</main><script src="advisor.js?v=2"></script></body></html>
