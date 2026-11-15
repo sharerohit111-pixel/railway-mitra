@@ -204,3 +204,7 @@ The rmSaveAnswer callable uses the same pure validator as saved-answer projectio
 ## Prototype-safe private answer-key fields
 
 Question IDs such as "__proto__" are valid under the existing identifier contract. Owner draft creation now defines answer-key entries as own enumerable data properties rather than assigning through JavaScript's special prototype setter. Scoring also requires each answer-key entry to be an own property; inherited values can never satisfy a question's private key. This preserves the existing Firestore document shape and does not expose answer keys to students. Unit tests cover "__proto__", "constructor", inherited entries and malformed indexes; the CBT Functions Emulator regression exercises save, resume and server-side scoring with a "__proto__" question ID.
+
+## Literal Firestore answer-field paths
+
+Student answer saves update the answer map through a Firestore `FieldPath("answers", questionId)` segment rather than constructing a dotted field-path string. This preserves the question ID as one literal map-key segment (including prototype-sensitive IDs such as `__proto__`) and avoids routing a nested map through Firestore's object-merge parser. The CBT Functions Emulator regression covers saving, resuming and scoring a `__proto__` question ID; the persisted answer must remain an own field and the result must still be calculated by the server-side answer key.
