@@ -91,6 +91,7 @@ test("authenticated callable load workflow is manual-only and disabled without e
   assert.match(callableLoadWorkflow, /127\.0\.0\.1:8080/);
   assert.match(callableLoadWorkflow, /127\.0\.0\.1:5001/);
   assert.match(callableLoadWorkflow, /demo-railway-mitra-callable-load/);
+  assert.match(callableLoadWorkflow, /TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR:\s*"true"/);
   assert.ok(callableLoadWorkflow.includes("firebase.test-series-cbt-emulator.json"));
   assert.ok(callableLoadWorkflow.includes('default: "20"'));
   assert.match(callableLoadWorkflow, /singleProjectMode !== true/);
