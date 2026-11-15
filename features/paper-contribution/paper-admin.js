@@ -5,6 +5,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 const functions = getFunctions(app, "asia-south1");
 const listPapers = httpsCallable(functions, "adminListPreviousPaperSubmissions");
 const getDownload = httpsCallable(functions, "adminGetPreviousPaperDownloadUrl");
+const approvePaper = httpsCallable(functions, "adminApprovePreviousPaperSubmission");
 const gate = document.getElementById("adminGate");
 const inbox = document.getElementById("adminInbox");
 const message = document.getElementById("adminMessage");
@@ -56,7 +57,26 @@ async function loadPapers() {
           alert(error?.message || "Could not generate the private download link.");
         }
       });
+
       card.append(button);
+      const approve = node("button","rm-paper-submit",paper.status === "approved" ? "Approved · " + (paper.pointsAwarded || 0) + " points" : "Approve & award points");
+      approve.type = "button";
+      approve.disabled = paper.status === "approved";
+      approve.addEventListener("click", async () => {
+        if (!confirm("Approve this paper and award contributor points?")) return;
+        approve.disabled = true;
+        approve.textContent = "Approving…";
+        try {
+          const response = await approvePaper({ submissionId: paper.id });
+          approve.textContent = "Approved · " + (response.data.pointsAwarded || 0) + " points";
+          await loadPapers();
+        } catch (error) {
+          approve.disabled = false;
+          approve.textContent = "Try approval again";
+          alert(error?.message || "Could not approve this paper.");
+        }
+      });
+      card.append(approve);
       list.append(card);
     });
   } catch (error) {
