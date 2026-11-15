@@ -2450,21 +2450,24 @@ test("a fully refunded captured payment stays locked in the catalogue and rmStar
 });
 
 
-test("CBT save, resume and scoring preserve a prototype-sensitive question ID safely", async () => {
+test("CBT save, resume and scoring preserve prototype-sensitive question IDs as literal fields", async () => {
   const specialTestId = "emulator-prototype-question-id";
   const attemptId = "emulator-prototype-question-attempt";
+  const questionIds = ["__proto__", "constructor", "toString"];
   const testRef = db.doc("testSeriesTests/" + specialTestId);
   const paperRef = db.doc("testSeriesQuestionSets/" + specialTestId);
   const keyRef = db.doc("testSeriesAnswerKeys/" + specialTestId);
   const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
   const resultRef = db.doc("testSeriesResults/" + attemptId);
   const answerQuestions = {};
-  Object.defineProperty(answerQuestions, "__proto__", {
-    value: { correctAnswer: "1" },
-    enumerable: true,
-    configurable: true,
-    writable: true
-  });
+  for (const questionId of questionIds) {
+    Object.defineProperty(answerQuestions, questionId, {
+      value: { correctAnswer: "1" },
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  }
 
   try {
     await Promise.all([
@@ -2476,11 +2479,15 @@ test("CBT save, resume and scoring preserve a prototype-sensitive question ID sa
         durationMinutes: 10,
         marksPerQuestion: 2,
         negativeMarks: 0.5,
-        questionCount: 1,
+        questionCount: questionIds.length,
         sections: []
       }),
       paperRef.set({
-        questions: [{ id: "__proto__", text: "Prototype-safe question?", options: ["A", "B"] }]
+        questions: questionIds.map((id, index) => ({
+          id,
+          text: `Prototype-safe question ${index + 1}?`,
+          options: ["A", "B"]
+        }))
       }),
       keyRef.set({ questions: answerQuestions }),
       attemptRef.set({
@@ -2495,28 +2502,29 @@ test("CBT save, resume and scoring preserve a prototype-sensitive question ID sa
     ]);
 
     const delivered = await callable("rmGetExamQuestions", { attemptId });
-    assert.equal(delivered.questions[0].id, "__proto__");
-    assert.equal(Object.hasOwn(delivered.savedAnswers, "__proto__"), false);
-
-    await callable("rmSaveAnswer", {
-      attemptId,
-      questionId: "__proto__",
-      answer: "1"
-    });
+    assert.deepEqual(delivered.questions.map(question => question.id), questionIds);
+    for (const questionId of questionIds) {
+      assert.equal(Object.hasOwn(delivered.savedAnswers, questionId), false);
+      await callable("rmSaveAnswer", { attemptId, questionId, answer: "1" });
+    }
 
     const storedAttempt = (await attemptRef.get()).data();
-    assert.equal(Object.prototype.hasOwnProperty.call(storedAttempt.answers, "__proto__"), true);
-    assert.equal(storedAttempt.answers["__proto__"], "1");
+    for (const questionId of questionIds) {
+      assert.equal(Object.prototype.hasOwnProperty.call(storedAttempt.answers, questionId), true);
+      assert.equal(storedAttempt.answers[questionId], "1");
+    }
 
     const resumed = await callable("rmGetExamQuestions", { attemptId });
-    assert.equal(Object.hasOwn(resumed.savedAnswers, "__proto__"), true);
-    assert.equal(resumed.savedAnswers["__proto__"], "1");
+    for (const questionId of questionIds) {
+      assert.equal(Object.hasOwn(resumed.savedAnswers, questionId), true);
+      assert.equal(resumed.savedAnswers[questionId], "1");
+    }
 
     const scored = await callable("rmSubmitExam", { attemptId });
     assert.equal(scored.submitted, true);
-    assert.equal(scored.correct, 1);
+    assert.equal(scored.correct, questionIds.length);
     assert.equal(scored.wrong, 0);
-    assert.equal(scored.score, 2);
+    assert.equal(scored.score, questionIds.length * 2);
   } finally {
     await Promise.all([
       testRef.delete().catch(() => {}),
