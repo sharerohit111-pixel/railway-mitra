@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Sync official Railway Board and PIB Ministry of Railways releases into Railway Mitra."""
 import base64
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -278,15 +279,7 @@ def main():
     if not token:
         raise RuntimeError("GITHUB_TOKEN is required")
 
-    session = requests.Session()
-    session.headers.update(HEADERS)
-    retry = Retry(total=3, connect=3, read=2, backoff_factor=2,
-                  status_forcelist=(429, 500, 502, 503, 504),
-                  allowed_methods=frozenset(["GET"]))
-    session.mount("https://", HTTPAdapter(max_retries=retry))
-    discovered = []
-    errors = []
-    for name, url, parser in (
+    sources = (
         # PIB is the primary source because its Ministry of Railways section
         # remains reachable when the Railway Board host is intermittently down.
         ("PIB Ministry of Railways RSS", PIB_RSS_SOURCE, extract_pib_rss),
@@ -294,18 +287,41 @@ def main():
         ("PIB alternate official release listing", PIB_ALT_SOURCE, lambda html: extract_pib_railway(html, PIB_ALT_SOURCE)),
         ("Ministry of Railways portal", "https://indianrailways.gov.in/documents/press-release", extract_indian_railways),
         ("Railway Board", RB_SOURCE, extract_railway_board),
-    ):
+    )
+
+    def fetch_source(source):
+        name, url, parser = source
+        # Each source gets its own short-retry session. Slow optional portals
+        # must never block the two reachable PIB listings from being checked.
+        session = requests.Session()
+        session.headers.update(HEADERS)
+        retry = Retry(total=1, connect=1, read=1, backoff_factor=0.5,
+                      status_forcelist=(429, 500, 502, 503, 504),
+                      allowed_methods=frozenset(["GET"]))
+        session.mount("https://", HTTPAdapter(max_retries=retry))
+        timeout = (8, 18) if "pib.gov.in" in url else (5, 10)
         try:
-            # Give official government portals enough time during intermittent slow responses.
-            timeout = (25, 45) if "indianrailways.gov.in" in url else (15, 35)
             response = session.get(url, timeout=timeout)
             response.raise_for_status()
             items = parser(response.text)
-            discovered.extend(items)
-            print(f"{name}: parsed {len(items)} official releases")
+            return name, items, None
         except Exception as exc:
-            errors.append(f"{name}: {type(exc).__name__}: {exc}")
-            print(f"WARNING - {name} source unavailable: {type(exc).__name__}: {exc}")
+            return name, [], f"{type(exc).__name__}: {exc}"
+        finally:
+            session.close()
+
+    discovered = []
+    errors = []
+    # Bounded parallel requests keep the hourly job quick even if a government
+    # portal is unreachable. All accepted records still come from official URLs.
+    with ThreadPoolExecutor(max_workers=len(sources)) as executor:
+        for name, items, error in executor.map(fetch_source, sources):
+            if error:
+                errors.append(f"{name}: {error}")
+                print(f"WARNING - {name} source unavailable: {error}")
+            else:
+                discovered.extend(items)
+                print(f"{name}: parsed {len(items)} official releases")
 
     if not discovered:
         raise RuntimeError("No official releases parsed from either source; refusing to overwrite the feed. " + "; ".join(errors))
