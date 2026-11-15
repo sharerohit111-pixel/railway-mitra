@@ -76,7 +76,6 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, apply
       "invalid_refund_event",
       "invalid_refund_fields",
       "refund_id_conflict",
-      "refund_payment_not_found",
       "refund_payment_mismatch",
       "refund_amount_exceeds_payment"
     ]);
