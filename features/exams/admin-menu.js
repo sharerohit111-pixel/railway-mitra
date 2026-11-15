@@ -1,7 +1,7 @@
 import { auth } from "../../assets/js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
-const ENTRY_ID = "rmOwnerAdminMenuEntry";
+const ENTRY_ID = "rmOwnerAdminMenuEntry";\nconst PAPER_ENTRY_ID = "rmPreviousPaperInboxEntry";
 
 function addOwnerEntry() {
   const menu = document.querySelector(".mobile-menu");
