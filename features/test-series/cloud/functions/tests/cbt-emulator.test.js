@@ -16,6 +16,7 @@ const crypto = require("node:crypto");
 const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
 const { hasVerifiedPhoneMfa } = require("../owner-auth");
 const { studentAnswerStorageKey } = require("../student-question-delivery");
+const { addExamAnswerKeyEntry } = require("../exam-answer-key");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
@@ -2466,14 +2467,7 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
   const activeRef = db.doc("testSeriesActiveSessions/" + uid);
   const previousActive = await activeRef.get();
   const answerQuestions = {};
-  for (const questionId of questionIds) {
-    Object.defineProperty(answerQuestions, questionId, {
-      value: { correctAnswer: "1" },
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  }
+  for (const questionId of questionIds) addExamAnswerKeyEntry(answerQuestions, questionId, 1);
 
   try {
     await Promise.all([
