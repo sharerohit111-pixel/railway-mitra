@@ -63,19 +63,29 @@ test("answer-key integrity rejects missing, array, or oversized paper data", () 
 });
 
 
-test("private answer-key maps preserve prototype-sensitive question IDs as own fields", () => {
+test("private answer-key maps preserve prototype-sensitive and prefix-like IDs without collisions", () => {
   const answerMap = {};
+  const prefixLikeId = "__rm_answer_qid__X19wcm90b19f";
   addExamAnswerKeyEntry(answerMap, "__proto__", 1);
   addExamAnswerKeyEntry(answerMap, "constructor", 0);
+  addExamAnswerKeyEntry(answerMap, prefixLikeId, 1);
 
   assert.equal(Object.getPrototypeOf(answerMap), Object.prototype);
-  assert.deepEqual(Object.keys(answerMap), [answerKeyStorageKey("__proto__"), answerKeyStorageKey("constructor")]);
+  assert.equal(answerKeyStorageKey(prefixLikeId).startsWith("__rm_answer_qid__"), true);
+  assert.notEqual(answerKeyStorageKey(prefixLikeId), answerKeyStorageKey("__proto__"));
+  assert.deepEqual(Object.keys(answerMap), [
+    answerKeyStorageKey("__proto__"),
+    answerKeyStorageKey("constructor"),
+    answerKeyStorageKey(prefixLikeId)
+  ]);
   assert.deepEqual(getExamAnswerKey([
     { id: "__proto__", options: ["A", "B"] },
-    { id: "constructor", options: ["A", "B"] }
+    { id: "constructor", options: ["A", "B"] },
+    { id: prefixLikeId, options: ["A", "B"] }
   ], answerMap), [
     { questionId: "__proto__", correctAnswer: "1" },
-    { questionId: "constructor", correctAnswer: "0" }
+    { questionId: "constructor", correctAnswer: "0" },
+    { questionId: prefixLikeId, correctAnswer: "1" }
   ]);
 });
 
