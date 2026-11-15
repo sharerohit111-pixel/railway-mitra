@@ -36,7 +36,8 @@ const { getExamAnswerKey, addExamAnswerKeyEntry } = require("./exam-answer-key")
 const {
   projectStudentQuestions,
   projectStudentSavedAnswers,
-  isCanonicalStudentAnswerIndex
+  isCanonicalStudentAnswerIndex,
+  studentAnswerStorageKey
 } = require("./student-question-delivery");
 const { toValidDate } = require("./exam-time");
 const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
@@ -312,7 +313,7 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
     if (!isCanonicalStudentAnswerIndex(question, answer)) {
       throw new HttpsError("invalid-argument", "Answer must be a canonical option index for this question");
     }
-    const nextAnswers = Object.fromEntries([...Object.entries(a.answers || {}), [questionId, answer]]);
+    const nextAnswers = Object.fromEntries([...Object.entries(a.answers || {}), [studentAnswerStorageKey(questionId), answer]]);
     tx.update(ref, { answers: nextAnswers, updatedAt: FieldValue.serverTimestamp() });
   });
   return { saved: true };
