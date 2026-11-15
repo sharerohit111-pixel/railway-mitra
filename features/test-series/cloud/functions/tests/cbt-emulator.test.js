@@ -1621,6 +1621,15 @@ test("manual grant starts only a complimentary test and revocation preserves the
     const resumed = await callable("rmStartExam", { testId: complimentaryTestId });
     assert.equal(resumed.attemptId, attemptId);
     assert.equal(resumed.resumed, true);
+
+    // Once the active attempt is gone, the revoked grant cannot create a new one.
+    await activeRef.delete();
+    await db.doc("testSeriesAttempts/" + attemptId).delete();
+    attemptId = null;
+    await assert.rejects(
+      callable("rmStartExam", { testId: complimentaryTestId }),
+      error => error.code === "functions/permission-denied"
+    );
   } finally {
     await activeRef.delete().catch(() => {});
     if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
