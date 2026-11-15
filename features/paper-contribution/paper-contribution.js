@@ -90,6 +90,21 @@ form.addEventListener("submit",async event=>{
   await submitPaper(payload);form.reset();fileName.textContent=t("pdfHint");message.textContent=t("uploaded");await loadHistory();
  }catch(error){message.textContent=readableError(error);message.classList.add("error");}finally{submitButton.disabled=false;}
 });
+const emailPaper = httpsCallable(functions, "emailPreviousPaperToOwner");
+document.getElementById("paperEmailSubmit").addEventListener("click", async () => {
+ const file=fileInput.files?.[0];
+ if(!file){message.textContent=t("choosePaper");message.classList.add("error");return;}
+ if(file.size<=0||file.size>MAX_FILE_BYTES||(!file.type.includes("pdf")&&!file.name.toLowerCase().endsWith(".pdf"))){message.textContent=t("invalidPdf");message.classList.add("error");return;}
+ if(!document.getElementById("paperConsent").checked){message.textContent=t("consentRequired");message.classList.add("error");return;}
+ const emailButton=document.getElementById("paperEmailSubmit");
+ emailButton.disabled=true;submitButton.disabled=true;message.classList.remove("error");message.textContent="PDF ईमेल से भेजी जा रही है…";
+ try{
+  const payload={examCategory:document.getElementById("paperCategory").value,examName:document.getElementById("paperName").value.trim(),heldOn:document.getElementById("paperHeldOn").value,fileName:file.name,fileBase64:toBase64(await file.arrayBuffer())};
+  await emailPaper(payload);
+  form.reset();fileName.textContent=t("pdfHint");message.textContent="धन्यवाद! PDF तुम्हारे ईमेल पर भेज दी गई है।";
+ }catch(error){message.textContent=readableError(error);message.classList.add("error");}
+ finally{emailButton.disabled=false;submitButton.disabled=false;}
+});
 document.getElementById("paperRefresh").addEventListener("click",loadHistory);
 const today=new Date();document.getElementById("paperHeldOn").max=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-");
 onAuthStateChanged(auth,user=>{gate.hidden=!!user;appArea.hidden=!user;history.hidden=!user;if(user){loadHistory();loadRewardSummary();}});
