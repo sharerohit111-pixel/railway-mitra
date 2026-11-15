@@ -32,7 +32,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install parser dependencies
-        run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+        run: python -m pip install --disable-pip-version-check requests beautifulsoup4 lxml
 
       - name: Collect and publish official Railway Board and PIB releases
         env:
