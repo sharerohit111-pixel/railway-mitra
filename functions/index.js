@@ -1258,7 +1258,7 @@ exports.getMyContributorReward = onCall({ region: REGION }, async request => {
   const x = snap.data();
   return {
     totalPoints: Number(x.totalPoints || 0),
-    freeMockTestsEarned: Number(x.freeMockTestsEarned || 0),
+    freeMockTestsEarned: Math.max(0, Number(x.freeMockTestsEarned || 0) - Number(x.redeemedMockTests || 0)),
     badge: x.badgeId ? { id: x.badgeId, label: x.badgeLabel, emoji: x.badgeEmoji } : null
   };
 });
