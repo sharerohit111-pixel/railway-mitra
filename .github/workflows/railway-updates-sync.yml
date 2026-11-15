@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/scripts/sync_railway_updates.py"
+      - ".github/workflows/railway-updates-sync.yml"
 
 permissions:
   contents: write
@@ -15,7 +21,7 @@ concurrency:
 jobs:
   sync-official-notices:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout Railway Mitra
         uses: actions/checkout@v4
@@ -28,7 +34,7 @@ jobs:
       - name: Install parser dependencies
         run: python -m pip install --disable-pip-version-check requests beautifulsoup4
 
-      - name: Collect and publish official Railway Board press releases
+      - name: Collect and publish official Railway Board and PIB releases
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
