@@ -1059,7 +1059,7 @@ const PAPER_CATEGORIES = ["LDCE", "GDCE", "Other Competitive Exam"];
 const MAX_PAPER_BYTES = 5 * 1024 * 1024;
 
 function paperDate(value) {
-  if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new HttpsError("invalid-argument", "Please select the date when the exam was held.");
   }
   const [year, month, day] = value.split("-").map(Number);
