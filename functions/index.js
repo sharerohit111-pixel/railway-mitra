@@ -1107,6 +1107,9 @@ function paperSummary(id, x) {
   const createdAt = x.createdAt && typeof x.createdAt.toMillis === "function" ? x.createdAt.toMillis() : null;
   return {
     id,
+    contributorEmail: x.contributorEmail || "",
+    contributorName: x.contributorName || "",
+    source: x.source || "app",
     examCategory: x.examCategory || "",
     examName: x.examName || "",
     heldOn: x.heldOn || "",
