@@ -4,6 +4,7 @@ import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/
 
 const functions = getFunctions(app, "asia-south1");
 const submitPaper = httpsCallable(functions, "submitPreviousPaper");
+const getMyReward = httpsCallable(functions, "getMyContributorReward");
 const listPapers = httpsCallable(functions, "listMyPreviousPaperSubmissions");
 const gate = document.getElementById("paperAuthGate");
 const appArea = document.getElementById("paperApp");
@@ -64,6 +65,11 @@ function readableError(error) {
 function formatDate(ms) { return ms ? new Date(ms).toLocaleString(language==="hi"?"hi-IN":"en-IN",{dateStyle:"medium",timeStyle:"short"}) : (language==="hi"?"अभी-अभी":"Just now"); }
 function toBase64(buffer) { const bytes=new Uint8Array(buffer);let binary="";const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(binary); }
 function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;}
+async function loadRewardSummary(){
+ const section=document.getElementById("paperRewardSummary");
+ const text=document.getElementById("paperRewardText");
+ try { const result=await getMyReward({}); const reward=result.data||{}; const badge=reward.badge ? " · "+reward.badge.emoji+" "+reward.badge.label : ""; text.textContent=(reward.totalPoints||0)+" points"+badge+" · Free mock tests earned: "+(reward.freeMockTestsEarned||0); section.hidden=false; } catch(error) { section.hidden=true; }
+}
 async function loadHistory(){
  const list=document.getElementById("paperHistoryList");list.replaceChildren(element("p","",t("loading")));
  try{
@@ -86,5 +92,5 @@ form.addEventListener("submit",async event=>{
 });
 document.getElementById("paperRefresh").addEventListener("click",loadHistory);
 const today=new Date();document.getElementById("paperHeldOn").max=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-");
-onAuthStateChanged(auth,user=>{gate.hidden=!!user;appArea.hidden=!user;history.hidden=!user;if(user)loadHistory();});
+onAuthStateChanged(auth,user=>{gate.hidden=!!user;appArea.hidden=!user;history.hidden=!user;if(user){loadHistory();loadRewardSummary();}});
 applyLanguage();
