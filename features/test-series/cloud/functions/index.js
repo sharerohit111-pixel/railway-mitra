@@ -35,6 +35,7 @@ const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
 const { toValidDate } = require("./exam-time");
 const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
+const { getTestLeaderboard } = require("./leaderboard-query");
 const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
@@ -1113,32 +1114,7 @@ exports.rmGetTestLeaderboard = onCall(CALLABLE_OPTIONS, async req => {
   if (!testSnap.exists || testSnap.data().status !== "published") {
     throw new HttpsError("not-found", "Published test not found");
   }
-  const snap = await db.collection("testSeriesResults")
-    .where("testId", "==", testId).limit(1000).get();
-  const rows = snap.docs.map(d => {
-    const r = d.data();
-    return {
-      uid: r.uid,
-      score: Number(r.score || 0),
-      submittedAt: date(r.submittedAt)?.getTime() || 0
-    };
-  });
-  rows.sort((a, b) => b.score - a.score || a.submittedAt - b.submittedAt);
-  let rank = 0, previousScore = null;
-  const ranked = rows.map((row, index) => {
-    if (previousScore === null || row.score !== previousScore) rank = index + 1;
-    previousScore = row.score;
-    return { rank, score: row.score, uid: row.uid };
-  });
-  const mine = ranked.find(row => row.uid === uid);
-  return {
-    testId,
-    participantCount: rows.length,
-    leaderboardComplete: snap.size < 1000,
-    myRank: mine ? mine.rank : null,
-    myScore: mine ? mine.score : null,
-    top: ranked.slice(0, 20).map(row => ({ rank: row.rank, score: row.score, label: "Candidate " + String(row.rank).padStart(2, "0") }))
-  };
+  return getTestLeaderboard({ db, uid, testId });
 });
 
 

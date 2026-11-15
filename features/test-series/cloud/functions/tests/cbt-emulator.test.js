@@ -936,7 +936,7 @@ test("student can start, save answers and submit with server-side scoring", asyn
 
   await db.doc("testSeriesResults/foreign-student-result").set({
     uid: "another-student-uid", testId, score: 999, correct: 99,
-    wrong: 0, unattempted: 0, totalQuestions: 99
+    wrong: 0, unattempted: 0, totalQuestions: 99, submittedAt: new Date(Date.now() + 3000)
   });
   const dashboard = await callable("rmGetStudentDashboard");
   assert.equal(dashboard.resultCount, 1);
@@ -946,11 +946,11 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(dashboard.results.some(item => item.score === 999), false);
   await db.doc("testSeriesResults/leaderboard-higher-score").set({
     uid: "private-student-uid-1", testId, score: 4, correct: 2,
-    wrong: 0, unattempted: 0, totalQuestions: 2
+    wrong: 0, unattempted: 0, totalQuestions: 2, submittedAt: new Date(Date.now() + 2000)
   });
   await db.doc("testSeriesResults/leaderboard-tied-score").set({
     uid: "private-student-uid-2", testId, score: 2, correct: 1,
-    wrong: 0, unattempted: 1, totalQuestions: 2
+    wrong: 0, unattempted: 1, totalQuestions: 2, submittedAt: new Date(Date.now() + 4000)
   });
   const leaderboard = await callable("rmGetTestLeaderboard", { testId });
   assert.equal(leaderboard.participantCount, 4);
@@ -959,9 +959,87 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(leaderboard.top[0].label, "Candidate 01");
   assert.equal(Object.hasOwn(leaderboard.top[0], "uid"), false);
   assert.equal(Object.hasOwn(leaderboard.top[0], "attemptId"), false);
+
   await db.doc("testSeriesResults/leaderboard-higher-score").delete();
   await db.doc("testSeriesResults/leaderboard-tied-score").delete();
   await db.doc("testSeriesResults/foreign-student-result").delete();
+});
+
+test("leaderboard count, personal rank and top 20 remain exact beyond 1000 submitted attempts", async () => {
+  const scaleTestId = "emulator-leaderboard-over-1000";
+  const testRef = db.doc("testSeriesTests/" + scaleTestId);
+  const base = Date.now();
+  const records = [];
+  for (let i = 0; i < 1025; i += 1) {
+    records.push({
+      id: "emulator-lb-scale-" + i,
+      uid: i === 0 ? uid : "scale-student-" + i,
+      testId: scaleTestId,
+      score: i === 0 ? 50 : (i * 37) % 101,
+      correct: 0,
+      wrong: 0,
+      unattempted: 0,
+      totalQuestions: 100,
+      submittedAt: new Date(base + i * 1000)
+    });
+  }
+  // A student's personal rank is based on their best attempt, while the public
+  // top-20 list continues to represent submitted attempts (legacy contract).
+  records.push({
+    id: "emulator-lb-scale-my-lower-attempt",
+    uid,
+    testId: scaleTestId,
+    score: 40,
+    correct: 0,
+    wrong: 0,
+    unattempted: 0,
+    totalQuestions: 100,
+    submittedAt: new Date(base + 2000000)
+  });
+  try {
+    await testRef.set({
+      title: "Leaderboard Scale Regression",
+      status: "published",
+      price: 0,
+      mode: "mock",
+      durationMinutes: 30,
+      questionCount: 100
+    });
+    for (let offset = 0; offset < records.length; offset += 400) {
+      const batch = db.batch();
+      records.slice(offset, offset + 400).forEach(row => {
+        const { id: documentId, ...data } = row;
+        batch.set(db.doc("testSeriesResults/" + documentId), data);
+      });
+      await batch.commit();
+    }
+
+    const result = await callable("rmGetTestLeaderboard", { testId: scaleTestId });
+    const expectedHigher = records.filter(row => row.score > 50).length;
+    const expectedTop = [...records].sort((a, b) => b.score - a.score).slice(0, 20);
+    let expectedRank = 0, previousScore = null;
+    const expected = expectedTop.map((row, index) => {
+      if (index === 0 || row.score !== previousScore) expectedRank = index + 1;
+      previousScore = row.score;
+      return { rank: expectedRank, score: row.score };
+    });
+
+    assert.equal(result.participantCount, records.length);
+    assert.equal(result.leaderboardComplete, true);
+    assert.equal(result.myScore, 50, "personal rank must use the student's best attempt");
+    assert.equal(result.myRank, expectedHigher + 1, "rank must count every higher score, not a 1000-row sample");
+    assert.equal(result.top.length, 20);
+    assert.deepEqual(result.top.map(({ rank, score }) => ({ rank, score })), expected);
+    assert.equal(Object.hasOwn(result.top[0], "uid"), false);
+    assert.equal(Object.hasOwn(result.top[0], "attemptId"), false);
+  } finally {
+    for (let offset = 0; offset < records.length; offset += 400) {
+      const batch = db.batch();
+      records.slice(offset, offset + 400).forEach(row => batch.delete(db.doc("testSeriesResults/" + row.id)));
+      await batch.commit();
+    }
+    await testRef.delete().catch(() => {});
+  }
 });
 
 test("concurrent CBT start, answer-save and submit transactions preserve one authoritative attempt and result", async () => {
