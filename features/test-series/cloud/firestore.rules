@@ -33,6 +33,9 @@ service cloud.firestore {
     match /testSeriesPaymentEvents/{document=**} { allow read, write: if false; }
     match /testSeriesPaymentAudit/{document=**} { allow read, write: if false; }
     match /testSeriesRefunds/{document=**} { allow read, write: if false; }
+    match /testSeriesManualAccess/{document=**} { allow read, write: if false; }
+    match /testSeriesAccessAudit/{document=**} { allow read, write: if false; }
+    match /testSeriesAccessRequests/{document=**} { allow read, write: if false; }
 
     // Default deny for every other collection unless existing rules are added deliberately.
     match /{document=**} { allow read, write: if false; }
