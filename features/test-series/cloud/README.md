@@ -208,3 +208,8 @@ Question IDs such as "__proto__" are valid under the existing identifier contrac
 ## Literal Firestore answer-field paths
 
 Student answer saves update the answer map through a Firestore `FieldPath("answers", questionId)` segment rather than constructing a dotted field-path string. This preserves the question ID as one literal map-key segment (including prototype-sensitive IDs such as `__proto__`) and avoids routing a nested map through Firestore's object-merge parser. The CBT Functions Emulator regression covers saving, resuming and scoring question IDs `__proto__`, `constructor` and `toString`; each persisted answer must remain an own field and the result must still be calculated by the server-side answer key.
+
+
+## Prototype-safe answer scoring
+
+Before a result is calculated, `rmSubmitExam` now projects the persisted answer map through `projectStudentSavedAnswers` against the current question paper. Only canonical option-index strings stored as own answer properties are eligible for scoring. Inherited object members such as `constructor`, `toString` or `__proto__` are never interpreted as student responses; a missing own answer is counted as unattempted. Unknown question IDs and malformed or out-of-range stored answers fail closed before a result is written. The CBT Functions Emulator regression submits a second attempt with an empty answer map for prototype-sensitive question IDs and verifies zero correct, zero wrong, all questions unattempted and a zero score.
