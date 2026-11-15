@@ -294,7 +294,9 @@ def main():
         ("Railway Board", RB_SOURCE, extract_railway_board),
     ):
         try:
-            # Government hosts can be intermittently slow; give official portals\n            # a longer read window while keeping the whole job time-bounded.\n            timeout = (12, 40) if "indianrailways.gov.in" in url else (8, 30)\n            response = session.get(url, timeout=timeout)
+            # Give official government portals enough time during intermittent slow responses.
+            timeout = (12, 40) if "indianrailways.gov.in" in url else (8, 30)
+            response = session.get(url, timeout=timeout)
             response.raise_for_status()
             items = parser(response.text)
             discovered.extend(items)
