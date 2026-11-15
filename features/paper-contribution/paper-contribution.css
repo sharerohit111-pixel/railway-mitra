@@ -32,3 +32,20 @@
 .rm-paper-header-actions{display:flex;align-items:center;gap:12px}
 .rm-paper-lang{border:1px solid #53def5;border-radius:999px;padding:8px 13px;background:linear-gradient(110deg,#087ab8,#6544d9 60%,#c22a9d);color:#fff;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 0 12px #35e8ff22}
 .rm-paper-form input:optional,.rm-paper-form select:optional{outline-offset:2px}
+
+/* Admin email contribution form — clearly separated responsive fields */
+.rm-email-form{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.rm-email-field{display:flex;flex-direction:column;gap:8px;min-width:0;padding:15px;border:1px solid rgba(91,219,255,.28);border-radius:15px;background:linear-gradient(145deg,rgba(9,28,51,.88),rgba(20,24,55,.78));box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.rm-email-field:focus-within{border-color:rgba(88,229,255,.85);box-shadow:0 0 0 2px rgba(88,229,255,.1),0 0 20px rgba(34,158,255,.1)}
+.rm-email-field label{display:block;margin:0;color:#bfefff;font-size:.92rem;font-weight:750;line-height:1.4}
+.rm-email-field input,.rm-email-field select{display:block;width:100%;min-width:0;min-height:48px;padding:11px 12px;border:1px solid rgba(138,180,218,.35);border-radius:10px;background:#08172c;color:#f4f8ff;font:inherit;outline:none}
+.rm-email-field input::placeholder{color:#8da5bf}
+.rm-email-field input:focus,.rm-email-field select:focus{border-color:#58e5ff;box-shadow:0 0 0 3px rgba(88,229,255,.13)}
+.rm-email-field input[type=file]{padding:9px;background:rgba(4,14,29,.85);font-size:.88rem}
+.rm-email-field input[type=file]::file-selector-button{margin-right:10px;padding:8px 12px;border:1px solid rgba(88,229,255,.55);border-radius:8px;background:linear-gradient(110deg,#087fb9,#6546c9);color:#fff;font-weight:700}
+.rm-email-field small{color:#9fb6d1;font-size:.8rem;line-height:1.45}
+.rm-email-file{grid-column:1/-1}
+.rm-email-save{grid-column:1/-1;width:100%;min-height:54px;margin-top:2px;display:flex;justify-content:center;align-items:center;gap:12px}
+.rm-email-save span{font-size:1.2rem}
+#emailPaperMessage{grid-column:1/-1;margin:0;overflow-wrap:anywhere}
+@media(max-width:640px){.rm-email-form{grid-template-columns:1fr;gap:12px}.rm-email-file,.rm-email-save,#emailPaperMessage{grid-column:1}.rm-email-field{padding:13px}.rm-email-save{font-size:.98rem;line-height:1.35;white-space:normal}}
