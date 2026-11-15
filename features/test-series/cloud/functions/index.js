@@ -33,6 +33,7 @@ const { selectQuestionBankPage } = require("./question-bank-pagination");
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
+const { projectStudentQuestions } = require("./student-question-delivery");
 const { toValidDate } = require("./exam-time");
 const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { getTestLeaderboard } = require("./leaderboard-query");
@@ -221,11 +222,18 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   const test = testSnap.data(), questions = questionsSnap.data().questions || [];
   if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
   const sections = validatedExamSections(test, questions);
+  let studentQuestions;
+  try {
+    studentQuestions = projectStudentQuestions(questions);
+  } catch (error) {
+    console.error("CBT student question payload rejected", { attemptId, message: error.message });
+    throw new HttpsError("failed-precondition", "Question paper contains invalid student question data");
+  }
   return {
     test: { testId: attempt.testId, title: test.title || "", durationMinutes: Number(test.durationMinutes || 30),
       marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0),
       sections },
-    questions: questions.map(q => ({ id: q.id, text: q.text, options: q.options, ...(q.section ? { section: q.section } : {}) })),
+    questions: studentQuestions,
     savedAnswers: attempt.answers || {},
     // Only section timing metadata is exposed; the answer key remains server-side.
     sectionTimings: Object.fromEntries(Object.entries(attempt.sectionTimings || {}).map(([name, timing]) => [name, {

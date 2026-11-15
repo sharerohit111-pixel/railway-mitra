@@ -421,6 +421,33 @@ test("exam question delivery allowlists student-safe question fields", async () 
   }
 });
 
+test("exam question delivery rejects nested option payloads instead of forwarding private metadata", async () => {
+  const privateTestId = "emulator-question-option-payload-rejected";
+  const attemptId = "emulator-question-option-payload-attempt";
+  const testRef = db.doc("testSeriesTests/" + privateTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + privateTestId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  try {
+    await testRef.set({ title: "Malformed Option", status: "published", price: 0, mode: "mock", durationMinutes: 20 });
+    await paperRef.set({ questions: [{
+      id: "unsafe-q1", text: "Which option?",
+      options: ["Safe choice", { label: "Private choice", correctAnswer: "1", explanation: "must not leak" }],
+      correctIndex: 1
+    }] });
+    await attemptRef.set({
+      uid, testId: privateTestId, status: "in_progress",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), answers: {}
+    });
+
+    await assert.rejects(
+      callable("rmGetExamQuestions", { attemptId }),
+      error => error.code === "functions/failed-precondition"
+    );
+  } finally {
+    await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("student catalogue returns published metadata only and never answer keys", async () => {
   const catalogue = await callable("rmListAvailableTests");
   const listed = catalogue.tests.find(item => item.testId === testId);
