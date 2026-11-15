@@ -1203,7 +1203,7 @@ exports.emailPreviousPaperToOwner = onCall({
   await db.runTransaction(async tx => {
     const snap = await tx.get(quotaRef);
     const count = snap.exists ? Number(snap.data().count || 0) : 0;
-    if (count >= 3) throw new HttpsError("resource-exhausted", "Daily email limit reached. Please try tomorrow.");
+    if (count >= 20) throw new HttpsError("resource-exhausted", "Daily email limit reached (20 per day). Please try tomorrow.");
     tx.set(quotaRef, { uid, day, count: count + 1, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
   });
   try {
