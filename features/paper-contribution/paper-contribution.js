@@ -99,20 +99,22 @@ document.getElementById("paperEmailSubmit").addEventListener("click", async () =
  const category=document.getElementById("paperCategory").value;
  const examName=document.getElementById("paperName").value.trim();
  const heldOn=document.getElementById("paperHeldOn").value;
+ const recipient="sharerohit111@gmail.com";
  const subject="[Railway Mitra] "+category+" Previous Paper"+(examName?" - "+examName:"");
- const body="Please find my previous paper attached.\\nCategory: "+category+"\\nExam: "+(examName||"Not provided")+"\\nHeld on: "+(heldOn||"Not provided")+"\\nI confirm that I am allowed to share this paper.";
+ const body="To: "+recipient+"\n\nHello Railway Mitra Team,\n\nI am sharing my previous exam paper. Please review it for the Railway Mitra paper contribution and rewards programme.\n\nExam Category: "+category+"\nPaper / Exam Name: "+(examName||"Not provided")+"\nExam Date: "+(heldOn||"Not provided")+"\nPDF File: "+file.name+"\n\nI confirm that I am permitted to share this paper and that it does not contain unnecessary personal information.\n\nThank you.";
  const button=document.getElementById("paperEmailSubmit");
- button.disabled=true;
+ button.disabled=true;message.classList.remove("error");
  try{
   if(navigator.canShare && navigator.share && navigator.canShare({files:[file]})){
-   await navigator.share({files:[file],title:subject,text:"To: sharerohit111@gmail.com\\n"+body});
-   message.textContent="Share menu opened. Select Gmail and send it to sharerohit111@gmail.com.";
+   await navigator.share({files:[file],title:subject,text:body});
+   message.textContent=language==="hi"?"शेयर मेन्यू खुल गया है। Gmail चुनें; प्राप्तकर्ता, विषय, विवरण और चुनी हुई PDF साथ साझा की जाएँगी। भेजने से पहले Gmail में जाँच लें।":"Share menu opened. Choose Gmail; the recipient, subject, details and selected PDF are included for sharing. Review before sending.";
   }else{
-   window.location.href="mailto:sharerohit111@gmail.com?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
-   message.textContent="Email draft opened. Attach the selected PDF and send it to sharerohit111@gmail.com.";
+   const mailto="mailto:"+recipient+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+   window.location.href=mailto;
+   message.textContent=language==="hi"?"ईमेल ड्राफ्ट खुल गया है। इस विकल्प में PDF अपने आप Attach नहीं हो सकती; कृपया PDF Attach करके भेजें।":"Email draft opened. This fallback cannot attach the PDF automatically; please attach it before sending.";
   }
  }catch(error){
-  if(error?.name!=="AbortError") message.textContent="Could not open sharing. Please use the normal Upload button.";
+  if(error?.name!=="AbortError") message.textContent=language==="hi"?"शेयर मेन्यू नहीं खुल पाया। सामान्य Upload विकल्प इस्तेमाल करें।":"Could not open the share menu. Please use the normal Upload option.";
  }finally{button.disabled=false;}
 });
 document.getElementById("paperRefresh").addEventListener("click",loadHistory);
