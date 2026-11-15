@@ -84,36 +84,43 @@ def extract_railway_board(html):
 def extract_pib_railway(html):
     soup = BeautifulSoup(html, "html.parser")
     records, seen = [], set()
-    for link in soup.find_all("a", href=True):
-        href = urljoin(PIB_SOURCE, link["href"])
-        parsed = urlparse(href)
-        if parsed.hostname != "www.pib.gov.in" or "PressReleseDetailm.aspx" not in parsed.path:
-            continue
-        prid = parse_qs(parsed.query).get("PRID", [""])[0]
-        title = clean_title(link.get_text(" ", strip=True))
-        if not prid or len(title) < 12 or prid in seen:
-            continue
-        node, context = link, ""
-        for _ in range(6):
-            if node is None:
-                break
-            context = clean_title(node.get_text(" ", strip=True))
-            if "Ministry of Railways" in context and PIB_DATE_RE.search(context):
-                break
-            node = node.parent
-        if "Ministry of Railways" not in context:
-            continue
-        match = PIB_DATE_RE.search(context)
-        if not match:
-            continue
-        try:
-            published = datetime.strptime(" ".join(match.groups()), "%d %b %Y").date().isoformat()
-        except ValueError:
-            continue
-        records.append(make_record("pib-rail-" + prid, title, published, href, "Ministry of Railways / PIB"))
-        seen.add(prid)
+    # PIB groups releases beneath an h3 ministry heading; the heading is a
+    # sibling of the list, not necessarily an ancestor of each release link.
+    heading = next((h for h in soup.find_all(["h2", "h3", "h4"])
+                    if clean_title(h.get_text(" ", strip=True)).lower() == "ministry of railways"), None)
+    if heading is None:
+        raise RuntimeError("PIB page did not contain the Ministry of Railways section")
+    for section in heading.next_siblings:
+        if getattr(section, "name", None) in {"h2", "h3", "h4"}:
+            break
+        links = section.find_all("a", href=True) if getattr(section, "find_all", None) else []
+        for link in links:
+            href = urljoin(PIB_SOURCE, link["href"])
+            parsed = urlparse(href)
+            if parsed.hostname != "www.pib.gov.in" or "PressReleseDetailm.aspx" not in parsed.path:
+                continue
+            prid = parse_qs(parsed.query).get("PRID", [""])[0]
+            title = clean_title(link.get_text(" ", strip=True))
+            if not prid or len(title) < 12 or prid in seen:
+                continue
+            context = clean_title(link.parent.get_text(" ", strip=True))
+            match = PIB_DATE_RE.search(context)
+            if not match:
+                # Date can be placed in a nearby wrapper rather than the link's immediate parent.
+                parent = link.parent.parent
+                context = clean_title(parent.get_text(" ", strip=True)) if parent else context
+                match = PIB_DATE_RE.search(context)
+            if not match:
+                continue
+            try:
+                published = datetime.strptime(" ".join(match.groups()), "%d %b %Y").date().isoformat()
+            except ValueError:
+                continue
+            records.append(make_record("pib-rail-" + prid, title, published, href, "Ministry of Railways / PIB"))
+            seen.add(prid)
+    if not records:
+        raise RuntimeError("No dated Ministry of Railways releases parsed from PIB")
     return records
-
 
 def make_record(record_id, title, published, url, source_name):
     return {
