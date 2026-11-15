@@ -31,6 +31,33 @@ test("the production bootstrap remains the default on non-loopback origins witho
   }
 });
 
+test("hosted production Firebase requires HTTPS", async () => {
+  const { resolveTestSeriesFirebaseMode } = await import("../../firebase-emulator-config.mjs");
+  for (const location of [
+    { protocol: "http:", hostname: "railway-mitra.com", search: "" },
+    { protocol: "http:", hostname: "192.168.1.25", search: "" }
+  ]) {
+    assert.throws(
+      () => resolveTestSeriesFirebaseMode(location),
+      /Hosted Test Series Firebase requires HTTPS/
+    );
+  }
+});
+
+test("non-web origins such as file URLs fail closed before Firebase initialization", async () => {
+  const { resolveTestSeriesFirebaseMode } = await import("../../firebase-emulator-config.mjs");
+  for (const location of [
+    { protocol: "file:", hostname: "", search: "" },
+    { protocol: "about:", hostname: "", search: "" },
+    { protocol: "", hostname: "", search: "" }
+  ]) {
+    assert.throws(
+      () => resolveTestSeriesFirebaseMode(location),
+      /Unsupported Test Series origin/
+    );
+  }
+});
+
 test("a loopback origin without explicit emulator opt-in never selects production Firebase", async () => {
   const { resolveTestSeriesFirebaseMode } = await import("../../firebase-emulator-config.mjs");
   for (const location of [

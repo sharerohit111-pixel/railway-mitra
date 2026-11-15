@@ -20,6 +20,11 @@ const EMULATOR_ENDPOINTS = Object.freeze({
  * on a loopback HTTP(S) origin. Invalid or remote opt-ins fail closed.
  */
 export function resolveTestSeriesFirebaseMode(locationLike) {
+  const protocol = String(locationLike && locationLike.protocol || "").toLowerCase();
+  if (!["http:", "https:"].includes(protocol)) {
+    throw new Error("Unsupported Test Series origin; use HTTPS or localhost HTTP with explicit emulator opt-in.");
+  }
+
   const search = locationLike && typeof locationLike.search === "string"
     ? locationLike.search
     : "";
@@ -35,6 +40,9 @@ export function resolveTestSeriesFirebaseMode(locationLike) {
     if (isLoopback) {
       throw new Error("Local Test Series origin requires explicit emulator opt-in; use exactly ?rmFirebaseEmulator=1.");
     }
+    if (protocol !== "https:") {
+      throw new Error("Hosted Test Series Firebase requires HTTPS; use an HTTPS origin or local emulator mode.");
+    }
     return Object.freeze({ mode: "production" });
   }
 
@@ -43,8 +51,7 @@ export function resolveTestSeriesFirebaseMode(locationLike) {
     throw new Error("Invalid Test Series Firebase Emulator opt-in; use exactly ?rmFirebaseEmulator=1.");
   }
 
-  const protocol = locationLike && locationLike.protocol;
-  if (!["http:", "https:"].includes(protocol) || !isLoopback) {
+  if (!isLoopback) {
     throw new Error("Test Series Firebase Emulator mode is restricted to localhost loopback origins.");
   }
 
