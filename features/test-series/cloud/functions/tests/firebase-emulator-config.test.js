@@ -21,16 +21,29 @@ test("the explicit local opt-in selects only the demo Firebase project and local
   });
 });
 
-test("the production bootstrap remains the default without an emulator opt-in", async () => {
+test("the production bootstrap remains the default on non-loopback origins without an emulator opt-in", async () => {
   const { resolveTestSeriesFirebaseMode } = await import("../../firebase-emulator-config.mjs");
-  assert.deepEqual(
-    resolveTestSeriesFirebaseMode({ protocol: "https:", hostname: "railway-mitra.com", search: "" }),
-    { mode: "production" }
-  );
-  assert.deepEqual(
-    resolveTestSeriesFirebaseMode({ protocol: "http:", hostname: "localhost", search: "" }),
-    { mode: "production" }
-  );
+  for (const location of [
+    { protocol: "https:", hostname: "railway-mitra.com", search: "" },
+    { protocol: "https:", hostname: "preview.railway-mitra.com", search: "" }
+  ]) {
+    assert.deepEqual(resolveTestSeriesFirebaseMode(location), { mode: "production" });
+  }
+});
+
+test("a loopback origin without explicit emulator opt-in never selects production Firebase", async () => {
+  const { resolveTestSeriesFirebaseMode } = await import("../../firebase-emulator-config.mjs");
+  for (const location of [
+    { protocol: "http:", hostname: "localhost", search: "" },
+    { protocol: "https:", hostname: "127.0.0.1", search: "" },
+    { protocol: "http:", hostname: "::1", search: "" },
+    { protocol: "http:", hostname: "[::1]", search: "" }
+  ]) {
+    assert.throws(
+      () => resolveTestSeriesFirebaseMode(location),
+      /Local Test Series origin requires explicit emulator opt-in/
+    );
+  }
 });
 
 test("an emulator opt-in on a hosted or non-loopback origin fails closed", async () => {

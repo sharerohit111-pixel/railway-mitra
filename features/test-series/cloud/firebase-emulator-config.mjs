@@ -25,7 +25,18 @@ export function resolveTestSeriesFirebaseMode(locationLike) {
     : "";
   const params = new URLSearchParams(search);
 
-  if (!params.has("rmFirebaseEmulator")) return Object.freeze({ mode: "production" });
+  const hostname = String(locationLike && locationLike.hostname || "").toLowerCase();
+  const isLoopback = LOCAL_HOSTNAMES.has(hostname);
+
+  // A developer opening localhost without the explicit emulator flag must
+  // never fall through to the live Railway Mitra Firebase project. This guard
+  // prevents accidental production OTPs or writes during local browser work.
+  if (!params.has("rmFirebaseEmulator")) {
+    if (isLoopback) {
+      throw new Error("Local Test Series origin requires explicit emulator opt-in; use exactly ?rmFirebaseEmulator=1.");
+    }
+    return Object.freeze({ mode: "production" });
+  }
 
   const values = params.getAll("rmFirebaseEmulator");
   if (values.length !== 1 || values[0] !== "1") {
@@ -33,8 +44,7 @@ export function resolveTestSeriesFirebaseMode(locationLike) {
   }
 
   const protocol = locationLike && locationLike.protocol;
-  const hostname = String(locationLike && locationLike.hostname || "").toLowerCase();
-  if (!["http:", "https:"].includes(protocol) || !LOCAL_HOSTNAMES.has(hostname)) {
+  if (!["http:", "https:"].includes(protocol) || !isLoopback) {
     throw new Error("Test Series Firebase Emulator mode is restricted to localhost loopback origins.");
   }
 
