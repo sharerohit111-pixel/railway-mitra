@@ -18,7 +18,12 @@ export async function verifyStudentOtp(confirmation, code) {
 }
 function callable(app, name) { return httpsCallable(getFunctions(app, "asia-south1"), name); }
 export async function startCbtExam(app, testId) { return (await callable(app, "rmStartExam")({ testId })).data; }
-export async function getCbtExamQuestions(app, attemptId) { return (await callable(app, "rmGetExamQuestions")({ attemptId })).data; }
+export async function getCbtExamQuestions(app, attemptId) {
+  const data = (await callable(app, "rmGetExamQuestions")({ attemptId })).data;
+  // Rebuild own data properties client-side from serialization-safe entries.
+  if (Array.isArray(data.savedAnswerEntries)) data.savedAnswers = Object.fromEntries(data.savedAnswerEntries);
+  return data;
+}
 export async function enterCbtSection(app, attemptId, section) {
   return (await callable(app, "rmEnterCbtSection")({ attemptId, section })).data;
 }
