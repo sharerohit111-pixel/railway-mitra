@@ -82,6 +82,7 @@ jobs:
           FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
           FUNCTIONS_EMULATOR_HOST: 127.0.0.1:5001
           GCLOUD_PROJECT: demo-railway-mitra-callable-load
+          TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR: "true"
           CALLABLE_LOAD_STUDENTS: ${{ inputs.students || '20' }}
           CALLABLE_LOAD_CONCURRENCY: ${{ inputs.concurrency || '20' }}
           CALLABLE_LOAD_QUESTIONS: ${{ inputs.questions || '50' }}
