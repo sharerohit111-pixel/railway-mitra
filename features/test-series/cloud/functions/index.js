@@ -1,5 +1,6 @@
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
 const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
@@ -24,6 +25,7 @@ const {
   inspectPaymentRequest
 } = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
+const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint } = require("./owner-test-access");
 const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
@@ -429,6 +431,94 @@ exports.rmGetCbtAttemptResult = onCall(CALLABLE_OPTIONS, async req => {
 exports.rmGetOwnerAdminSession = onCall(CALLABLE_OPTIONS, async req => {
   const uid = owner(req);
   return { authorized: true, uid, email: req.auth.token.email || null };
+});
+
+// Owner-only manual access control. The Owner guard runs before Auth or Firestore lookups.
+exports.rmOwnerSetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
+  const ownerUid = owner(req);
+  let request;
+  let fingerprint;
+  try {
+    request = validateOwnerTestAccessRequest(req.data || {});
+    fingerprint = ownerAccessRequestFingerprint(req.data || {});
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+
+  // Confirm the target is a real Firebase account before changing access.
+  try {
+    await getAuth().getUser(request.studentUid);
+  } catch (error) {
+    if (error && (error.code === "auth/user-not-found" || error.code === "auth/invalid-uid")) {
+      throw new HttpsError("not-found", "Student account not found");
+    }
+    throw new HttpsError("unavailable", "Student account could not be verified");
+  }
+
+  const accessId = manualAccessDocumentId(request.studentUid, request.testId);
+  const requestId = crypto.createHash("sha256").update(ownerUid).update("\\0").update(request.requestId).digest("hex");
+  const accessRef = db.doc("testSeriesManualAccess/" + accessId);
+  const requestRef = db.doc("testSeriesAccessRequests/" + requestId);
+  const testRef = db.doc("testSeriesTests/" + request.testId);
+  const auditRef = db.collection("testSeriesAccessAudit").doc();
+
+  return db.runTransaction(async tx => {
+    const [testSnap, accessSnap, requestSnap] = await Promise.all([
+      tx.get(testRef), tx.get(accessRef), tx.get(requestRef)
+    ]);
+    if (!testSnap.exists || testSnap.data().status !== "published") {
+      throw new HttpsError("failed-precondition", "Access can be changed only for a published test");
+    }
+
+    if (requestSnap.exists) {
+      const prior = requestSnap.data();
+      if (prior.fingerprint !== fingerprint) {
+        throw new HttpsError("already-exists", "Request ID was already used for a different operation");
+      }
+      return { saved: true, replayed: true, status: prior.status, accessId };
+    }
+
+    const previous = accessSnap.exists ? accessSnap.data() : null;
+    const status = request.action === "grant" ? "active" : "revoked";
+    const now = Timestamp.now();
+    const expiresAt = request.action === "grant" && request.expiresAt
+      ? Timestamp.fromDate(new Date(request.expiresAt))
+      : null;
+    const accessRecord = {
+      uid: request.studentUid,
+      testId: request.testId,
+      status,
+      source: "owner_manual",
+      reason: request.reason,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: ownerUid,
+      expiresAt
+    };
+    if (!previous) {
+      accessRecord.createdAt = FieldValue.serverTimestamp();
+      accessRecord.createdBy = ownerUid;
+    }
+    tx.set(accessRef, accessRecord, { merge: true });
+    tx.create(auditRef, {
+      targetUid: request.studentUid,
+      testId: request.testId,
+      action: request.action,
+      actorUid: ownerUid,
+      reason: request.reason,
+      previousStatus: previous && previous.status || "none",
+      newStatus: status,
+      createdAt: FieldValue.serverTimestamp(),
+      requestId
+    });
+    tx.create(requestRef, {
+      fingerprint,
+      status,
+      accessId,
+      createdAt: FieldValue.serverTimestamp(),
+      createdBy: ownerUid
+    });
+    return { saved: true, replayed: false, status, accessId };
+  });
 });
 
 // Owner selects exactly one published zero-price test as the one-time free trial.
