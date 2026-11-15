@@ -58,7 +58,9 @@ test("ambiguous submit failures keep the same attempt available for an explicit 
   assert.match(finish, /await submitCbtExam\(app,attemptId\)/,
     "submission retries must target the existing server attempt");
   assert.match(finish, /finished=false;el\("rm-cbt-submit"\)\.disabled=false;el\("rm-cbt-retry"\)\.disabled=false/,
-    "a failed or ambiguous response must let the student retry");
+    "a failed or ambiguous response must re-enable both submit and answer-retry controls");
+  assert.match(finish, /try\{localStorage\.removeItem\(draftKey\(\)\);\}catch\(_\)\{\}\s*showResult\(score,timeoutWarning\)/,
+    "pending local answer drafts must be cleared only after the server confirms submission");
   assert.match(finish, /status\(e\.message\|\|"Submit असफल। इंटरनेट जाँचकर फिर प्रयास करें।"\)/,
     "the failure must remain visible instead of pretending the result was received");
   assert.doesNotMatch(finish, /attemptId\s*=\s*null|startCbtExam\(/,
