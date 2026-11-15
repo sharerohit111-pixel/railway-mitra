@@ -2,6 +2,7 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { watchOwnerSession } from "../owner-session.mjs";
 
 function createHarness(overrides = {}) {
