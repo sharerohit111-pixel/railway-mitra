@@ -48,5 +48,5 @@ jobs:
         run: npm --prefix functions run lint
 
       - name: Deploy Firebase Cloud Functions
-        run: npx --yes firebase-tools@latest deploy --only functions:deleteMyAccount,functions:submitPreviousPaper,functions:listMyPreviousPaperSubmissions,functions:adminListPreviousPaperSubmissions,functions:adminGetPreviousPaperDownloadUrl,functions:adminApprovePreviousPaperSubmission,functions:getMyContributorReward,functions:listContributorRewardBadges --project railway-mitra --non-interactive
+        run: npx --yes firebase-tools@latest deploy --only functions:deleteMyAccount,functions:submitPreviousPaper,functions:listMyPreviousPaperSubmissions,functions:adminListPreviousPaperSubmissions,functions:adminGetPreviousPaperDownloadUrl,functions:adminApprovePreviousPaperSubmission,functions:getMyContributorReward,functions:listContributorRewardBadges,functions:emailPreviousPaperToOwner --project railway-mitra --non-interactive
         
