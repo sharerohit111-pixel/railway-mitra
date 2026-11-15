@@ -1589,8 +1589,11 @@ test("manual grant starts only a complimentary test and revocation preserves the
   const testRef = db.doc("testSeriesTests/" + complimentaryTestId);
   const accessRef = db.doc("testSeriesManualAccess/" + accessId);
   const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
   let attemptId = null;
   try {
+    // Isolate this test from any active free/paid attempt in the shared fixture.
+    await activeRef.delete().catch(() => {});
     await testRef.set({
       title: "Complimentary manual-access test",
       status: "published",
@@ -1620,6 +1623,7 @@ test("manual grant starts only a complimentary test and revocation preserves the
     assert.equal(resumed.resumed, true);
   } finally {
     await activeRef.delete().catch(() => {});
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
     if (attemptId) await db.doc("testSeriesAttempts/" + attemptId).delete().catch(() => {});
     await accessRef.delete().catch(() => {});
     await testRef.delete().catch(() => {});
