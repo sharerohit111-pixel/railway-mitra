@@ -9,7 +9,9 @@ function invalidAnswerKey() {
 const ENCODED_KEY_PREFIX = "__rm_answer_qid__";
 const PROTOTYPE_SENSITIVE_IDS = new Set(["__proto__", "constructor", "toString", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "valueOf", "__defineGetter__", "__defineSetter__"]);
 function answerKeyStorageKey(questionId) {
-  return PROTOTYPE_SENSITIVE_IDS.has(questionId) ? ENCODED_KEY_PREFIX + Buffer.from(questionId, "utf8").toString("base64url") : questionId;
+  return PROTOTYPE_SENSITIVE_IDS.has(questionId) || questionId.startsWith(ENCODED_KEY_PREFIX)
+    ? ENCODED_KEY_PREFIX + Buffer.from(questionId, "utf8").toString("base64url")
+    : questionId;
 }
 
 function isRecord(value) {
