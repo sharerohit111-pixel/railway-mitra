@@ -4,6 +4,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
+const crypto = require("crypto");
 
 initializeApp({ storageBucket: "railway-mitra.firebasestorage.app" });
 const db = getFirestore();
@@ -1212,6 +1213,13 @@ exports.adminApprovePreviousPaperSubmission = onCall({ region: REGION }, async r
       throw new HttpsError("failed-precondition", "Only received papers can be approved.");
     }
     const pointsAwarded = paper.examCategory === "LDCE" ? 200 : paper.examCategory === "GDCE" ? 150 : 100;
+    const hashRef = paper.fileHash ? db.collection("previousPaperHashes").doc(paper.fileHash) : null;
+    if (hashRef) {
+      const hashSnap = await tx.get(hashRef);
+      if (hashSnap.exists && hashSnap.data().submissionId !== submissionId) {
+        throw new HttpsError("already-exists", "This PDF has already been approved as another contribution. No points were awarded.");
+      }
+    }
     const rewardRef = db.collection("contributorRewards").doc(paper.uid);
     const rewardSnap = await tx.get(rewardRef);
     const previous = rewardSnap.exists ? rewardSnap.data() : {};
@@ -1231,6 +1239,7 @@ exports.adminApprovePreviousPaperSubmission = onCall({ region: REGION }, async r
       status: "approved", pointsAwarded, approvedAt: FieldValue.serverTimestamp(),
       approvedBy: request.auth.uid
     });
+    if (hashRef) tx.set(hashRef, { submissionId, uid: paper.uid, createdAt: FieldValue.serverTimestamp() });
     tx.set(db.collection("contributorRewardTransactions").doc(submissionId), {
       uid: paper.uid, submissionId, points: pointsAwarded,
       category: paper.examCategory, createdAt: FieldValue.serverTimestamp()
