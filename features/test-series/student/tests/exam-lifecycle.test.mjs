@@ -46,3 +46,21 @@ test("exam controller treats only expected prior-result responses as recoverable
   assert.match(source, /active\.status === "completed"/);
   assert.match(source, /recovery !== "in_progress"/);
 });
+
+
+test("ambiguous submit failures keep the same attempt available for an explicit retry", () => {
+  const source = readFileSync(new URL("../exam.js", import.meta.url), "utf8");
+  const start = source.indexOf("async function finish(auto=false){");
+  const end = source.indexOf('el("rm-cbt-start")', start);
+  assert.ok(start >= 0 && end > start, "the exam finish controller must be present");
+  const finish = source.slice(start, end);
+
+  assert.match(finish, /await submitCbtExam\(app,attemptId\)/,
+    "submission retries must target the existing server attempt");
+  assert.match(finish, /finished=false;el\("rm-cbt-submit"\)\.disabled=false;el\("rm-cbt-retry"\)\.disabled=false/,
+    "a failed or ambiguous response must let the student retry");
+  assert.match(finish, /status\(e\.message\|\|"Submit असफल। इंटरनेट जाँचकर फिर प्रयास करें।"\)/,
+    "the failure must remain visible instead of pretending the result was received");
+  assert.doesNotMatch(finish, /attemptId\s*=\s*null|startCbtExam\(/,
+    "a submit retry must not discard the attempt or silently create a replacement");
+});
