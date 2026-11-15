@@ -2,6 +2,9 @@
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { setGlobalOptions } = require("firebase-functions/v2");
+const { defineSecret } = require("firebase-functions/params");
+const PAPER_MAIL_USER = defineSecret("PAPER_MAIL_USER");
+const PAPER_MAIL_APP_PASSWORD = defineSecret("PAPER_MAIL_APP_PASSWORD");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
 const crypto = require("crypto");
@@ -1170,6 +1173,54 @@ exports.submitPreviousPaper = onCall({ region: REGION, timeoutSeconds: 120, memo
   return { success: true, submission: paperSummary(ref.id, {
     examCategory, examName, heldOn, originalFileName, fileSize: pdf.length, status: "received"
   }) };
+});
+
+exports.emailPreviousPaperToOwner = onCall({
+  region: REGION,
+  timeoutSeconds: 120,
+  memory: "512MiB",
+  secrets: [PAPER_MAIL_USER, PAPER_MAIL_APP_PASSWORD]
+}, async request => {
+  const uid = requireUser(request);
+  const examCategory = cleanString(request.data.examCategory, "Exam category", 40);
+  if (!PAPER_CATEGORIES.includes(examCategory)) throw new HttpsError("invalid-argument", "Choose LDCE, GDCE or Other Competitive Exam.");
+  const examName = optionalPaperString(request.data.examName, "Exam name", 140);
+  const heldOn = optionalPaperDate(request.data.heldOn);
+  const originalFileName = cleanString(request.data.fileName, "PDF file name", 120).replace(/[\\r\\n"]/g, "_");
+  const encoded = request.data.fileBase64;
+  if (typeof encoded !== "string" || encoded.length < 8 || encoded.length > Math.ceil(MAX_PAPER_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
+    throw new HttpsError("invalid-argument", "Upload a valid PDF up to 5 MB.");
+  }
+  const pdf = Buffer.from(encoded, "base64");
+  if (!pdf.length || pdf.length > MAX_PAPER_BYTES || pdf.subarray(0, 5).toString("ascii") !== "%PDF-") {
+    throw new HttpsError("invalid-argument", "The selected file is not a valid PDF or exceeds 5 MB.");
+  }
+  const mailUser = PAPER_MAIL_USER.value();
+  const appPassword = PAPER_MAIL_APP_PASSWORD.value();
+  if (!mailUser || !appPassword) throw new HttpsError("failed-precondition", "Paper email delivery is not configured yet.");
+  const day = new Date().toISOString().slice(0, 10);
+  const quotaRef = db.collection("paperEmailRateLimits").doc(uid + "_" + day);
+  await db.runTransaction(async tx => {
+    const snap = await tx.get(quotaRef);
+    const count = snap.exists ? Number(snap.data().count || 0) : 0;
+    if (count >= 3) throw new HttpsError("resource-exhausted", "Daily email limit reached. Please try tomorrow.");
+    tx.set(quotaRef, { uid, day, count: count + 1, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+  });
+  try {
+    const nodemailer = require("nodemailer");
+    const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: mailUser, pass: appPassword } });
+    await transporter.sendMail({
+      from: '"Railway Mitra Paper Desk" <' + mailUser + '>',
+      to: "sharerohit111@gmail.com",
+      subject: "[Railway Mitra] " + examCategory + " Previous Paper" + (examName ? " - " + examName : ""),
+      text: "A previous paper was submitted by an authenticated Railway Mitra user.\\nCategory: " + examCategory + "\\nExam: " + (examName || "Not provided") + "\\nHeld on: " + (heldOn || "Not provided") + "\\nContributor UID: " + uid + "\\nOriginal file: " + originalFileName,
+      attachments: [{ filename: originalFileName, content: pdf, contentType: "application/pdf" }]
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Previous paper email delivery failed:", error && error.message);
+    throw new HttpsError("unavailable", "Email delivery failed. Please try again later.");
+  }
 });
 
 exports.listMyPreviousPaperSubmissions = onCall({ region: REGION }, async request => {
