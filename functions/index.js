@@ -1266,7 +1266,7 @@ exports.adminApprovePreviousPaperSubmission = onCall({ region: REGION }, async r
     if (paper.status !== "received") {
       throw new HttpsError("failed-precondition", "Only received papers can be approved.");
     }
-    const pointsAwarded = paper.examCategory === "LDCE" ? 200 : paper.examCategory === "GDCE" ? 150 : 100;
+    const pointsAwarded = paper.examCategory === "LDCE" ? 200 : paper.examCategory === "GDCE" ? 150 : paper.examCategory === "Other Competitive Exam" ? 50 : 0;
     const hashRef = paper.fileHash ? db.collection("previousPaperHashes").doc(paper.fileHash) : null;
     if (hashRef) {
       const hashSnap = await tx.get(hashRef);
