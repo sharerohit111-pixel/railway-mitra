@@ -8,7 +8,7 @@
       uploadTitle:"Previous Paper Upload करें",uploadSubtitle:"जानकारी भरें और PDF फ़ाइल चुनें।",categoryLabel:"Exam Category",ldce:"Railway LDCE",gdce:"Railway GDCE",otherExam:"Other Competitive Exam",
       examNameLabel:"Exam का नाम / Post (Optional)",heldOnLabel:"यह परीक्षा कब आयोजित हुई थी? (Optional)",pdfLabel:"Question Paper की PDF",choosePdf:"PDF चुनें / Upload PDF",pdfHint:"केवल PDF · अधिकतम 5 MB",
       privacyTitle:"आपकी व्यक्तिगत जानकारी गोपनीय रखी जाएगी",privacyText:"आपका पेपर private storage में रखा जाएगा। इसे केवल अधिकृत Railway Mitra admin देख सकेगा। हम access controls और सुरक्षित data handling का उपयोग करते हैं। इंटरनेट पर कोई भी सेवा 100% सुरक्षा की गारंटी नहीं दे सकती। कृपया PDF में Aadhaar, बैंक विवरण या अन्य अनावश्यक संवेदनशील जानकारी हो तो उसे छिपाकर अपलोड करें।",
-      consent:"मैं पुष्टि करता/करती हूँ कि मुझे यह पेपर साझा करने की अनुमति है और इसमें अनावश्यक निजी जानकारी नहीं है।",submit:"पेपर साझा करें",emailShare:"ईमेल से PDF भेजें",emailHelp:"ईमेल विकल्प चुनने पर शेयर मेन्यू खुलेगा। Gmail चुनकर PDF भेजें; कुछ फोन में PDF को स्वयं Attach करना पड़ सकता है.",
+      consent:"मैं पुष्टि करता/करती हूँ कि मुझे यह पेपर साझा करने की अनुमति है और इसमें अनावश्यक निजी जानकारी नहीं है।",submit:"पेपर साझा करें",emailShare:"ईमेल से PDF भेजें",emailHelp:"The PDF and message will be shared to Gmail. On share-supported phones, enter the recipient in the To field; otherwise an email draft opens and you must attach the PDF.",
       historyTitle:"मेरे साझा किए गए पेपर",historySubtitle:"आपके द्वारा भेजे गए पेपर की स्थिति।",refresh:"Refresh",loading:"लोड हो रहा है…",footer:"Railway Mitra · Your Railway Digital Companion"
     },
     en: {
