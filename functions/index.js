@@ -1077,7 +1077,17 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
 const PAPER_CATEGORIES = ["LDCE", "GDCE", "Other Competitive Exam"];
 const MAX_PAPER_BYTES = 5 * 1024 * 1024;
 
-function optionalPaperString(value, field, max = 300) {\n  if (value === undefined || value === null || String(value).trim() === \"\") return \"\";\n  return cleanString(String(value), field, max);\n}\n\nfunction optionalPaperDate(value) {\n  if (value === undefined || value === null || value === \"\") return \"\";\n  return paperDate(value);\n}\n\nfunction paperDate(value) {
+function optionalPaperString(value, field, max = 300) {
+  if (value === undefined || value === null || String(value).trim() === "") return "";
+  return cleanString(String(value), field, max);
+}
+
+function optionalPaperDate(value) {
+  if (value === undefined || value === null || value === "") return "";
+  return paperDate(value);
+}
+
+function paperDate(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new HttpsError("invalid-argument", "Please select the date when the exam was held.");
   }
