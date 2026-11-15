@@ -1037,3 +1037,121 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
     deletedFeedbackThreads: feedback.size
   };
 });
+
+
+// -----------------------------------------------------------------------------
+// Previous-paper contributions (LDCE / GDCE / other competitive examinations)
+// PDFs are written by the trusted backend to private Cloud Storage. The client
+// never receives a public download URL; only the owner admin can request one.
+// -----------------------------------------------------------------------------
+const PAPER_CATEGORIES = ["LDCE", "GDCE", "Other Competitive Exam"];
+const MAX_PAPER_BYTES = 5 * 1024 * 1024;
+
+function paperDate(value) {
+  if (typeof value !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) {
+    throw new HttpsError("invalid-argument", "Please select the date when the exam was held.");
+  }
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    throw new HttpsError("invalid-argument", "The exam date is not valid.");
+  }
+  if (date.getTime() > Date.now() + 24 * 60 * 60 * 1000) {
+    throw new HttpsError("invalid-argument", "Exam date cannot be in the future.");
+  }
+  return value;
+}
+
+function paperSummary(id, x) {
+  const createdAt = x.createdAt && typeof x.createdAt.toMillis === "function" ? x.createdAt.toMillis() : null;
+  return {
+    id,
+    examCategory: x.examCategory || "",
+    examName: x.examName || "",
+    heldOn: x.heldOn || "",
+    originalFileName: x.originalFileName || "previous-paper.pdf",
+    fileSize: Number(x.fileSize || 0),
+    status: x.status || "received",
+    createdAt
+  };
+}
+
+exports.submitPreviousPaper = onCall({ region: REGION, timeoutSeconds: 120, memory: "512MiB" }, async request => {
+  const uid = requireUser(request);
+  const examCategory = cleanString(request.data.examCategory, "Exam category", 40);
+  if (!PAPER_CATEGORIES.includes(examCategory)) {
+    throw new HttpsError("invalid-argument", "Please choose LDCE, GDCE or Other Competitive Exam.");
+  }
+  const examName = cleanString(request.data.examName, "Exam name", 140);
+  const heldOn = paperDate(request.data.heldOn);
+  const originalFileName = cleanString(request.data.fileName, "PDF file name", 120).replace(/[\\\\/\\r\\n]/g, "_");
+  const encoded = request.data.fileBase64;
+  if (typeof encoded !== "string" || encoded.length < 8 || encoded.length > Math.ceil(MAX_PAPER_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
+    throw new HttpsError("invalid-argument", "Please upload a valid PDF up to 5 MB.");
+  }
+  const pdf = Buffer.from(encoded, "base64");
+  if (!pdf.length || pdf.length > MAX_PAPER_BYTES || pdf.subarray(0, 5).toString("ascii") !== "%PDF-") {
+    throw new HttpsError("invalid-argument", "The selected file is not a valid PDF or exceeds the 5 MB limit.");
+  }
+
+  const ref = db.collection("previousPaperSubmissions").doc();
+  const storagePath = "previous-paper-submissions/" + uid + "/" + ref.id + ".pdf";
+  const bucket = require("firebase-admin/storage").getStorage().bucket();
+  await bucket.file(storagePath).save(pdf, {
+    resumable: false,
+    validation: "crc32c",
+    metadata: {
+      contentType: "application/pdf",
+      cacheControl: "private, no-store",
+      metadata: { ownerUid: uid, submissionId: ref.id }
+    }
+  });
+
+  try {
+    await ref.set({
+      uid,
+      examCategory,
+      examName,
+      heldOn,
+      originalFileName,
+      fileSize: pdf.length,
+      storagePath,
+      status: "received",
+      createdAt: FieldValue.serverTimestamp()
+    });
+  } catch (error) {
+    await bucket.file(storagePath).delete().catch(() => {});
+    throw error;
+  }
+
+  return { success: true, submission: paperSummary(ref.id, {
+    examCategory, examName, heldOn, originalFileName, fileSize: pdf.length, status: "received"
+  }) };
+});
+
+exports.listMyPreviousPaperSubmissions = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const snap = await db.collection("previousPaperSubmissions").where("uid", "==", uid).limit(50).get();
+  const submissions = snap.docs.map(d => paperSummary(d.id, d.data()));
+  submissions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return { submissions };
+});
+
+exports.adminListPreviousPaperSubmissions = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const snap = await db.collection("previousPaperSubmissions").limit(100).get();
+  const submissions = snap.docs.map(d => paperSummary(d.id, d.data()));
+  submissions.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return { submissions };
+});
+
+exports.adminGetPreviousPaperDownloadUrl = onCall({ region: REGION }, async request => {
+  requireAdmin(request);
+  const submissionId = cleanId(request.data.submissionId, "submissionId", 140);
+  const snap = await db.collection("previousPaperSubmissions").doc(submissionId).get();
+  if (!snap.exists) throw new HttpsError("not-found", "Previous paper submission not found.");
+  const item = snap.data();
+  const [url] = await require("firebase-admin/storage").getStorage().bucket().file(item.storagePath)
+    .getSignedUrl({ action: "read", expires: Date.now() + 5 * 60 * 1000, version: "v4" });
+  return { url, expiresInSeconds: 300, fileName: item.originalFileName || "previous-paper.pdf" };
+});
