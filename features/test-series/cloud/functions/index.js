@@ -240,7 +240,11 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
       marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0),
       sections },
     questions: studentQuestions,
-    savedAnswers,
+    // Array entries survive callable serialization for special question IDs.
+    savedAnswerEntries: Object.entries(savedAnswers),
+    savedAnswers: Object.fromEntries(Object.entries(savedAnswers).filter(([questionId]) =>
+      !["__proto__", "constructor", "toString", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "valueOf", "__defineGetter__", "__defineSetter__"].includes(questionId)
+    )),
     // Only section timing metadata is exposed; the answer key remains server-side.
     sectionTimings: Object.fromEntries(Object.entries(attempt.sectionTimings || {}).map(([name, timing]) => [name, {
       startedAt: date(timing.startedAt)?.toISOString() || null,
