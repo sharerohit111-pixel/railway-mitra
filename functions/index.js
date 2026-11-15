@@ -1151,6 +1151,8 @@ exports.submitPreviousPaper = onCall({ region: REGION, timeoutSeconds: 120, memo
   try {
     await ref.set({
       uid,
+      contributorName: String(request.auth.token.name || request.auth.token.email || "Railway Mitra Contributor").slice(0, 80),
+      fileHash: crypto.createHash("sha256").update(pdf).digest("hex"),
       examCategory,
       examName,
       heldOn,
@@ -1230,6 +1232,7 @@ exports.adminApprovePreviousPaperSubmission = onCall({ region: REGION }, async r
     tx.set(rewardRef, {
       uid: paper.uid, displayName, totalPoints,
       freeMockTestsEarned,
+      redeemedMockTests: Number(previous.redeemedMockTests || 0),
       badgeId: badge ? badge.id : null,
       badgeLabel: badge ? badge.label : null,
       badgeEmoji: badge ? badge.emoji : null,
