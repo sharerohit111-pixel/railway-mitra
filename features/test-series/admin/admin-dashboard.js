@@ -63,6 +63,8 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (!pendingVerification || !/^\d{6}$/.test(code)) { status("कृपया 6 अंकों का OTP दर्ज करें।"); return; }
     const p = pendingVerification; pendingVerification = null; otpPanel.hidden = true; p.resolve(code);
   });
+  let ownerAccessPanel = null;
+  const resetOwnerAccessPanel = () => ownerAccessPanel?.reset();
   const verifyOwnerSession = httpsCallable(functions, "rmGetOwnerAdminSession");
   // Firebase may restore an existing Owner login after a page refresh. Every
   // restored session must pass the same server-side UID + phone-MFA + App Check
@@ -82,6 +84,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       clearStudentActivity();
       clearAnalytics();
       clearQuestionBank();
+      resetOwnerAccessPanel();
     },
     onSignedOut: () => {
       // A signed-out transition must hide the old Owner workspace first.
@@ -93,6 +96,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       clearStudentActivity();
       clearAnalytics();
       clearQuestionBank();
+      resetOwnerAccessPanel();
     },
     onMfaRequired: () => {
       // Keep the privileged workspace hidden while switching to MFA setup.
@@ -104,13 +108,14 @@ export function initOwnerAdminDashboard(auth, functions) {
       clearStudentActivity();
       clearAnalytics();
       clearQuestionBank();
+      resetOwnerAccessPanel();
       setup.hidden = false;
     },
     onAuthorized: (user, authorization) => {
       login.hidden = true;
       setup.hidden = true;
       home.hidden = false;
-      initOwnerTestAccessPanel(functions);
+      if (!ownerAccessPanel) ownerAccessPanel = initOwnerTestAccessPanel(functions);
       el("rm-admin-owner-email").textContent = authorization.email || user.email || "Owner";
       el("rm-admin-module-status").textContent = "Login सफल। वास्तविक डेटा और बदलाव तभी उपलब्ध होंगे जब server-side Owner authorization तथा cloud modules deploy होंगे।";
     },
