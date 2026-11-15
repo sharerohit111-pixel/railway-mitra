@@ -29,9 +29,9 @@ As soon as manual submission or the server-timeout finalizer begins, the CBT cli
 ## Student performance dashboard
 
 - `dashboard.html` is the isolated markup fragment; `dashboard.js` initializes the student's own submitted-results view.
-- Inject the fragment after phone-OTP sign-in, then call `initStudentDashboard({ app, root })`.
+- Inject the fragment after phone-OTP sign-in, then call `initStudentDashboard({ app, root, onLeaderboard })`. The portal supplies `onLeaderboard(testId)` and routes the selected result to the test-specific anonymous leaderboard; the dashboard action is disabled if a result has no valid `testId`.
 - The backend callable `rmGetStudentDashboard` scopes the query to the authenticated Firebase UID and returns only that student's submitted scores plus safe test titles. It does not return other students' identities, answer keys, or question content.
-- The dashboard is a history/performance view, not a live leaderboard or rank list. Ranking requires a separately designed privacy-safe aggregation.
+- The dashboard remains a bounded history/performance view (latest 100 submitted results); it does not embed or calculate rankings itself. For a selected result, the portal opens the separate privacy-safe leaderboard module for that result's `testId`. Ranking is loaded independently from the server callable and is not inferred from the dashboard's limited result sample.
 
 ## Anonymous leaderboard
 
