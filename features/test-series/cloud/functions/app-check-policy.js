@@ -7,7 +7,11 @@ const REGION = "asia-south1";
 const DEMO_PROJECT_ID = /^demo-[a-z0-9][a-z0-9-]*$/;
 
 function isIsolatedFunctionsEmulator(env) {
-  return env.FUNCTIONS_EMULATOR === "true" &&
+  const hasCloudRunRuntimeMarker = Boolean(
+    env.K_SERVICE || env.K_REVISION || env.K_CONFIGURATION
+  );
+  return !hasCloudRunRuntimeMarker &&
+    env.FUNCTIONS_EMULATOR === "true" &&
     typeof env.GCLOUD_PROJECT === "string" &&
     DEMO_PROJECT_ID.test(env.GCLOUD_PROJECT);
 }
