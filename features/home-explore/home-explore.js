@@ -140,12 +140,14 @@
       tray.className = "rm-dashboard-shortcuts";
       tray.setAttribute("aria-label", "Quick links inside " + (card.querySelector("h3")?.textContent.trim() || "folder"));
       items.forEach(([label, href], index) => {
-        const link = document.createElement("a");
-        link.className = "rm-dashboard-shortcut";
-        link.href = href;
+        const link = document.createElement(href ? "a" : "span");
+        link.className = "rm-dashboard-shortcut" + (href ? "" : " is-label");
+        if (href) {
+          link.href = href;
+          link.addEventListener("click", event => event.stopPropagation());
+        }
         link.textContent = label;
         link.style.setProperty("--rm-chip-delay", (index * -0.43) + "s");
-        link.addEventListener("click", event => event.stopPropagation());
         tray.appendChild(link);
       });
       wrapper.appendChild(tray);
