@@ -39,6 +39,8 @@ async function loadPapers() {
     papers.forEach(paper => {
       const card = node("article","rm-paper-history-item");
       card.append(node("strong","",paper.examName || paper.examCategory));
+      if (paper.contributorEmail) card.append(node("p","","Contributor: " + paper.contributorEmail));
+      if (paper.source === "email") card.append(node("p","","Source: Email"));
       card.append(node("p","",paper.examCategory + " · Exam held: " + paper.heldOn));
       card.append(node("p","",paper.originalFileName + " · " + (paper.fileSize / 1024 / 1024).toFixed(2) + " MB"));
       card.append(node("p","","Received: " + formatDate(paper.createdAt)));
