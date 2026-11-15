@@ -514,11 +514,22 @@ exports.rmOwnerSetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
   const auditRef = db.collection("testSeriesAccessAudit").doc();
 
   return db.runTransaction(async tx => {
-    const [testSnap, accessSnap, requestSnap] = await Promise.all([
-      tx.get(testRef), tx.get(accessRef), tx.get(requestRef)
+    const [testSnap, accessSnap, requestSnap, freeConfigSnap] = await Promise.all([
+      tx.get(testRef),
+      tx.get(accessRef),
+      tx.get(requestRef),
+      tx.get(db.doc("testSeriesConfig/freeTest"))
     ]);
     if (!testSnap.exists || testSnap.data().status !== "published") {
       throw new HttpsError("failed-precondition", "Access can be changed only for a published test");
+    }
+    if (request.action === "grant") {
+      if (Number(testSnap.data().price || 0) > 0) {
+        throw new HttpsError("failed-precondition", "Manual access is limited to zero-price complimentary tests");
+      }
+      if (freeConfigSnap.exists && freeConfigSnap.data().testId === request.testId) {
+        throw new HttpsError("failed-precondition", "The configured one-time free test must use its normal claim flow");
+      }
     }
 
     if (requestSnap.exists) {
