@@ -141,7 +141,7 @@ def extract_pib_railway(html, source_url=PIB_SOURCE):
     # in the containing card, never accept another ministry's releases.
     if not records:
         for link in soup.find_all("a", href=True):
-            href = urljoin(PIB_SOURCE, link["href"])
+            href = urljoin(source_url, link["href"])
             parsed = urlparse(href)
             if parsed.hostname != "www.pib.gov.in" or "PressReleseDetailm.aspx" not in parsed.path:
                 continue
@@ -280,7 +280,7 @@ def main():
 
     session = requests.Session()
     session.headers.update(HEADERS)
-    retry = Retry(total=1, connect=1, read=1, backoff_factor=1,
+    retry = Retry(total=3, connect=3, read=2, backoff_factor=2,
                   status_forcelist=(429, 500, 502, 503, 504),
                   allowed_methods=frozenset(["GET"]))
     session.mount("https://", HTTPAdapter(max_retries=retry))
@@ -297,7 +297,7 @@ def main():
     ):
         try:
             # Give official government portals enough time during intermittent slow responses.
-            timeout = (12, 40) if "indianrailways.gov.in" in url else (8, 30)
+            timeout = (25, 45) if "indianrailways.gov.in" in url else (15, 35)
             response = session.get(url, timeout=timeout)
             response.raise_for_status()
             items = parser(response.text)
