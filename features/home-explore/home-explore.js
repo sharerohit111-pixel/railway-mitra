@@ -46,6 +46,120 @@
     mount();
   }
 
+
+  // Show verified child tools directly beneath their dashboard folder cards.
+  // The folder card remains a normal link; child shortcuts are separate sibling links.
+  const mountDashboardShortcuts = () => {
+    const grid = document.querySelector(".feature-grid");
+    if (!grid || grid.querySelector(".rm-dashboard-shortcuts")) return;
+
+    const shortcutMap = {
+      "features/salary/index.html": [
+        ["Monthly Salary", "features/salary/monthly-salary/"],
+        ["Promotion & MACP", "features/salary/promotion-macp/"]
+      ],
+      "features/income-tax/index.html": [
+        ["New Tax Regime", null], ["Old Tax Regime", null]
+      ],
+      "employee-benefits-calculators/index.html": [
+        ["Gratuity", "employee-benefits-calculators/gratuity-calculator/index.html"],
+        ["Leave Encashment", "employee-benefits-calculators/leave-encashment-calculator/index.html"],
+        ["CEA", "employee-benefits-calculators/cea-calculator/index.html"],
+        ["NPS vs UPS", "employee-benefits-calculators/nps-vs-ups-calculator/index.html"]
+      ],
+      "features/pay-commission-8th/index.html": [
+        ["New Salary Estimate", null], ["Arrear Estimate", null]
+      ],
+      "features/nh-holidays/index.html": [
+        ["2026–2028 Calendar", null], ["NHA Reference", null]
+      ],
+      "features/allowances/index.html": [
+        ["DA", "features/allowances/da/index.html"],
+        ["DA Arrear", "features/allowances/da-arrear/index.html"],
+        ["HRA", "features/allowances/hra/index.html"],
+        ["TA", "features/allowances/ta/index.html"],
+        ["NDA", "features/allowances/nda/index.html"],
+        ["OTA", "features/allowances/ota/index.html"],
+        ["KMA", "features/allowances/kma/index.html"]
+      ],
+      "features/arrears/index.html": [
+        ["DA Arrears", null], ["Other Arrears", null]
+      ],
+      "features/duty-diary/index.html": [
+        ["Duty Roster", null], ["TA", null], ["NDA", null], ["OTA", null], ["KMA", null], ["Monthly Records", null]
+      ],
+      "features/personal-diary/index.html": [
+        ["Personal Notes", null], ["Reminders", null], ["Search & Organize", null]
+      ],
+      "features/retirement/index.html": [
+        ["NPS & Pension", null],
+        ["NPS vs UPS Calculator", "employee-benefits-calculators/nps-vs-ups-calculator/index.html"]
+      ],
+      "features/rules/index.html": [
+        ["Rules in English", "features/rules/en/index.html"],
+        ["नियम हिंदी में", "features/rules/hi/index.html"]
+      ],
+      "features/p-way-manuals/index.html": [
+        ["IRPWM", null], ["ACS", null], ["Track Safety Rules", null], ["Technical Manuals", null]
+      ],
+      "features/p-way-civil-engineering-tools/index.html": [
+        ["Sleeper & Fittings", "features/p-way-civil-engineering-tools/sleeper-fastening-ballast-quantity-calculator/index.html"],
+        ["SEJ Gap", "features/p-way-civil-engineering-tools/sej-gap-rail-expansion-calculator/index.html"],
+        ["Weather Patrolling", "features/p-way-civil-engineering-tools/hot-cold-weather-patrolling-calculator/index.html"],
+        ["Cant & Safe Speed", "features/p-way-civil-engineering-tools/cant-safe-speed-calculator/index.html"],
+        ["Switch Fittings", "features/p-way-civil-engineering-tools/switch-fittings-calculator/index.html"],
+        ["Crossing", "features/p-way-civil-engineering-tools/crossing-calculator/index.html"],
+        ["Versine", "features/p-way-civil-engineering-tools/versine-calculator/index.html"]
+      ],
+      "features/p-way-quick-reference/index.html": [
+        ["Track Gauge", null], ["SEJ", null], ["LWR", null], ["Turnout", null], ["Ballast", null], ["Rail Wear", null]
+      ],
+      "features/updates/index.html": [
+        ["Railway Orders", null], ["Notifications", null], ["PDF Library", null]
+      ],
+      "features/map/index.html": [
+        ["Interactive Railway Map", null]
+      ],
+      "features/compliance/index.html": [
+        ["Source Register", null], ["Reuse Checklist", null]
+      ],
+      "features/settings/index.html": [
+        ["App Preferences", null], ["Backup", null], ["Privacy", null]
+      ]
+    };
+
+    grid.querySelectorAll(":scope > .rm-favorite-card").forEach(wrapper => {
+      const card = wrapper.querySelector(":scope > .feature-card");
+      if (!card) return;
+      const key = (card.getAttribute("href") || "").replace(/^\.\//, "").split("?")[0];
+      const items = shortcutMap[key];
+      if (!items || !items.length) return;
+
+      wrapper.classList.add("has-dashboard-shortcuts");
+      const tray = document.createElement("div");
+      tray.className = "rm-dashboard-shortcuts";
+      tray.setAttribute("aria-label", "Quick links inside " + (card.querySelector("h3")?.textContent.trim() || "folder"));
+      items.forEach(([label, href], index) => {
+        const link = document.createElement(href ? "a" : "span");
+        link.className = "rm-dashboard-shortcut" + (href ? "" : " is-label");
+        if (href) {
+          link.href = href;
+          link.addEventListener("click", event => event.stopPropagation());
+        }
+        link.textContent = label;
+        link.style.setProperty("--rm-chip-delay", (index * -0.43) + "s");
+        tray.appendChild(link);
+      });
+      wrapper.appendChild(tray);
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", mountDashboardShortcuts, { once: true });
+  } else {
+    mountDashboardShortcuts();
+  }
+
   // Expanded individual calculator shortcuts. Original feature folders remain the source of truth.
   const mountCalculatorShelf = () => {
     const explorer = document.querySelector(".rm-feature-explorer");
