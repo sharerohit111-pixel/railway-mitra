@@ -16,8 +16,9 @@ from bs4 import BeautifulSoup
 FEED_PATH = "features/updates/notices.json"
 RB_SOURCE = "https://rb.indianrailways.gov.in/documents/press-release"
 PIB_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=3"
-PIB_RSS_SOURCE = "https://www.pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3"
-HEADERS = {"User-Agent": "RailwayMitra-OfficialUpdatesBot/1.0 (+https://github.com/sharerohit111-pixel/railway-mitra)"}
+PIB_RSS_SOURCE = "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3&reg=48"
+GOOGLE_NEWS_RSS = "https://news.google.com/rss/search?q=site%3Apib.gov.in+%22Ministry+of+Railways%22&hl=en-IN&gl=IN&ceid=IN%3Aen"
+HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36", "Accept": "application/rss+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.8", "Accept-Language": "en-IN,en;q=0.9", "Referer": "https://www.pib.gov.in/"}
 DATE_RE = re.compile(r"\b(\d{2})-(\d{2})-(\d{4})\b")
 PIB_DATE_RE = re.compile(r"(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})", re.I)
 MAX_ITEMS = 120
@@ -201,6 +202,45 @@ def extract_pib_rss(xml_text):
     return records
 
 
+def extract_google_news_rss(xml_text):
+    """Use Google News only as a discovery index; publish only original PIB URLs."""
+    soup = BeautifulSoup(xml_text, "xml")
+    records, seen = [], set()
+    for item in soup.find_all("item"):
+        title = clean_title(item.title.get_text(" ", strip=True) if item.title else "")
+        link = item.link.get_text(" ", strip=True) if item.link else ""
+        pubdate = item.pubDate.get_text(" ", strip=True) if item.pubDate else ""
+        if "pib.gov.in" not in (title + " " + link).lower():
+            continue
+        match_url = re.search(r"https?://(?:www\\.)?pib\\.gov\\.in/[^\\s&<>]+", title + " " + link, re.I)
+        if not match_url:
+            continue
+        original_url = match_url.group(0).rstrip(").,")
+        parsed = urlparse(original_url)
+        prid = parse_qs(parsed.query).get("PRID", [""])[0]
+        if not prid or prid in seen:
+            continue
+        # A Google News item is only accepted when its headline explicitly identifies Railways.
+        clean_headline = re.sub(r"\\s+-\\s+.*$", "", title)
+        if not any(term in clean_headline.lower() for term in ("railway", "railways", "rail minister")):
+            continue
+        published = None
+        try:
+            published = datetime.strptime(pubdate, "%a, %d %b %Y %H:%M:%S %Z").date().isoformat()
+        except ValueError:
+            try:
+                published = datetime.strptime(pubdate, "%a, %d %b %Y %H:%M:%S %z").date().isoformat()
+            except ValueError:
+                pass
+        if not published or len(clean_headline) < 12:
+            continue
+        records.append(make_record("pib-rail-" + prid, clean_headline, published, original_url, "PIB official release (Google News discovery)"))
+        seen.add(prid)
+    if not records:
+        raise RuntimeError("Google News discovery returned no directly verifiable PIB Railway releases")
+    return records
+
+
 def make_record(record_id, title, published, url, source_name):
     return {
         "id": record_id,
@@ -235,6 +275,7 @@ def main():
         # PIB is the primary source because its Ministry of Railways section
         # remains reachable when the Railway Board host is intermittently down.
         ("PIB Ministry of Railways RSS", PIB_RSS_SOURCE, extract_pib_rss),
+        ("PIB Railway releases discovery", GOOGLE_NEWS_RSS, extract_google_news_rss),
         ("PIB Ministry of Railways page", PIB_SOURCE, extract_pib_railway),
         ("Railway Board", RB_SOURCE, extract_railway_board),
     ):
