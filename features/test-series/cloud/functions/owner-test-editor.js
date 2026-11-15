@@ -1,5 +1,7 @@
 "use strict";
 
+const { answerKeyStorageKey } = require("./exam-answer-key");
+
 function restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap) {
   if (!Array.isArray(publicQuestions)) {
     throw new Error("Public question set is invalid");
@@ -12,8 +14,8 @@ function restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap) {
     if (!question || typeof question !== "object" || typeof question.id !== "string") {
       throw new Error("Question record is invalid");
     }
-    const answer = Object.prototype.hasOwnProperty.call(answerMap, question.id)
-      ? answerMap[question.id]
+    const answer = Object.prototype.hasOwnProperty.call(answerMap, answerKeyStorageKey(question.id))
+      ? answerMap[answerKeyStorageKey(question.id)]
       : null;
     const rawIndex = answer && answer.correctAnswer;
     const correctIndex = typeof rawIndex === "string" && /^(0|[1-9]\d*)$/.test(rawIndex)
@@ -83,9 +85,10 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
       throw new Error("Question " + (index + 1) + " section is invalid");
     }
   }
+  const expectedAnswerKeys = new Set([...ids].map(answerKeyStorageKey));
   if (!answerMap || typeof answerMap !== "object" || Array.isArray(answerMap) ||
-      Object.keys(answerMap).length !== publicQuestions.length ||
-      Object.keys(answerMap).some(key => !ids.has(key))) {
+      Object.keys(answerMap).length !== expectedAnswerKeys.size ||
+      Object.keys(answerMap).some(key => !expectedAnswerKeys.has(key))) {
     throw new Error("Private answer key map does not exactly match the question paper");
   }
   return restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap);
