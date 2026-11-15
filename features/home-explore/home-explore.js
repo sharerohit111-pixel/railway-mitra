@@ -260,4 +260,29 @@
   } else {
     mountCalculatorShelf();
   }
+
+
+  // Only animate cards and chips close to the viewport.
+  // Off-screen elements stay paused to reduce mobile GPU and battery load.
+  const enableViewportMotion = () => {
+    const targets = document.querySelectorAll(
+      ".feature-grid .feature-card, .rm-feature-explorer__card, .rm-feature-explorer__link, .rm-dashboard-shortcut"
+    );
+    if (!targets.length || !("IntersectionObserver" in window)) return;
+
+    const motionObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        entry.target.classList.toggle("rm-motion-visible", entry.isIntersecting);
+      });
+    }, { root:null, rootMargin:"90px 0px", threshold:0.01 });
+
+    targets.forEach(element => motionObserver.observe(element));
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", enableViewportMotion, { once:true });
+  } else {
+    enableViewportMotion();
+  }
+
 })();
