@@ -57,6 +57,7 @@ jobs:
         run: |
           node --check --input-type=module < features/test-series/admin/admin-dashboard.js
           node --check --input-type=module < features/test-series/admin/owner-portal.js
+          node --check --input-type=module < features/test-series/admin/owner-test-access-panel.mjs
           node --check --input-type=module < features/test-series/admin/owner-session.mjs
           node --check --input-type=module < features/test-series/admin/admin-test-validation.mjs
           node --check --input-type=module < features/test-series/admin/payment-inspection-guidance.mjs
