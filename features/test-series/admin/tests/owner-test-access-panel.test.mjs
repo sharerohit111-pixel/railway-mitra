@@ -32,6 +32,8 @@ test("Owner access grant includes reason, unique request ID and optional ISO exp
 test("Owner access mutations and list requests are fenced across session changes", () => {
   assert.match(moduleSource, /let sessionGeneration = 0/);
   assert.match(moduleSource, /currentSession !== sessionGeneration/);
+  assert.match(moduleSource, /function renderAccess\(items\)[\\s\\S]*?const renderedSession = sessionGeneration/);
+  assert.match(moduleSource, /if \(renderedSession !== sessionGeneration\) return;/);
   assert.match(moduleSource, /function reset\(\)[\s\S]*?sessionGeneration \+= 1/);
   assert.match(dashboardSource, /resetOwnerAccessPanel\(\)/);
   assert.match(dashboardSource, /if \(!ownerAccessPanel\) ownerAccessPanel = initOwnerTestAccessPanel\(functions\)/);
