@@ -155,7 +155,21 @@ export function initOwnerAdminDashboard(auth, functions) {
     }
   });
 
-  el("rm-owner-logout").addEventListener("click", async () => { clearPaymentHistory(); await signOut(auth); home.hidden = true; login.hidden = false; });
+  el("rm-owner-logout").addEventListener("click", async () => {
+    // Fail closed synchronously: do not leave privileged Owner data visible
+    // while Firebase sign-out is pending or if the network rejects it.
+    home.hidden = true;
+    setup.hidden = true;
+    login.hidden = false;
+    clearPaymentHistory();
+    status("Signing out…");
+    try {
+      await signOut(auth);
+      status("You have signed out.");
+    } catch (error) {
+      status(error.message || "Sign-out could not be confirmed. The Owner dashboard remains locked; retry sign-out before continuing.");
+    }
+  });
   const testsPanel = el("rm-admin-tests-panel");
   const testsList = el("rm-admin-tests-list");
   const testsMore = el("rm-admin-tests-more");
