@@ -1,7 +1,20 @@
 {
   "version": 2,
-  "updatedAt": "2026-11-13",
+  "updatedAt": "2026-11-15",
   "notices": [
+    {
+      "id": "pib-rail-2336212",
+      "category": "medical",
+      "verified": true,
+      "publishedAt": "2026-11-14",
+      "titleEn": "Indian Railways Approves Weekly Train Service Connecting Janakpur Dham in Nepal with Ayodhya in India",
+      "titleHi": "भारतीय रेलवे ने नेपाल के जनकपुर धाम और भारत के अयोध्या के बीच साप्ताहिक ट्रेन सेवा को मंजूरी दी",
+      "summaryEn": "The Ministry of Railways announced approval for a weekly train service connecting Janakpur Dham with Ayodhya Cantt. The release describes the route, major stoppages and originating days. Check the original PIB release for the complete operating details.",
+      "summaryHi": "रेल मंत्रालय ने जनकपुर धाम और अयोध्या कैंट के बीच साप्ताहिक ट्रेन सेवा को मंजूरी देने की जानकारी दी है। विज्ञप्ति में मार्ग, प्रमुख ठहराव और प्रस्थान के दिन बताए गए हैं। पूरी परिचालन जानकारी के लिए मूल PIB विज्ञप्ति देखें।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2336212&lang=1&reg=3",
+      "keywords": "Janakpur Dham Ayodhya weekly train service Nepal India cross border passenger train 14 November 2026"
+    },
     {
       "id": "gdce-04-2023-exam-schedule",
       "category": "exam",
@@ -14,6 +27,19 @@
       "summaryHi": "उपलब्ध कराई गई सूचना में परीक्षा की तिथियाँ 22 नवंबर, 3 दिसंबर, 7 दिसंबर और 10 दिसंबर 2026 दी गई हैं। परीक्षा शहर जयपुर और जोधपुर दर्शाए गए हैं। तालिका में मंडल कोड AII, BKN, JP और JU तथा JE और TM परीक्षा के कॉलम दिए गए हैं। इस अपडेट में किसी अभ्यर्थी का नाम, रोल नंबर या अन्य व्यक्तिगत विवरण प्रकाशित नहीं किया गया है।",
       "sourceName": "User-provided 17-page PDF; original issuing URL not supplied",
       "keywords": "GDCE 04/2023 departmental competitive examination JE TM Jaipur Jodhpur AII BKN JP JU 22 November 3 December 7 December 10 December 2026"
+    },
+    {
+      "id": "pib-rail-2335844",
+      "category": "rbe",
+      "verified": true,
+      "publishedAt": "2026-11-13",
+      "titleEn": "Ministry of Railways Observes Janjatiya Gaurav Diwas with Floral Tribute to Bhagwan Birsa Munda",
+      "titleHi": "रेल मंत्रालय ने भगवान बिरसा मुंडा को पुष्पांजलि अर्पित कर जनजातीय गौरव दिवस मनाया",
+      "summaryEn": "The Ministry of Railways reported its Janjatiya Gaurav Diwas observance at Rail Bhawan, New Delhi, with floral tributes to Bhagwan Birsa Munda. See the original PIB release for the official details.",
+      "summaryHi": "रेल मंत्रालय ने नई दिल्ली स्थित रेल भवन में भगवान बिरसा मुंडा को पुष्पांजलि अर्पित कर जनजातीय गौरव दिवस मनाने की जानकारी दी। आधिकारिक विवरण के लिए मूल PIB विज्ञप्ति देखें।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2335844&lang=1&reg=1",
+      "keywords": "Janjatiya Gaurav Diwas Bhagwan Birsa Munda Rail Bhawan Ministry of Railways 13 November 2026"
     },
     {
       "id": "rb-campaign6-2026",
