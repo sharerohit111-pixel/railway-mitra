@@ -17,7 +17,6 @@ FEED_PATH = "features/updates/notices.json"
 RB_SOURCE = "https://rb.indianrailways.gov.in/documents/press-release"
 PIB_SOURCE = "https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=3"
 PIB_RSS_SOURCE = "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3&reg=48"
-GOOGLE_NEWS_RSS = "https://news.google.com/rss/search?q=site%3Apib.gov.in+%22Ministry+of+Railways%22&hl=en-IN&gl=IN&ceid=IN%3Aen"
 HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36", "Accept": "application/rss+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.8", "Accept-Language": "en-IN,en;q=0.9", "Referer": "https://www.pib.gov.in/"}
 DATE_RE = re.compile(r"\b(\d{2})-(\d{2})-(\d{4})\b")
 PIB_DATE_RE = re.compile(r"(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})", re.I)
@@ -43,17 +42,18 @@ def clean_title(value):
     return " ".join(value.replace("\xa0", " ").split()).strip(" :-|")
 
 
-def extract_railway_board(html):
+def extract_railway_portal(html, source_url, allowed_hosts, source_name):
+    """Parse official Railway press-release tables from either official portal."""
     soup = BeautifulSoup(html, "html.parser")
     records, seen = [], set()
     for link in soup.find_all("a"):
         label = clean_title(link.get_text(" ", strip=True)).lower()
-        href = urljoin(RB_SOURCE, link.get("href", ""))
+        href = urljoin(source_url, link.get("href", ""))
         parsed = urlparse(href)
-        if label not in {"view", "download", "pdf"} or parsed.scheme != "https" or parsed.hostname != "rb.indianrailways.gov.in" or href in seen:
+        if label not in {"view", "download", "pdf"} or parsed.scheme != "https" or parsed.hostname not in allowed_hosts or href in seen:
             continue
         node, best_text = link, ""
-        for _ in range(7):
+        for _ in range(9):
             if node is None:
                 break
             text = clean_title(node.get_text(" ", strip=True))
@@ -65,11 +65,11 @@ def extract_railway_board(html):
         if not match:
             continue
         title = best_text
-        title = re.sub(r"\bTitle\s*:\s*", " ", title, flags=re.I)
-        title = re.sub(r"\bDate\s*:\s*" + re.escape(match.group(0)), " ", title, flags=re.I)
-        title = re.sub(r"\bType/Size\s*:\s*", " ", title, flags=re.I)
-        title = re.sub(r"\bView\b|\bDownload\b|\bPDF\b", " ", title, flags=re.I)
-        title = re.sub(r"\b\d+(?:\.\d+)?\s*(?:KB|MB)\b", " ", title, flags=re.I)
+        title = re.sub(r"\\bTitle\\s*:\\s*", " ", title, flags=re.I)
+        title = re.sub(r"\\bDate\\s*:\\s*" + re.escape(match.group(0)), " ", title, flags=re.I)
+        title = re.sub(r"\\bType/Size\\s*:\\s*", " ", title, flags=re.I)
+        title = re.sub(r"\\bView\\b|\\bDownload\\b|\\bPDF\\b", " ", title, flags=re.I)
+        title = re.sub(r"\\b\\d+(?:\\.\\d+)?\\s*(?:KB|MB)\\b", " ", title, flags=re.I)
         title = clean_title(title)
         if not 12 <= len(title) <= 300:
             continue
@@ -80,10 +80,24 @@ def extract_railway_board(html):
         except ValueError:
             continue
         digest = hashlib.sha1((published + "|" + title + "|" + href).encode()).hexdigest()[:12]
-        records.append(make_record("rb-auto-" + digest, title, published, href, "Railway Board"))
+        records.append(make_record("rail-portal-" + digest, title, published, href, source_name))
         seen.add(href)
+    if not records:
+        raise RuntimeError(f"No dated press releases parsed from {source_name}")
     return records
 
+
+def extract_railway_board(html):
+    return extract_railway_portal(html, RB_SOURCE, {"rb.indianrailways.gov.in"}, "Railway Board")
+
+
+def extract_indian_railways(html):
+    return extract_railway_portal(
+        html,
+        "https://indianrailways.gov.in/documents/press-release",
+        {"indianrailways.gov.in"},
+        "Ministry of Railways / Indian Railways"
+    )
 
 def extract_pib_railway(html):
     soup = BeautifulSoup(html, "html.parser")
@@ -275,12 +289,12 @@ def main():
         # PIB is the primary source because its Ministry of Railways section
         # remains reachable when the Railway Board host is intermittently down.
         ("PIB Ministry of Railways RSS", PIB_RSS_SOURCE, extract_pib_rss),
-        ("PIB Railway releases discovery", GOOGLE_NEWS_RSS, extract_google_news_rss),
         ("PIB Ministry of Railways page", PIB_SOURCE, extract_pib_railway),
+        ("Ministry of Railways portal", "https://indianrailways.gov.in/documents/press-release", extract_indian_railways),
         ("Railway Board", RB_SOURCE, extract_railway_board),
     ):
         try:
-            response = session.get(url, timeout=(8, 25))
+            # Government hosts can be intermittently slow; give official portals\n            # a longer read window while keeping the whole job time-bounded.\n            timeout = (12, 40) if "indianrailways.gov.in" in url else (8, 30)\n            response = session.get(url, timeout=timeout)
             response.raise_for_status()
             items = parser(response.text)
             discovered.extend(items)
