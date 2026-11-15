@@ -144,3 +144,17 @@ node --test features/test-series/admin/tests/*.test.mjs
 After the Owner has signed in and the server has authorized the dashboard, the Sign-in Methods panel can link Google or Email/Password to the currently authenticated Firebase account. The linking helper captures the current UID, refuses unsupported providers, and verifies that Firebase returned the same UID with the requested provider in `providerData`. If Firebase reports that a credential is already in use by another UID, the UI does not merge accounts or change ownership; resolve the identity conflict manually in Firebase before retrying. Linking is not a substitute for the server-side `OWNER_UID`, Phone MFA claim, or App Check checks. Test the linking flow in the intended Firebase project before production use; no live project configuration or real account was changed by these code updates.
 
 The pure UID-preservation guard is covered by `node --test features/test-series/admin/tests/*.test.mjs`.
+
+
+## Owner Test Access Management
+
+The Owner Control Centre now includes a separate Test Access Management panel. It calls only the Owner-protected cloud functions `rmOwnerSetStudentTestAccess`, `rmOwnerListStudentTestAccess` and `rmOwnerListStudentAccessAudit`; the browser never reads the protected Firestore collections directly.
+
+- Grant requires the student's Firebase UID, published test ID, printable reason and optional future expiry.
+- Grants are limited server-side to separate published zero-price complimentary tests. The configured one-time free test and all positive-price tests are rejected.
+- Revoke is available from active access records. Every grant/revoke is written to the append-only audit history.
+- Access and audit lists are paginated (25 records per request). Server responses are allow-listed.
+- A revoked/expired grant cannot start a new attempt. An already-started manual attempt can resume only until its original server deadline.
+- This UI does not activate Razorpay, alter payment entitlements, reset free claims, or enable production deployment.
+
+The panel is initialized only after the Owner session passes the existing server-side authorization/MFA check. The Owner tile remains inside the protected Owner workspace.
