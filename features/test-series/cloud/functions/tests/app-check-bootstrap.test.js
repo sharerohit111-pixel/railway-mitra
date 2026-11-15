@@ -41,9 +41,40 @@ test("deployed callable policy requires App Check and emulator bypass needs a de
         [marker]: "railway-mitra-test-series"
       }).enforceAppCheck,
       true,
-      marker + " identifies a Cloud Run runtime and must prevent the emulator bypass"
+      marker + " without the exact emulator runtime signature must prevent the bypass"
     );
   }
+  assert.equal(
+    getCallableOptions({
+      FUNCTIONS_EMULATOR: "true",
+      GCLOUD_PROJECT: "demo-railway-mitra-cbt",
+      K_SERVICE: "asia-south1-rmStartExam",
+      K_REVISION: "1"
+    }).enforceAppCheck,
+    false,
+    "the Functions Emulator's synthetic function/revision markers must not disable emulator tests"
+  );
+  assert.equal(
+    getCallableOptions({
+      FUNCTIONS_EMULATOR: "true",
+      GCLOUD_PROJECT: "demo-railway-mitra-cbt",
+      K_SERVICE: "asia-south1-rmStartExam",
+      K_REVISION: "1",
+      K_CONFIGURATION: "railway-mitra-test-series"
+    }).enforceAppCheck,
+    true,
+    "a Cloud Run configuration marker must override the emulator-like revision"
+  );
+  assert.equal(
+    getCallableOptions({
+      FUNCTIONS_EMULATOR: "true",
+      GCLOUD_PROJECT: "demo-railway-mitra-cbt",
+      K_SERVICE: "railway-mitra-test-series",
+      K_REVISION: "railway-mitra-test-series-00001-abc"
+    }).enforceAppCheck,
+    true,
+    "a deployed Cloud Run revision identifier must keep App Check enforced"
+  );
   assert.equal(
     getCallableOptions({ FUNCTIONS_EMULATOR: "true" }).enforceAppCheck,
     true,
