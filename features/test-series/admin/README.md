@@ -38,7 +38,7 @@ node --test features/test-series/admin/tests/*.test.mjs
 
 The standalone portal observes Firebase Auth state on every load. A persisted user is never treated as an authorized Owner merely because the browser restored a session or the account has a locally enrolled phone factor. The portal calls `rmGetOwnerAdminSession` again and reveals the dashboard only after the backend confirms the configured Owner UID, Firebase phone second-factor claim, and App Check. If server authorization fails, the portal signs the session out. Pending authorization results are ignored after sign-out or portal teardown.
 
-The session observer is isolated in `owner-session.mjs` and covered by Node tests for restored sessions, missing phone MFA, server rejection, sign-out races, and teardown. This does not replace backend authorization and does not make the portal production-ready before the required Firebase configuration and deployment.
+The session observer is isolated in `owner-session.mjs` and covered by Node tests for restored sessions, missing phone MFA, server rejection, sign-out races, and teardown. On every authenticated, signed-out, or MFA-required transition, the dashboard hides the privileged home before attempting to clear payment, test, student-activity, analytics and question-bank state. If cleanup fails during the checking transition, the watcher does not continue to server authorization and the privileged home remains hidden. This does not replace backend authorization and does not make the portal production-ready before the required Firebase configuration and deployment.
 
 
 ## Owner payment history

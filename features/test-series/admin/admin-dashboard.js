@@ -72,33 +72,37 @@ export function initOwnerAdminDashboard(auth, functions) {
     verifyOwner: async () => (await verifyOwnerSession({})).data,
     signOut: () => signOut(auth),
     onChecking: () => {
+      // Hide privileged content before any cleanup that could throw.
+      home.hidden = true;
+      setup.hidden = true;
+      login.hidden = false;
       clearPaymentHistory();
       clearTestManagement();
       clearStudentActivity();
       clearAnalytics();
       clearQuestionBank();
-      home.hidden = true;
-      setup.hidden = true;
-      login.hidden = false;
     },
     onSignedOut: () => {
-      clearPaymentHistory();
-      clearTestManagement();
-      clearStudentActivity();
-      clearAnalytics();
-      clearQuestionBank();
+      // A signed-out transition must hide the old Owner workspace first.
       home.hidden = true;
       setup.hidden = true;
       login.hidden = false;
-    },
-    onMfaRequired: () => {
       clearPaymentHistory();
       clearTestManagement();
       clearStudentActivity();
       clearAnalytics();
       clearQuestionBank();
+    },
+    onMfaRequired: () => {
+      // Keep the privileged workspace hidden while switching to MFA setup.
       home.hidden = true;
+      setup.hidden = true;
       login.hidden = true;
+      clearPaymentHistory();
+      clearTestManagement();
+      clearStudentActivity();
+      clearAnalytics();
+      clearQuestionBank();
       setup.hidden = false;
     },
     onAuthorized: (user, authorization) => {

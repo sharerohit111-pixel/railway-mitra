@@ -18,6 +18,24 @@ test("Owner dashboard clears privileged data before a restored or changed accoun
   assert.match(handler, /login\.hidden = false/);
 });
 
+test("Owner workspace is hidden before cleanup on every authentication transition", () => {
+  const transitions = [
+    ["onChecking: () => {", "onSignedOut: () => {"],
+    ["onSignedOut: () => {", "onMfaRequired: () => {"],
+    ["onMfaRequired: () => {", "onAuthorized: ("]
+  ];
+  for (const [startMarker, endMarker] of transitions) {
+    const start = source.indexOf(startMarker);
+    const end = source.indexOf(endMarker, start);
+    assert.ok(start >= 0 && end > start, startMarker + " callback exists");
+    const handler = source.slice(start, end);
+    const hideIndex = handler.indexOf("home.hidden = true;");
+    const firstCleanupIndex = handler.indexOf("clearPaymentHistory();");
+    assert.ok(hideIndex >= 0 && firstCleanupIndex > hideIndex,
+      startMarker + " hides privileged content before cleanup can throw");
+  }
+});
+
 test("Owner publish review ignores late responses after the session generation changes", () => {
   assert.match(source, /async function openPublishReview\(test, button\)\s*\{\s*const generation = testManagementGeneration/);
   assert.match(source, /const response = await httpsCallable\(functions, "rmOwnerGetTest"\)\([\s\S]*?if \(generation !== testManagementGeneration\)/);
