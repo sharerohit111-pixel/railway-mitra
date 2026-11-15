@@ -6,6 +6,12 @@ function invalidAnswerKey() {
   return error;
 }
 
+const ENCODED_KEY_PREFIX = "__rm_answer_qid__";
+const PROTOTYPE_SENSITIVE_IDS = new Set(["__proto__", "constructor", "toString", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "valueOf", "__defineGetter__", "__defineSetter__"]);
+function answerKeyStorageKey(questionId) {
+  return PROTOTYPE_SENSITIVE_IDS.has(questionId) ? ENCODED_KEY_PREFIX + Buffer.from(questionId, "utf8").toString("base64url") : questionId;
+}
+
 function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -31,8 +37,9 @@ function getExamAnswerKey(questions, answerQuestions) {
     }
     seen.add(question.id);
 
-    if (!Object.prototype.hasOwnProperty.call(answerQuestions, question.id)) throw invalidAnswerKey();
-    const answer = answerQuestions[question.id];
+    const storageKey = answerKeyStorageKey(question.id);
+    if (!Object.prototype.hasOwnProperty.call(answerQuestions, storageKey)) throw invalidAnswerKey();
+    const answer = answerQuestions[storageKey];
     if (!isRecord(answer) || typeof answer.correctAnswer !== "string" ||
         !/^(0|[1-9]\d*)$/.test(answer.correctAnswer)) {
       throw invalidAnswerKey();
@@ -44,8 +51,9 @@ function getExamAnswerKey(questions, answerQuestions) {
     validated.push(Object.freeze({ questionId: question.id, correctAnswer: answer.correctAnswer }));
   }
 
+  const expectedStorageKeys = new Set([...seen].map(answerKeyStorageKey));
   const answerIds = Object.keys(answerQuestions);
-  if (answerIds.length !== seen.size || answerIds.some(questionId => !seen.has(questionId))) {
+  if (answerIds.length !== expectedStorageKeys.size || answerIds.some(key => !expectedStorageKeys.has(key))) {
     throw invalidAnswerKey();
   }
 
@@ -61,17 +69,12 @@ function addExamAnswerKeyEntry(answerQuestions, questionId, correctIndex) {
   if (!isRecord(answerQuestions) ||
       typeof questionId !== "string" ||
       !/^[A-Za-z0-9_-]{1,100}$/.test(questionId) ||
-      Object.prototype.hasOwnProperty.call(answerQuestions, questionId) ||
+      Object.prototype.hasOwnProperty.call(answerQuestions, answerKeyStorageKey(questionId)) ||
       !Number.isSafeInteger(correctIndex) || correctIndex < 0) {
     throw invalidAnswerKey();
   }
-  Object.defineProperty(answerQuestions, questionId, {
-    value: { correctAnswer: String(correctIndex) },
-    enumerable: true,
-    configurable: true,
-    writable: true
-  });
+  answerQuestions[answerKeyStorageKey(questionId)] = { correctAnswer: String(correctIndex) };
   return answerQuestions;
 }
 
-module.exports = { getExamAnswerKey, addExamAnswerKeyEntry };
+module.exports = { getExamAnswerKey, addExamAnswerKeyEntry, answerKeyStorageKey };
