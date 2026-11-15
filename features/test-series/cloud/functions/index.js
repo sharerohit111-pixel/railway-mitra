@@ -521,6 +521,117 @@ exports.rmOwnerSetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
   });
 });
 
+// Owner-only, bounded access register. Responses are explicit allow-lists.
+exports.rmOwnerListStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  const pageSize = data.pageSize === undefined ? 25 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new HttpsError("invalid-argument", "pageSize must be an integer from 1 to 100");
+  }
+  const studentUid = data.studentUid === undefined ? null : data.studentUid;
+  const testId = data.testId === undefined ? null : data.testId;
+  const status = data.status === undefined ? null : data.status;
+  if (studentUid !== null && (typeof studentUid !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(studentUid))) {
+    throw new HttpsError("invalid-argument", "Invalid student UID filter");
+  }
+  if (testId !== null && (typeof testId !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(testId))) {
+    throw new HttpsError("invalid-argument", "Invalid test ID filter");
+  }
+  if (status !== null && !["active", "revoked"].includes(status)) {
+    throw new HttpsError("invalid-argument", "Invalid access status filter");
+  }
+  let query = db.collection("testSeriesManualAccess").orderBy("updatedAt", "desc");
+  if (studentUid) query = query.where("uid", "==", studentUid);
+  if (testId) query = query.where("testId", "==", testId);
+  if (status) query = query.where("status", "==", status);
+  if (data.cursor !== undefined && data.cursor !== null) {
+    if (typeof data.cursor !== "string" || !/^[a-f0-9]{64}$/.test(data.cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid access cursor");
+    }
+    const cursor = await db.doc("testSeriesManualAccess/" + data.cursor).get();
+    if (!cursor.exists) throw new HttpsError("invalid-argument", "Access cursor not found");
+    query = query.startAfter(cursor);
+  }
+  const snap = await query.limit(pageSize + 1).get();
+  const hasMore = snap.docs.length > pageSize;
+  const docs = snap.docs.slice(0, pageSize);
+  return {
+    items: docs.map(doc => {
+      const value = doc.data();
+      return {
+        accessId: doc.id,
+        studentUid: value.uid,
+        testId: value.testId,
+        status: value.status,
+        source: value.source,
+        reason: value.reason,
+        expiresAt: date(value.expiresAt)?.toISOString() || null,
+        createdAt: date(value.createdAt)?.toISOString() || null,
+        updatedAt: date(value.updatedAt)?.toISOString() || null,
+        createdBy: value.createdBy || null,
+        updatedBy: value.updatedBy || null
+      };
+    }),
+    nextCursor: hasMore && docs.length ? docs[docs.length - 1].id : null,
+    hasMore
+  };
+});
+
+exports.rmOwnerListStudentAccessAudit = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  const pageSize = data.pageSize === undefined ? 25 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new HttpsError("invalid-argument", "pageSize must be an integer from 1 to 100");
+  }
+  const studentUid = data.studentUid === undefined ? null : data.studentUid;
+  const testId = data.testId === undefined ? null : data.testId;
+  const action = data.action === undefined ? null : data.action;
+  if (studentUid !== null && (typeof studentUid !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(studentUid))) {
+    throw new HttpsError("invalid-argument", "Invalid student UID filter");
+  }
+  if (testId !== null && (typeof testId !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(testId))) {
+    throw new HttpsError("invalid-argument", "Invalid test ID filter");
+  }
+  if (action !== null && !["grant", "revoke"].includes(action)) {
+    throw new HttpsError("invalid-argument", "Invalid audit action filter");
+  }
+  let query = db.collection("testSeriesAccessAudit").orderBy("createdAt", "desc");
+  if (studentUid) query = query.where("targetUid", "==", studentUid);
+  if (testId) query = query.where("testId", "==", testId);
+  if (action) query = query.where("action", "==", action);
+  if (data.cursor !== undefined && data.cursor !== null) {
+    if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,150}$/.test(data.cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid audit cursor");
+    }
+    const cursor = await db.doc("testSeriesAccessAudit/" + data.cursor).get();
+    if (!cursor.exists) throw new HttpsError("invalid-argument", "Audit cursor not found");
+    query = query.startAfter(cursor);
+  }
+  const snap = await query.limit(pageSize + 1).get();
+  const hasMore = snap.docs.length > pageSize;
+  const docs = snap.docs.slice(0, pageSize);
+  return {
+    items: docs.map(doc => {
+      const value = doc.data();
+      return {
+        eventId: doc.id,
+        studentUid: value.targetUid,
+        testId: value.testId,
+        action: value.action,
+        actorUid: value.actorUid,
+        reason: value.reason,
+        previousStatus: value.previousStatus,
+        newStatus: value.newStatus,
+        createdAt: date(value.createdAt)?.toISOString() || null
+      };
+    }),
+    nextCursor: hasMore && docs.length ? docs[docs.length - 1].id : null,
+    hasMore
+  };
+});
+
 // Owner selects exactly one published zero-price test as the one-time free trial.
 exports.rmOwnerSetFreeTest = onCall(CALLABLE_OPTIONS, async req => {
   owner(req);
