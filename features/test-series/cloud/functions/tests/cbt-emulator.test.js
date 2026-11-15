@@ -1525,6 +1525,31 @@ test("non-owner cannot read payment history", async () => {
   }
 });
 
+test("ordinary student cannot grant or revoke manual test access", async () => {
+  const originalOwnerUid = process.env.OWNER_UID;
+  process.env.OWNER_UID = "configured-owner-not-this-student";
+  await signInAsTestStudent(uid);
+  try {
+    await assert.rejects(
+      callable("rmOwnerSetStudentTestAccess", {
+        studentUid: uid,
+        testId,
+        action: "grant",
+        reason: "Unauthorized access request",
+        requestId: "emulator_access_req_0001"
+      }),
+      error => error.code === "functions/permission-denied"
+    );
+    const accessId = require("../owner-test-access").manualAccessDocumentId(uid, testId);
+    assert.equal((await db.doc("testSeriesManualAccess/" + accessId).get()).exists, false);
+    const audit = await db.collection("testSeriesAccessAudit").where("targetUid", "==", uid).get();
+    assert.equal(audit.empty, true);
+  } finally {
+    if (originalOwnerUid === undefined) delete process.env.OWNER_UID;
+    else process.env.OWNER_UID = originalOwnerUid;
+  }
+});
+
 test("non-owner cannot create a test", async () => {
   const originalOwnerUid = process.env.OWNER_UID;
   process.env.OWNER_UID = "some-other-owner";
