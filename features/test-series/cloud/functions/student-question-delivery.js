@@ -7,6 +7,21 @@ function fail() {
 }
 
 /**
+ * Accept only the exact decimal string format shared by answer saving,
+ * attempt recovery and submission. Numeric coercion is intentionally avoided.
+ */
+function isCanonicalStudentAnswerIndex(question, answer) {
+  if (!question || typeof question !== "object" || Array.isArray(question) ||
+      !Array.isArray(question.options) || question.options.length < 2 ||
+      question.options.length > 6 || typeof answer !== "string" ||
+      !/^(0|[1-9]\d*)$/.test(answer)) return false;
+
+  const optionIndex = Number(answer);
+  return Number.isSafeInteger(optionIndex) &&
+    optionIndex >= 0 && optionIndex < question.options.length;
+}
+
+/**
  * Return only the public question fields required by the student CBT client.
  * Validate option primitives before projection so nested/private option metadata
  * can never cross the callable boundary.
@@ -54,8 +69,7 @@ function projectStudentSavedAnswers(questions, answers) {
     if (!question || typeof answer !== "string" || !/^(0|[1-9]\d*)$/.test(answer)) {
       throw new Error("Attempt contains invalid saved student answers");
     }
-    const optionIndex = Number(answer);
-    if (!Number.isSafeInteger(optionIndex) || optionIndex >= question.options.length) {
+    if (!isCanonicalStudentAnswerIndex(question, answer)) {
       throw new Error("Attempt contains invalid saved student answers");
     }
     projectedEntries.push([questionId, answer]);
@@ -67,4 +81,8 @@ function projectStudentSavedAnswers(questions, answers) {
 }
 
 
-module.exports = { projectStudentQuestions, projectStudentSavedAnswers };
+module.exports = {
+  projectStudentQuestions,
+  projectStudentSavedAnswers,
+  isCanonicalStudentAnswerIndex
+};

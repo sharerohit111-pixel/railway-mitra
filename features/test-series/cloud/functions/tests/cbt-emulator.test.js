@@ -892,6 +892,22 @@ test("student can start, save answers and submit with server-side scoring", asyn
     callable("rmSaveAnswer", { attemptId: started.attemptId, questionId: "not-in-paper", answer: "0" }),
     error => error.code === "functions/invalid-argument"
   );
+  for (const nonCanonicalAnswer of ["00", "01", 1]) {
+    await assert.rejects(
+      callable("rmSaveAnswer", {
+        attemptId: started.attemptId,
+        questionId: "q1",
+        answer: nonCanonicalAnswer
+      }),
+      error => error.code === "functions/invalid-argument",
+      "non-canonical option indexes must be rejected before persistence"
+    );
+  }
+  assert.equal(
+    (await db.doc("testSeriesAttempts/" + started.attemptId).get()).data().answers.q1,
+    undefined,
+    "rejected answer indexes must not create a saved answer"
+  );
   const saved = await callable("rmSaveAnswer", {
     attemptId: started.attemptId, questionId: "q1", answer: "0"
   });

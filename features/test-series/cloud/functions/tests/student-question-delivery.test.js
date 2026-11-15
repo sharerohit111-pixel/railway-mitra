@@ -1,6 +1,10 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { projectStudentQuestions, projectStudentSavedAnswers } = require("../student-question-delivery");
+const {
+  projectStudentQuestions,
+  projectStudentSavedAnswers,
+  isCanonicalStudentAnswerIndex
+} = require("../student-question-delivery");
 
 test("projects an allowlisted student question and omits private fields", () => {
   const sourceOptions = ["Option A", "Option B"];
@@ -70,4 +74,25 @@ test("preserves prototype-sensitive question IDs as own answer data properties",
   assert.equal(Object.hasOwn(projected, "__proto__"), true);
   assert.equal(projected["__proto__"], "1");
   assert.equal(Object.getPrototypeOf(projected), Object.prototype);
+});
+
+
+test("answer saving accepts only canonical decimal indexes for the current option list", () => {
+  const question = { id: "q1", options: ["A", "B", "C"] };
+  assert.equal(isCanonicalStudentAnswerIndex(question, "0"), true);
+  assert.equal(isCanonicalStudentAnswerIndex(question, "2"), true);
+
+  for (const answer of [
+    "00", "01", "-1", "+1", "1.0", "3",
+    "999999999999999999999", 0, 1, null, false, [], {}
+  ]) {
+    assert.equal(
+      isCanonicalStudentAnswerIndex(question, answer),
+      false,
+      "must reject non-canonical answer " + String(answer)
+    );
+  }
+
+  assert.equal(isCanonicalStudentAnswerIndex({ id: "q2", options: ["A"] }, "0"), false);
+  assert.equal(isCanonicalStudentAnswerIndex({ id: "q3", options: "A,B" }, "0"), false);
 });

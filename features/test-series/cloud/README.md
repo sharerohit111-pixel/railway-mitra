@@ -194,3 +194,8 @@ The Owner/editor regression test checks that `rmGetExamQuestions` delegates to `
 ## Student saved-answer projection integrity
 
 When `rmGetExamQuestions` resumes an attempt, it no longer returns the stored `attempt.answers` map directly. The dedicated `projectStudentSavedAnswers` boundary revalidates the current question paper, accepts only canonical decimal option indexes within each question's option range, and requires every stored answer key to belong to that paper. Unknown keys, non-string values, non-canonical indexes and out-of-range indexes fail closed with `failed-precondition` rather than being reflected into the browser response. Missing legacy answer maps are treated as empty. The projection uses safe own data properties for question IDs, including prototype-sensitive names. Pure unit tests and a callable Functions Emulator regression cover valid resume data, malformed/private extra fields and prototype-sensitive keys. The Firestore schema and answer-save contract are unchanged.
+
+
+## Canonical answer-save integrity
+
+The rmSaveAnswer callable uses the same pure validator as saved-answer projection. It accepts only canonical decimal strings such as 0 or 2 that identify an existing option in the current question. It rejects leading-zero aliases (00, 01), numeric JSON values, booleans, null, negative/fractional values and indexes outside the option list before writing to the attempt. This keeps the answer-save contract aligned with resume projection so an answer accepted during the exam cannot make the next resume fail closed. Pure unit tests and a callable Functions Emulator regression cover the canonical format and verify rejected values do not mutate the saved-answer map.

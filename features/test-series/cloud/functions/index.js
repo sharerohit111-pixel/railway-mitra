@@ -33,7 +33,11 @@ const { selectQuestionBankPage } = require("./question-bank-pagination");
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
-const { projectStudentQuestions, projectStudentSavedAnswers } = require("./student-question-delivery");
+const {
+  projectStudentQuestions,
+  projectStudentSavedAnswers,
+  isCanonicalStudentAnswerIndex
+} = require("./student-question-delivery");
 const { toValidDate } = require("./exam-time");
 const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { getTestLeaderboard } = require("./leaderboard-query");
@@ -282,7 +286,7 @@ exports.rmEnterCbtSection = onCall(CALLABLE_OPTIONS, async req => {
 
 exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req), attemptId = id(req.data && req.data.attemptId), questionId = id(req.data && req.data.questionId), answer = req.data && req.data.answer;
-  if (!(typeof answer === "string" || typeof answer === "number" || typeof answer === "boolean" || answer === null)) throw new HttpsError("invalid-argument", "Answer must be scalar");
+  if (typeof answer !== "string") throw new HttpsError("invalid-argument", "Answer must be a canonical option index");
   const ref = db.doc("testSeriesAttempts/" + attemptId);
   await db.runTransaction(async tx => {
     const snap = await tx.get(ref);
@@ -305,8 +309,8 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
         if (!expiry || expiry <= new Date()) throw new HttpsError("deadline-exceeded", "Section time has expired or has not started");
       }
     }
-    if (typeof answer !== "string" || !/^\d+$/.test(answer) || Number(answer) >= question.options.length) {
-      throw new HttpsError("invalid-argument", "Answer must be a valid option index");
+    if (!isCanonicalStudentAnswerIndex(question, answer)) {
+      throw new HttpsError("invalid-argument", "Answer must be a canonical option index for this question");
     }
     tx.update(ref, { ["answers." + questionId]: answer, updatedAt: FieldValue.serverTimestamp() });
   });
