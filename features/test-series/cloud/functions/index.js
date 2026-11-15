@@ -592,6 +592,9 @@ exports.rmOwnerListStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
   if (status !== null && !["active", "revoked"].includes(status)) {
     throw new HttpsError("invalid-argument", "Invalid access status filter");
   }
+  if ([studentUid, testId, status].filter(value => value !== null).length > 1) {
+    throw new HttpsError("invalid-argument", "Use only one access-list filter per request");
+  }
   let query = db.collection("testSeriesManualAccess").orderBy("updatedAt", "desc");
   if (studentUid) query = query.where("uid", "==", studentUid);
   if (testId) query = query.where("testId", "==", testId);
@@ -647,6 +650,9 @@ exports.rmOwnerListStudentAccessAudit = onCall(CALLABLE_OPTIONS, async req => {
   }
   if (action !== null && !["grant", "revoke"].includes(action)) {
     throw new HttpsError("invalid-argument", "Invalid audit action filter");
+  }
+  if ([studentUid, testId, action].filter(value => value !== null).length > 1) {
+    throw new HttpsError("invalid-argument", "Use only one audit-history filter per request");
   }
   let query = db.collection("testSeriesAccessAudit").orderBy("createdAt", "desc");
   if (studentUid) query = query.where("targetUid", "==", studentUid);
