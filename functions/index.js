@@ -140,15 +140,16 @@ exports.startExam = onCall({ region: REGION }, async request => {
   const positiveMarks = validNumber(test.positiveMarksPerQuestion, "positiveMarksPerQuestion", 0, 100);
   const negativeMarks = validNumber(test.negativeMarksPerWrongAnswer, "negativeMarksPerWrongAnswer", 0, 100);
 
+  let hasActiveSubscription = false;
   if (test.access !== "free") {
     const entitlement = await db.collection("userEntitlements").doc(uid).get();
     const e = entitlement.exists ? entitlement.data() : {};
-    // Fail closed if a stored expiry value is malformed; never grant paid access
-    // because an unexpected field type caused a runtime exception.
     const expiryValid = e.expiresAt === undefined ||
       (e.expiresAt instanceof Timestamp && e.expiresAt.toMillis() > Date.now());
-    const active = e.active === true && expiryValid;
-    if (!active) throw new HttpsError("permission-denied", "An active all-tests subscription is required.");
+    hasActiveSubscription = e.active === true && expiryValid;
+    if (!hasActiveSubscription && test.category !== "mock") {
+      throw new HttpsError("permission-denied", "An active all-tests subscription is required for this test.");
+    }
   }
 
   const questionSnap = await db.collection("examTests").doc(testId)
@@ -185,7 +186,7 @@ exports.startExam = onCall({ region: REGION }, async request => {
   // The client uses this offset to avoid relying on the device clock or a drifting interval.
   const serverNowMs = Date.now();
   const deadlineAtMs = serverNowMs + durationMinutes * 60 * 1000;
-  await attemptRef.set({
+  const attemptData = {
     candidateUid: uid,
     testId,
     streamId: test.streamId,
@@ -195,6 +196,24 @@ exports.startExam = onCall({ region: REGION }, async request => {
     deadlineAt: Timestamp.fromMillis(deadlineAtMs),
     questionIds: questions.map(q => q.questionId),
     testSettings: settings
+  };
+  await db.runTransaction(async tx => {
+    if (test.access !== "free" && !hasActiveSubscription) {
+      const rewardRef = db.collection("contributorRewards").doc(uid);
+      const rewardSnap = await tx.get(rewardRef);
+      const reward = rewardSnap.exists ? rewardSnap.data() : {};
+      const earned = Math.floor(Number(reward.totalPoints || 0) / 200);
+      const redeemed = Number(reward.redeemedMockTests || 0);
+      if (earned - redeemed < 1) {
+        throw new HttpsError("permission-denied", "A subscription or 200 contributor points for one free mock test is required.");
+      }
+      tx.update(rewardRef, {
+        redeemedMockTests: redeemed + 1,
+        updatedAt: FieldValue.serverTimestamp()
+      });
+      attemptData.rewardCreditUsed = true;
+    }
+    tx.create(attemptRef, attemptData);
   });
   return {
     attemptId: attemptRef.id,
@@ -1189,7 +1208,7 @@ exports.adminApprovePreviousPaperSubmission = onCall({ region: REGION }, async r
     const totalPoints = Number(previous.totalPoints || 0) + pointsAwarded;
     const freeMockTestsEarned = Math.floor(totalPoints / 200);
     const badge = contributorBadge(totalPoints);
-    const displayName = String(request.auth.token.name || previous.displayName || "Railway Mitra Contributor").slice(0, 80);
+    const displayName = String(paper.contributorName || previous.displayName || "Railway Mitra Contributor").slice(0, 80);
     tx.set(rewardRef, {
       uid: paper.uid, displayName, totalPoints,
       freeMockTestsEarned,
