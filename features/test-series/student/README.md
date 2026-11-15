@@ -92,3 +92,7 @@ The Node-based Auth Emulator account-switch test uses the emulator's local Ident
 ## Authentication transition regression coverage
 
 The Auth Emulator session-switch test covers Student A signing out before Student B's workspace opens, and also simulates a delayed Student A ID-token refresh that completes after Student B has authenticated. The stale result must be ignored so it cannot replace Student B's active workspace. This is a local-emulator-only regression test; it does not send real OTPs or contact production Firebase.
+
+## Prototype-safe student answer state
+
+The exam controller stores the current paper's answers in an isolated null-prototype map. This keeps valid question IDs such as `__proto__`, `constructor`, `toString` and `hasOwnProperty` as ordinary own data keys instead of inheriting JavaScript object behavior. Restored server answers are copied only from own enumerable string data properties; inherited fields and accessor-backed values are rejected. Answered-state rendering uses explicit own-property checks. The isolated `student-answer-state.mjs` helper has Node regression tests for special IDs, mutation, inherited-property exclusion and malformed/accessor-backed maps. This is a client-side data-structure safeguard; server-side question validation, attempt ownership and scoring remain authoritative.
