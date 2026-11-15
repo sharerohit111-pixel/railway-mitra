@@ -35,4 +35,36 @@ function projectStudentQuestions(questions) {
   });
 }
 
-module.exports = { projectStudentQuestions };
+/**
+ * Return only canonical option indexes belonging to the current validated paper.
+ * Attempt documents are private server state, but corrupted/legacy fields must
+ * not be reflected into the Student response.
+ */
+function projectStudentSavedAnswers(questions, answers) {
+  const safeQuestions = projectStudentQuestions(questions);
+  if (answers === undefined || answers === null) return {};
+  if (typeof answers !== "object" || Array.isArray(answers)) {
+    throw new Error("Attempt contains invalid saved student answers");
+  }
+
+  const questionById = new Map(safeQuestions.map(question => [question.id, question]));
+  const projectedEntries = [];
+  for (const [questionId, answer] of Object.entries(answers)) {
+    const question = questionById.get(questionId);
+    if (!question || typeof answer !== "string" || !/^(0|[1-9]\\d*)$/.test(answer)) {
+      throw new Error("Attempt contains invalid saved student answers");
+    }
+    const optionIndex = Number(answer);
+    if (!Number.isSafeInteger(optionIndex) || optionIndex >= question.options.length) {
+      throw new Error("Attempt contains invalid saved student answers");
+    }
+    projectedEntries.push([questionId, answer]);
+  }
+
+  // Object.fromEntries creates own data properties even for keys such as
+  // "__proto__", rather than invoking Object.prototype setters.
+  return Object.fromEntries(projectedEntries);
+}
+
+
+module.exports = { projectStudentQuestions, projectStudentSavedAnswers };

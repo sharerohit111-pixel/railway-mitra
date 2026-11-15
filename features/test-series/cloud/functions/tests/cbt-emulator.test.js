@@ -406,16 +406,46 @@ test("exam question delivery allowlists student-safe question fields", async () 
     }] });
     await attemptRef.set({
       uid, testId: privateTestId, status: "in_progress",
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000), answers: {}
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), answers: { "safe-q1": "1" }
     });
 
     const paper = await callable("rmGetExamQuestions", { attemptId });
     assert.deepEqual(paper.questions[0], {
       id: "safe-q1", text: "Which option?", options: ["A", "B"]
     });
+    assert.deepEqual(paper.savedAnswers, { "safe-q1": "1" });
     for (const field of ["correctIndex", "correctAnswer", "explanation", "ownerNote", "tags"]) {
       assert.equal(Object.hasOwn(paper.questions[0], field), false, field + " must not be exposed");
     }
+  } finally {
+    await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
+test("exam question delivery rejects unknown or malformed persisted saved-answer fields", async () => {
+  const privateTestId = "emulator-question-invalid-saved-answers";
+  const attemptId = "emulator-question-invalid-saved-answers-attempt";
+  const testRef = db.doc("testSeriesTests/" + privateTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + privateTestId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  try {
+    await testRef.set({
+      title: "Invalid Saved Answers", status: "published", price: 0,
+      mode: "mock", durationMinutes: 20, questionCount: 1
+    });
+    await paperRef.set({ questions: [{
+      id: "saved-q1", text: "Which option?", options: ["A", "B"]
+    }] });
+    await attemptRef.set({
+      uid, testId: privateTestId, status: "in_progress",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      answers: { "saved-q1": "1", privateNote: "must-not-be-forwarded" }
+    });
+
+    await assert.rejects(
+      callable("rmGetExamQuestions", { attemptId }),
+      error => error.code === "functions/failed-precondition"
+    );
   } finally {
     await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
   }

@@ -190,3 +190,7 @@ Pure unit tests cover allowlist projection, private-field omission, nested optio
 ### Student question delivery regression contract
 
 The Owner/editor regression test checks that `rmGetExamQuestions` delegates to `projectStudentQuestions(questions)` and returns that validated projection. Keep the allowlist in the dedicated `student-question-delivery.js` module; do not reintroduce an inline `questions.map(...)` response projection in the callable. This keeps the callable integration test aligned with the single validation boundary and prevents future refactors from bypassing the answer-key/private-field filter.
+
+## Student saved-answer projection integrity
+
+When `rmGetExamQuestions` resumes an attempt, it no longer returns the stored `attempt.answers` map directly. The dedicated `projectStudentSavedAnswers` boundary revalidates the current question paper, accepts only canonical decimal option indexes within each question's option range, and requires every stored answer key to belong to that paper. Unknown keys, non-string values, non-canonical indexes and out-of-range indexes fail closed with `failed-precondition` rather than being reflected into the browser response. Missing legacy answer maps are treated as empty. The projection uses safe own data properties for question IDs, including prototype-sensitive names. Pure unit tests and a callable Functions Emulator regression cover valid resume data, malformed/private extra fields and prototype-sensitive keys. The Firestore schema and answer-save contract are unchanged.

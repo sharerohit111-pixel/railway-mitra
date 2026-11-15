@@ -33,7 +33,7 @@ const { selectQuestionBankPage } = require("./question-bank-pagination");
 const { getExamSectionConfig } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey } = require("./exam-answer-key");
-const { projectStudentQuestions } = require("./student-question-delivery");
+const { projectStudentQuestions, projectStudentSavedAnswers } = require("./student-question-delivery");
 const { toValidDate } = require("./exam-time");
 const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { getTestLeaderboard } = require("./leaderboard-query");
@@ -222,19 +222,20 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   const test = testSnap.data(), questions = questionsSnap.data().questions || [];
   if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
   const sections = validatedExamSections(test, questions);
-  let studentQuestions;
+  let studentQuestions, savedAnswers;
   try {
     studentQuestions = projectStudentQuestions(questions);
+    savedAnswers = projectStudentSavedAnswers(studentQuestions, attempt.answers);
   } catch (error) {
-    console.error("CBT student question payload rejected", { attemptId, message: error.message });
-    throw new HttpsError("failed-precondition", "Question paper contains invalid student question data");
+    console.error("CBT student question or saved-answer payload rejected", { attemptId, message: error.message });
+    throw new HttpsError("failed-precondition", "Question paper or saved answers contain invalid student data");
   }
   return {
     test: { testId: attempt.testId, title: test.title || "", durationMinutes: Number(test.durationMinutes || 30),
       marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0),
       sections },
     questions: studentQuestions,
-    savedAnswers: attempt.answers || {},
+    savedAnswers,
     // Only section timing metadata is exposed; the answer key remains server-side.
     sectionTimings: Object.fromEntries(Object.entries(attempt.sectionTimings || {}).map(([name, timing]) => [name, {
       startedAt: date(timing.startedAt)?.toISOString() || null,
