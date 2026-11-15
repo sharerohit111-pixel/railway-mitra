@@ -52,7 +52,7 @@ function applyLanguage(){
   document.getElementById("paperLanguageToggle").textContent = language === "hi" ? "English" : "हिन्दी";
   if (!fileInput.files?.length) fileName.textContent=t("pdfHint");
 }
-document.getElementById("paperLanguageToggle").addEventListener("click",()=>{language=language==="hi"?"en":"hi";localStorage.setItem("rm-paper-language",language);applyLanguage();});
+
 function readableError(error) {
   const code = String(error?.code || "");
   if (code.includes("unauthenticated")) return t("signInAgain");
