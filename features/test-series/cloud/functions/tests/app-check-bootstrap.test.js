@@ -16,15 +16,33 @@ function firebaseConfigValue(source, key) {
   return match ? match[1] : null;
 }
 
-test("deployed callable policy requires App Check and only the Functions Emulator bypasses it", () => {
+test("deployed callable policy requires App Check and emulator bypass needs a demo project", () => {
   assert.deepEqual(getCallableOptions({}), {
     region: "asia-south1",
     enforceAppCheck: true
   });
-  assert.deepEqual(getCallableOptions({ FUNCTIONS_EMULATOR: "true" }), {
+  assert.deepEqual(getCallableOptions({
+    FUNCTIONS_EMULATOR: "true",
+    GCLOUD_PROJECT: "demo-railway-mitra-cbt"
+  }), {
     region: "asia-south1",
     enforceAppCheck: false
   });
+  assert.equal(
+    getCallableOptions({ FUNCTIONS_EMULATOR: "true", GCLOUD_PROJECT: "railway-mitra" }).enforceAppCheck,
+    true,
+    "the emulator marker must not bypass App Check for the real Railway Mitra project"
+  );
+  assert.equal(
+    getCallableOptions({ FUNCTIONS_EMULATOR: "true" }).enforceAppCheck,
+    true,
+    "the emulator marker without a demo project ID must fail closed"
+  );
+  assert.equal(
+    getCallableOptions({ GCLOUD_PROJECT: "demo-railway-mitra-cbt" }).enforceAppCheck,
+    true,
+    "a demo project ID without the emulator runtime marker must still enforce App Check"
+  );
   assert.equal(
     getCallableOptions({ FUNCTIONS_EMULATOR: "false", APP_CHECK_ENFORCE: "false" }).enforceAppCheck,
     true,

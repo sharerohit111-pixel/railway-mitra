@@ -1,14 +1,21 @@
 "use strict";
 
 // App Check is mandatory for deployed callable functions.
-// The local Functions Emulator cannot mint production App Check attestations,
-// so only its explicit runtime marker disables enforcement.
+// The emulator bypass requires both Firebase's runtime marker and a demo
+// project ID. A stray/misconfigured marker in a real project must fail closed.
 const REGION = "asia-south1";
+const DEMO_PROJECT_ID = /^demo-[a-z0-9][a-z0-9-]*$/;
+
+function isIsolatedFunctionsEmulator(env) {
+  return env.FUNCTIONS_EMULATOR === "true" &&
+    typeof env.GCLOUD_PROJECT === "string" &&
+    DEMO_PROJECT_ID.test(env.GCLOUD_PROJECT);
+}
 
 function getCallableOptions(env = process.env) {
   return Object.freeze({
     region: REGION,
-    enforceAppCheck: env.FUNCTIONS_EMULATOR !== "true"
+    enforceAppCheck: !isIsolatedFunctionsEmulator(env)
   });
 }
 
