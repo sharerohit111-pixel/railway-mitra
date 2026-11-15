@@ -84,7 +84,7 @@ test("Owner loader fails closed when the question paper or private answer key is
   assert.match(handler, /editing is blocked/);
 });
 
-test("published tests remain immutable and student question delivery excludes private answer indexes", () => {
+test("published tests remain immutable and student question delivery uses the validated allowlist projection", () => {
   const source = readFileSync(require.resolve("../index"), "utf8");
   const saveStart = source.indexOf("exports.rmOwnerSaveTest =");
   const publishStart = source.indexOf("exports.rmOwnerPublishTest =", saveStart);
@@ -95,6 +95,8 @@ test("published tests remain immutable and student question delivery excludes pr
   const deliveryStart = source.indexOf("exports.rmGetExamQuestions =");
   const deliveryEnd = source.indexOf("exports.rmEnterCbtSection =", deliveryStart);
   const deliveryHandler = source.slice(deliveryStart, deliveryEnd);
-  assert.match(deliveryHandler, /questions\.map\(q => \(\{ id: q\.id, text: q\.text, options: q\.options/);
+  assert.match(source, /projectStudentQuestions\(questions\)/);
+  assert.match(deliveryHandler, /questions:\s*studentQuestions/);
+  assert.doesNotMatch(deliveryHandler, /questions\.map\(/);
   assert.doesNotMatch(deliveryHandler, /correctIndex|correctAnswer|testSeriesAnswerKeys/);
 });
