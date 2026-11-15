@@ -334,7 +334,16 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     ]);
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
     if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
-    const test = testSnap.data(), answers = a.answers || {};
+    const test = testSnap.data();
+    let answers;
+    try {
+      // Validate persisted responses against the current paper and copy only own data entries.
+      // This prevents inherited Object.prototype names from becoming phantom answers at scoring.
+      answers = projectStudentSavedAnswers(paperSnap.data().questions, a.answers);
+    } catch (error) {
+      console.error("CBT submission rejected malformed saved answers", { attemptId, message: error.message });
+      throw new HttpsError("failed-precondition", "Saved answers are inconsistent with the question paper");
+    }
     let scoring;
     try {
       scoring = getExamScoringConfig(test);
@@ -352,9 +361,10 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const timedOut = expiresAt <= new Date();
     let correct = 0, wrong = 0, unattempted = 0;
     for (const item of answerKey) {
-      const given = answers[item.questionId];
-      if (given === undefined || given === null || given === "") unattempted++;
-      else if (String(given) === item.correctAnswer) correct++;
+      const hasAnswer = Object.hasOwn(answers, item.questionId);
+      const given = hasAnswer ? answers[item.questionId] : undefined;
+      if (!hasAnswer) unattempted++;
+      else if (given === item.correctAnswer) correct++;
       else wrong++;
     }
     const totalQuestions = answerKey.length;
