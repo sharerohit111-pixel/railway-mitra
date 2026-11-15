@@ -13,3 +13,5 @@
 .rm-dashboard-result p{margin:5px 0}
 .rm-dashboard-score{font-size:22px!important;color:#75d7ff!important;font-weight:700}
 @media(max-width:480px){.rm-student-dashboard{padding:12px}.rm-dashboard-summary{gap:7px}.rm-dashboard-stat{padding:10px}.rm-dashboard-stat strong{font-size:18px}.rm-dashboard-stat span{font-size:10px}}
+
+.rm-dashboard-leaderboard{margin-top:10px;min-height:40px;padding:9px 14px;border:1px solid #3188bd;border-radius:9px;background:#103451;color:#a9e7ff;font:inherit;font-weight:650;cursor:pointer}.rm-dashboard-leaderboard:disabled{opacity:.5;cursor:not-allowed}
