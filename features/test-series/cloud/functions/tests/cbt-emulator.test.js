@@ -2278,3 +2278,72 @@ test("student test catalogue paginates published tests with stable document curs
     await Promise.all(refs.map(ref => ref.delete().catch(() => {})));
   }
 });
+
+
+test("a fully refunded captured payment stays locked in the catalogue and rmStartExam", async () => {
+  const paidTestId = "emulator-full-refund-stale-capture";
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  let paidAccess = null;
+  let unexpectedAttemptId = null;
+
+  try {
+    await testRef.set({
+      title: "Fully Refunded Paid Test",
+      status: "published",
+      price: 25,
+      mode: "mock",
+      durationMinutes: 10,
+      questionCount: 1
+    });
+    paidAccess = await seedPaidAccess({
+      testId: paidTestId,
+      paymentId: "pay_emulator_full_refund_stale_capture",
+      orderId: "order_emulator_full_refund_stale_capture",
+      amount: 2500
+    });
+
+    // Simulate a stale captured status after the cumulative refund reaches the
+    // original amount. Both the catalogue hint and transactional start guard
+    // must consult the same complete payment ledger.
+    await paidAccess.paymentRef.update({ amountRefunded: 2500 });
+    const payment = (await paidAccess.paymentRef.get()).data();
+    assert.equal(payment.status, "captured");
+    assert.equal(payment.amountRefunded, payment.amount);
+
+    const catalogue = await callable("rmListAvailableTests");
+    const listed = catalogue.tests.find(item => item.testId === paidTestId);
+    assert.ok(listed);
+    assert.equal(listed.accessType, "paid");
+
+    // Remove any previous active pointer so this assertion isolates the
+    // entitlement decision; restore it in finally for the surrounding suite.
+    await activeRef.delete().catch(() => {});
+    let startError = null;
+    try {
+      const started = await callable("rmStartExam", { testId: paidTestId });
+      unexpectedAttemptId = started.attemptId;
+    } catch (error) {
+      startError = error;
+    }
+    assert.ok(startError, "a fully refunded payment must not start a paid attempt");
+    assert.equal(startError.code, "functions/permission-denied");
+    assert.equal((await activeRef.get()).exists, false);
+  } finally {
+    if (unexpectedAttemptId) {
+      await db.doc("testSeriesAttempts/" + unexpectedAttemptId).delete().catch(() => {});
+      await db.doc("testSeriesResults/" + unexpectedAttemptId).delete().catch(() => {});
+    }
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
+    await testRef.delete().catch(() => {});
+    if (paidAccess) {
+      await Promise.all([
+        paidAccess.paymentRef.delete().catch(() => {}),
+        paidAccess.orderRef.delete().catch(() => {}),
+        paidAccess.entitlementRef.delete().catch(() => {})
+      ]);
+    }
+  }
+});
