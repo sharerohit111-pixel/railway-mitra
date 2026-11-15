@@ -1006,6 +1006,16 @@ exports.deleteMyAccount = onCall({ region: REGION, timeoutSeconds: 300 }, async 
   }
 
   const userRef = db.collection("users").doc(uid);
+  const paperSubmissions = await db.collection("previousPaperSubmissions").where("uid", "==", uid).get();
+  const paperBucket = require("firebase-admin/storage").getStorage().bucket();
+  for (const paper of paperSubmissions.docs) {
+    const storagePath = paper.data().storagePath;
+    if (storagePath) await paperBucket.file(storagePath).delete().catch(error => {
+      if (error.code !== 404 && error.code !== "not-found") throw error;
+    });
+    await paper.ref.delete();
+  }
+
   const feedback = await db.collection("userFeedback").where("uid", "==", uid).get();
   for (const item of feedback.docs) {
     await db.recursiveDelete(item.ref);
@@ -1084,7 +1094,7 @@ exports.submitPreviousPaper = onCall({ region: REGION, timeoutSeconds: 120, memo
   }
   const examName = cleanString(request.data.examName, "Exam name", 140);
   const heldOn = paperDate(request.data.heldOn);
-  const originalFileName = cleanString(request.data.fileName, "PDF file name", 120).replace(/[\\\\/\\r\\n]/g, "_");
+  const originalFileName = cleanString(request.data.fileName, "PDF file name", 120);
   const encoded = request.data.fileBase64;
   if (typeof encoded !== "string" || encoded.length < 8 || encoded.length > Math.ceil(MAX_PAPER_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) {
     throw new HttpsError("invalid-argument", "Please upload a valid PDF up to 5 MB.");
