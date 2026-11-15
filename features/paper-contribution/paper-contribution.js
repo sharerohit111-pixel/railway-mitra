@@ -90,20 +90,30 @@ form.addEventListener("submit",async event=>{
   await submitPaper(payload);form.reset();fileName.textContent=t("pdfHint");message.textContent=t("uploaded");await loadHistory();
  }catch(error){message.textContent=readableError(error);message.classList.add("error");}finally{submitButton.disabled=false;}
 });
-const emailPaper = httpsCallable(functions, "emailPreviousPaperToOwner");
 document.getElementById("paperEmailSubmit").addEventListener("click", async () => {
  const file=fileInput.files?.[0];
  if(!file){message.textContent=t("choosePaper");message.classList.add("error");return;}
  if(file.size<=0||file.size>MAX_FILE_BYTES||(!file.type.includes("pdf")&&!file.name.toLowerCase().endsWith(".pdf"))){message.textContent=t("invalidPdf");message.classList.add("error");return;}
  if(!document.getElementById("paperConsent").checked){message.textContent=t("consentRequired");message.classList.add("error");return;}
+ const category=document.getElementById("paperCategory").value;
+ const examName=document.getElementById("paperName").value.trim();
+ const heldOn=document.getElementById("paperHeldOn").value;
+ const subject=encodeURIComponent("[Railway Mitra] "+category+" Previous Paper"+(examName?" - "+examName:""));
+ const body=encodeURIComponent("Hello,\\nPlease find my previous paper attached.\\nCategory: "+category+"\\nExam: "+(examName||"Not provided")+"\\nHeld on: "+(heldOn||"Not provided")+"\\n\\nI confirm that I am allowed to share this paper.");
  const emailButton=document.getElementById("paperEmailSubmit");
- emailButton.disabled=true;submitButton.disabled=true;message.classList.remove("error");message.textContent="PDF ईमेल से भेजी जा रही है…";
+ emailButton.disabled=true;message.classList.remove("error");
  try{
-  const payload={examCategory:document.getElementById("paperCategory").value,examName:document.getElementById("paperName").value.trim(),heldOn:document.getElementById("paperHeldOn").value,fileName:file.name,fileBase64:toBase64(await file.arrayBuffer())};
-  await emailPaper(payload);
-  form.reset();fileName.textContent=t("pdfHint");message.textContent="धन्यवाद! PDF तुम्हारे ईमेल पर भेज दी गई है।";
- }catch(error){message.textContent=readableError(error);message.classList.add("error");}
- finally{emailButton.disabled=false;submitButton.disabled=false;}
+  if(navigator.canShare && navigator.share && navigator.canShare({files:[file]})){
+   await navigator.share({files:[file],title:"Railway Mitra Previous Paper",text:"To: sharerohit111@gmail.com\\n"+decodeURIComponent(subject)+"\\n"+decodeURIComponent(body)});
+   message.textContent="ईमेल/शेयर ऐप खुल गया हो तो Gmail चुनकर sharerohit111@gmail.com को PDF भेज दें।";
+  }else{
+   window.location.href="mailto:sharerohit111@gmail.com?subject="+subject+"&body="+body;
+   message.textContent="ईमेल ऐप खुलने पर PDF को Attach करें और sharerohit111@gmail.com पर भेज दें।";
+  }
+ }catch(error){
+  if(error && error.name==="AbortError"){message.textContent="ईमेल भेजना रद्द किया गया।";}
+  else {window.location.href="mailto:sharerohit111@gmail.com?subject="+subject+"&body="+body;message.textContent="ईमेल ऐप में PDF Attach करके भेज दें।";}
+ }finally{emailButton.disabled=false;}
 });
 document.getElementById("paperRefresh").addEventListener("click",loadHistory);
 const today=new Date();document.getElementById("paperHeldOn").max=[today.getFullYear(),String(today.getMonth()+1).padStart(2,"0"),String(today.getDate()).padStart(2,"0")].join("-");
