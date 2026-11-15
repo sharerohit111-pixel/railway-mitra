@@ -6,6 +6,10 @@ const functions = getFunctions(app, "asia-south1");
 const listPapers = httpsCallable(functions, "adminListPreviousPaperSubmissions");
 const getDownload = httpsCallable(functions, "adminGetPreviousPaperDownloadUrl");
 const approvePaper = httpsCallable(functions, "adminApprovePreviousPaperSubmission");
+const recordEmailPaper = httpsCallable(functions, "adminRecordEmailPaperContribution");
+const emailForm = document.getElementById("emailPaperForm");
+const emailFormPanel = document.getElementById("emailContributionForm");
+const emailMessage = document.getElementById("emailPaperMessage");
 const gate = document.getElementById("adminGate");
 const inbox = document.getElementById("adminInbox");
 const message = document.getElementById("adminMessage");
@@ -83,6 +87,37 @@ async function loadPapers() {
     list.replaceChildren(node("p","rm-paper-message error",error?.message || "Could not load submissions."));
   }
 }
+
+emailForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  const file = document.getElementById("emailPaperFile").files?.[0];
+  if (!file) { emailMessage.textContent = "Choose the PDF received by email."; return; }
+  if (file.size <= 0 || file.size > 5 * 1024 * 1024 || (!file.type.includes("pdf") && !file.name.toLowerCase().endsWith(".pdf"))) {
+    emailMessage.textContent = "Choose a valid PDF up to 5 MB."; return;
+  }
+  const button = document.getElementById("emailPaperSave");
+  button.disabled = true; emailMessage.textContent = "Saving private email contribution…";
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("Could not read the selected PDF."));
+      reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+      reader.readAsDataURL(file);
+    });
+    const result = await recordEmailPaper({
+      contributorEmail: document.getElementById("emailContributorAddress").value.trim(),
+      examCategory: document.getElementById("emailPaperCategory").value,
+      examName: document.getElementById("emailPaperName").value.trim(),
+      heldOn: document.getElementById("emailPaperDate").value,
+      fileName: file.name, fileBase64: base64
+    });
+    emailMessage.textContent = "Saved for review. Submission ID: " + result.data.submission.id + ". Approve it below after checking the PDF.";
+    emailForm.reset();
+    await loadPapers();
+  } catch (error) {
+    emailMessage.textContent = error?.message || "Could not save the email contribution.";
+  } finally { button.disabled = false; }
+});
 document.getElementById("adminRefresh").addEventListener("click",loadPapers);
 onAuthStateChanged(auth, async user => {
   ownerVerified = false;
@@ -101,6 +136,7 @@ onAuthStateChanged(auth, async user => {
     ownerVerified = true;
     message.textContent = "Owner access verified.";
     inbox.hidden = false;
+    emailFormPanel.hidden = false;
     await loadPapers();
   } catch (error) {
     message.textContent = "Could not verify owner access. Please sign in again.";
