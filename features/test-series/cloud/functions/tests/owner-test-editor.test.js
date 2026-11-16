@@ -100,3 +100,19 @@ test("published tests remain immutable and student question delivery uses the va
   assert.doesNotMatch(deliveryHandler, /questions\.map\(/);
   assert.doesNotMatch(deliveryHandler, /correctIndex|correctAnswer|testSeriesAnswerKeys/);
 });
+
+test("Owner paper validation accepts safe image descriptors and rejects unsafe media metadata", () => {
+  const paperWithMedia = [
+    { ...questions[0], media: [{ id: "diagram1", altText: "Track turnout", mimeType: "image/png" }] },
+    questions[1]
+  ];
+  assert.equal(validateOwnerQuestionPaper(validTestMetadata, paperWithMedia, validAnswerMap)[0].media[0].id, "diagram1");
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+    { ...questions[0], media: [{ id: "../private", altText: "Diagram", mimeType: "image/png" }] },
+    questions[1]
+  ], validAnswerMap), /media descriptors are invalid/);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+    { ...questions[0], media: [{ id: "diagram1", altText: "Diagram", mimeType: "image/svg+xml" }] },
+    questions[1]
+  ], validAnswerMap), /media descriptors are invalid/);
+});
