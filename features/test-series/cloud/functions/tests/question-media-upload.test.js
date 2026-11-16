@@ -112,16 +112,16 @@ test("finalize rejects non-image bytes and records inspected image dimensions", 
   const handler = source.slice(start, end);
   assert.match(handler, /sanitizeImageBuffer\(bytes, upload\.mimeType, \{ sharp: require\("sharp"\) \}\)/);
   assert.match(handler, /Uploaded file could not be fully decoded and safely re-encoded/);
-  assert.match(handler, /await file\.delete\(\{ ignoreNotFound: true \}\)/);
+  assert.match(handler, /await quarantineFile\.delete\(\{ ignoreNotFound: true \}\)/);
   assert.match(handler, /width: imageInfo\.width/);
   assert.match(handler, /file\.save\(imageInfo\.data/);
   assert.match(handler, /upload\.quarantineObjectPath/);
   assert.match(handler, /ifGenerationMatch: 0/);
-  assert.match(handler, /preconditionOpts: \{ ifGenerationMatch: generation \}/);
+  assert.match(handler, /preconditionOpts: \{ ifGenerationMatch: 0 \}/);
   assert.match(handler, /sanitizedSha256/);
   assert.match(handler, /sanitizedGeneration/);
   assert.match(handler, /height: imageInfo\.height/);
-  assert.ok(handler.includes('!/^[1-9]\\d*$/.test(generation)'));
+  assert.ok(handler.includes('!/^[1-9]\\d*$/.test(sanitizedGeneration)'));
 });
 
 test("publication requires a canonical positive decimal object-generation string", () => {
