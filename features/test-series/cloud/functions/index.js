@@ -25,7 +25,7 @@ const {
   inspectPaymentRequest
 } = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
-const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint, ownerAccessCursorMatches } = require("./owner-test-access");
+const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint, ownerAccessCursorMatches, isOwnerAccessGrantUnexpired } = require("./owner-test-access");
 const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
@@ -539,6 +539,11 @@ exports.rmOwnerSetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
         throw new HttpsError("already-exists", "Request ID was already used for a different operation");
       }
       return { saved: true, replayed: true, status: prior.status, accessId };
+    }
+    // Account lookup and transaction setup can take time. Do not persist a
+    // grant whose requested expiry elapsed before the transaction committed.
+    if (!isOwnerAccessGrantUnexpired(request, Date.now())) {
+      throw new HttpsError("failed-precondition", "Grant expiry passed before access could be saved");
     }
 
     const previous = accessSnap.exists ? accessSnap.data() : null;
