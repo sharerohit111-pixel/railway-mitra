@@ -16,10 +16,18 @@ function validatePaymentRequestId(value) {
   return value;
 }
 
-function paymentRequestDocumentId({ uid, testId, requestId } = {}) {
-  if (typeof uid !== "string" || !uid.trim() || typeof testId !== "string" || !testId.trim()) {
-    throw new Error("Authenticated student and test identifiers are required");
+function isSafeIdentitySegment(value) {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+}
+
+function validatePaymentIdentity(uid, testId) {
+  if (!isSafeIdentitySegment(uid) || !isSafeIdentitySegment(testId)) {
+    throw new Error("Authenticated student and test identifiers must be safe canonical IDs");
   }
+}
+
+function paymentRequestDocumentId({ uid, testId, requestId } = {}) {
+  validatePaymentIdentity(uid, testId);
   validatePaymentRequestId(requestId);
   return crypto.createHash("sha256")
     .update(uid + "\0" + testId + "\0" + requestId, "utf8")
@@ -27,9 +35,7 @@ function paymentRequestDocumentId({ uid, testId, requestId } = {}) {
 }
 
 function paymentRequestFingerprint({ uid, testId, amount, currency = "INR" } = {}) {
-  if (typeof uid !== "string" || !uid.trim() || typeof testId !== "string" || !testId.trim()) {
-    throw new Error("Authenticated student and test identifiers are required");
-  }
+  validatePaymentIdentity(uid, testId);
   if (!Number.isSafeInteger(amount) || amount <= 0 || currency !== "INR") {
     throw new Error("A valid INR amount is required");
   }
@@ -39,15 +45,17 @@ function paymentRequestFingerprint({ uid, testId, amount, currency = "INR" } = {
 }
 
 function paymentStudentTestLockDocumentId({ uid, testId } = {}) {
-  if (typeof uid !== "string" || !uid.trim() || typeof testId !== "string" || !testId.trim()) {
-    throw new Error("Authenticated student and test identifiers are required");
-  }
+  validatePaymentIdentity(uid, testId);
   return crypto.createHash("sha256")
     .update(uid + "\0" + testId, "utf8")
     .digest("hex");
 }
 
 function inspectStudentTestPaymentLock(existing, { uid, testId, requestDocId } = {}) {
+  if (!isSafeIdentitySegment(uid) || !isSafeIdentitySegment(testId) ||
+      !/^[a-f0-9]{64}$/.test(requestDocId || "")) {
+    return { action: "reconcile", reason: "student_test_lock_identity_invalid" };
+  }
   if (!existing) return { action: "reserve" };
   if (existing.uid !== uid || existing.testId !== testId ||
       !/^[a-f0-9]{64}$/.test(existing.requestDocId || "") ||

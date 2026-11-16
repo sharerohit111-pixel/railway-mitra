@@ -98,3 +98,44 @@ test("rejects request ID reuse when the payload changes or stored state is malfo
     fingerprint, status: "created"
   }, fingerprint), { action: "reconcile", reason: "created_order_id_missing" });
 });
+
+
+test("rejects unsafe or ambiguous identity segments before payment request hashing", () => {
+  const invalidSegments = [
+    "student\0part",
+    "student/part",
+    "student with space",
+    "",
+    "x".repeat(129),
+    null,
+    7
+  ];
+
+  for (const uid of invalidSegments) {
+    assert.throws(() => paymentRequestDocumentId({ ...base, uid }), /safe canonical IDs/);
+    assert.throws(() => paymentStudentTestLockDocumentId({ ...base, uid }), /safe canonical IDs/);
+    assert.throws(() => paymentRequestFingerprint({ ...base, uid }), /safe canonical IDs/);
+  }
+
+  for (const testId of invalidSegments) {
+    assert.throws(() => paymentRequestDocumentId({ ...base, testId }), /safe canonical IDs/);
+    assert.throws(() => paymentStudentTestLockDocumentId({ ...base, testId }), /safe canonical IDs/);
+    assert.throws(() => paymentRequestFingerprint({ ...base, testId }), /safe canonical IDs/);
+  }
+
+  // These two tuples would produce the same NUL-delimited preimage without
+  // segment validation; neither is accepted as a payment identity.
+  assert.throws(() => paymentStudentTestLockDocumentId({
+    ...base, uid: "student\0part", testId: "test"
+  }), /safe canonical IDs/);
+  assert.throws(() => paymentStudentTestLockDocumentId({
+    ...base, uid: "student", testId: "part\0test"
+  }), /safe canonical IDs/);
+
+  assert.deepEqual(inspectStudentTestPaymentLock(null, {
+    ...base, uid: "student\0part", requestDocId: "a".repeat(64)
+  }), { action: "reconcile", reason: "student_test_lock_identity_invalid" });
+  assert.deepEqual(inspectStudentTestPaymentLock(null, {
+    ...base, requestDocId: "not-a-sha256-id"
+  }), { action: "reconcile", reason: "student_test_lock_identity_invalid" });
+});

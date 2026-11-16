@@ -2424,6 +2424,25 @@ test("verified Razorpay webhook reaches the Firestore ledger exactly once", asyn
 });
 
 
+test("payment-order callable rejects a non-canonical test ID before creating request or lock records", async () => {
+  const requestId = "emulator-unsafe-test-id-request-0001";
+  const requestsBefore = await db.collection("testSeriesPaymentRequests").where("uid", "==", uid).get();
+  const locksBefore = await db.collection("testSeriesPaymentLocks").where("uid", "==", uid).get();
+
+  await assert.rejects(
+    () => callable("rmCreatePaymentOrder", {
+      testId: "emulator\0unsafe",
+      requestId
+    }),
+    error => error && error.code === "functions/invalid-argument"
+  );
+
+  const requestsAfter = await db.collection("testSeriesPaymentRequests").where("uid", "==", uid).get();
+  const locksAfter = await db.collection("testSeriesPaymentLocks").where("uid", "==", uid).get();
+  assert.equal(requestsAfter.size, requestsBefore.size, "invalid identity must not reserve a payment request");
+  assert.equal(locksAfter.size, locksBefore.size, "invalid identity must not reserve a student-test lock");
+});
+
 test("payment request reservation serializes concurrent same-ID requests and replays the saved order", async () => {
   const {
     PAYMENT_REQUEST_STATES,
