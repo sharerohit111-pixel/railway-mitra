@@ -1795,8 +1795,8 @@ test("Owner manual access callables require real emulator password plus phone MF
       password: ownerPassword,
       returnSecureToken: true
     }, { allowError: true });
-    assert.ok(mfaChallenge.error, "password-only sign-in must not complete after MFA enrollment");
-    assert.ok(mfaChallenge.mfaPendingCredential, "Auth Emulator must return a pending MFA credential");
+    assert.ok(mfaChallenge.mfaPendingCredential, "password sign-in must return an MFA challenge instead of a completed session");
+    assert.equal(mfaChallenge.idToken, undefined, "first-factor sign-in must not issue a completed ID token before MFA");
     const phoneEnrollment = (mfaChallenge.mfaInfo || []).find(item => item.phoneInfo);
     assert.ok(phoneEnrollment?.mfaEnrollmentId, "password sign-in must expose the enrolled phone factor");
 
