@@ -19,8 +19,9 @@ async function main() {
   }, "test-series-storage-smoke");
   const bucket = getStorage(app).bucket();
   const objectPath = "test-series-question-media/emulator-smoke/question-1/diagram-1";
-  // Minimal PNG signature + IHDR fixture used by the image-header inspector.
-  const bytes = Buffer.alloc(24);
+  // Minimal PNG signature + complete 13-byte IHDR payload used only by the
+  // header preflight parser; this is not a fully decoded/valid PNG image.
+  const bytes = Buffer.alloc(33);
   Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(bytes, 0);
   bytes.writeUInt32BE(13, 8);
   bytes.write("IHDR", 12, "ascii");
