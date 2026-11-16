@@ -44,3 +44,34 @@ test("rejects unsafe identifiers before constructing storage paths", () => {
     assert.throws(() => validateMediaUploadRequest({ ...valid, [field]: "../private" }), /Invalid question media identifier/);
   }
 });
+
+test("Owner upload endpoints require Owner authorization and validate the draft question before storage access", () => {
+  const { readFileSync } = require("node:fs");
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const createStart = source.indexOf("exports.rmOwnerCreateQuestionMediaUpload =");
+  const finalizeStart = source.indexOf("exports.rmOwnerFinalizeQuestionMediaUpload =", createStart);
+  const studentStart = source.indexOf("exports.rmGetQuestionMediaUrl =", finalizeStart);
+  const createHandler = source.slice(createStart, finalizeStart);
+  const finalizeHandler = source.slice(finalizeStart, studentStart);
+  assert.ok(createStart >= 0 && finalizeStart > createStart && studentStart > finalizeStart);
+  assert.match(createHandler, /owner\(req\)/);
+  assert.match(createHandler, /testSnap\.data\(\)\.status !== "draft"/);
+  assert.match(createHandler, /question\.media/);
+  assert.match(createHandler, /action: "write"/);
+  assert.match(createHandler, /ifGenerationMatch: "0"/);
+  assert.match(finalizeHandler, /owner\(req\)/);
+  assert.match(finalizeHandler, /testSnap\.data\(\)\.status !== "draft"/);
+  assert.match(finalizeHandler, /file\.download\(\)/);
+  assert.match(finalizeHandler, /actualSha256 !== upload\.sha256/);
+  assert.match(finalizeHandler, /tx\.create\(mappingRef, mapping\)/);
+});
+
+test("Owner draft save preserves validated media descriptors in the student question paper", () => {
+  const { readFileSync } = require("node:fs");
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const start = source.indexOf("function ownerTestPayload");
+  const end = source.indexOf("exports.rmOwnerSaveTest =", start);
+  const payloadBuilder = source.slice(start, end);
+  assert.match(payloadBuilder, /projectStudentQuestionMedia\(q\.media\)/);
+  assert.match(payloadBuilder, /\.\.\.\(media \? \{ media \} : \{\}\)/);
+});
