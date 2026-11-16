@@ -7,6 +7,7 @@ on:
     paths:
       - "features/test-series/cloud/functions/**"
       - "features/test-series/cloud/firestore.rules"
+      - "storage.rules"
       - "features/test-series/cloud/README.md"
       - "features/test-series/cloud/firebase-emulator-config.mjs"
       - "features/test-series/student/**"
