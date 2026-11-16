@@ -134,7 +134,8 @@ test("student signed image delivery enforces attempt ownership, active expiry, m
   assert.match(handler, /attempt\.status !== "in_progress"/);
   assert.match(handler, /date\(attempt\.expiresAt\) <= new Date\(\)/);
   assert.match(handler, /mapping\.status !== "ready"/);
-  assert.match(handler, /generation !== String\(mapping\.generation\)/);
+  assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
+  assert.match(handler, /generation !== mapping\.generation/);
   assert.match(handler, /action: "read"/);
   assert.match(handler, /Date\.now\(\) \+ 60 \* 1000/);
   assert.match(handler, /response-content-disposition": "inline"/);
