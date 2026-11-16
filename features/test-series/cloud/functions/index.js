@@ -342,7 +342,9 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   if (mapping.status !== "ready" || mapping.testId !== attempt.testId ||
       mapping.questionId !== questionId || mapping.mediaId !== mediaId ||
       mapping.contentType !== media.mimeType ||
-      typeof mapping.objectPath !== "string" || !mapping.objectPath.startsWith("test-series-question-media/") ||\n      !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 || mapping.sizeBytes > 5 * 1024 * 1024 ||\n      typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256)) {
+      typeof mapping.objectPath !== "string" || !mapping.objectPath.startsWith("test-series-question-media/") ||
+      !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 || mapping.sizeBytes > 5 * 1024 * 1024 ||
+      typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256)) {
     throw new HttpsError("failed-precondition", "Question image metadata is inconsistent");
   }
   const bucket = getStorage().bucket();
@@ -354,7 +356,8 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   if (!metadata || !Number.isSafeInteger(size) || size < 1 || size > 5 * 1024 * 1024 ||
       metadata.contentType !== media.mimeType || !mapping.generation ||
       generation !== String(mapping.generation) ||
-      custom.testId !== attempt.testId || custom.questionId !== questionId || custom.mediaId !== mediaId) {
+      custom.testId !== attempt.testId || custom.questionId !== questionId || custom.mediaId !== mediaId ||
+      custom.sha256 !== mapping.sha256) {
     throw new HttpsError("failed-precondition", "Question image failed storage integrity checks");
   }
   const expiresAt = Date.now() + 60 * 1000;
