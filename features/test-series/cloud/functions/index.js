@@ -1137,7 +1137,7 @@ exports.rmOwnerPublishTest = onCall(CALLABLE_OPTIONS, async req => {
             !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 ||
             mapping.sizeBytes > MAX_IMAGE_BYTES ||
             typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256) ||
-            typeof mapping.generation !== "string" || !/^[1-9]\\d*$/.test(mapping.generation)) {
+            typeof mapping.generation !== "string" || !/^[1-9]\d*$/.test(mapping.generation)) {
           throw new HttpsError("failed-precondition", "Every question image must be uploaded and verified before publishing");
         }
       }
