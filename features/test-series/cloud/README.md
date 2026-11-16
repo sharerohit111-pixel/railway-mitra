@@ -266,3 +266,7 @@ The student callable guard accepts the normal Firebase phone provider in deploye
 ### Owner question-bank explanation size contract
 
 Owner single-item saves and bulk imports share the same question-bank validator. An explanation may contain at most 4,000 characters; exactly 4,000 is accepted and 4,001 is rejected with an invalid-argument error. Oversized explanations are not silently truncated, so the Owner UI cannot report a successful save after losing part of the supplied content. The Auth + Functions Emulator regression verifies that an accepted boundary value persists and a rejected update leaves the previous question unchanged.
+
+## Persisted student option-array integrity
+
+Student question delivery and answer-save validation share the same option validator. Every question must contain 2–6 dense array entries, and every option must be an own indexed, non-empty string of at most 1,000 characters. Sparse array slots, object-valued options, empty strings and oversized option text fail closed. This is a second defensive boundary for persisted Firestore data: a malformed paper cannot be projected to the student, and a direct callable answer-save request cannot select an invalid option index. Unit tests cover sparse question/option arrays; the Functions Emulator regression verifies that a nested object option is neither delivered nor answerable and that no answer is persisted.
