@@ -245,3 +245,7 @@ The isolated Razorpay webhook handler rejects a raw request body larger than 1 M
 ### Razorpay webhook payload-limit boundary regression
 
 The 1 MiB application limit is inclusive: a raw body of exactly 1,048,576 bytes may proceed to HMAC verification and normal event handling, while any larger Buffer is rejected with HTTP 413 before signature-header lookup. The exact-boundary regression signs a valid capture event padded only with JSON whitespace, verifies the original event reaches the payment processor, and complements the existing one-byte-over-limit rejection test. Keep both sides of this boundary covered if the limit changes.
+
+### Razorpay refund payment-state consistency
+
+A processed refund webhook must carry a captured payment snapshot whose top-level payment status agrees with its cumulative refund state: `refund_status: partial` requires `status: captured` and `refund_status: full` requires `status: refunded`. The cumulative `amount_refunded` must remain below the payment amount for partial refunds and equal it for full refunds. Contradictory snapshots fail closed before any refund/event ledger write or entitlement change. This follows Razorpay's documented payment-state contract: a payment remains captured while only partially refunded and moves to refunded only after the full amount is refunded. The unit regression covers both contradictory directions and verifies that payment and entitlement records remain unchanged.
