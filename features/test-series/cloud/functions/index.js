@@ -335,14 +335,14 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   }
   const media = (safeQuestion.media || []).find(item => item.id === mediaId);
   if (!media) throw new HttpsError("permission-denied", "Question media not found");
-  const mappingId = [attempt.testId, questionId, mediaId].join("_");
+  const mappingId = crypto.createHash("sha256").update(JSON.stringify([attempt.testId, questionId, mediaId])).digest("hex");
   const mappingSnap = await db.doc("testSeriesQuestionMedia/" + mappingId).get();
   if (!mappingSnap.exists) throw new HttpsError("not-found", "Question image is not published");
   const mapping = mappingSnap.data();
   if (mapping.status !== "ready" || mapping.testId !== attempt.testId ||
       mapping.questionId !== questionId || mapping.mediaId !== mediaId ||
       mapping.contentType !== media.mimeType ||
-      typeof mapping.objectPath !== "string" || !mapping.objectPath.startsWith("test-series-question-media/")) {
+      typeof mapping.objectPath !== "string" || !mapping.objectPath.startsWith("test-series-question-media/") ||\n      !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 || mapping.sizeBytes > 5 * 1024 * 1024 ||\n      typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256)) {
     throw new HttpsError("failed-precondition", "Question image metadata is inconsistent");
   }
   const bucket = getStorage().bucket();
