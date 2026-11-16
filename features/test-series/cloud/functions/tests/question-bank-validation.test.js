@@ -131,3 +131,20 @@ test("rejects non-printing control characters while preserving normal question f
   const ordinaryText = normalizeQuestionBankItem(validItem({ question: { text: "Unit 10, question 2026", options: ["Unsafe", "Option 2"] } }));
   assert.equal(ordinaryText.question.options[0], "Unsafe");
 });
+
+test("accepts a 4000-character explanation and rejects an oversized explanation without truncating", () => {
+  const exactExplanation = "x".repeat(4000);
+  const exact = normalizeQuestionBankItem(validItem({
+    question: { explanation: exactExplanation }
+  }));
+  assert.equal(exact.question.explanation, exactExplanation);
+  assert.equal(exact.question.explanation.length, 4000);
+
+  const oversizedExplanation = exactExplanation + "x";
+  assert.throws(
+    () => normalizeQuestionBankItem(validItem({
+      question: { explanation: oversizedExplanation }
+    })),
+    /explanation must be within 4000 characters/
+  );
+});

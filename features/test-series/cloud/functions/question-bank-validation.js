@@ -67,8 +67,9 @@ function normalizeQuestionBankItem(item, rowNumber) {
   if (question.explanation !== undefined && question.explanation !== null && typeof question.explanation !== "string") {
     fail("explanation must be text", rowNumber);
   }
-  if (typeof question.explanation === "string" && hasDisallowedQuestionControls(question.explanation)) {
-    fail("explanation contains unsupported control characters", rowNumber);
+  const explanation = typeof question.explanation === "string" ? question.explanation : "";
+  if (explanation.length > 4000 || hasDisallowedQuestionControls(explanation)) {
+    fail("explanation must be within 4000 characters and contain no unsupported control characters", rowNumber);
   }
 
   return {
@@ -79,7 +80,7 @@ function normalizeQuestionBankItem(item, rowNumber) {
       text,
       options,
       ...(section ? { section } : {}),
-      explanation: typeof question.explanation === "string" ? question.explanation.slice(0, 4000) : ""
+      explanation
     },
     correctIndex
   };

@@ -1965,6 +1965,48 @@ test("Owner manual access callables require real emulator password plus phone MF
     assert.equal(tokenClaims.firebase?.sign_in_provider, "password");
     assert.equal(tokenClaims.firebase?.sign_in_second_factor, "phone");
 
+    // Exercise the Owner question-bank callable through the Auth + Functions
+    // Emulators: the exact explanation limit is accepted, while one extra
+    // character is rejected before Firestore can overwrite the existing item.
+    const questionBankId = "emulator-owner-qb-explanation-limit";
+    const questionBankRef = db.doc("testSeriesQuestionBank/" + questionBankId);
+    const exactExplanation = "x".repeat(4000);
+    const savedQuestion = await callableWithIdToken("rmOwnerSaveQuestionBankItem", {
+      itemId: questionBankId,
+      topic: "Civil Engineering",
+      chapter: "Soil Mechanics",
+      folder: "Emulator Validation",
+      question: {
+        text: "Explanation boundary?",
+        options: ["A", "B"],
+        correctIndex: 1,
+        explanation: exactExplanation
+      }
+    }, signedIn.idToken);
+    assert.equal(savedQuestion.saved, true);
+    assert.equal((await questionBankRef.get()).data().question.explanation, exactExplanation);
+
+    await assert.rejects(
+      callableWithIdToken("rmOwnerSaveQuestionBankItem", {
+        itemId: questionBankId,
+        topic: "Civil Engineering",
+        chapter: "Soil Mechanics",
+        folder: "Emulator Validation",
+        question: {
+          text: "Explanation boundary?",
+          options: ["A", "B"],
+          correctIndex: 1,
+          explanation: exactExplanation + "x"
+        }
+      }, signedIn.idToken),
+      error => error.code === "functions/invalid-argument"
+    );
+    assert.equal(
+      (await questionBankRef.get()).data().question.explanation,
+      exactExplanation,
+      "rejected oversized updates must leave the previously saved question unchanged"
+    );
+
     await testRef.set({
       title: "Owner MFA complimentary access test",
       status: "published",
@@ -2033,6 +2075,7 @@ test("Owner manual access callables require real emulator password plus phone MF
       .where("targetUid", "==", uid).get();
     assert.equal(storedAudit.docs.filter(doc => doc.data().testId === complimentaryTestId).length, 2);
   } finally {
+    await db.doc("testSeriesQuestionBank/emulator-owner-qb-explanation-limit").delete().catch(() => {});
     await accessRef.delete().catch(() => {});
     await testRef.delete().catch(() => {});
     for (const requestDocId of requestDocIds) {

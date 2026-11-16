@@ -262,3 +262,7 @@ This is a single-student local Emulator integration test. It is not a concurrenc
 ### Emulator-only student custom-auth fixture hardening
 
 The student callable guard accepts the normal Firebase phone provider in deployed environments. Its custom-token exception for synthetic tests requires **all** of the following: `FUNCTIONS_EMULATOR=true`, the explicit `TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true` test flag, a `demo-*` project ID, and the same isolated Functions Emulator runtime signature used by the App Check policy. The exact emulator-generated `K_SERVICE` plus `K_REVISION=1` marker pair is allowed only without `K_CONFIGURATION`; deployed Cloud Run service, revision or configuration markers disable the exception. Merely setting the two environment flags in a real Firebase project is not sufficient to authorize a custom-token student. Regression tests cover the real-project, missing-flag and deployed-runtime cases. This does not enable or relax deployed App Check enforcement.
+
+### Owner question-bank explanation size contract
+
+Owner single-item saves and bulk imports share the same question-bank validator. An explanation may contain at most 4,000 characters; exactly 4,000 is accepted and 4,001 is rejected with an invalid-argument error. Oversized explanations are not silently truncated, so the Owner UI cannot report a successful save after losing part of the supplied content. The Auth + Functions Emulator regression verifies that an accepted boundary value persists and a rejected update leaves the previous question unchanged.
