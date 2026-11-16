@@ -73,8 +73,11 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
   const providerRefundSnapshotValid = providerPayment &&
     providerPayment.captured === true &&
     (providerPayment.refund_status === "full"
-      ? providerPayment.amount_refunded === providerPayment.amount
-      : providerPayment.refund_status === "partial" && providerPayment.amount_refunded < providerPayment.amount);
+      ? providerPayment.status === "refunded" &&
+        providerPayment.amount_refunded === providerPayment.amount
+      : providerPayment.refund_status === "partial" &&
+        providerPayment.status === "captured" &&
+        providerPayment.amount_refunded < providerPayment.amount);
   if (!safeId(refund.id) || !safeId(refund.payment_id) ||
       !Number.isSafeInteger(refund.amount) || refund.amount <= 0 ||
       !Number.isSafeInteger(providerPayment.amount) || providerPayment.amount <= 0 ||
