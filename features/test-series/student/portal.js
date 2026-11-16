@@ -88,7 +88,9 @@ async function showView(name) {
     view.innerHTML = markup;
     // initStudentDashboard owns the single refresh listener; do not attach a
     // second handler here or each click will issue duplicate dashboard requests.
-    await initStudentDashboard({ app, root: document, onLeaderboard: testId => {
+    await initStudentDashboard({ app, root: document,
+      isSessionActive: () => requestVersion === portalState.viewRequestVersion && isCurrentStudentSession(sessionVersion, sessionUid),
+      onLeaderboard: testId => {
       if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
       portalState.currentTestId = testId;
       showView("leaderboard").catch(error => { portalStatus.textContent = error.message || "Leaderboard could not be opened."; });

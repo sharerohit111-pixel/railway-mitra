@@ -4,7 +4,7 @@ import { runSingleFlight } from "./single-flight.mjs";
 // Keep one click listener per refresh button even if the dashboard is mounted again.
 const refreshHandlers = new WeakMap();
 
-export async function initStudentDashboard({ app, root = document, onLeaderboard = () => {} }) {
+export async function initStudentDashboard({ app, root = document, onLeaderboard = () => {}, isSessionActive = () => true }) {
   const status = root.getElementById("rm-dashboard-status");
   const summary = root.getElementById("rm-dashboard-summary");
   const resultsNode = root.getElementById("rm-dashboard-results");
@@ -13,8 +13,15 @@ export async function initStudentDashboard({ app, root = document, onLeaderboard
     throw new Error("Student dashboard markup is incomplete");
   }
 
+  function sessionIsActive() {
+    try { return typeof isSessionActive === "function" && isSessionActive() === true; }
+    catch { return false; }
+  }
+
   function load() {
+    if (!sessionIsActive()) return Promise.resolve({ results: [], stale: true });
     return runSingleFlight(refresh, async () => {
+      if (!sessionIsActive()) return { results: [], stale: true };
       refresh.disabled = true;
       refresh.setAttribute("aria-busy", "true");
       status.textContent = "Loading your results…";
@@ -23,6 +30,9 @@ export async function initStudentDashboard({ app, root = document, onLeaderboard
       resultsNode.replaceChildren();
       try {
         const { results = [], resultCount = 0 } = await getStudentCbtDashboard(app);
+        // A logout, account switch or view change may happen while the request is in flight.
+        // Never let an old student response repopulate the shared portal DOM.
+        if (!sessionIsActive()) return { results: [], stale: true };
         const total = results.reduce((sum, item) => sum + Number(item.totalQuestions || 0), 0);
         const correct = results.reduce((sum, item) => sum + Number(item.correct || 0), 0);
         const average = resultCount ? results.reduce((sum, item) => sum + Number(item.score || 0), 0) / resultCount : 0;
@@ -68,6 +78,7 @@ export async function initStudentDashboard({ app, root = document, onLeaderboard
             leaderboard.className = "rm-dashboard-leaderboard";
             leaderboard.textContent = "View Test Leaderboard";
             leaderboard.addEventListener("click", () => {
+              if (!sessionIsActive()) return;
               if (typeof onLeaderboard === "function" && item.testId) onLeaderboard(item.testId);
               else status.textContent = "Leaderboard is unavailable for this result.";
             });
@@ -78,11 +89,13 @@ export async function initStudentDashboard({ app, root = document, onLeaderboard
         }
         return { results, resultCount, totalQuestions: total };
       } catch (error) {
-        status.textContent = error.message || "Your results could not be loaded. Please retry.";
+        if (sessionIsActive()) status.textContent = error.message || "Your results could not be loaded. Please retry.";
         return { results: [], error };
       } finally {
-        refresh.disabled = false;
-        refresh.setAttribute("aria-busy", "false");
+        if (sessionIsActive()) {
+          refresh.disabled = false;
+          refresh.setAttribute("aria-busy", "false");
+        }
       }
     });
   }
