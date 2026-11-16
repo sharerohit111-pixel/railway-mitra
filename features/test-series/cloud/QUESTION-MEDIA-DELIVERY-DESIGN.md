@@ -57,4 +57,6 @@ Implement a callable or authenticated HTTP endpoint that accepts only `attemptId
 
 ## Release gate
 
-The descriptor contract and student-safe projection tests are implemented in this branch. Actual Cloud Storage upload, private object mapping, authenticated byte delivery, image rendering in the student CBT UI, App Check verification for media requests and emulator/staging tests remain pending. Do not describe diagram questions as production-ready until those gates pass.
+The descriptor contract, student-safe projection, Owner metadata validation, authenticated callable for short-lived signed read URLs, and student CBT image rendering are implemented in this branch. The callable checks phone-OTP student access, App Check through the shared callable policy, attempt ownership/status/deadline, exact question/media membership, server-owned mapping status, object generation, content type and a 5 MiB object-size ceiling. Signed URLs expire after 60 seconds.
+
+Still pending: Owner-side image upload/quarantine workflow, creation and integrity verification of private mapping records, Storage bucket/project configuration confirmation, end-to-end emulator coverage with a real Storage Emulator, browser rendering tests, rate limiting, and staging verification. The mapping schema described above must be provisioned by a trusted Owner-only workflow; students must never write it. Do not describe diagram questions as production-ready until those gates pass.
