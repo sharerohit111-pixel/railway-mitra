@@ -2016,6 +2016,94 @@ test("Owner manual access callables require real emulator password plus phone MF
       "rejected oversized updates must leave the previously saved question unchanged"
     );
 
+    {
+      const { mediaMappingId, mediaObjectPath } = require("../question-media-upload");
+      const mediaTestId = "emulator-owner-media-publish-gate";
+      const mediaQuestionId = "media_q1";
+      const mediaId = "diagram_1";
+      const mediaTestRef = db.doc("testSeriesTests/" + mediaTestId);
+      const mediaQuestionRef = db.doc("testSeriesQuestionSets/" + mediaTestId);
+      const mediaAnswerRef = db.doc("testSeriesAnswerKeys/" + mediaTestId);
+      const mediaMappingRef = db.doc("testSeriesQuestionMedia/" + mediaMappingId(mediaTestId, mediaQuestionId, mediaId));
+      const objectPath = mediaObjectPath(mediaTestId, mediaQuestionId, mediaId);
+      try {
+        await Promise.all([
+          mediaTestRef.set({
+            title: "Owner media publication gate",
+            category: "Civil Engineering",
+            folder: "Emulator media",
+            status: "draft",
+            mode: "mock",
+            durationMinutes: 30,
+            price: 0,
+            marksPerQuestion: 1,
+            negativeMarks: 1 / 3,
+            questionCount: 1
+          }),
+          mediaQuestionRef.set({
+            questions: [{
+              id: mediaQuestionId,
+              text: "Identify the turnout component",
+              options: ["A", "B"],
+              media: [{ id: mediaId, altText: "Turnout diagram", mimeType: "image/png" }]
+            }]
+          }),
+          mediaAnswerRef.set({ questions: { [mediaQuestionId]: { correctAnswer: "0" } } })
+        ]);
+
+        await assert.rejects(
+          callableWithIdToken("rmOwnerPublishTest", { testId: mediaTestId }, signedIn.idToken),
+          error => error.code === "functions/failed-precondition"
+        );
+        assert.equal((await mediaTestRef.get()).data().status, "draft",
+          "a missing ready mapping must leave the test unpublished");
+
+        await mediaMappingRef.set({
+          testId: mediaTestId,
+          questionId: mediaQuestionId,
+          mediaId,
+          objectPath,
+          contentType: "image/png",
+          sizeBytes: 1024,
+          sha256: "a".repeat(64),
+          generation: "not-a-generation",
+          status: "ready"
+        });
+        await assert.rejects(
+          callableWithIdToken("rmOwnerPublishTest", { testId: mediaTestId }, signedIn.idToken),
+          error => error.code === "functions/failed-precondition"
+        );
+        assert.equal((await mediaTestRef.get()).data().status, "draft",
+          "a non-canonical generation must not be accepted");
+
+        await mediaMappingRef.delete();
+        await mediaMappingRef.set({
+          testId: mediaTestId,
+          questionId: mediaQuestionId,
+          mediaId,
+          objectPath,
+          contentType: "image/png",
+          sizeBytes: 1024,
+          sha256: "a".repeat(64),
+          generation: "1234567890123",
+          status: "ready"
+        });
+        const published = await callableWithIdToken(
+          "rmOwnerPublishTest", { testId: mediaTestId }, signedIn.idToken
+        );
+        assert.equal(published.published, true);
+        assert.equal(published.questionCount, 1);
+        assert.equal((await mediaTestRef.get()).data().status, "published");
+      } finally {
+        await Promise.all([
+          mediaTestRef.delete().catch(() => {}),
+          mediaQuestionRef.delete().catch(() => {}),
+          mediaAnswerRef.delete().catch(() => {}),
+          mediaMappingRef.delete().catch(() => {})
+        ]);
+      }
+    }
+
     await testRef.set({
       title: "Owner MFA complimentary access test",
       status: "published",

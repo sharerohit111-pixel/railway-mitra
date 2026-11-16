@@ -102,3 +102,14 @@ test("finalize rejects non-image bytes and records inspected image dimensions", 
   assert.match(handler, /width: imageInfo\.width/);
   assert.match(handler, /height: imageInfo\.height/);
 });
+
+test("publication requires a canonical positive decimal object-generation string", () => {
+  const { readFileSync } = require("node:fs");
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const start = source.indexOf("exports.rmOwnerPublishTest =");
+  const end = source.indexOf("exports.rmOwnerGetTest =", start);
+  const handler = source.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.ok(handler.includes('typeof mapping.generation !== "string"'));
+  assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
+});
