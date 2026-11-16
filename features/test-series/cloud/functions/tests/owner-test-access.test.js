@@ -5,7 +5,8 @@ const {
   manualAccessDocumentId,
   ownerAccessRequestFingerprint,
   ownerAccessCursorMatches,
-  isOwnerAccessGrantUnexpired
+  isOwnerAccessGrantUnexpired,
+  effectiveOwnerAccessStatus
 } = require("../owner-test-access");
 
 const base = Object.freeze({
@@ -122,4 +123,18 @@ test("cursor timestamp inspection fails closed when timestamp accessors throw", 
     ownerAccessCursorMatches({ ...accessCursor, updatedAt: new Proxy(new Date(), {}) }, "uid", null, "updatedAt"),
     false
   );
+});
+
+
+test("effective Owner access status marks elapsed or malformed grants expired", () => {
+  const nowMs = Date.parse("2026-11-16T00:00:00.000Z");
+  assert.equal(effectiveOwnerAccessStatus("active", null, nowMs), "active");
+  assert.equal(effectiveOwnerAccessStatus("active", new Date(nowMs + 1), nowMs), "active");
+  assert.equal(effectiveOwnerAccessStatus("active", new Date(nowMs), nowMs), "expired");
+  assert.equal(effectiveOwnerAccessStatus("active", "2026-11-15T23:59:59.000Z", nowMs), "expired");
+  assert.equal(effectiveOwnerAccessStatus("active", "not-a-date", nowMs), "expired");
+  assert.equal(effectiveOwnerAccessStatus("active", { toMillis: () => nowMs + 1 }, nowMs), "active");
+  assert.equal(effectiveOwnerAccessStatus("active", { toMillis: () => { throw new Error("bad timestamp"); } }, nowMs), "expired");
+  assert.equal(effectiveOwnerAccessStatus("revoked", new Date(nowMs + 10000), nowMs), "revoked");
+  assert.equal(effectiveOwnerAccessStatus("unknown", null, nowMs), "unknown");
 });
