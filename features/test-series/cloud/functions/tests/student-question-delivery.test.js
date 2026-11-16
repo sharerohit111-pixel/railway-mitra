@@ -27,6 +27,29 @@ test("rejects object-valued options that could carry nested answer metadata", ()
   }]), /invalid student question data/);
 });
 
+test("rejects sparse question and option arrays instead of skipping missing entries", () => {
+  const sparseQuestions = new Array(1);
+  assert.throws(
+    () => projectStudentQuestions(sparseQuestions),
+    /invalid student question data/
+  );
+
+  const sparseOptions = ["Option A", "Option B"];
+  delete sparseOptions[1];
+  assert.throws(
+    () => projectStudentQuestions([{ id: "q_sparse", text: "Choose", options: sparseOptions }]),
+    /invalid student question data/
+  );
+  assert.equal(
+    isCanonicalStudentAnswerIndex({ id: "q_sparse", options: sparseOptions }, "1"),
+    false
+  );
+  assert.equal(
+    isCanonicalStudentAnswerIndex({ id: "q_object", options: ["Option A", { label: "Option B" }] }, "1"),
+    false
+  );
+});
+
 test("rejects duplicate or malformed question IDs and invalid paper shapes", () => {
   assert.throws(() => projectStudentQuestions([
     { id: "q_1", text: "First", options: ["A", "B"] },
