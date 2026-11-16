@@ -35,6 +35,12 @@ function validateOwnerTestAccessRequest(input, nowMs = Date.now()) {
   return Object.freeze({ studentUid, testId, action, reason, requestId, expiresAt });
 }
 
+function isOwnerAccessGrantUnexpired(request, nowMs = Date.now()) {
+  if (!request || request.action !== "grant" || request.expiresAt === null || request.expiresAt === undefined) return true;
+  const expiryMs = Date.parse(request.expiresAt);
+  return Number.isFinite(expiryMs) && expiryMs > nowMs;
+}
+
 function manualAccessDocumentId(studentUid, testId) {
   if (typeof studentUid !== "string" || !studentUid || typeof testId !== "string" || !testId) {
     invalid("Student UID and test ID are required");
@@ -74,6 +80,7 @@ function ownerAccessCursorMatches(cursorData, filterField, filterValue, timestam
 
 module.exports = {
   ownerAccessCursorMatches,
+  isOwnerAccessGrantUnexpired,
   validateOwnerTestAccessRequest,
   manualAccessDocumentId,
   ownerAccessRequestFingerprint
