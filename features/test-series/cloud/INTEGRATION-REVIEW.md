@@ -10,13 +10,13 @@ This is a source-level integration review, not a live Firebase or real-device ce
 - Student dashboard reads the signed-in student's recent submitted results through the cloud client.
 - Leaderboard implementation exists as a separate module, but the inspected student portal navigation exposes only Available Tests and My Results. A user-facing leaderboard entry point is not confirmed by this review.
 - Owner standalone portal loads `admin/owner-portal.js`, fetches `admin-dashboard.html`, and initializes `admin-dashboard.js` with Firebase Auth and Functions.
-- Owner dashboard exposes Test Management, Question Bank, Students, Payments and Results/Ranking. Test Access Management is explicitly disabled. Cloud Backup and System Settings are explicitly disabled.
+- Owner dashboard exposes Test Management, Question Bank, Students, Payments, Results/Ranking and the protected Test Access Management panel. The access panel uses Owner-only callables for grants/revocations, bounded access listing and audit history; it displays server-computed expiry status and fences stale responses across session changes. Cloud Backup and System Settings remain explicitly disabled.
 - Student and Owner portals are standalone pages under the feature folder; this review does not establish that they are linked from the main Railway Mitra application.
 
 ## Integration gaps / next work
 
 1. **Student leaderboard entry point — implemented in the isolated portal:** each submitted result now exposes a `View Test Leaderboard` action. The portal passes that result's `testId` to the existing leaderboard module, checks the active student-session/view generation before navigation, and provides a return path to My Results. The dashboard remains a bounded latest-100 history; ranking is loaded separately from the server. Functions Validation and CBT Emulator workflows passed on the code commit `8c4e9d4153229801fa4c0c6a008475437207f288`; later documentation-only commits are not themselves runtime tests.
-2. **Owner access management:** keep the disabled UI disabled until a complete server-authorized module exists for grants/revocations, audit history and safeguards. Do not infer access from client state.
+2. **Owner access management:** the isolated Owner access panel and server callables are now implemented, with request idempotency, complimentary-test-only grants, audit writes, bounded/filterable pagination, cursor validation and effective expiry display. Student-denial emulator coverage and helper/UI tests pass. Still add a successful callable-level Owner grant/revoke test using genuine emulator-supported Google/Password primary sign-in plus phone MFA; do not weaken the Owner guard or fabricate MFA claims to make the test pass.
 3. **Backup and system settings:** keep disabled until export/restore, retention, auditability, restore verification and Owner authorization are implemented and tested. Never expose backup controls as functional placeholders.
 4. **Main-app entry points:** integration into the main app is a separate controlled step. Do not alter existing navigation or authentication guard without explicit approval and regression review.
 5. **End-to-end verification:** run student OTP, Owner provider + phone MFA, create/publish test, question import, free claim, exam save/resume/submit, result/leaderboard, payment staging and support reconciliation against a dedicated Firebase staging project only after project identity, rules merge and cost approval are confirmed.
@@ -31,4 +31,4 @@ This is a source-level integration review, not a live Firebase or real-device ce
 
 ## Current CI evidence
 
-The latest successful CBT Emulator Tests and Functions Validation runs available during this review were run on commit `bdc972c4e7e1288fd83eb7c27bfa16c75e29b57f`. The current PR head must receive its own successful CI runs before it is described as fully verified.
+The current PR head `249662a833ba06d00bee26e154cd88bb5a09d404` has successful Test Series CBT Emulator Tests and Test Series Functions Validation workflows. The CBT workflow includes unit/Firestore Rules emulator tests and synthetic Auth/Firestore backup-restore verification. This is CI evidence only, not live Firebase, real-device, staging, or production certification.
