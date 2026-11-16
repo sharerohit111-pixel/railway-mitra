@@ -2816,7 +2816,7 @@ test("verified full-refund webhook revokes paid catalogue and exam access", asyn
       } },
       payment: { entity: {
         id: paymentId, amount: 12550, amount_refunded: 12550,
-        currency: "INR", refund_status: "full", status: "captured", captured: true
+        currency: "INR", refund_status: "full", status: "refunded", captured: true
       } }
     }
   };
