@@ -365,3 +365,18 @@ belongs to the shared helper and is covered by its unit tests. The Functions
 Emulator regression separately verifies that a stale attempt cannot obtain a new
 signed question-media URL. Keep the static source guard aligned with the shared
 validator so future refactors do not reintroduce a second, divergent session rule.
+
+
+## Snapshot-consistent student question reads
+
+`rmGetExamQuestions` and `rmGetQuestionMediaUrl` read the attempt, the
+student's active-session pointer, and the Firestore-backed paper metadata
+inside one Firestore transaction. The media callable also reads its ready
+media mapping in that same transaction. This prevents separate document reads
+from observing a mixed state when an attempt pointer or question metadata
+changes between reads.
+
+Authorization is evaluated against the transaction snapshot. A response
+already returned to a client cannot be recalled; signed question-image URLs
+remain short-lived (60 seconds) and are not retroactively revoked when the
+student's active attempt changes.

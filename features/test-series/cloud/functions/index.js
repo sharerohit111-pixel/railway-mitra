@@ -269,25 +269,46 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
 
 exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req), attemptId = id(req.data && req.data.attemptId);
-  const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
-  if (!attemptSnap.exists || attemptSnap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
-  const attempt = attemptSnap.data();
-  const now = new Date();
-  const attemptExpiresAt = date(attempt.expiresAt);
-  if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
-    throw new HttpsError("failed-precondition", "Exam is closed");
-  }
-  const activeSessionSnap = await db.doc("testSeriesActiveSessions/" + uid).get();
-  const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
-  if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
-    throw new HttpsError("failed-precondition", "Exam is not the active session");
-  }
-  const [testSnap, questionsSnap] = await Promise.all([
-    db.doc("testSeriesTests/" + attempt.testId).get(),
-    db.doc("testSeriesQuestionSets/" + attempt.testId).get()
-  ]);
-  if (!testSnap.exists || !questionsSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
-  const test = testSnap.data(), questions = questionsSnap.data().questions || [];
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+
+  // Keep the attempt, active-session pointer and paper metadata in one
+  // Firestore transaction snapshot so a session switch cannot create a
+  // mixed authorization/read view between separate document gets.
+  const { attempt, test, questions } = await db.runTransaction(async tx => {
+    const attemptSnap = await tx.get(attemptRef);
+    if (!attemptSnap.exists || attemptSnap.data().uid !== uid) {
+      throw new HttpsError("permission-denied", "Attempt not found");
+    }
+    const attempt = attemptSnap.data();
+    const now = new Date();
+    const attemptExpiresAt = date(attempt.expiresAt);
+    if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
+      throw new HttpsError("failed-precondition", "Exam is closed");
+    }
+
+    const activeSessionRef = db.doc("testSeriesActiveSessions/" + uid);
+    const activeSessionSnap = await tx.get(activeSessionRef);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+
+    const testRef = db.doc("testSeriesTests/" + id(attempt.testId));
+    const questionsRef = db.doc("testSeriesQuestionSets/" + id(attempt.testId));
+    const [testSnap, questionsSnap] = await Promise.all([
+      tx.get(testRef),
+      tx.get(questionsRef)
+    ]);
+    if (!testSnap.exists || !questionsSnap.exists) {
+      throw new HttpsError("failed-precondition", "Question paper unavailable");
+    }
+    return {
+      attempt,
+      test: testSnap.data(),
+      questions: questionsSnap.data().questions || []
+    };
+  });
+
   if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
   const sections = validatedExamSections(test, questions);
   let studentQuestions, savedAnswers;
@@ -518,45 +539,63 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   const attemptId = id(req.data && req.data.attemptId);
   const questionId = id(req.data && req.data.questionId);
   const mediaId = id(req.data && req.data.mediaId);
-  const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
-  if (!attemptSnap.exists || attemptSnap.data().uid !== uid) {
-    throw new HttpsError("permission-denied", "Attempt not found");
-  }
-  const attempt = attemptSnap.data();
-  const now = new Date();
-  const attemptExpiresAt = date(attempt.expiresAt);
-  if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
-    throw new HttpsError("failed-precondition", "Exam is closed");
-  }
-  const activeSessionSnap = await db.doc("testSeriesActiveSessions/" + uid).get();
-  const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
-  if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
-    throw new HttpsError("failed-precondition", "Exam is not the active session");
-  }
-  const paperSnap = await db.doc("testSeriesQuestionSets/" + id(attempt.testId)).get();
-  if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
-  const question = (paperSnap.data().questions || []).find(item => item && item.id === questionId);
-  if (!question) throw new HttpsError("permission-denied", "Question does not belong to this attempt");
-  let safeQuestion;
-  try {
-    [safeQuestion] = projectStudentQuestions([question]);
-  } catch (_) {
-    throw new HttpsError("failed-precondition", "Question media metadata is invalid");
-  }
-  const media = (safeQuestion.media || []).find(item => item.id === mediaId);
-  if (!media) throw new HttpsError("permission-denied", "Question media not found");
-  const mappingId = crypto.createHash("sha256").update(JSON.stringify([attempt.testId, questionId, mediaId])).digest("hex");
-  const mappingSnap = await db.doc("testSeriesQuestionMedia/" + mappingId).get();
-  if (!mappingSnap.exists) throw new HttpsError("not-found", "Question image is not published");
-  const mapping = mappingSnap.data();
-  if (mapping.status !== "ready" || mapping.testId !== attempt.testId ||
-      mapping.questionId !== questionId || mapping.mediaId !== mediaId ||
-      mapping.contentType !== media.mimeType ||
-      mapping.objectPath !== "test-series-question-media/" + attempt.testId + "/" + questionId + "/" + mediaId ||
-      !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 || mapping.sizeBytes > 5 * 1024 * 1024 ||
-      typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256)) {
-    throw new HttpsError("failed-precondition", "Question image metadata is inconsistent");
-  }
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+
+  // Resolve authorization, question metadata and the immutable ready mapping
+  // from one Firestore transaction snapshot before inspecting the Storage object.
+  const { testId, media, mapping } = await db.runTransaction(async tx => {
+    const attemptSnap = await tx.get(attemptRef);
+    if (!attemptSnap.exists || attemptSnap.data().uid !== uid) {
+      throw new HttpsError("permission-denied", "Attempt not found");
+    }
+    const attempt = attemptSnap.data();
+    const now = new Date();
+    const attemptExpiresAt = date(attempt.expiresAt);
+    if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
+      throw new HttpsError("failed-precondition", "Exam is closed");
+    }
+
+    const activeSessionRef = db.doc("testSeriesActiveSessions/" + uid);
+    const activeSessionSnap = await tx.get(activeSessionRef);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+
+    const paperRef = db.doc("testSeriesQuestionSets/" + id(attempt.testId));
+    const paperSnap = await tx.get(paperRef);
+    if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+    const questions = paperSnap.data().questions;
+    if (!Array.isArray(questions)) throw new HttpsError("failed-precondition", "Question paper is invalid");
+    const question = questions.find(item => item && item.id === questionId);
+    if (!question) throw new HttpsError("permission-denied", "Question does not belong to this attempt");
+
+    let safeQuestion;
+    try {
+      [safeQuestion] = projectStudentQuestions([question]);
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Question media metadata is invalid");
+    }
+    const media = (safeQuestion.media || []).find(item => item.id === mediaId);
+    if (!media) throw new HttpsError("permission-denied", "Question media not found");
+
+    const mappingId = crypto.createHash("sha256").update(JSON.stringify([attempt.testId, questionId, mediaId])).digest("hex");
+    const mappingRef = db.doc("testSeriesQuestionMedia/" + mappingId);
+    const mappingSnap = await tx.get(mappingRef);
+    if (!mappingSnap.exists) throw new HttpsError("not-found", "Question image is not published");
+    const mapping = mappingSnap.data();
+    if (mapping.status !== "ready" || mapping.testId !== attempt.testId ||
+        mapping.questionId !== questionId || mapping.mediaId !== mediaId ||
+        mapping.contentType !== media.mimeType ||
+        mapping.objectPath !== "test-series-question-media/" + attempt.testId + "/" + questionId + "/" + mediaId ||
+        !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 || mapping.sizeBytes > 5 * 1024 * 1024 ||
+        typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256) ||
+        typeof mapping.generation !== "string" || !/^[1-9]\d*$/.test(mapping.generation)) {
+      throw new HttpsError("failed-precondition", "Question image metadata is inconsistent");
+    }
+    return { testId: attempt.testId, media, mapping };
+  });
+
   const bucket = getStorage().bucket();
   const file = bucket.file(mapping.objectPath);
   const [metadata] = await file.getMetadata().catch(() => [null]);
@@ -564,9 +603,8 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   const generation = String(metadata && metadata.generation || "");
   const custom = metadata && metadata.metadata || {};
   if (!metadata || !Number.isSafeInteger(size) || size < 1 || size !== mapping.sizeBytes || size > 5 * 1024 * 1024 ||
-      metadata.contentType !== media.mimeType || typeof mapping.generation !== "string" ||
-      !/^[1-9]\d*$/.test(mapping.generation) || generation !== mapping.generation ||
-      custom.testid !== attempt.testId || custom.questionid !== questionId || custom.mediaid !== mediaId ||
+      metadata.contentType !== media.mimeType || generation !== mapping.generation ||
+      custom.testid !== testId || custom.questionid !== questionId || custom.mediaid !== mediaId ||
       custom.sha256 !== mapping.sha256) {
     throw new HttpsError("failed-precondition", "Question image failed storage integrity checks");
   }

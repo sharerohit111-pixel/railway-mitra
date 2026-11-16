@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 
-test("question media and question paper callables share the active-attempt authorization fence", () => {
+test("question media and question paper callables use a transaction-snapshot active-attempt fence", () => {
   const source = readFileSync(require.resolve("../index"), "utf8");
   const helper = readFileSync(require.resolve("../active-attempt-session"), "utf8");
 
@@ -14,6 +14,11 @@ test("question media and question paper callables share the active-attempt autho
   assert.ok(mediaStart >= 0 && mediaEnd > mediaStart, "media URL callable exists");
   assert.match(mediaHandler, /const uid = student\(req\)/);
   assert.match(mediaHandler, /attemptSnap\.data\(\)\.uid !== uid/);
+  assert.match(mediaHandler, /db\.runTransaction\(async tx =>/);
+  assert.match(mediaHandler, /tx\.get\(attemptRef\)/);
+  assert.match(mediaHandler, /tx\.get\(activeSessionRef\)/);
+  assert.match(mediaHandler, /tx\.get\(paperRef\)/);
+  assert.match(mediaHandler, /tx\.get\(mappingRef\)/);
   assert.match(mediaHandler, /attempt\.status !== "in_progress"/);
   assert.match(mediaHandler, /const attemptExpiresAt = date\(attempt\.expiresAt\)/);
   assert.match(mediaHandler, /isActiveAttemptSession\(\{ uid, attemptId, attempt, activeSession, now \}\)/);
@@ -35,7 +40,11 @@ test("question media and question paper callables share the active-attempt autho
   const questionEnd = source.indexOf("// Issue a short-lived read URL", questionStart);
   const questionHandler = source.slice(questionStart, questionEnd);
   assert.ok(questionStart >= 0 && questionEnd > questionStart, "question delivery callable exists");
-  assert.match(questionHandler, /const activeSessionSnap = await db\.doc\("testSeriesActiveSessions\/" \+ uid\)\.get\(\)/);
+  assert.match(questionHandler, /db\.runTransaction\(async tx =>/);
+  assert.match(questionHandler, /tx\.get\(attemptRef\)/);
+  assert.match(questionHandler, /tx\.get\(activeSessionRef\)/);
+  assert.match(questionHandler, /tx\.get\(testRef\)/);
+  assert.match(questionHandler, /tx\.get\(questionsRef\)/);
   assert.match(questionHandler, /isActiveAttemptSession\(\{ uid, attemptId, attempt, activeSession, now \}\)/);
 
   assert.match(helper, /attempt\.uid === uid/);
