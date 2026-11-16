@@ -42,7 +42,7 @@ const {
   studentAnswerStorageKey
 } = require("./student-question-delivery");
 const { toValidDate } = require("./exam-time");
-const { getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
+const { paidEntitlementDocumentId, getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { getTestLeaderboard } = require("./leaderboard-query");
 const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
@@ -120,7 +120,7 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     }
     let freeClaimSnap = null;
     if (Number(test.price || 0) > 0) {
-      const entitlementSnap = await tx.get(db.doc("testSeriesEntitlements/" + uid + "_" + testId));
+      const entitlementSnap = await tx.get(db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId)));
       const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
       // The entitlement document is only one part of the grant. Re-read its
       // captured payment and paid order in this same transaction so a stale,
@@ -1360,7 +1360,7 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
     const t = d.data(), price = Number(t.price || 0);
     let accessType = d.id === freeTestId ? "free_trial" : (price > 0 ? "paid" : "unavailable");
     if (price > 0 && accessType !== "free_trial") {
-      const entitlementSnap = await db.doc("testSeriesEntitlements/" + uid + "_" + d.id).get();
+      const entitlementSnap = await db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, d.id)).get();
       const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
       const ledgerRefs = getPaidEntitlementLedgerReferences({ uid, testId: d.id, entitlement });
       if (ledgerRefs) {

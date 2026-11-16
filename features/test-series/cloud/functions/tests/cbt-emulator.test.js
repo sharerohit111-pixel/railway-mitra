@@ -12,6 +12,7 @@ const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, sign
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
 const { applyProcessedRefund } = require("../payment-refund-ledger");
+const { paidEntitlementDocumentId } = require("../payment-entitlement");
 const crypto = require("node:crypto");
 const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
 const { hasVerifiedPhoneMfa } = require("../owner-auth");
@@ -96,7 +97,7 @@ async function callableWithIdToken(name, data, idToken) {
 async function seedPaidAccess({ testId, paymentId, orderId, amount }) {
   const paymentRef = db.doc("testSeriesPayments/" + paymentId);
   const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + testId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId));
   const identity = { uid, testId, paymentId, razorpayOrderId: orderId, amount, currency: "INR" };
   await Promise.all([
     paymentRef.set({ ...identity, status: "captured" }),
@@ -553,7 +554,7 @@ test("student catalogue returns published metadata only and never answer keys", 
 test("student catalogue marks a paid test unlocked only when all payment ledgers match", async () => {
   const paidTestId = "emulator-catalogue-paid-unlock";
   const testRef = db.doc("testSeriesTests/" + paidTestId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   let paidAccess = null;
   try {
     await testRef.set({ title: "Paid Catalogue Test", status: "published", price: 25, mode: "mock", durationMinutes: 10 });
@@ -695,7 +696,7 @@ test("real emulator phone OTP sign-in can access the student CBT catalogue", asy
         uid: createdUid, testId: catalogueTestId, paymentId, razorpayOrderId: orderId,
         amount: 500, currency: "INR", status: "paid"
       }),
-      db.doc("testSeriesEntitlements/" + createdUid + "_" + catalogueTestId).set({
+      db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(createdUid, catalogueTestId)).set({
         uid: createdUid, testId: catalogueTestId, paymentId, razorpayOrderId: orderId,
         amount: 500, currency: "INR", status: "active"
       })
@@ -749,7 +750,7 @@ test("real emulator phone OTP sign-in can access the student CBT catalogue", asy
       await Promise.all([
         db.doc("testSeriesPayments/" + paymentId).delete().catch(() => {}),
         db.doc("testSeriesPaymentOrders/" + orderId).delete().catch(() => {}),
-        db.doc("testSeriesEntitlements/" + createdUid + "_" + catalogueTestId).delete().catch(() => {}),
+        db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(createdUid, catalogueTestId)).delete().catch(() => {}),
         db.doc("testSeriesActiveSessions/" + createdUid).delete().catch(() => {}),
         attemptId ? db.doc("testSeriesAttempts/" + attemptId).delete().catch(() => {}) : Promise.resolve(),
         attemptId ? db.doc("testSeriesResults/" + attemptId).delete().catch(() => {}) : Promise.resolve(),
@@ -1563,7 +1564,7 @@ test("free test cannot start until the one-time claim is created", async () => {
 test("paid and scheduled exams enforce entitlement and their server-side time window", async () => {
   const scheduledTestId = "emulator-scheduled-window-test";
   const testRef = db.doc("testSeriesTests/" + scheduledTestId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + scheduledTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, scheduledTestId));
   const keyRef = db.doc("testSeriesAnswerKeys/" + scheduledTestId);
   const questionsRef = db.doc("testSeriesQuestionSets/" + scheduledTestId);
   let startedAttemptId = null;
@@ -2100,7 +2101,7 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
   const paymentRef = db.doc("testSeriesPayments/" + paymentId);
   const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
   const replayEventRef = db.doc("testSeriesPaymentEvents/evt_ledger_replay");
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   const { paymentRequestDocumentId, paymentStudentTestLockDocumentId } = require("../payment-order-request");
   const paymentRequestId = "emulator-ledger-lock-request-0001";
   const requestDocId = paymentRequestDocumentId({ uid, testId: paidTestId, requestId: paymentRequestId });
@@ -2327,7 +2328,7 @@ test("verified Razorpay webhook reaches the Firestore ledger exactly once", asyn
   const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
   const paymentRef = db.doc("testSeriesPayments/" + paymentId);
   const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   const event = {
     event: "payment.captured",
     payload: { payment: { entity: {
@@ -2439,7 +2440,7 @@ test("payment request reservation serializes concurrent same-ID requests and rep
   const requestRef = db.doc("testSeriesPaymentRequests/" + requestDocId);
   const lockRef = db.doc("testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({ uid, testId: paidTestId }));
   const testRef = db.doc("testSeriesTests/" + paidTestId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   const orderId = "order_emulator_request_replay";
   const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
   const fingerprint = paymentRequestFingerprint({ uid, testId: paidTestId, amount, currency: "INR" });
@@ -2521,7 +2522,7 @@ test("concurrent duplicate captured-payment deliveries grant exactly one entitle
   const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
   const paymentRef = db.doc("testSeriesPayments/" + paymentId);
   const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   const event = {
     event: "payment.captured",
     payload: { payment: { entity: {
@@ -2559,7 +2560,7 @@ test("webhook safely recovers after a transient Firestore transaction failure", 
   const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
   const paymentRef = db.doc("testSeriesPayments/" + paymentId);
   const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   const event = {
     event: "payment.captured",
     payload: { payment: { entity: {
@@ -2643,7 +2644,7 @@ test("refund webhook is retried when it arrives before the captured-payment ledg
   const testRef = db.doc("testSeriesTests/" + paidTestId);
   const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
   const paymentRef = db.doc("testSeriesPayments/" + paymentId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   const refundRef = db.doc("testSeriesRefunds/" + refundId);
   const captureEventRef = db.doc("testSeriesPaymentEvents/" + captureEventId);
   const refundEventRef = db.doc("testSeriesPaymentEvents/" + refundEventId);
@@ -2780,7 +2781,7 @@ test("verified full-refund webhook revokes paid catalogue and exam access", asyn
   const testRef = db.doc("testSeriesTests/" + paidTestId);
   const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
   const paymentRef = db.doc("testSeriesPayments/" + paymentId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + paidTestId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, paidTestId));
   const refundRef = db.doc("testSeriesRefunds/" + refundId);
   const eventRef = db.doc("testSeriesPaymentEvents/" + eventId);
   const identity = {

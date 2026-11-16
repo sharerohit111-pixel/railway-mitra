@@ -13,6 +13,17 @@ function validUid(value) {
  * Firestore paths. A client cannot choose these values; they come from the
  * server-created entitlement record.
  */
+/**
+ * Build an unambiguous Firestore document ID for a UID/test pair. Prefixing
+ * the UID with its length prevents underscore-delimited identity collisions.
+ */
+function paidEntitlementDocumentId(uid, testId) {
+  if (!validUid(uid) || !safeDocumentId(testId)) {
+    throw new TypeError("A valid UID and test ID are required for an entitlement document");
+  }
+  return String(uid.length) + ":" + uid + ":" + testId;
+}
+
 function getPaidEntitlementLedgerReferences({ uid, testId, entitlement } = {}) {
   if (!validUid(uid) || !safeDocumentId(testId) ||
       !entitlement || entitlement.uid !== uid || entitlement.testId !== testId ||
@@ -80,4 +91,4 @@ function validatePaidEntitlement({ uid, testId, entitlement, payment, order } = 
   };
 }
 
-module.exports = { getPaidEntitlementLedgerReferences, validatePaidEntitlement };
+module.exports = { paidEntitlementDocumentId, getPaidEntitlementLedgerReferences, validatePaidEntitlement };

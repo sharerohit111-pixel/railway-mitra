@@ -3,12 +3,14 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { applyProcessedRefund } = require("../payment-refund-ledger");
+const { paidEntitlementDocumentId } = require("../payment-entitlement");
+const entitlementPath = "testSeriesEntitlements/" + paidEntitlementDocumentId("student_1", "test_1");
 
 function harness({ refundAmount = 49900, amountRefunded = 49900, refundStatus = "full" } = {}) {
   const docs = new Map([
     ["testSeriesPayments/pay_refund_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "captured" }],
     ["testSeriesPaymentOrders/order_refund_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "paid" }],
-    ["testSeriesEntitlements/student_1_test_1", { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "active" }]
+    [entitlementPath, { paymentId: "pay_refund_1", razorpayOrderId: "order_refund_1", uid: "student_1", testId: "test_1", amount: 49900, currency: "INR", status: "active" }]
   ]);
   const db = {
     doc(path) { return { path }; },
@@ -45,7 +47,7 @@ test("full refund accepts Razorpay refunded status while captured remains true",
   assert.equal(result.revoked, true);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "refunded");
   assert.equal(h.docs.get("testSeriesPaymentOrders/order_refund_1").status, "refunded");
-  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "revoked");
+  assert.equal(h.docs.get(entitlementPath).status, "revoked");
   assert.equal(h.docs.get("testSeriesRefunds/rfnd_1").status, "processed");
 });
 
@@ -55,7 +57,7 @@ test("partial refund is recorded without revoking access", async () => {
   assert.equal(result.revoked, false);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").amountRefunded, 10000);
-  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "active");
+  assert.equal(h.docs.get(entitlementPath).status, "active");
   assert.equal(h.docs.get("testSeriesRefunds/rfnd_1").status, "processed");
 });
 
@@ -70,8 +72,8 @@ test("duplicate refund delivery is idempotent", async () => {
 test("duplicate refund replay fails closed when the entitlement has drifted", async () => {
   const h = harness();
   await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_drift" });
-  h.docs.set("testSeriesEntitlements/student_1_test_1", {
-    ...h.docs.get("testSeriesEntitlements/student_1_test_1"),
+  h.docs.set(entitlementPath, {
+    ...h.docs.get(entitlementPath),
     status: "active"
   });
   await assert.rejects(
@@ -145,7 +147,7 @@ test("rejects auto-refund snapshots for uncaptured or unspecified payments witho
     assert.equal(h.docs.has("testSeriesRefunds/rfnd_1"), false);
     assert.equal(h.docs.has("testSeriesPaymentEvents/evt_uncaptured_auto_refund"), false);
     assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
-    assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "active");
+    assert.equal(h.docs.get(entitlementPath).status, "active");
   }
 });
 
@@ -170,7 +172,7 @@ test("does not revoke access for refund events that are not processed", async ()
   const h = harness();
   h.event.payload.refund.entity.status = "pending";
   await assert.rejects(() => applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_pending_1" }), { code: "invalid_refund_event" });
-  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "active");
+  assert.equal(h.docs.get(entitlementPath).status, "active");
 });
 
 test("separate partial refunds revoke access only when their cumulative total equals payment", async () => {
@@ -185,7 +187,7 @@ test("separate partial refunds revoke access only when their cumulative total eq
   const result = await applyProcessedRefund({ db: h.db, event: second, eventId: "evt_partial_b" });
   assert.equal(result.revoked, true);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").amountRefunded, 49900);
-  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "revoked");
+  assert.equal(h.docs.get(entitlementPath).status, "revoked");
 });
 
 test("rejects a provider cumulative refund snapshot above the original payment amount", async () => {
@@ -214,6 +216,6 @@ test("older partial-refund webhook arriving after full refund cannot reactivate 
   const result = await applyProcessedRefund({ db: h.db, event: older, eventId: "evt_old_partial" });
   assert.equal(result.revoked, true);
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").status, "refunded");
-  assert.equal(h.docs.get("testSeriesEntitlements/student_1_test_1").status, "revoked");
+  assert.equal(h.docs.get(entitlementPath).status, "revoked");
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").amountRefunded, 49900);
 });

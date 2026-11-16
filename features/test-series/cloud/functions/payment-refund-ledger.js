@@ -1,6 +1,7 @@
 "use strict";
 
 const { FieldValue } = require("firebase-admin/firestore");
+const { paidEntitlementDocumentId } = require("./payment-entitlement");
 
 function fail(code, message) {
   const error = new Error(message);
@@ -150,7 +151,7 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
         fail("refund_ledger_inconsistent", "Refund payment ledger does not match the provider snapshot");
       }
       const orderRef = db.doc("testSeriesPaymentOrders/" + current.razorpayOrderId);
-      const entitlementRef = db.doc("testSeriesEntitlements/" + current.uid + "_" + current.testId);
+      const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(current.uid, current.testId));
       const [orderSnap, entitlementSnap] = await Promise.all([tx.get(orderRef), tx.get(entitlementRef)]);
       if (!orderSnap.exists || !entitlementSnap.exists) {
         fail("refund_ledger_inconsistent", "Refund payment order or entitlement is missing");
@@ -179,7 +180,7 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
       fail("refund_payment_mismatch", "Refund does not match the captured payment ledger");
     }
     const orderRef = db.doc("testSeriesPaymentOrders/" + payment.razorpayOrderId);
-    const entitlementRef = db.doc("testSeriesEntitlements/" + payment.uid + "_" + payment.testId);
+    const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(payment.uid, payment.testId));
     const [orderSnap, entitlementSnap] = await Promise.all([tx.get(orderRef), tx.get(entitlementRef)]);
     if (!orderSnap.exists || !entitlementSnap.exists) {
       fail("refund_ledger_inconsistent", "Refund payment order or entitlement is missing");

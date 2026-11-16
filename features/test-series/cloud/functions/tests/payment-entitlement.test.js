@@ -3,6 +3,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  paidEntitlementDocumentId,
   getPaidEntitlementLedgerReferences,
   validatePaidEntitlement
 } = require("../payment-entitlement");
@@ -137,4 +138,15 @@ test("rejects any mismatch or non-paid state in the provider order ledger", () =
   ]) {
     assert.equal(validatePaidEntitlement({ ...records, order }).valid, false);
   }
+});
+
+
+test("builds collision-free entitlement document IDs for ambiguous underscore pairs", () => {
+  const first = paidEntitlementDocumentId("student_a", "test");
+  const second = paidEntitlementDocumentId("student", "a_test");
+  assert.equal(first, "9:student_a:test");
+  assert.equal(second, "7:student:a_test");
+  assert.notEqual(first, second);
+  assert.throws(() => paidEntitlementDocumentId("student/other", "test"), TypeError);
+  assert.throws(() => paidEntitlementDocumentId("student", "../test"), TypeError);
 });

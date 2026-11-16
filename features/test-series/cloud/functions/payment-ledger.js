@@ -3,6 +3,7 @@
 const { FieldValue } = require("firebase-admin/firestore");
 const { validateCapturedPayment } = require("./payment-validation");
 const { paymentStudentTestLockDocumentId } = require("./payment-order-request");
+const { paidEntitlementDocumentId } = require("./payment-entitlement");
 
 function fail(code, message) {
   const error = new Error(message);
@@ -120,7 +121,7 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
         fail("event_id_conflict", "Provider event ID was already used for a different payment payload");
       }
 
-      const entitlementRef = db.doc("testSeriesEntitlements/" + duplicateValidation.uid + "_" + duplicateValidation.testId);
+      const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(duplicateValidation.uid, duplicateValidation.testId));
       const entitlementSnap = await tx.get(entitlementRef);
       const previousPayment = paymentSnap.data();
       const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
@@ -164,7 +165,7 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
         fail("payment_" + duplicateValidation.reason, "Repeated payment does not match the original order");
       }
       const previousPayment = paymentSnap.data();
-      const entitlementRef = db.doc("testSeriesEntitlements/" + duplicateValidation.uid + "_" + duplicateValidation.testId);
+      const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(duplicateValidation.uid, duplicateValidation.testId));
       const entitlementSnap = await tx.get(entitlementRef);
       const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
       if (!matchesExistingPaymentState({
@@ -193,7 +194,7 @@ async function applyCapturedPayment({ db, event, eventId } = {}) {
       fail("payment_" + validation.reason, "Captured payment does not match the server-created order");
     }
 
-    const entitlementRef = db.doc("testSeriesEntitlements/" + validation.uid + "_" + validation.testId);
+    const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(validation.uid, validation.testId));
     const paymentLockRef = db.doc("testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({
       uid: validation.uid, testId: validation.testId
     }));

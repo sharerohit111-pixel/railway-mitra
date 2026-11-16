@@ -21,7 +21,7 @@ No Firebase configuration or project files were found in the inspected repositor
 - testSeriesAttempts/{attemptId}: uid, testId, status, startedAt, expiresAt, answers map, score summary.
 - testSeriesActiveSessions/{uid}: active attempt pointer.
 - testSeriesResults/{attemptId}: final score summary.
-- testSeriesEntitlements/{uid_testId}: server-created paid entitlement containing `uid`, `testId` and `status`; `rmStartExam` checks both identity fields against the authenticated student and requested test before granting access. A future payment webhook must create this record only after provider signature verification and idempotency checks.
+- testSeriesEntitlements/{uidLength:uid:testId}: server-created paid entitlement containing `uid`, `testId` and `status`; `rmStartExam` checks both identity fields against the authenticated student and requested test before granting access. A future payment webhook must create this record only after provider signature verification and idempotency checks.
 - testSeriesPaymentOrders/{razorpayOrderId}: trusted server-created order with `uid`, `testId`, amount in minor units, currency and status (`created` → `paid`).
 - testSeriesPayments/{paymentId}: unique captured-payment ledger record bound to one order, student and test.
 - testSeriesPaymentEvents/{eventId}: provider event audit record; duplicate deliveries are recorded as duplicates without granting another entitlement.
@@ -97,3 +97,6 @@ The user's initial monthly target is ₹500. This is a target, not a guaranteed 
 Only a definite provider rejection removes the matching lock while marking its request `failed`. Ambiguous provider outcomes and post-provider Firestore failures retain/repair the lock as `unknown`. After the webhook signature and captured-payment/order validation succeed, the payment ledger atomically grants the entitlement, marks the order paid, and deletes the matching lock. A mismatched lock is a hard conflict and does not grant access.
 
 No TTL or automatic expiry is used: expiry could race a slow provider call and permit duplicate orders. Stale `creating`/`unknown` locks remain blocked pending a reviewed Owner/support reconciliation and a separately designed release action. Do not manually delete a lock or tell a student to start a new checkout while provider outcome is unresolved. Legacy orders without a lock remain eligible for the existing signature-verified ledger path; the lock is enforced for new reservations and any matching lock present at capture time.
+
+
+The entitlement document ID is generated only by `paidEntitlementDocumentId(uid, testId)`. Its UID-length prefix avoids ambiguity when either identity segment contains underscores. See the Cloud README for the required pre-deployment migration check for legacy `{uid_testId}` documents.

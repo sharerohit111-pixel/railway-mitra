@@ -223,3 +223,10 @@ Before a result is calculated, `rmSubmitExam` now projects the persisted answer 
 ## Owner access cursor validation
 
 The Owner manual-access and access-audit callables reject cursors whose ordering timestamp is missing, malformed, or non-finite. Timestamp inspection is fail-closed even when an in-memory timestamp-like object's `toMillis` accessor or method throws. Native `Date` values are read through `Date.prototype.getTime`, so an overridden instance property cannot turn a valid date into an unexpected callable error. Invalid cursor timestamps are reported as invalid cursors before Firestore pagination continues.
+
+
+## Collision-free paid entitlement document IDs
+
+Paid entitlements use the deterministic key `testSeriesEntitlements/{uidLength:uid:testId}`. The UID length marks the exact boundary between the validated identity segments, so pairs such as `(student_a, test)` and `(student, a_test)` cannot collide. Payment capture, exam access, catalogue access and refund reconciliation must all use the shared `paidEntitlementDocumentId(uid, testId)` helper; do not recreate the key with underscore concatenation.
+
+This changes the pre-launch document key from the legacy `{uid_testId}` format. Before any production deployment, inspect existing entitlement documents and migrate them using their stored `uid` and `testId` fields. Detect legacy ID collisions and reconcile them explicitly; do not blindly copy or merge conflicting grants. No live Firebase data was read or modified for this branch-only change.
