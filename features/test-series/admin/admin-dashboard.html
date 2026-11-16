@@ -90,6 +90,22 @@
         </div>
         <label>Questions (JSON)<textarea id="rm-test-questions" rows="10" required placeholder='[{"id":"q1","text":"Question?","options":["A","B","C","D"],"correctIndex":0}]'></textarea></label>
         <p class="rm-admin-hint">हर प्रश्न में id, text, options और correctIndex दें। सही उत्तर सर्वर पर अलग सुरक्षित रखा जाएगा।</p>
+        <section id="rm-owner-question-media-panel" class="rm-admin-panel" aria-label="Question diagram upload">
+          <h4>Question Diagram / Image Upload</h4>
+          <p class="rm-admin-hint">पहले प्रश्न JSON में image descriptor जोड़ें और Draft Test सेव करें। उसके बाद उसी Test ID से image upload करें। केवल JPEG, PNG और WebP · अधिकतम 5 MiB।</p>
+          <div class="rm-admin-form-grid">
+            <label>Question ID<input id="rm-owner-media-question-id" maxlength="100" pattern="[A-Za-z0-9_-]{1,100}" placeholder="जैसे q_diagram_01"></label>
+            <label>Media ID<input id="rm-owner-media-id" maxlength="100" pattern="[A-Za-z0-9_-]{1,100}" placeholder="जैसे turnout_figure_01"></label>
+            <label>Image Alt Text<input id="rm-owner-media-alt" maxlength="200" placeholder="चित्र का विवरण"></label>
+            <label>Image File<input id="rm-owner-media-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <label>Saved Draft Test ID<input id="rm-owner-media-test-id" maxlength="100" pattern="[A-Za-z0-9_-]{1,100}" placeholder="Save Test के बाद मिला Test ID"></label>
+          </div>
+          <div class="rm-admin-form-grid">
+            <button id="rm-owner-media-add-descriptor" type="button">Add Image to Question JSON</button>
+            <button id="rm-owner-media-upload" class="rm-admin-primary" type="button">Upload Image Securely</button>
+          </div>
+          <p id="rm-owner-media-status" class="rm-admin-status" role="status" aria-live="polite"></p>
+        </section>
         <div class="rm-admin-form-grid"><button class="rm-admin-primary" type="submit">Save Test</button><button id="rm-admin-test-cancel" type="button">Clear / New Test</button></div>
       </form>
       <h3>Cloud Tests</h3>
