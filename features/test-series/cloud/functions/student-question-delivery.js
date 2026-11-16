@@ -21,10 +21,22 @@ function fail() {
  * Accept only the exact decimal string format shared by answer saving,
  * attempt recovery and submission. Numeric coercion is intentionally avoided.
  */
+function hasValidStudentOptions(options) {
+  if (!Array.isArray(options) || options.length < 2 || options.length > 6) return false;
+
+  // Array iteration helpers such as some()/map() skip sparse slots. Inspect every
+  // numeric index explicitly so a missing option cannot become a null UI choice.
+  for (let index = 0; index < options.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(options, index)) return false;
+    const option = options[index];
+    if (typeof option !== "string" || !option.trim() || option.length > 1000) return false;
+  }
+  return true;
+}
+
 function isCanonicalStudentAnswerIndex(question, answer) {
   if (!question || typeof question !== "object" || Array.isArray(question) ||
-      !Array.isArray(question.options) || question.options.length < 2 ||
-      question.options.length > 6 || typeof answer !== "string" ||
+      !hasValidStudentOptions(question.options) || typeof answer !== "string" ||
       !/^(0|[1-9]\d*)$/.test(answer)) return false;
 
   const optionIndex = Number(answer);
@@ -41,7 +53,7 @@ function projectStudentQuestions(questions) {
   if (!Array.isArray(questions) || questions.length < 1 || questions.length > 500) fail();
 
   const seenIds = new Set();
-  return questions.map(question => {
+  return Array.from(questions, question => {
     if (!question || typeof question !== "object" || Array.isArray(question)) fail();
 
     const { id, text, options, section } = question;
@@ -49,8 +61,7 @@ function projectStudentQuestions(questions) {
     seenIds.add(id);
 
     if (typeof text !== "string" || !text.trim() || text.length > 5000) fail();
-    if (!Array.isArray(options) || options.length < 2 || options.length > 6 ||
-        options.some(option => typeof option !== "string" || !option.trim() || option.length > 1000)) fail();
+    if (!hasValidStudentOptions(options)) fail();
 
     const safeQuestion = { id, text, options: options.map(option => option) };
     if (section !== undefined && section !== null) {
