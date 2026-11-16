@@ -81,3 +81,11 @@ export async function getStudentCbtDashboard(app) {
 export async function getCbtTestLeaderboard(app, testId) {
   return (await callable(app, "rmGetTestLeaderboard")({ testId })).data;
 }
+
+/**
+ * Resolve a question image through the authenticated callable. The URL is
+ * short-lived and is never persisted in localStorage or question metadata.
+ */
+export async function getCbtQuestionMediaUrl(app, attemptId, questionId, mediaId) {
+  return (await callable(app, "rmGetQuestionMediaUrl")({ attemptId, questionId, mediaId })).data;
+}
