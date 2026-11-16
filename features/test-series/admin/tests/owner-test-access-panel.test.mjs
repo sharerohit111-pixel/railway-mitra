@@ -22,7 +22,7 @@ test("Owner access panel prefers server-computed effective status for expired gr
   assert.match(moduleSource, /const effectiveStatus = item\.effectiveStatus \|\| item\.status/);
   assert.match(moduleSource, /if \(effectiveStatus === "active"\)/);
   const functionsSource = readFileSync(new URL("../../cloud/functions/index.js", import.meta.url), "utf8");
-  assert.match(functionsSource, /effectiveStatus,[\s\S]*?expiryDate\.getTime\(\) <= responseNowMs/);
+  assert.match(functionsSource, /effectiveOwnerAccessStatus\(value\.status, value\.expiresAt, responseNowMs\)/);
 });
 
 test("Owner access panel renders server data as text, not injected HTML", () => {
