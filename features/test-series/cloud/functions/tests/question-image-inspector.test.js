@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const { inspectImageBuffer, MAX_IMAGE_DIMENSION, MAX_IMAGE_PIXELS } = require("../question-image-inspector");
 
 function png(width, height) {
-  const data = Buffer.alloc(24);
+  const data = Buffer.alloc(33);
   Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(data, 0);
   data.writeUInt32BE(13, 8);
   data.write("IHDR", 12, "ascii");
@@ -45,6 +45,13 @@ test("rejects MIME spoofing, truncated headers and unsupported formats", () => {
   assert.throws(() => inspectImageBuffer(png(20, 20), "image/jpeg"), /signature or dimensions/);
   assert.throws(() => inspectImageBuffer(Buffer.alloc(20), "image/webp"), /signature or dimensions/);
   assert.throws(() => inspectImageBuffer(png(20, 20), "image/svg+xml"), /signature or dimensions/);
+  assert.throws(() => inspectImageBuffer(png(20, 20).subarray(0, 24), "image/png"), /signature or dimensions/);
+  const badPngChunkLength = png(20, 20);
+  badPngChunkLength.writeUInt32BE(12, 8);
+  assert.throws(() => inspectImageBuffer(badPngChunkLength, "image/png"), /signature or dimensions/);
+  const badWebpRiffLength = webpVp8x(20, 20);
+  badWebpRiffLength.writeUInt32LE(1000, 4);
+  assert.throws(() => inspectImageBuffer(badWebpRiffLength, "image/webp"), /signature or dimensions/);
 });
 
 test("rejects zero, oversized and excessive-pixel image dimensions", () => {
