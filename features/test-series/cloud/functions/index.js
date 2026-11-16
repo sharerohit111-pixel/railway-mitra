@@ -25,7 +25,7 @@ const {
   inspectPaymentRequest
 } = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
-const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint, ownerAccessCursorMatches, isOwnerAccessGrantUnexpired } = require("./owner-test-access");
+const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint, ownerAccessCursorMatches, isOwnerAccessGrantUnexpired, effectiveOwnerAccessStatus } = require("./owner-test-access");
 const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
@@ -636,11 +636,7 @@ exports.rmOwnerListStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
     items: docs.map(doc => {
       const value = doc.data();
       const expiryDate = date(value.expiresAt);
-      const hasExpiry = value.expiresAt !== null && value.expiresAt !== undefined;
-      const effectiveStatus = value.status === "active" && hasExpiry &&
-        (!expiryDate || !Number.isFinite(expiryDate.getTime()) || expiryDate.getTime() <= responseNowMs)
-        ? "expired"
-        : value.status;
+      const effectiveStatus = effectiveOwnerAccessStatus(value.status, value.expiresAt, responseNowMs);
       return {
         accessId: doc.id,
         studentUid: value.uid,
