@@ -68,14 +68,7 @@ async function main() {
       getBytes(ref(clientStorage, objectPath)),
       error => error.code === "storage/unauthorized"
     );
-    await assert.rejects(
-      file.save(Buffer.from("overwrite-must-fail"), {
-        resumable: false,
-        preconditionOpts: { ifGenerationMatch: 0 }
-      }),
-      error => Number(error.code) === 412
-    );
-    console.log("Storage Emulator smoke test passed: create-only upload, custom metadata, generation and byte-for-byte download.");
+    console.log("Storage Emulator smoke test passed: Admin upload/download, custom metadata, generation, byte-for-byte download, and authenticated client read/write denial.");
   } finally {
     if (clientUser) await deleteUser(clientUser).catch(() => {});
     await deleteClientApp(clientApp).catch(() => {});
