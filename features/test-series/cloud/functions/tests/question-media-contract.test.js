@@ -35,9 +35,13 @@ test("rejects malformed, sparse, oversized and duplicate media arrays", () => {
   assert.throws(() => projectStudentQuestionMedia([{ ...valid, altText: "x".repeat(201) }]), /invalid student question media/);
 });
 
-test("does not coerce object-valued descriptors or accept arbitrary media URLs", () => {
+test("does not coerce object-valued descriptors and strips arbitrary media URLs", () => {
   assert.throws(() => projectStudentQuestionMedia(["https://example.invalid/image.png"]), /invalid student question media/);
-  assert.throws(() => projectStudentQuestionMedia([{ id: "a", altText: "A", mimeType: "image/png", url: "https://example.invalid/a.png" }]), /invalid student question media/);
+  const [descriptor] = projectStudentQuestionMedia([
+    { id: "a", altText: "A", mimeType: "image/png", url: "https://example.invalid/a.png" }
+  ]);
+  assert.deepEqual(descriptor, { id: "a", altText: "A", mimeType: "image/png" });
+  assert.equal("url" in descriptor, false);
 });
 
 test("student question projection includes safe descriptors but never storage locations", () => {
