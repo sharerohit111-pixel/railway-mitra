@@ -70,7 +70,7 @@ jobs:
 
       - name: Install isolated CBT Functions dependencies
         working-directory: features/test-series/cloud/functions
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund --include=optional
 
       - name: Export generated dependency lockfile for review
         if: always()
