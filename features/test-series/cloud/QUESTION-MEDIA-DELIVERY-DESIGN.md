@@ -120,3 +120,15 @@ References reviewed:
 - https://www.npmjs.com/package/sharp
 
 **Decision:** Sharp is a technically plausible candidate for Node 22, but it is not yet approved or installed. The Cloud Functions architecture/glibc baseline, package-lock reproducibility, full transitive license inventory, CI install, cold-start and memory limits remain unverified. No dependency or runtime behavior was changed in this review. Continue to keep image publication blocked until the quarantine/decode/re-encode pipeline is implemented and tested.
+
+### Metadata privacy regression (2026-11-16)
+
+The native Sharp sanitizer test now creates a synthetic JPEG containing non-empty
+EXIF metadata (including GPS latitude/longitude fields) and XMP creator metadata.
+It first verifies those metadata blocks are present in the uploaded fixture, then
+runs the bytes through the production sanitizer and verifies the re-encoded
+output has no EXIF, XMP or IPTC blocks. This closes a test gap where a metadata
+stripping assertion used only newly generated images that had no private metadata
+to strip. The regression runs as part of the isolated CBT Functions test suite;
+it does not require a live bucket, production project or real student data.
+

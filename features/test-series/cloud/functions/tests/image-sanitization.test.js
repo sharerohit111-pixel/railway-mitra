@@ -90,3 +90,36 @@ test("uses the installed native Sharp runtime to decode and re-encode real JPEG,
     assert.equal(metadata.iptc, undefined);
   }
 });
+
+test("strips embedded EXIF GPS and XMP metadata from a real JPEG before publication", async () => {
+  const xmp = [
+    '<?xml version="1.0"?>',
+    '<x:xmpmeta xmlns:x="adobe:ns:meta/">',
+    '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">',
+    '<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">',
+    '<dc:creator>railway-mitra-private-fixture</dc:creator>',
+    '</rdf:Description></rdf:RDF></x:xmpmeta>'
+  ].join("");
+  const source = await sharp({
+    create: { width: 32, height: 24, channels: 3, background: { r: 20, g: 80, b: 160 } }
+  }).withExif({
+    IFD0: { Artist: "railway-mitra-private-fixture" },
+    IFD3: {
+      GPSLatitudeRef: "N",
+      GPSLatitude: "27/1 42/1 0/1",
+      GPSLongitudeRef: "E",
+      GPSLongitude: "77/1 12/1 0/1"
+    }
+  }).withXmp(xmp).jpeg().toBuffer();
+
+  const sourceMetadata = await sharp(source).metadata();
+  assert.ok(Buffer.isBuffer(sourceMetadata.exif) && sourceMetadata.exif.length > 0);
+  assert.ok(Buffer.isBuffer(sourceMetadata.xmp) && sourceMetadata.xmp.length > 0);
+
+  const clean = await sanitizeImageBuffer(source, "image/jpeg", { sharp });
+  const cleanMetadata = await sharp(clean.data).metadata();
+  assert.equal(cleanMetadata.exif, undefined);
+  assert.equal(cleanMetadata.xmp, undefined);
+  assert.equal(cleanMetadata.iptc, undefined);
+});
+
