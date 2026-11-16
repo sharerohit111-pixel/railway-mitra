@@ -1716,11 +1716,21 @@ test("Owner manual access callables require real emulator password plus phone MF
     crypto.createHash("sha256").update(ownerUid).update("\0").update(requestId).digest("hex")
   );
   let ownerCreated = false;
+  let originalMfaConfig;
+  let mfaConfigUpdated = false;
+  const projectConfigManager = getAuth(app).projectConfigManager();
 
   assert.equal(process.env.OWNER_UID, ownerUid,
     "Functions emulator must receive the isolated Owner UID from the CBT workflow");
 
   try {
+    const currentProjectConfig = await projectConfigManager.getProjectConfig();
+    originalMfaConfig = currentProjectConfig.multiFactorConfig || null;
+    await projectConfigManager.updateProjectConfig({
+      multiFactorConfig: { state: "ENABLED", factorIds: ["phone"] }
+    });
+    mfaConfigUpdated = true;
+
     await getAuth(app).deleteUser(ownerUid).catch(() => {});
     await getAuth(app).createUser({
       uid: ownerUid,
@@ -1773,6 +1783,11 @@ test("Owner manual access callables require real emulator password plus phone MF
       }
     });
     assert.ok(enrollmentFinal.idToken, "phone enrollment must return a refreshed ID token");
+    const enrolledOwner = await getAuth(app).getUser(ownerUid);
+    assert.ok(
+      enrolledOwner.multiFactor?.enrolledFactors?.some(factor => factor.factorId === "phone"),
+      "Auth Emulator must persist the phone second factor on the Owner account"
+    );
 
     // A fresh password sign-in must now return a pending MFA challenge.
     const mfaChallenge = await authEmulatorRequest("v1/accounts:signInWithPassword", {
@@ -1891,6 +1906,11 @@ test("Owner manual access callables require real emulator password plus phone MF
       if (count) await batch.commit().catch(() => {});
     }
     if (ownerCreated) await getAuth(app).deleteUser(ownerUid).catch(() => {});
+    if (mfaConfigUpdated) {
+      await projectConfigManager.updateProjectConfig({
+        multiFactorConfig: originalMfaConfig || { state: "DISABLED", factorIds: [] }
+      }).catch(() => {});
+    }
   }
 });
 
