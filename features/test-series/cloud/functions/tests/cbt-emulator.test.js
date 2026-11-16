@@ -8,7 +8,7 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
-const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signInWithEmailAndPassword, signOut, multiFactor, PhoneAuthProvider, PhoneMultiFactorGenerator, getMultiFactorResolver, getIdTokenResult } = require("firebase/auth");
+const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
 const { applyProcessedRefund } = require("../payment-refund-ledger");
@@ -44,6 +44,41 @@ async function getEmulatorMfaSmsCode(phoneNumber) {
     await new Promise(resolve => setTimeout(resolve, 50));
   }
   throw new Error("Auth emulator did not expose an SMS verification code for the enrolled Owner phone factor");
+}
+
+async function authEmulatorRequest(path, data, { allowError = false } = {}) {
+  const response = await fetch(
+    `http://127.0.0.1:9099/identitytoolkit.googleapis.com/${path}?key=fake-api-key`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    }
+  );
+  const payload = await response.json();
+  if (!response.ok && !allowError) {
+    throw new Error(`Auth emulator request ${path} failed (${response.status}): ${payload.error?.message || "unknown error"}`);
+  }
+  return payload;
+}
+
+async function ownerCallableWithIdToken(name, data, idToken) {
+  const response = await fetch(`http://127.0.0.1:5001/${PROJECT}/${REGION}/${name}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + idToken
+    },
+    body: JSON.stringify({ data })
+  });
+  const payload = await response.json();
+  if (!response.ok || payload.error) {
+    const status = payload.error?.status || "UNKNOWN";
+    const error = new Error(payload.error?.message || `Callable ${name} failed`);
+    error.code = "functions/" + status.toLowerCase().replace(/_/g, "-");
+    throw error;
+  }
+  return payload.result ?? payload.data;
 }
 
 async function seedPaidAccess({ testId, paymentId, orderId, amount }) {
@@ -1684,62 +1719,81 @@ test("Owner manual access callables require real emulator password plus phone MF
     });
     ownerCreated = true;
 
+    // Obtain a genuine first-factor password token from the Auth Emulator.
+    const firstFactor = await authEmulatorRequest("v1/accounts:signInWithPassword", {
+      email: ownerEmail,
+      password: ownerPassword,
+      returnSecureToken: true
+    });
+    assert.equal(firstFactor.localId, ownerUid);
+    assert.ok(firstFactor.idToken);
+
     // A valid primary password session is deliberately insufficient for Owner access.
-    clientAuth.settings.appVerificationDisabledForTesting = true;
-    await signInWithEmailAndPassword(clientAuth, ownerEmail, ownerPassword);
     await assert.rejects(
-      callable("rmOwnerSetStudentTestAccess", {
+      ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", {
         studentUid: uid,
         testId: complimentaryTestId,
         action: "grant",
         reason: "Primary factor only denial",
         requestId: "emulator_owner_primary_0001"
-      }),
+      }, firstFactor.idToken),
       error => error.code === "functions/permission-denied"
     );
 
-    // Enroll a real phone second factor using the Auth SDK and emulator-issued SMS code.
-    const ownerBeforeMfa = clientAuth.currentUser;
-    const mfaSession = await multiFactor(ownerBeforeMfa).getSession();
-    const phoneProvider = new PhoneAuthProvider(clientAuth);
-    const enrollmentVerificationId = await phoneProvider.verifyPhoneNumber({
-      phoneNumber: ownerPhoneNumber,
-      session: mfaSession
+    // Enroll a phone second factor through the Auth Emulator's Identity Toolkit
+    // REST flow. The verification code is read only from the local emulator.
+    const enrollmentStart = await authEmulatorRequest("v2/accounts/mfaEnrollment:start", {
+      idToken: firstFactor.idToken,
+      phoneEnrollmentInfo: {
+        phoneNumber: ownerPhoneNumber,
+        clientType: "CLIENT_TYPE_WEB"
+      }
     });
+    const enrollmentSession = enrollmentStart.phoneSessionInfo?.sessionInfo;
+    assert.ok(enrollmentSession, "Auth Emulator must create an MFA enrollment session");
     const enrollmentCode = await getEmulatorMfaSmsCode(ownerPhoneNumber);
-    const enrollmentCredential = PhoneAuthProvider.credential(enrollmentVerificationId, enrollmentCode);
-    await multiFactor(ownerBeforeMfa).enroll(
-      PhoneMultiFactorGenerator.assertion(enrollmentCredential),
-      "Railway Mitra Owner test phone"
-    );
-
-    // Sign in afresh and complete the actual MFA resolver flow; no custom token or
-    // hand-crafted sign_in_second_factor claim is used for the Owner identity.
-    await signOut(clientAuth);
-    let mfaRequiredError = null;
-    try {
-      await signInWithEmailAndPassword(clientAuth, ownerEmail, ownerPassword);
-    } catch (error) {
-      mfaRequiredError = error;
-    }
-    assert.equal(mfaRequiredError?.code, "auth/multi-factor-auth-required",
-      "an enrolled Owner must be challenged for the second factor");
-    const resolver = getMultiFactorResolver(clientAuth, mfaRequiredError);
-    const phoneHint = resolver.hints.find(hint => hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID);
-    assert.ok(phoneHint, "the enrolled phone factor must be offered by the MFA resolver");
-    const signInVerificationId = await phoneProvider.verifyPhoneNumber({
-      multiFactorHint: phoneHint,
-      session: resolver.session
+    const enrollmentFinal = await authEmulatorRequest("v2/accounts/mfaEnrollment:finalize", {
+      idToken: firstFactor.idToken,
+      displayName: "Railway Mitra Owner test phone",
+      phoneVerificationInfo: {
+        sessionInfo: enrollmentSession,
+        code: enrollmentCode
+      }
     });
+    assert.ok(enrollmentFinal.idToken, "phone enrollment must return a refreshed ID token");
+
+    // A fresh password sign-in must now return a pending MFA challenge.
+    const mfaChallenge = await authEmulatorRequest("v1/accounts:signInWithPassword", {
+      email: ownerEmail,
+      password: ownerPassword,
+      returnSecureToken: true
+    }, { allowError: true });
+    assert.ok(mfaChallenge.error, "password-only sign-in must not complete after MFA enrollment");
+    assert.ok(mfaChallenge.mfaPendingCredential, "Auth Emulator must return a pending MFA credential");
+    const phoneEnrollment = (mfaChallenge.mfaInfo || []).find(item => item.phoneInfo);
+    assert.ok(phoneEnrollment?.mfaEnrollmentId, "password sign-in must expose the enrolled phone factor");
+
+    const signInStart = await authEmulatorRequest("v2/accounts/mfaSignIn:start", {
+      mfaPendingCredential: mfaChallenge.mfaPendingCredential,
+      mfaEnrollmentId: phoneEnrollment.mfaEnrollmentId,
+      phoneSignInInfo: { clientType: "CLIENT_TYPE_WEB" }
+    });
+    const signInSession = signInStart.phoneResponseInfo?.sessionInfo;
+    assert.ok(signInSession, "Auth Emulator must create an MFA sign-in session");
     const signInCode = await getEmulatorMfaSmsCode(ownerPhoneNumber);
-    const resolved = await resolver.resolveSignIn(
-      PhoneMultiFactorGenerator.assertion(
-        PhoneAuthProvider.credential(signInVerificationId, signInCode)
-      )
-    );
-    const tokenResult = await getIdTokenResult(resolved.user, true);
-    assert.equal(tokenResult.claims.firebase?.sign_in_provider, "password");
-    assert.equal(tokenResult.claims.firebase?.sign_in_second_factor, "phone");
+    const signedIn = await authEmulatorRequest("v2/accounts/mfaSignIn:finalize", {
+      mfaPendingCredential: mfaChallenge.mfaPendingCredential,
+      mfaEnrollmentId: phoneEnrollment.mfaEnrollmentId,
+      phoneVerificationInfo: {
+        sessionInfo: signInSession,
+        code: signInCode
+      }
+    });
+    assert.ok(signedIn.idToken, "phone MFA must produce a final Owner ID token");
+    const tokenClaims = JSON.parse(Buffer.from(signedIn.idToken.split(".")[1], "base64url").toString("utf8"));
+    assert.equal(tokenClaims.sub, ownerUid);
+    assert.equal(tokenClaims.firebase?.sign_in_provider, "password");
+    assert.equal(tokenClaims.firebase?.sign_in_second_factor, "phone");
 
     await testRef.set({
       title: "Owner MFA complimentary access test",
@@ -1757,49 +1811,49 @@ test("Owner manual access callables require real emulator password plus phone MF
       reason: "Approved emulator access",
       requestId: requestIds[0]
     };
-    const granted = await callable("rmOwnerSetStudentTestAccess", grantRequest);
+    const granted = await ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", grantRequest, signedIn.idToken);
     assert.equal(granted.saved, true);
     assert.equal(granted.replayed, false);
     assert.equal(granted.status, "active");
 
-    const replayed = await callable("rmOwnerSetStudentTestAccess", grantRequest);
+    const replayed = await ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", grantRequest, signedIn.idToken);
     assert.equal(replayed.saved, true);
     assert.equal(replayed.replayed, true);
     assert.equal(replayed.status, "active");
 
     await assert.rejects(
-      callable("rmOwnerSetStudentTestAccess", {
+      ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", {
         ...grantRequest,
         reason: "Different approved reason"
-      }),
+      }, signedIn.idToken),
       error => error.code === "functions/already-exists"
     );
 
-    const accessList = await callable("rmOwnerListStudentTestAccess", {
+    const accessList = await ownerCallableWithIdToken("rmOwnerListStudentTestAccess", {
       studentUid: uid,
       pageSize: 10
-    });
+    }, signedIn.idToken);
     const listedGrant = accessList.items.find(item => item.accessId === accessId);
     assert.ok(listedGrant);
     assert.equal(listedGrant.status, "active");
     assert.equal(listedGrant.effectiveStatus, "active");
 
-    const revoke = await callable("rmOwnerSetStudentTestAccess", {
+    const revoke = await ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", {
       studentUid: uid,
       testId: complimentaryTestId,
       action: "revoke",
       reason: "Approved access period ended",
       requestId: requestIds[1]
-    });
+    }, signedIn.idToken);
     assert.equal(revoke.saved, true);
     assert.equal(revoke.replayed, false);
     assert.equal(revoke.status, "revoked");
     assert.equal((await accessRef.get()).data().status, "revoked");
 
-    const auditList = await callable("rmOwnerListStudentAccessAudit", {
+    const auditList = await ownerCallableWithIdToken("rmOwnerListStudentAccessAudit", {
       studentUid: uid,
       pageSize: 10
-    });
+    }, signedIn.idToken);
     const relevantAudit = auditList.items.filter(item => item.testId === complimentaryTestId);
     assert.deepEqual(relevantAudit.map(item => item.action).sort(), ["grant", "revoke"]);
     assert.equal(relevantAudit.length, 2,
@@ -1809,8 +1863,6 @@ test("Owner manual access callables require real emulator password plus phone MF
       .where("targetUid", "==", uid).get();
     assert.equal(storedAudit.docs.filter(doc => doc.data().testId === complimentaryTestId).length, 2);
   } finally {
-    await signOut(clientAuth).catch(() => {});
-    await signInAsTestStudent(uid).catch(() => {});
     await accessRef.delete().catch(() => {});
     await testRef.delete().catch(() => {});
     for (const requestDocId of requestDocIds) {
