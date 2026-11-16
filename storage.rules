@@ -8,7 +8,12 @@ service firebase.storage {
     // Question media is served only through the Owner-authorized server flow.
     // V4 signed URLs are generated after callable authorization; direct Firebase
     // SDK reads/writes to this private prefix are intentionally denied.
+    match /test-series-question-media-quarantine/{allPaths=**} {
+      // Raw Owner uploads are quarantined and never directly readable.
+      allow read, write: if false;
+    }
     match /test-series-question-media/{allPaths=**} {
+      // Only the server-side sanitizer may publish verified, re-encoded media.
       allow read, write: if false;
     }
     match /exam-content/{uid}/{folderId}/{fileName} {
