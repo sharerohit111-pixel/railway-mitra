@@ -258,3 +258,29 @@ test("rejects oversized raw webhook bodies before signature verification or ledg
   assert.equal(signatureReads, 0, "oversized payloads must be rejected before HMAC verification");
   assert.equal(processorCalls, 0, "oversized payloads must never reach a ledger processor");
 });
+
+
+test("accepts a raw webhook body exactly at the configured byte ceiling", async () => {
+  const signedJson = Buffer.from(JSON.stringify(event), "utf8");
+  assert.ok(signedJson.length < MAX_WEBHOOK_BODY_BYTES);
+  const rawBody = Buffer.alloc(MAX_WEBHOOK_BODY_BYTES, 0x20);
+  signedJson.copy(rawBody);
+
+  let receivedEvent = null;
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ rawBody }),
+    res,
+    secret,
+    db: {},
+    applyPayment: async ({ event: verifiedEvent }) => {
+      receivedEvent = verifiedEvent;
+      return { duplicate: false };
+    }
+  });
+
+  assert.equal(rawBody.length, MAX_WEBHOOK_BODY_BYTES);
+  assert.equal(res.code, 200);
+  assert.deepEqual(receivedEvent, event);
+  assert.deepEqual(res.body, { received: true, duplicate: false });
+});
