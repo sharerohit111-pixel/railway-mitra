@@ -51,10 +51,14 @@ function ownerAccessRequestFingerprint(request) {
 }
 
 function isValidCursorTimestamp(value) {
-  if (value instanceof Date) return Number.isFinite(value.getTime());
-  if (!value || typeof value !== "object" || typeof value.toMillis !== "function") return false;
   try {
-    return Number.isFinite(value.toMillis());
+    if (value instanceof Date) {
+      return Number.isFinite(Date.prototype.getTime.call(value));
+    }
+    if (!value || typeof value !== "object") return false;
+    const toMillis = value.toMillis;
+    if (typeof toMillis !== "function") return false;
+    return Number.isFinite(toMillis.call(value));
   } catch (_) {
     return false;
   }
