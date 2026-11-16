@@ -638,20 +638,22 @@ test("real emulator phone OTP sign-in can access the student CBT catalogue", asy
       price: 5,
       mode: "mock",
       durationMinutes: 10,
-      marksPerQuestion: 2,
-      negativeMarks: 0.5,
-      questionCount: 2
+      marksPerQuestion: 1,
+      negativeMarks: 1 / 3,
+      questionCount: 3
     });
     await questionSetRef.set({
       questions: [
         { id: "otp-q1", text: "Emulator question one?", options: ["A", "B"] },
-        { id: "otp-q2", text: "Emulator question two?", options: ["A", "B"] }
+        { id: "otp-q2", text: "Emulator question two?", options: ["A", "B"] },
+        { id: "otp-q3", text: "Emulator question three?", options: ["A", "B"] }
       ]
     });
     await answerKeyRef.set({
       questions: {
         "otp-q1": { correctAnswer: "1" },
-        "otp-q2": { correctAnswer: "0" }
+        "otp-q2": { correctAnswer: "1" },
+        "otp-q3": { correctAnswer: "0" }
       }
     });
     const verification = await authEmulatorRequest("v1/accounts:sendVerificationCode", {
@@ -705,12 +707,15 @@ test("real emulator phone OTP sign-in can access the student CBT catalogue", asy
     attemptId = started.attemptId;
 
     const paper = await callableWithIdToken("rmGetExamQuestions", { attemptId }, signedIn.idToken);
-    assert.equal(paper.questions.length, 2);
+    assert.equal(paper.questions.length, 3);
     assert.equal(paper.questions[0].correctAnswer, undefined, "student question payload must not disclose answer keys");
 
-    const saved = await callableWithIdToken("rmSaveAnswer",
+    const correctSave = await callableWithIdToken("rmSaveAnswer",
       { attemptId, questionId: "otp-q1", answer: "1" }, signedIn.idToken);
-    assert.equal(saved.saved, true);
+    assert.equal(correctSave.saved, true);
+    const wrongSave = await callableWithIdToken("rmSaveAnswer",
+      { attemptId, questionId: "otp-q2", answer: "0" }, signedIn.idToken);
+    assert.equal(wrongSave.saved, true);
 
     const resumed = await callableWithIdToken("rmStartExam", { testId: catalogueTestId }, signedIn.idToken);
     assert.equal(resumed.attemptId, attemptId);
@@ -718,21 +723,23 @@ test("real emulator phone OTP sign-in can access the student CBT catalogue", asy
 
     const recovered = await callableWithIdToken("rmGetExamQuestions", { attemptId }, signedIn.idToken);
     assert.equal(recovered.savedAnswers["otp-q1"], "1", "saved response must survive resume");
+    assert.equal(recovered.savedAnswers["otp-q2"], "0", "second saved response must survive resume");
 
     const submitted = await callableWithIdToken("rmSubmitExam", { attemptId }, signedIn.idToken);
     assert.equal(submitted.submitted, true);
     assert.equal(submitted.correct, 1);
-    assert.equal(submitted.wrong, 0);
+    assert.equal(submitted.wrong, 1);
     assert.equal(submitted.unattempted, 1);
-    assert.equal(submitted.score, 2);
+    assert.ok(Math.abs(submitted.score - (2 / 3)) < 1e-10,
+      "server scoring must apply one-third negative marking");
 
     const result = await callableWithIdToken("rmGetCbtAttemptResult", { attemptId }, signedIn.idToken);
     assert.equal(result.correct, 1);
-    assert.equal(result.score, 2);
+    assert.ok(Math.abs(result.score - (2 / 3)) < 1e-10);
 
     const dashboard = await callableWithIdToken("rmGetStudentDashboard", {}, signedIn.idToken);
     assert.ok(dashboard.results.some(item =>
-      item.attemptId === attemptId && item.testId === catalogueTestId && item.score === 2));  } finally {
+      item.attemptId === attemptId && item.testId === catalogueTestId && Math.abs(item.score - (2 / 3)) < 1e-10));  } finally {
     await Promise.all([
       testRef.delete().catch(() => {}),
       questionSetRef.delete().catch(() => {}),
