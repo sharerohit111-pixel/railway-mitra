@@ -8,7 +8,7 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
-const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signInWithEmailAndPassword, signOut } = require("firebase/auth");
+const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signInWithEmailAndPassword, signOut, multiFactor, PhoneAuthProvider, PhoneMultiFactorGenerator, getMultiFactorResolver, getIdTokenResult } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
 const { applyProcessedRefund } = require("../payment-refund-ledger");
@@ -31,6 +31,19 @@ async function signInAsTestStudent(studentUid) {
 async function callable(name, data = {}) {
   const response = await httpsCallable(functions, name)(data);
   return response.data;
+}
+
+async function getEmulatorMfaSmsCode(phoneNumber) {
+  const endpoint = `http://127.0.0.1:9099/emulator/v1/projects/${PROJECT}/verificationCodes`;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const response = await fetch(endpoint);
+    if (!response.ok) throw new Error(`Auth emulator SMS-code lookup failed: ${response.status}`);
+    const payload = await response.json();
+    const match = (payload.verificationCodes || []).find(item => item.phoneNumber === phoneNumber);
+    if (match && typeof match.sessionCode === "string" && match.sessionCode) return match.sessionCode;
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  throw new Error("Auth emulator did not expose an SMS verification code for the enrolled Owner phone factor");
 }
 
 async function seedPaidAccess({ testId, paymentId, orderId, amount }) {
@@ -1636,6 +1649,184 @@ test("manual grant starts only a complimentary test and revocation preserves the
     if (attemptId) await db.doc("testSeriesAttempts/" + attemptId).delete().catch(() => {});
     await accessRef.delete().catch(() => {});
     await testRef.delete().catch(() => {});
+  }
+});
+
+test("Owner manual access callables require real emulator password plus phone MFA and audit grant/revoke", async () => {
+  const ownerUid = "railway-mitra-cbt-emulator-owner";
+  const ownerEmail = "owner-mfa-emulator@railway-mitra.invalid";
+  const ownerPassword = "Emulator-Only-Owner-Password-927!";
+  const ownerPhoneNumber = "+1666" + String(Date.now()).slice(-7);
+  const complimentaryTestId = "emulator-owner-mfa-complimentary";
+  const accessId = require("../owner-test-access").manualAccessDocumentId(uid, complimentaryTestId);
+  const accessRef = db.doc("testSeriesManualAccess/" + accessId);
+  const testRef = db.doc("testSeriesTests/" + complimentaryTestId);
+  const requestIds = [
+    "emulator_owner_grant_0001",
+    "emulator_owner_revoke_0001"
+  ];
+  const requestDocIds = requestIds.map(requestId =>
+    crypto.createHash("sha256").update(ownerUid).update("\\0").update(requestId).digest("hex")
+  );
+  let ownerCreated = false;
+
+  assert.equal(process.env.OWNER_UID, ownerUid,
+    "Functions emulator must receive the isolated Owner UID from the CBT workflow");
+
+  try {
+    await getAuth(app).deleteUser(ownerUid).catch(() => {});
+    await getAuth(app).createUser({
+      uid: ownerUid,
+      email: ownerEmail,
+      password: ownerPassword,
+      emailVerified: true,
+      displayName: "Emulator Owner MFA Test"
+    });
+    ownerCreated = true;
+
+    // A valid primary password session is deliberately insufficient for Owner access.
+    clientAuth.settings.appVerificationDisabledForTesting = true;
+    await signInWithEmailAndPassword(clientAuth, ownerEmail, ownerPassword);
+    await assert.rejects(
+      callable("rmOwnerSetStudentTestAccess", {
+        studentUid: uid,
+        testId: complimentaryTestId,
+        action: "grant",
+        reason: "Primary factor only denial",
+        requestId: "emulator_owner_primary_0001"
+      }),
+      error => error.code === "functions/permission-denied"
+    );
+
+    // Enroll a real phone second factor using the Auth SDK and emulator-issued SMS code.
+    const ownerBeforeMfa = clientAuth.currentUser;
+    const mfaSession = await multiFactor(ownerBeforeMfa).getSession();
+    const phoneProvider = new PhoneAuthProvider(clientAuth);
+    const enrollmentVerificationId = await phoneProvider.verifyPhoneNumber({
+      phoneNumber: ownerPhoneNumber,
+      session: mfaSession
+    });
+    const enrollmentCode = await getEmulatorMfaSmsCode(ownerPhoneNumber);
+    const enrollmentCredential = PhoneAuthProvider.credential(enrollmentVerificationId, enrollmentCode);
+    await multiFactor(ownerBeforeMfa).enroll(
+      PhoneMultiFactorGenerator.assertion(enrollmentCredential),
+      "Railway Mitra Owner test phone"
+    );
+
+    // Sign in afresh and complete the actual MFA resolver flow; no custom token or
+    // hand-crafted sign_in_second_factor claim is used for the Owner identity.
+    await signOut(clientAuth);
+    let mfaRequiredError = null;
+    try {
+      await signInWithEmailAndPassword(clientAuth, ownerEmail, ownerPassword);
+    } catch (error) {
+      mfaRequiredError = error;
+    }
+    assert.equal(mfaRequiredError?.code, "auth/multi-factor-auth-required",
+      "an enrolled Owner must be challenged for the second factor");
+    const resolver = getMultiFactorResolver(clientAuth, mfaRequiredError);
+    const phoneHint = resolver.hints.find(hint => hint.factorId === PhoneMultiFactorGenerator.FACTOR_ID);
+    assert.ok(phoneHint, "the enrolled phone factor must be offered by the MFA resolver");
+    const signInVerificationId = await phoneProvider.verifyPhoneNumber({
+      multiFactorHint: phoneHint,
+      session: resolver.session
+    });
+    const signInCode = await getEmulatorMfaSmsCode(ownerPhoneNumber);
+    const resolved = await resolver.resolveSignIn(
+      PhoneMultiFactorGenerator.assertion(
+        PhoneAuthProvider.credential(signInVerificationId, signInCode)
+      )
+    );
+    const tokenResult = await getIdTokenResult(resolved.user, true);
+    assert.equal(tokenResult.claims.firebase?.sign_in_provider, "password");
+    assert.equal(tokenResult.claims.firebase?.sign_in_second_factor, "phone");
+
+    await testRef.set({
+      title: "Owner MFA complimentary access test",
+      status: "published",
+      price: 0,
+      mode: "mock",
+      durationMinutes: 10,
+      questionCount: 1
+    });
+
+    const grantRequest = {
+      studentUid: uid,
+      testId: complimentaryTestId,
+      action: "grant",
+      reason: "Approved emulator access",
+      requestId: requestIds[0]
+    };
+    const granted = await callable("rmOwnerSetStudentTestAccess", grantRequest);
+    assert.equal(granted.saved, true);
+    assert.equal(granted.replayed, false);
+    assert.equal(granted.status, "active");
+
+    const replayed = await callable("rmOwnerSetStudentTestAccess", grantRequest);
+    assert.equal(replayed.saved, true);
+    assert.equal(replayed.replayed, true);
+    assert.equal(replayed.status, "active");
+
+    await assert.rejects(
+      callable("rmOwnerSetStudentTestAccess", {
+        ...grantRequest,
+        reason: "Different approved reason"
+      }),
+      error => error.code === "functions/already-exists"
+    );
+
+    const accessList = await callable("rmOwnerListStudentTestAccess", {
+      studentUid: uid,
+      pageSize: 10
+    });
+    const listedGrant = accessList.items.find(item => item.accessId === accessId);
+    assert.ok(listedGrant);
+    assert.equal(listedGrant.status, "active");
+    assert.equal(listedGrant.effectiveStatus, "active");
+
+    const revoke = await callable("rmOwnerSetStudentTestAccess", {
+      studentUid: uid,
+      testId: complimentaryTestId,
+      action: "revoke",
+      reason: "Approved access period ended",
+      requestId: requestIds[1]
+    });
+    assert.equal(revoke.saved, true);
+    assert.equal(revoke.replayed, false);
+    assert.equal(revoke.status, "revoked");
+    assert.equal((await accessRef.get()).data().status, "revoked");
+
+    const auditList = await callable("rmOwnerListStudentAccessAudit", {
+      studentUid: uid,
+      pageSize: 10
+    });
+    const relevantAudit = auditList.items.filter(item => item.testId === complimentaryTestId);
+    assert.deepEqual(relevantAudit.map(item => item.action).sort(), ["grant", "revoke"]);
+    assert.equal(relevantAudit.length, 2,
+      "replaying the same grant request must not create a duplicate audit event");
+
+    const storedAudit = await db.collection("testSeriesAccessAudit")
+      .where("targetUid", "==", uid).get();
+    assert.equal(storedAudit.docs.filter(doc => doc.data().testId === complimentaryTestId).length, 2);
+  } finally {
+    await signOut(clientAuth).catch(() => {});
+    await signInAsTestStudent(uid).catch(() => {});
+    await accessRef.delete().catch(() => {});
+    await testRef.delete().catch(() => {});
+    for (const requestDocId of requestDocIds) {
+      await db.doc("testSeriesAccessRequests/" + requestDocId).delete().catch(() => {});
+    }
+    const audit = await db.collection("testSeriesAccessAudit").where("targetUid", "==", uid).get().catch(() => null);
+    if (audit) {
+      const batch = db.batch();
+      let count = 0;
+      audit.docs.filter(doc => doc.data().testId === complimentaryTestId).forEach(doc => {
+        batch.delete(doc.ref);
+        count += 1;
+      });
+      if (count) await batch.commit().catch(() => {});
+    }
+    if (ownerCreated) await getAuth(app).deleteUser(ownerUid).catch(() => {});
   }
 });
 
