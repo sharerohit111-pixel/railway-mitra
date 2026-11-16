@@ -354,3 +354,14 @@ save or enter a section, and verifies that the current attempt can enter its
 section and save an answer. The submit callable remains separate so a timed-out
 attempt can still be finalized from answers already persisted before expiry.
 No production data, OTP, or live Firebase resource is used.
+
+## Question-media static regression and active-session contract
+
+The source-level regression for `rmGetQuestionMediaUrl` verifies that the callable
+reads `testSeriesActiveSessions/{uid}` and delegates the UID, attempt, test, status
+and exact-expiry checks to the shared `isActiveAttemptSession` validator. It does
+not require a duplicate inline `date(attempt.expiresAt)` comparison: expiry policy
+belongs to the shared helper and is covered by its unit tests. The Functions
+Emulator regression separately verifies that a stale attempt cannot obtain a new
+signed question-media URL. Keep the static source guard aligned with the shared
+validator so future refactors do not reintroduce a second, divergent session rule.

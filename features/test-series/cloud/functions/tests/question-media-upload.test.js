@@ -135,7 +135,7 @@ test("publication requires a canonical positive decimal object-generation string
   assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
 });
 
-test("student signed image delivery enforces attempt ownership, active expiry, mapping integrity and 60-second inline reads", () => {
+test("student signed image delivery enforces attempt ownership, active-session fencing, mapping integrity and 60-second inline reads", () => {
   const { readFileSync } = require("node:fs");
   const source = readFileSync(require.resolve("../index"), "utf8");
   const start = source.indexOf("exports.rmGetQuestionMediaUrl =");
@@ -145,7 +145,9 @@ test("student signed image delivery enforces attempt ownership, active expiry, m
   assert.match(handler, /const uid = student\(req\)/);
   assert.match(handler, /attemptSnap\.data\(\)\.uid !== uid/);
   assert.match(handler, /attempt\.status !== "in_progress"/);
-  assert.match(handler, /date\(attempt\.expiresAt\) <= new Date\(\)/);
+  assert.match(handler, /const now = new Date\(\)/);
+  assert.match(handler, /const activeSessionSnap = await db\.doc\("testSeriesActiveSessions\/" \+ uid\)\.get\(\)/);
+  assert.match(handler, /isActiveAttemptSession\(\{ uid, attemptId, attempt, activeSession, now \}\)/);
   assert.match(handler, /mapping\.status !== "ready"/);
   assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
   assert.match(handler, /generation !== mapping\.generation/);
