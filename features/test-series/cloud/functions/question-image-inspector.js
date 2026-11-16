@@ -17,7 +17,8 @@ function dimensions(width, height) {
 
 function parsePng(buffer) {
   const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  if (buffer.length < 24 || !buffer.subarray(0, 8).equals(signature) ||
+  if (buffer.length < 33 || !buffer.subarray(0, 8).equals(signature) ||
+      buffer.readUInt32BE(8) !== 13 ||
       buffer.toString("ascii", 12, 16) !== "IHDR") invalidImage();
   return dimensions(buffer.readUInt32BE(16), buffer.readUInt32BE(20));
 }
@@ -47,6 +48,7 @@ function parseJpeg(buffer) {
 
 function parseWebp(buffer) {
   if (buffer.length < 30 || buffer.toString("ascii", 0, 4) !== "RIFF" ||
+      buffer.readUInt32LE(4) + 8 > buffer.length ||
       buffer.toString("ascii", 8, 12) !== "WEBP") invalidImage();
   const chunk = buffer.toString("ascii", 12, 16);
   const chunkSize = buffer.readUInt32LE(16);
