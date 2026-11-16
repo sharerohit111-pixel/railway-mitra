@@ -18,7 +18,7 @@ Keep original question media in a private Cloud Storage bucket. Store a server-o
 Suggested server-only record (document ID is the SHA-256 hex digest of the JSON tuple `[testId, questionId, mediaId]`):
 `testSeriesQuestionMedia/{sha256-id}`
 - `testId`, `questionId`, `mediaId`
-- `objectPath` (private; never returned to clients; must start with `test-series-question-media/`)
+- `objectPath` (private; never returned to clients; must exactly equal `test-series-question-media/{testId}/{questionId}/{mediaId}`)
 - `contentType`, `sizeBytes` (1 byte–5 MiB), `sha256` (64 lowercase hex characters), `generation`
 - Storage custom metadata must bind `testId`, `questionId`, `mediaId`, and `sha256` exactly to the record
 - `status` (`ready` only after upload validation)
