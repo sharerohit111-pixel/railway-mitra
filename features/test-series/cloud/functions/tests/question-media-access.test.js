@@ -13,10 +13,14 @@ test("question media URL callable is bound to authenticated active attempts and 
   assert.match(handler, /attempt\.status !== "in_progress"/);
   assert.match(handler, /date\(attempt\.expiresAt\) <= new Date\(\)/);
   assert.match(handler, /projectStudentQuestions\(\[question\]\)/);
+  assert.match(handler, /createHash\("sha256"\)/);
   assert.match(handler, /testSeriesQuestionMedia\//);
   assert.match(handler, /mapping\.status !== "ready"/);
   assert.match(handler, /generation !== String\(mapping\.generation\)/);
+  assert.match(handler, /size !== mapping\.sizeBytes/);
+  assert.match(handler, /custom\.sha256 !== mapping\.sha256/);
   assert.match(handler, /size > 5 \* 1024 \* 1024/);
   assert.match(handler, /getSignedUrl/);
+  assert.match(handler, /expires: expiresAt/);
   assert.doesNotMatch(handler, /req\.data\.(objectPath|storagePath|url|bucket)/);
 });
