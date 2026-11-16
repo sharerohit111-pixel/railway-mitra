@@ -59,6 +59,13 @@ test("Owner upload endpoints require Owner authorization and validate the draft 
   assert.match(createHandler, /question\.media/);
   assert.match(createHandler, /action: "write"/);
   assert.match(createHandler, /ifGenerationMatch: "0"/);
+  assert.match(createHandler, /contentType: upload\.mimeType/);
+  assert.match(createHandler, /extensionHeaders:/);
+  for (const header of ["x-goog-meta-testid", "x-goog-meta-questionid", "x-goog-meta-mediaid", "x-goog-meta-sha256"]) {
+    assert.ok(createHandler.includes(header), `signed upload must bind ${header}`);
+  }
+  assert.match(createHandler, /expires: expiresAt/);
+  assert.match(createHandler, /Date\.now\(\) \+ 5 \* 60 \* 1000/);
   assert.match(finalizeHandler, /owner\(req\)/);
   assert.match(finalizeHandler, /testSnap\.data\(\)\.status !== "draft"/);
   assert.match(finalizeHandler, /file\.download\(\)/);
