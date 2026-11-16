@@ -416,7 +416,7 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
   if (!metadata || !Number.isSafeInteger(size) || size !== upload.sizeBytes ||
       size < 1 || size > MAX_IMAGE_BYTES || metadata.contentType !== upload.mimeType ||
       custom.testid !== upload.testId || custom.questionid !== upload.questionId ||
-      custom.mediaid !== upload.mediaId || custom.sha256 !== upload.sha256 || !/^[1-9]\\d*$/.test(generation)) {
+      custom.mediaid !== upload.mediaId || custom.sha256 !== upload.sha256 || !/^[1-9]\d*$/.test(generation)) {
     throw new HttpsError("failed-precondition", "Uploaded image metadata or size does not match the draft");
   }
   const [bytes] = await file.download();
