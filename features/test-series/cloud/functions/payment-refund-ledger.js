@@ -168,6 +168,13 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
       if (priorEvent && (priorEvent.uid !== current.uid || priorEvent.testId !== current.testId)) {
         fail("refund_ledger_inconsistent", "Refund event identity does not match its payment ledger");
       }
+      // A duplicate refund ID must not hide a newer provider cumulative
+      // snapshot that has not yet been committed by another refund event.
+      // Ask Razorpay to retry (or support to reconcile) rather than
+      // acknowledging a ledger that is behind the signed provider state.
+      if (providerPayment.amount_refunded > amountRefunded) {
+        fail("refund_ledger_inconsistent", "Duplicate refund snapshot is ahead of the committed cumulative refund ledger");
+      }
       return {
         duplicate: true,
         revoked: current.status === "refunded" && amountRefunded === current.amount,

@@ -2803,6 +2803,77 @@ test("a delayed partial-refund webhook cannot restore access after a full refund
   }
 });
 
+test("duplicate refund replay stays retryable when its provider snapshot is ahead of the committed ledger", async () => {
+  const refundTestId = "emulator-refund-replay-ahead-" + uid;
+  const orderId = "order_refund_replay_ahead_" + uid;
+  const paymentId = "pay_refund_replay_ahead_" + uid;
+  const refundId = "rfnd_refund_replay_ahead_" + uid;
+  const firstEventId = "evt_refund_replay_ahead_first_" + uid;
+  const replayEventId = "evt_refund_replay_ahead_second_" + uid;
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, refundTestId));
+  const refundRef = db.doc("testSeriesRefunds/" + refundId);
+  const firstEventRef = db.doc("testSeriesPaymentEvents/" + firstEventId);
+  const replayEventRef = db.doc("testSeriesPaymentEvents/" + replayEventId);
+  const identity = {
+    uid, testId: refundTestId, paymentId, razorpayOrderId: orderId,
+    amount: 49900, currency: "INR"
+  };
+  const refundEvent = ({ amountRefunded, refundStatus }) => ({
+    event: "refund.processed",
+    payload: {
+      refund: { entity: {
+        id: refundId, payment_id: paymentId, amount: 10000,
+        currency: "INR", status: "processed"
+      } },
+      payment: { entity: {
+        id: paymentId, amount: 49900, amount_refunded: amountRefunded,
+        currency: "INR", refund_status: refundStatus,
+        status: refundStatus === "full" ? "refunded" : "captured",
+        captured: true
+      } }
+    }
+  });
+
+  try {
+    await Promise.all([
+      paymentRef.set({ ...identity, status: "captured", amountRefunded: 0 }),
+      orderRef.set({ ...identity, status: "paid" }),
+      entitlementRef.set({ ...identity, status: "active" })
+    ]);
+
+    await applyProcessedRefund({
+      db,
+      event: refundEvent({ amountRefunded: 10000, refundStatus: "partial" }),
+      eventId: firstEventId
+    });
+
+    // A replay of the same refund record carries a newer cumulative provider
+    // snapshot. It must not be acknowledged while the ledger is still behind.
+    await assert.rejects(
+      () => applyProcessedRefund({
+        db,
+        event: refundEvent({ amountRefunded: 49900, refundStatus: "full" }),
+        eventId: replayEventId
+      }),
+      { code: "refund_ledger_inconsistent" }
+    );
+
+    assert.equal((await paymentRef.get()).data().status, "captured");
+    assert.equal((await paymentRef.get()).data().amountRefunded, 10000);
+    assert.equal((await orderRef.get()).data().status, "paid");
+    assert.equal((await entitlementRef.get()).data().status, "active");
+    assert.equal((await refundRef.get()).data().status, "processed");
+    assert.equal((await firstEventRef.get()).exists, true);
+    assert.equal((await replayEventRef.get()).exists, false);
+  } finally {
+    await Promise.all([
+      paymentRef, orderRef, entitlementRef, refundRef, firstEventRef, replayEventRef
+    ].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("verified Razorpay webhook reaches the Firestore ledger exactly once", async () => {
   const paidTestId = "emulator-webhook-integration-test";
   const orderId = "order_webhook_integration";
