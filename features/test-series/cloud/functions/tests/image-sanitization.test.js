@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { sanitizeImageBuffer, MAX_IMAGE_BYTES } = require("../image-sanitization");
 
-function fakeSharp({ data, info, error } = {}) {
+function fakeSharp({ data, info, error, format = "png", pages = 1 } = {}) {
   return (input, options) => {
     assert.ok(Buffer.isBuffer(input));
     assert.equal(options.failOn, "error");
@@ -13,10 +13,10 @@ function fakeSharp({ data, info, error } = {}) {
     const pipeline = {
       rotateCalled: false,
       metadata: async () => ({
-        format: options.format || "png",
+        format,
         width: 640,
         height: 480,
-        pages: options.pages === undefined ? 1 : options.pages
+        pages
       }),
       rotate() { this.rotateCalled = true; return this; },
       toFormat(format) { this.format = format; return this; },
