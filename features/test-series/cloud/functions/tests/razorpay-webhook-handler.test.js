@@ -3,7 +3,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
-const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
+const { handleRazorpayWebhook, MAX_WEBHOOK_BODY_BYTES } = require("../razorpay-webhook-handler");
 
 const secret = "webhook-test-secret";
 const event = {
@@ -233,4 +233,28 @@ test("routes verified refund.processed events to the refund ledger", async () =>
   assert.deepEqual(res.body, { received: true, duplicate: false, revoked: true });
   assert.equal(received.eventId, "evt_refund_handler_1");
   assert.deepEqual(received.event, refundEvent);
+});
+
+
+test("rejects oversized raw webhook bodies before signature verification or ledger access", async () => {
+  const req = request({ rawBody: Buffer.alloc(MAX_WEBHOOK_BODY_BYTES + 1, 0x20) });
+  const originalGet = req.get.bind(req);
+  let signatureReads = 0;
+  req.get = name => {
+    if (name === "x-razorpay-signature") signatureReads += 1;
+    return originalGet(name);
+  };
+  let processorCalls = 0;
+  const res = response();
+
+  await handleRazorpayWebhook({
+    req, res, secret, db: {},
+    applyPayment: async () => { processorCalls += 1; },
+    applyRefund: async () => { processorCalls += 1; }
+  });
+
+  assert.equal(res.code, 413);
+  assert.equal(res.body, "Webhook payload too large");
+  assert.equal(signatureReads, 0, "oversized payloads must be rejected before HMAC verification");
+  assert.equal(processorCalls, 0, "oversized payloads must never reach a ledger processor");
 });
