@@ -3169,3 +3169,99 @@ test("late submission of an expired attempt does not replace a newer active exam
     else await activeRef.delete().catch(() => {});
   }
 });
+
+
+test("GDCE JE Civil 150-question paid exam preserves a 120-minute server deadline across start, save, resume and scoring", async () => {
+  const scenarioTestId = "emulator-gdce-je-civil-150x120";
+  const orderId = "order_gdce_150x120";
+  const paymentId = "pay_gdce_150x120";
+  const scenarioPhone = "+1555" + String(Date.now() + 73).slice(-7);
+  const scenarioUser = await getAuth(app).createUser({ phoneNumber: scenarioPhone });
+  const scenarioUid = scenarioUser.uid;
+  const questionIds = Array.from({ length: 150 }, (_, index) => "gdce-q" + String(index + 1).padStart(3, "0"));
+  const questions = questionIds.map((id, index) => ({
+    id,
+    text: "GDCE JE Civil practice question " + (index + 1) + "?",
+    options: ["Option A", "Option B", "Option C", "Option D"]
+  }));
+  const answerQuestions = {};
+  for (const questionId of questionIds) addExamAnswerKeyEntry(answerQuestions, questionId, 0);
+  const testRef = db.doc("testSeriesTests/" + scenarioTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + scenarioTestId);
+  const keyRef = db.doc("testSeriesAnswerKeys/" + scenarioTestId);
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(scenarioUid, scenarioTestId));
+  const activeRef = db.doc("testSeriesActiveSessions/" + scenarioUid);
+  let attemptId = null;
+
+  try {
+    const customToken = await getAuth(app).createCustomToken(scenarioUid);
+    await signInWithCustomToken(clientAuth, customToken);
+
+    const paymentIdentity = {
+      uid: scenarioUid, testId: scenarioTestId, paymentId,
+      razorpayOrderId: orderId, amount: 49900, currency: "INR"
+    };
+    await Promise.all([
+      testRef.set({
+        title: "GDCE JE Civil — 150 Questions / 120 Minutes",
+        status: "published", price: 499, mode: "mock",
+        durationMinutes: 120, marksPerQuestion: 1, negativeMarks: 1 / 3,
+        questionCount: 150, sections: []
+      }),
+      paperRef.set({ questions }),
+      keyRef.set({ questions: answerQuestions }),
+      paymentRef.set({ ...paymentIdentity, status: "captured" }),
+      orderRef.set({ ...paymentIdentity, status: "paid" }),
+      entitlementRef.set({ ...paymentIdentity, status: "active" })
+    ]);
+
+    const started = await callable("rmStartExam", { testId: scenarioTestId });
+    attemptId = started.attemptId;
+    assert.ok(attemptId);
+    assert.equal(started.resumed, false);
+    const allottedMs = Date.parse(started.expiresAt) - Date.parse(started.startedAt);
+    assert.ok(Math.abs(allottedMs - 120 * 60 * 1000) <= 2000, "server deadline must grant 120 minutes");
+
+    const delivered = await callable("rmGetExamQuestions", { attemptId });
+    assert.equal(delivered.test.durationMinutes, 120);
+    assert.equal(delivered.questions.length, 150);
+    assert.deepEqual(delivered.questions.map(question => question.id), questionIds);
+    assert.equal(delivered.savedAnswerEntries.length, 0);
+    assert.ok(delivered.questions.every(question =>
+      !Object.hasOwn(question, "correctIndex") && !Object.hasOwn(question, "correctAnswer")
+    ), "student delivery must not expose private answer keys");
+
+    await callable("rmSaveAnswer", { attemptId, questionId: questionIds[0], answer: "0" });
+    await callable("rmSaveAnswer", { attemptId, questionId: questionIds[1], answer: "1" });
+
+    const resumed = await callable("rmStartExam", { testId: scenarioTestId });
+    assert.equal(resumed.attemptId, attemptId, "resume must reuse the same attempt");
+    assert.equal(resumed.resumed, true);
+    assert.equal(resumed.expiresAt, started.expiresAt, "resume must not extend the original deadline");
+    const resumedPaper = await callable("rmGetExamQuestions", { attemptId });
+    const savedAnswers = Object.fromEntries(resumedPaper.savedAnswerEntries);
+    assert.equal(savedAnswers[questionIds[0]], "0");
+    assert.equal(savedAnswers[questionIds[1]], "1");
+
+    const submitted = await callable("rmSubmitExam", { attemptId });
+    assert.equal(submitted.submitted, true);
+    assert.equal(submitted.timedOut, false);
+    assert.equal(submitted.correct, 1);
+    assert.equal(submitted.wrong, 1);
+    assert.equal(submitted.unattempted, 148);
+    assert.equal(submitted.totalQuestions, 150);
+    assert.ok(Math.abs(submitted.score - 2 / 3) < 1e-9, "1 correct minus one 1/3 penalty must score 2/3");
+
+    const result = await callable("rmGetCbtAttemptResult", { attemptId });
+    assert.equal(result.totalQuestions, 150);
+    assert.ok(Math.abs(result.score - 2 / 3) < 1e-9);
+  } finally {
+    await signOut(clientAuth).catch(() => {});
+    const cleanupRefs = [testRef, paperRef, keyRef, paymentRef, orderRef, entitlementRef, activeRef];
+    if (attemptId) cleanupRefs.push(db.doc("testSeriesAttempts/" + attemptId), db.doc("testSeriesResults/" + attemptId));
+    await Promise.all(cleanupRefs.map(ref => ref.delete().catch(() => {})));
+    await getAuth(app).deleteUser(scenarioUid).catch(() => {});
+  }
+});

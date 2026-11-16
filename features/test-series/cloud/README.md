@@ -249,3 +249,11 @@ The 1 MiB application limit is inclusive: a raw body of exactly 1,048,576 bytes 
 ### Razorpay refund payment-state consistency
 
 A processed refund webhook must carry a captured payment snapshot whose top-level payment status agrees with its cumulative refund state: `refund_status: partial` requires `status: captured` and `refund_status: full` requires `status: refunded`. The cumulative `amount_refunded` must remain below the payment amount for partial refunds and equal it for full refunds. Contradictory snapshots fail closed before any refund/event ledger write or entitlement change. This follows Razorpay's documented payment-state contract: a payment remains captured while only partially refunded and moves to refunded only after the full amount is refunded. The unit regression covers both contradictory directions and verifies that payment and entitlement records remain unchanged.
+
+## GDCE JE Civil 150-question / 120-minute lifecycle regression
+
+The CBT Functions Emulator suite includes a synthetic paid-test fixture for the specified GDCE JE Civil format. It seeds 150 unique questions and matching private answer keys, a captured-payment/order/active-entitlement triplet, and a 120-minute mock exam.
+
+The callable flow verifies the server-issued two-hour deadline, student-safe delivery of all 150 questions without answer-key fields, two saved answers, resume of the same attempt without extending its deadline, and server-side submission with one correct, one wrong and 148 unanswered answers. With 1 mark per correct answer and 1/3 negative marking, the expected score is 2/3. Synthetic Auth, payment, entitlement, attempt and result records are deleted by the fixture.
+
+This is a single-student local Emulator integration test. It is not a concurrency/load test, a live Razorpay payment, production OTP verification, or production-capacity certification.
