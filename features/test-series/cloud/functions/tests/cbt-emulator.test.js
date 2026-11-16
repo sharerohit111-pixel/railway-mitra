@@ -74,7 +74,7 @@ async function authEmulatorRequest(path, data, { allowError = false } = {}) {
   return payload;
 }
 
-async function ownerCallableWithIdToken(name, data, idToken) {
+async function callableWithIdToken(name, data, idToken) {
   const response = await fetch(`http://127.0.0.1:5001/${PROJECT}/${REGION}/${name}`, {
     method: "POST",
     headers: {
@@ -616,6 +616,58 @@ test("an unconfigured zero-price test is not advertised as the free trial or sta
     );
   } finally {
     await testRef.delete().catch(() => {});
+  }
+});
+
+test("real emulator phone OTP sign-in can access the student CBT catalogue", async () => {
+  const phoneNumber = "+1666" + String(Date.now()).slice(-7);
+  const catalogueTestId = "phone-otp-catalogue-" + String(Date.now());
+  const testRef = db.doc("testSeriesTests/" + catalogueTestId);
+  let createdUid = null;
+
+  try {
+    await testRef.set({
+      title: "Phone OTP catalogue access test",
+      status: "published",
+      price: 0,
+      mode: "mock",
+      durationMinutes: 10,
+      questionCount: 1
+    });
+
+    const verification = await authEmulatorRequest("v1/accounts:sendVerificationCode", {
+      phoneNumber,
+      recaptchaToken: "emulator-test"
+    });
+    assert.ok(verification.sessionInfo, "Auth Emulator must start a phone verification session");
+
+    const smsCode = await getEmulatorMfaSmsCode(phoneNumber);
+    const signedIn = await authEmulatorRequest("v1/accounts:signInWithPhoneNumber", {
+      sessionInfo: verification.sessionInfo,
+      code: smsCode
+    });
+    assert.ok(signedIn.idToken, "phone OTP confirmation must issue an ID token");
+    assert.ok(signedIn.localId, "phone OTP confirmation must identify the student account");
+    createdUid = signedIn.localId;
+
+    const tokenClaims = JSON.parse(Buffer.from(signedIn.idToken.split(".")[1], "base64url").toString("utf8"));
+    assert.equal(tokenClaims.sub, createdUid);
+    assert.equal(tokenClaims.firebase?.sign_in_provider, "phone");
+    assert.equal(tokenClaims.phone_number, phoneNumber);
+
+    const catalogue = await callableWithIdToken(
+      "rmListAvailableTests",
+      { pageSize: 10 },
+      signedIn.idToken
+    );
+    assert.ok(Array.isArray(catalogue.tests));
+    assert.ok(catalogue.tests.some(item => item.testId === catalogueTestId),
+      "a phone-OTP-authenticated student must see the published catalogue entry");
+  } finally {
+    await testRef.delete().catch(() => {});
+    if (createdUid) await getAuth(app).deleteUser(createdUid).catch(() => {});
+    await signOut(clientAuth).catch(() => {});
+    await signInAsTestStudent(uid).catch(() => {});
   }
 });
 
@@ -1752,7 +1804,7 @@ test("Owner manual access callables require real emulator password plus phone MF
 
     // A valid primary password session is deliberately insufficient for Owner access.
     await assert.rejects(
-      ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", {
+      callableWithIdToken("rmOwnerSetStudentTestAccess", {
         studentUid: uid,
         testId: complimentaryTestId,
         action: "grant",
@@ -1838,25 +1890,25 @@ test("Owner manual access callables require real emulator password plus phone MF
       reason: "Approved emulator access",
       requestId: requestIds[0]
     };
-    const granted = await ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", grantRequest, signedIn.idToken);
+    const granted = await callableWithIdToken("rmOwnerSetStudentTestAccess", grantRequest, signedIn.idToken);
     assert.equal(granted.saved, true);
     assert.equal(granted.replayed, false);
     assert.equal(granted.status, "active");
 
-    const replayed = await ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", grantRequest, signedIn.idToken);
+    const replayed = await callableWithIdToken("rmOwnerSetStudentTestAccess", grantRequest, signedIn.idToken);
     assert.equal(replayed.saved, true);
     assert.equal(replayed.replayed, true);
     assert.equal(replayed.status, "active");
 
     await assert.rejects(
-      ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", {
+      callableWithIdToken("rmOwnerSetStudentTestAccess", {
         ...grantRequest,
         reason: "Different approved reason"
       }, signedIn.idToken),
       error => error.code === "functions/already-exists"
     );
 
-    const accessList = await ownerCallableWithIdToken("rmOwnerListStudentTestAccess", {
+    const accessList = await callableWithIdToken("rmOwnerListStudentTestAccess", {
       studentUid: uid,
       pageSize: 10
     }, signedIn.idToken);
@@ -1865,7 +1917,7 @@ test("Owner manual access callables require real emulator password plus phone MF
     assert.equal(listedGrant.status, "active");
     assert.equal(listedGrant.effectiveStatus, "active");
 
-    const revoke = await ownerCallableWithIdToken("rmOwnerSetStudentTestAccess", {
+    const revoke = await callableWithIdToken("rmOwnerSetStudentTestAccess", {
       studentUid: uid,
       testId: complimentaryTestId,
       action: "revoke",
@@ -1877,7 +1929,7 @@ test("Owner manual access callables require real emulator password plus phone MF
     assert.equal(revoke.status, "revoked");
     assert.equal((await accessRef.get()).data().status, "revoked");
 
-    const auditList = await ownerCallableWithIdToken("rmOwnerListStudentAccessAudit", {
+    const auditList = await callableWithIdToken("rmOwnerListStudentAccessAudit", {
       studentUid: uid,
       pageSize: 10
     }, signedIn.idToken);
