@@ -1454,7 +1454,7 @@ exports.rmCreatePaymentOrder = onCall({
   catch (error) { throw new HttpsError("invalid-argument", error.message); }
 
   const testRef = db.doc("testSeriesTests/" + testId);
-  const entitlementRef = db.doc("testSeriesEntitlements/" + uid + "_" + testId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId));
   const testSnap = await testRef.get();
   if (!testSnap.exists || testSnap.data().status !== "published") throw new HttpsError("not-found", "Published test not found");
   let amount;
