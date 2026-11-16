@@ -135,23 +135,35 @@ test("publication requires a canonical positive decimal object-generation string
   assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
 });
 
-test("student signed image delivery enforces attempt ownership, active-session fencing, mapping integrity and 60-second inline reads", () => {
+test("student signed image delivery uses one transaction snapshot before Storage metadata and URL access", () => {
   const { readFileSync } = require("node:fs");
   const source = readFileSync(require.resolve("../index"), "utf8");
   const start = source.indexOf("exports.rmGetQuestionMediaUrl =");
-  const end = source.indexOf("\nexports.", start + 1);
+  const end = source.indexOf("\\nexports.", start + 1);
   const handler = source.slice(start, end > 0 ? end : undefined);
   assert.ok(start >= 0);
-  assert.match(handler, /const uid = student\(req\)/);
-  assert.match(handler, /attemptSnap\.data\(\)\.uid !== uid/);
-  assert.match(handler, /attempt\.status !== "in_progress"/);
-  assert.match(handler, /const now = new Date\(\)/);
-  assert.match(handler, /const activeSessionSnap = await db\.doc\("testSeriesActiveSessions\/" \+ uid\)\.get\(\)/);
-  assert.match(handler, /isActiveAttemptSession\(\{ uid, attemptId, attempt, activeSession, now \}\)/);
-  assert.match(handler, /mapping\.status !== "ready"/);
-  assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
-  assert.match(handler, /generation !== mapping\.generation/);
+  assert.match(handler, /const uid = student\\(req\\)/);
+  assert.match(handler, /const \\{ testId, media, mapping \\} = await db\\.runTransaction\\(async tx => \\{/);
+  assert.match(handler, /const attemptSnap = await tx\\.get\\(attemptRef\\)/);
+  assert.match(handler, /attemptSnap\\.data\\(\\)\\.uid !== uid/);
+  assert.match(handler, /attempt\\.status !== "in_progress"/);
+  assert.match(handler, /const now = new Date\\(\\)/);
+  assert.match(handler, /const activeSessionSnap = await tx\\.get\\(activeSessionRef\\)/);
+  assert.match(handler, /isActiveAttemptSession\\(\\{ uid, attemptId, attempt, activeSession, now \\}\\)/);
+  assert.match(handler, /const paperSnap = await tx\\.get\\(paperRef\\)/);
+  assert.match(handler, /const mappingSnap = await tx\\.get\\(mappingRef\\)/);
+  assert.match(handler, /mapping\\.status !== "ready"/);
+  assert.ok(handler.includes('!/^[1-9]\\\\d*$/.test(mapping.generation)'));
+  assert.match(handler, /generation !== mapping\\.generation/);
   assert.match(handler, /action: "read"/);
-  assert.match(handler, /Date\.now\(\) \+ 60 \* 1000/);
+  assert.match(handler, /Date\\.now\\(\\) \\+ 60 \\* 1000/);
   assert.match(handler, /response-content-disposition": "inline"/);
+
+  const transactionStart = handler.indexOf("await db.runTransaction(async tx => {");
+  const transactionEnd = handler.indexOf("\\n  });", transactionStart);
+  const storageStart = handler.indexOf("const bucket = getStorage().bucket();", transactionEnd);
+  assert.ok(transactionEnd > transactionStart, "authorization transaction must close");
+  assert.ok(storageStart > transactionEnd, "Storage inspection must happen only after the Firestore snapshot resolves");
+  assert.doesNotMatch(handler, /db\\.doc\\("testSeriesActiveSessions\\/" \\+ uid\\)\\.get\\(\\)/,
+    "legacy independent Active Session reads must not return");
 });

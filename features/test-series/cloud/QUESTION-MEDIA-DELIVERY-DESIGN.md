@@ -132,3 +132,16 @@ stripping assertion used only newly generated images that had no private metadat
 to strip. The regression runs as part of the isolated CBT Functions test suite;
 it does not require a live bucket, production project or real student data.
 
+## Snapshot-consistent signed-media authorization regression
+
+The student media callable reads the attempt, active-session pointer, question paper,
+and ready media mapping inside one Firestore transaction. The static regression
+asserts that each authorization/metadata read uses the transaction object and that
+Cloud Storage metadata inspection plus signed-URL creation happen only after the
+transaction resolves. It intentionally rejects a return to independent Firestore
+document reads, which could observe a mixed session state.
+
+Cloud Storage metadata is not part of the Firestore transaction snapshot: after the
+transaction, the callable separately checks object size, MIME type, immutable
+generation, and bound custom metadata before signing a 60-second read URL. A URL
+already issued cannot be recalled when the student's active attempt changes.
