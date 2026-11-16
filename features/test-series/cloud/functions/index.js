@@ -631,17 +631,25 @@ exports.rmOwnerListStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
   const snap = await query.limit(pageSize + 1).get();
   const hasMore = snap.docs.length > pageSize;
   const docs = snap.docs.slice(0, pageSize);
+  const responseNowMs = Date.now();
   return {
     items: docs.map(doc => {
       const value = doc.data();
+      const expiryDate = date(value.expiresAt);
+      const hasExpiry = value.expiresAt !== null && value.expiresAt !== undefined;
+      const effectiveStatus = value.status === "active" && hasExpiry &&
+        (!expiryDate || !Number.isFinite(expiryDate.getTime()) || expiryDate.getTime() <= responseNowMs)
+        ? "expired"
+        : value.status;
       return {
         accessId: doc.id,
         studentUid: value.uid,
         testId: value.testId,
         status: value.status,
+        effectiveStatus,
         source: value.source,
         reason: value.reason,
-        expiresAt: date(value.expiresAt)?.toISOString() || null,
+        expiresAt: expiryDate?.toISOString() || null,
         createdAt: date(value.createdAt)?.toISOString() || null,
         updatedAt: date(value.updatedAt)?.toISOString() || null,
         createdBy: value.createdBy || null,
