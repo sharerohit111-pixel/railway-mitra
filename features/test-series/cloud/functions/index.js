@@ -310,6 +310,147 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
 
 // Issue a short-lived read URL only after verifying the authenticated active attempt
 // and resolving the media object exclusively from server-owned Firestore metadata.
+const {
+  validateMediaUploadRequest,
+  mediaObjectPath,
+  mediaMappingId,
+  MAX_IMAGE_BYTES
+} = require("./question-media-upload");
+
+exports.rmOwnerCreateQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  let upload;
+  try {
+    upload = validateMediaUploadRequest({
+      testId: data.testId, questionId: data.questionId, mediaId: data.mediaId,
+      mimeType: data.mimeType, sizeBytes: data.sizeBytes, sha256: data.sha256
+    });
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+  const [testSnap, paperSnap] = await Promise.all([
+    db.doc("testSeriesTests/" + upload.testId).get(),
+    db.doc("testSeriesQuestionSets/" + upload.testId).get()
+  ]);
+  if (!testSnap.exists || testSnap.data().status !== "draft") {
+    throw new HttpsError("failed-precondition", "Images can only be uploaded to an existing draft test");
+  }
+  if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Save the draft question paper before uploading images");
+  const question = (paperSnap.data().questions || []).find(item => item && item.id === upload.questionId);
+  if (!question || !(question.media || []).some(item =>
+    item.id === upload.mediaId && item.mimeType === upload.mimeType)) {
+    throw new HttpsError("failed-precondition", "Image metadata must already exist on this draft question");
+  }
+  const mappingRef = db.doc("testSeriesQuestionMedia/" + upload.mappingId);
+  const existing = await mappingRef.get();
+  if (existing.exists && existing.data().status === "ready") {
+    throw new HttpsError("already-exists", "This question image is already uploaded; create a new media ID to replace it");
+  }
+  const file = getStorage().bucket().file(upload.objectPath);
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  const customMetadata = {
+    testid: upload.testId,
+    questionid: upload.questionId,
+    mediaid: upload.mediaId,
+    sha256: upload.sha256
+  };
+  const [url] = await file.getSignedUrl({
+    version: "v4",
+    action: "write",
+    expires: expiresAt,
+    contentType: upload.mimeType,
+    extensionHeaders: {
+      "x-goog-meta-testid": customMetadata.testid,
+      "x-goog-meta-questionid": customMetadata.questionid,
+      "x-goog-meta-mediaid": customMetadata.mediaid,
+      "x-goog-meta-sha256": customMetadata.sha256
+    },
+    queryParams: { ifGenerationMatch: "0" }
+  });
+  return {
+    uploadUrl: url,
+    expiresAt: new Date(expiresAt).toISOString(),
+    objectPath: upload.objectPath,
+    requiredHeaders: {
+      "Content-Type": upload.mimeType,
+      "x-goog-meta-testid": customMetadata.testid,
+      "x-goog-meta-questionid": customMetadata.questionid,
+      "x-goog-meta-mediaid": customMetadata.mediaid,
+      "x-goog-meta-sha256": customMetadata.sha256
+    }
+  };
+});
+
+exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  let upload;
+  try {
+    upload = validateMediaUploadRequest({
+      testId: data.testId, questionId: data.questionId, mediaId: data.mediaId,
+      mimeType: data.mimeType, sizeBytes: data.sizeBytes, sha256: data.sha256
+    });
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+  const [testSnap, paperSnap] = await Promise.all([
+    db.doc("testSeriesTests/" + upload.testId).get(),
+    db.doc("testSeriesQuestionSets/" + upload.testId).get()
+  ]);
+  if (!testSnap.exists || testSnap.data().status !== "draft" || !paperSnap.exists) {
+    throw new HttpsError("failed-precondition", "Only saved draft questions can receive images");
+  }
+  const question = (paperSnap.data().questions || []).find(item => item && item.id === upload.questionId);
+  if (!question || !(question.media || []).some(item =>
+    item.id === upload.mediaId && item.mimeType === upload.mimeType)) {
+    throw new HttpsError("failed-precondition", "Image descriptor does not belong to this draft question");
+  }
+  const bucket = getStorage().bucket();
+  const file = bucket.file(upload.objectPath);
+  const [metadata] = await file.getMetadata().catch(() => [null]);
+  const size = Number(metadata && metadata.size);
+  const generation = String(metadata && metadata.generation || "");
+  const custom = metadata && metadata.metadata || {};
+  if (!metadata || !Number.isSafeInteger(size) || size !== upload.sizeBytes ||
+      size < 1 || size > MAX_IMAGE_BYTES || metadata.contentType !== upload.mimeType ||
+      custom.testid !== upload.testId || custom.questionid !== upload.questionId ||
+      custom.mediaid !== upload.mediaId || custom.sha256 !== upload.sha256 || !generation) {
+    throw new HttpsError("failed-precondition", "Uploaded image metadata or size does not match the draft");
+  }
+  const [bytes] = await file.download();
+  const actualSha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+  if (actualSha256 !== upload.sha256) {
+    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Uploaded image checksum does not match");
+  }
+  const mappingRef = db.doc("testSeriesQuestionMedia/" + upload.mappingId);
+  const mapping = {
+    testId: upload.testId,
+    questionId: upload.questionId,
+    mediaId: upload.mediaId,
+    objectPath: upload.objectPath,
+    contentType: upload.mimeType,
+    sizeBytes: upload.sizeBytes,
+    sha256: upload.sha256,
+    generation,
+    status: "ready",
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  };
+  await db.runTransaction(async tx => {
+    const existing = await tx.get(mappingRef);
+    if (existing.exists) {
+      const prior = existing.data();
+      if (prior.status === "ready" && prior.generation === generation &&
+          prior.sha256 === upload.sha256 && prior.sizeBytes === upload.sizeBytes) return;
+      throw new HttpsError("already-exists", "A different image version is already registered for this question");
+    }
+    tx.create(mappingRef, mapping);
+  });
+  return { uploaded: true, testId: upload.testId, questionId: upload.questionId, mediaId: upload.mediaId };
+});
+
 exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req);
   const attemptId = id(req.data && req.data.attemptId);
