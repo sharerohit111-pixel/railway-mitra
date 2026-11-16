@@ -19,6 +19,7 @@ async function main() {
   }, "test-series-storage-smoke");
   const bucket = getStorage(app).bucket();
   const objectPath = "test-series-question-media/emulator-smoke/question-1/diagram-1";
+  const quarantineObjectPath = "test-series-question-media-quarantine/emulator-smoke/question-1/diagram-1";
   // Minimal PNG signature + complete 13-byte IHDR payload used only by the
   // header preflight parser; this is not a fully decoded/valid PNG image.
   const bytes = Buffer.alloc(33);
@@ -30,6 +31,7 @@ async function main() {
   const sha256 = crypto.createHash("sha256").update(bytes).digest("hex");
   assert.deepEqual(inspectImageBuffer(bytes, "image/png"), { width: 640, height: 480, format: "png" });
   const file = bucket.file(objectPath);
+  const quarantineFile = bucket.file(quarantineObjectPath);
   const clientApp = initializeClientApp({
     apiKey: "demo-api-key",
     authDomain: "localhost",
@@ -43,6 +45,11 @@ async function main() {
   connectStorageEmulator(clientStorage, "127.0.0.1", 9199);
   let clientUser = null;
   try {
+    await quarantineFile.save(bytes, {
+      resumable: false,
+      metadata: { contentType: "image/png" },
+      preconditionOpts: { ifGenerationMatch: 0 }
+    });
     await file.save(bytes, {
       resumable: false,
       metadata: {
@@ -80,11 +87,22 @@ async function main() {
       getBytes(ref(clientStorage, objectPath)),
       error => error.code === "storage/unauthorized"
     );
-    console.log("Storage Emulator smoke test passed: PNG header inspection, Admin upload/download, custom metadata/checksum, generation, byte-for-byte download, and authenticated client read/write denial.");
+    await assert.rejects(
+      getBytes(ref(clientStorage, quarantineObjectPath)),
+      error => error.code === "storage/unauthorized"
+    );
+    await assert.rejects(
+      uploadBytes(ref(clientStorage, quarantineObjectPath), Buffer.from("quarantine-client-write-must-be-denied"), {
+        contentType: "image/png"
+      }),
+      error => error.code === "storage/unauthorized"
+    );
+    console.log("Storage Emulator smoke test passed: PNG header inspection, Admin upload/download, custom metadata/checksum, generation, byte-for-byte download, and authenticated client read/write denial for both quarantine and published prefixes.");
   } finally {
     if (clientUser) await deleteUser(clientUser).catch(() => {});
     await deleteClientApp(clientApp).catch(() => {});
     await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
     await deleteApp(app);
   }
 }
