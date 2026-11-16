@@ -1,6 +1,7 @@
 "use strict";
 
 const { answerKeyStorageKey } = require("./exam-answer-key");
+const { projectStudentQuestionMedia } = require("./question-media-contract");
 
 function restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap) {
   if (!Array.isArray(publicQuestions)) {
@@ -83,6 +84,11 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
     if (question.section !== undefined && question.section !== null &&
         (typeof question.section !== "string" || !question.section.trim() || question.section.length > 80)) {
       throw new Error("Question " + (index + 1) + " section is invalid");
+    }
+    try {
+      projectStudentQuestionMedia(question.media);
+    } catch (_) {
+      throw new Error("Question " + (index + 1) + " media descriptors are invalid");
     }
   }
   const expectedAnswerKeys = new Set([...ids].map(answerKeyStorageKey));
