@@ -4,7 +4,8 @@ const {
   validateOwnerTestAccessRequest,
   manualAccessDocumentId,
   ownerAccessRequestFingerprint,
-  ownerAccessCursorMatches
+  ownerAccessCursorMatches,
+  isOwnerAccessGrantUnexpired
 } = require("../owner-test-access");
 
 const base = Object.freeze({
@@ -68,6 +69,17 @@ test("request fingerprint validates grant expiry against the same captured clock
     () => ownerAccessRequestFingerprint(expiringGrant, nowMs + 1),
     /expiry/i
   );
+});
+
+test("grant expiry is rechecked immediately before a new access write", () => {
+  const expiresAt = "2026-11-16T00:00:00.001Z";
+  const grant = { ...base, action: "grant", expiresAt };
+  const revoke = { ...base, action: "revoke", expiresAt: null };
+  assert.equal(isOwnerAccessGrantUnexpired(grant, NOW), true);
+  assert.equal(isOwnerAccessGrantUnexpired(grant, NOW + 1), false);
+  assert.equal(isOwnerAccessGrantUnexpired({ ...base, expiresAt: null }, NOW + 100000), true);
+  assert.equal(isOwnerAccessGrantUnexpired(revoke, NOW + 100000), true);
+  assert.equal(isOwnerAccessGrantUnexpired(grant, Number.NaN), false);
 });
 
 test("access pagination cursors must belong to the active filter and carry its ordering timestamp", () => {
