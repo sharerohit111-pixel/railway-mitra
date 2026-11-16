@@ -45,3 +45,19 @@ test("Owner dashboard exposes the access panel only inside the protected Owner w
   assert.match(markup, /<section id="rm-admin-access-panel" class="rm-admin-panel" hidden>/);
   assert.match(markup, /id="rm-admin-access-audit-list"/);
 });
+
+test("Owner access and audit filters have matching Firestore composite indexes", () => {
+  const indexes = JSON.parse(readFileSync(new URL("../../../../firestore.indexes.json", import.meta.url), "utf8")).indexes;
+  const hasIndex = (collectionGroup, filterField, orderField) => indexes.some(index =>
+    index.collectionGroup === collectionGroup &&
+    index.queryScope === "COLLECTION" &&
+    index.fields.some(field => field.fieldPath === filterField && field.order === "ASCENDING") &&
+    index.fields.some(field => field.fieldPath === orderField && field.order === "DESCENDING")
+  );
+  for (const field of ["uid", "testId", "status"]) {
+    assert.ok(hasIndex("testSeriesManualAccess", field, "updatedAt"), "manual access index: " + field);
+  }
+  for (const field of ["targetUid", "testId", "action"]) {
+    assert.ok(hasIndex("testSeriesAccessAudit", field, "createdAt"), "access audit index: " + field);
+  }
+});
