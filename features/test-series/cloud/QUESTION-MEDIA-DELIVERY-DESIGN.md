@@ -51,7 +51,7 @@ Implemented on the feature branch:
 Still required before release:
 - Configure and test Cloud Storage CORS for the signed PUT headers on the exact production/staging origins.
 - Header inspection is not a full image decode/re-encode or malware scan. Before production, add a trusted decoder/re-encoder and consider metadata stripping and abuse scanning.
-- A dedicated CI Storage Emulator smoke test now verifies Admin SDK create-only upload, custom metadata, object generation, byte-for-byte download and cleanup. This does not yet exercise signed browser PUT URLs or production CORS.
+- A dedicated CI Storage Emulator smoke test verifies Admin SDK upload with a create-only precondition parameter, custom metadata, object generation, byte-for-byte download, and authenticated client read/write denial. The Storage Emulator did not reject a second Admin SDK save with `ifGenerationMatch: 0`, so enforcement of the create-only precondition is not claimed as emulator-verified; retain the signed V4 URL precondition and verify it against a real staging bucket before release. This does not exercise signed browser PUT URLs or production CORS.
 - Verify Storage bucket IAM, private access and retention/cleanup of abandoned partial uploads.
 - Add a trusted image decode/re-encode or malware scan; header inspection is not a full decoder or content-sanitization step.
 - Merge the `test-series-question-media` deny rule into the actual live Storage rules; do not deploy this branch's partial `storage.rules` as a replacement for existing app rules.
