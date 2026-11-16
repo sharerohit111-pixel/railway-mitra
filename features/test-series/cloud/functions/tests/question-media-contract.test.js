@@ -39,3 +39,30 @@ test("does not coerce object-valued descriptors or accept arbitrary media URLs",
   assert.throws(() => projectStudentQuestionMedia(["https://example.invalid/image.png"]), /invalid student question media/);
   assert.throws(() => projectStudentQuestionMedia([{ id: "a", altText: "A", mimeType: "image/png", url: "https://example.invalid/a.png" }]), /invalid student question media/);
 });
+
+test("student question projection includes safe descriptors but never storage locations", () => {
+  const { projectStudentQuestions } = require("../student-question-delivery");
+  const [question] = projectStudentQuestions([{
+    id: "q_diagram",
+    text: "Identify the turnout component",
+    options: ["A", "B"],
+    media: [{
+      id: "turnout_figure",
+      altText: "Turnout layout",
+      mimeType: "image/webp",
+      storagePath: "private/tests/test_1/turnout.webp",
+      downloadURL: "https://example.invalid/?token=secret"
+    }],
+    correctIndex: 1,
+    explanation: "Private explanation"
+  }]);
+  assert.deepEqual(question.media, [{
+    id: "turnout_figure",
+    altText: "Turnout layout",
+    mimeType: "image/webp"
+  }]);
+  assert.equal("storagePath" in question.media[0], false);
+  assert.equal("downloadURL" in question.media[0], false);
+  assert.equal("correctIndex" in question, false);
+  assert.equal("explanation" in question, false);
+});
