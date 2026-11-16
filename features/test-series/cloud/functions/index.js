@@ -460,7 +460,7 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
   const sanitizedGeneration = String(sanitizedMetadata && sanitizedMetadata.generation || "");
   if (!sanitizedMetadata || Number(sanitizedMetadata.size) !== imageInfo.sizeBytes ||
       sanitizedMetadata.contentType !== upload.mimeType ||
-      !/^[1-9]\\d*$/.test(sanitizedGeneration) ||
+      !/^[1-9]\d*$/.test(sanitizedGeneration) ||
       (sanitizedMetadata.metadata || {}).sha256 !== sanitizedSha256) {
     await file.delete({ ignoreNotFound: true }).catch(() => {});
     await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
