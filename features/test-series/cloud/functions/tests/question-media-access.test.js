@@ -16,7 +16,9 @@ test("question media URL callable is bound to authenticated active attempts and 
   assert.match(handler, /createHash\("sha256"\)/);
   assert.match(handler, /testSeriesQuestionMedia\//);
   assert.match(handler, /mapping\.status !== "ready"/);
-  assert.match(handler, /generation !== String\(mapping\.generation\)/);
+  assert.match(handler, /typeof mapping\.generation !== "string"/);
+  assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
+  assert.match(handler, /generation !== mapping\.generation/);
   assert.match(handler, /size !== mapping\.sizeBytes/);
   assert.match(handler, /custom\.sha256 !== mapping\.sha256/);
   assert.match(handler, /size > 5 \* 1024 \* 1024/);
