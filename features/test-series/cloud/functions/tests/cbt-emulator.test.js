@@ -564,6 +564,101 @@ test("question delivery refuses a stale attempt after the student's active exam 
   }
 });
 
+test("stale attempts cannot save answers or enter sections after the active session switches", async () => {
+  await signInAsTestStudent(uid);
+  const testId = "emulator-active-write-fence";
+  const questionId = "active-write-q1";
+  const staleAttemptId = "emulator-active-write-stale";
+  const currentAttemptId = "emulator-active-write-current";
+  const testRef = db.doc("testSeriesTests/" + testId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + testId);
+  const staleAttemptRef = db.doc("testSeriesAttempts/" + staleAttemptId);
+  const currentAttemptRef = db.doc("testSeriesAttempts/" + currentAttemptId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 5 * 60_000);
+
+  try {
+    await Promise.all([
+      testRef.set({
+        title: "Active Write Fence",
+        status: "published",
+        price: 0,
+        mode: "mock",
+        durationMinutes: 10,
+        questionCount: 1,
+        sections: [{ name: "Technical Ability", timeLimitMinutes: 5, questionCount: 1 }]
+      }),
+      paperRef.set({
+        questions: [{
+          id: questionId,
+          text: "Which option is valid?",
+          options: ["Option A", "Option B"],
+          section: "Technical Ability"
+        }]
+      }),
+      staleAttemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: now, expiresAt, answers: {}, sectionTimings: {}
+      }),
+      currentAttemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: now, expiresAt, answers: {}, sectionTimings: {}
+      }),
+      activeRef.set({
+        uid, testId, attemptId: currentAttemptId,
+        status: "in_progress", startedAt: now, expiresAt
+      })
+    ]);
+
+    await assert.rejects(
+      callable("rmEnterCbtSection", { attemptId: staleAttemptId, section: "Technical Ability" }),
+      error => error.code === "functions/failed-precondition" &&
+        error.message.includes("Exam is not the active session")
+    );
+    await assert.rejects(
+      callable("rmSaveAnswer", { attemptId: staleAttemptId, questionId, answer: "1" }),
+      error => error.code === "functions/failed-precondition" &&
+        error.message.includes("Exam is not the active session")
+    );
+
+    const entered = await callable("rmEnterCbtSection", {
+      attemptId: currentAttemptId,
+      section: "Technical Ability"
+    });
+    assert.equal(entered.section, "Technical Ability");
+    assert.equal(entered.resumed, false);
+
+    const saved = await callable("rmSaveAnswer", {
+      attemptId: currentAttemptId,
+      questionId,
+      answer: "1"
+    });
+    assert.equal(saved.saved, true);
+
+    const [staleAttempt, currentAttempt, activeSession] = await Promise.all([
+      staleAttemptRef.get(),
+      currentAttemptRef.get(),
+      activeRef.get()
+    ]);
+    assert.equal(staleAttempt.data().answers[questionId], undefined);
+    assert.equal(staleAttempt.data().sectionTimings["Technical Ability"], undefined);
+    assert.equal(currentAttempt.data().answers[questionId], "1");
+    assert.ok(currentAttempt.data().sectionTimings["Technical Ability"]);
+    assert.equal(activeSession.data().attemptId, currentAttemptId);
+  } finally {
+    await Promise.all([
+      testRef.delete().catch(() => {}),
+      paperRef.delete().catch(() => {}),
+      staleAttemptRef.delete().catch(() => {}),
+      currentAttemptRef.delete().catch(() => {})
+    ]);
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
+  }
+});
+
 test("exam question delivery rejects unknown or malformed persisted saved-answer fields", async () => {
   const privateTestId = "emulator-question-invalid-saved-answers";
   const attemptId = "emulator-question-invalid-saved-answers-attempt";
