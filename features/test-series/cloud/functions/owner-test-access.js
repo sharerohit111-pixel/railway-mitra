@@ -50,7 +50,16 @@ function ownerAccessRequestFingerprint(request) {
   ])).digest("hex");
 }
 
+function ownerAccessCursorMatches(cursorData, filterField, filterValue, timestampField) {
+  if (!cursorData || typeof cursorData !== "object" ||
+      !["updatedAt", "createdAt"].includes(timestampField) ||
+      !cursorData[timestampField]) return false;
+  if (filterValue === null || filterValue === undefined) return true;
+  return cursorData[filterField] === filterValue;
+}
+
 module.exports = {
+  ownerAccessCursorMatches,
   validateOwnerTestAccessRequest,
   manualAccessDocumentId,
   ownerAccessRequestFingerprint
