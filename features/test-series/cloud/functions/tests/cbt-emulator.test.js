@@ -620,21 +620,40 @@ test("an unconfigured zero-price test is not advertised as the free trial or sta
 });
 
 test("real emulator phone OTP sign-in can access the student CBT catalogue", async () => {
-  const phoneNumber = "+1666" + String(Date.now()).slice(-7);
-  const catalogueTestId = "phone-otp-catalogue-" + String(Date.now());
+  const runId = String(Date.now());
+  const phoneNumber = "+1666" + runId.slice(-7);
+  const catalogueTestId = "phone-otp-catalogue-" + runId;
+  const paymentId = "phoneotp-payment-" + runId;
+  const orderId = "phoneotp-order-" + runId;
   const testRef = db.doc("testSeriesTests/" + catalogueTestId);
+  const questionSetRef = db.doc("testSeriesQuestionSets/" + catalogueTestId);
+  const answerKeyRef = db.doc("testSeriesAnswerKeys/" + catalogueTestId);
   let createdUid = null;
+  let attemptId = null;
 
   try {
     await testRef.set({
-      title: "Phone OTP catalogue access test",
+      title: "Phone OTP end-to-end exam test",
       status: "published",
-      price: 0,
+      price: 5,
       mode: "mock",
       durationMinutes: 10,
-      questionCount: 1
+      marksPerQuestion: 2,
+      negativeMarks: 0.5,
+      questionCount: 2
     });
-
+    await questionSetRef.set({
+      questions: [
+        { id: "otp-q1", text: "Emulator question one?", options: ["A", "B"] },
+        { id: "otp-q2", text: "Emulator question two?", options: ["A", "B"] }
+      ]
+    });
+    await answerKeyRef.set({
+      questions: {
+        "otp-q1": { correctAnswer: "1" },
+        "otp-q2": { correctAnswer: "0" }
+      }
+    });
     const verification = await authEmulatorRequest("v1/accounts:sendVerificationCode", {
       phoneNumber,
       recaptchaToken: "emulator-test"
@@ -663,9 +682,73 @@ test("real emulator phone OTP sign-in can access the student CBT catalogue", asy
     assert.ok(Array.isArray(catalogue.tests));
     assert.ok(catalogue.tests.some(item => item.testId === catalogueTestId),
       "a phone-OTP-authenticated student must see the published catalogue entry");
-  } finally {
-    await testRef.delete().catch(() => {});
-    if (createdUid) await getAuth(app).deleteUser(createdUid).catch(() => {});
+
+    // Synthetic paid ledger: exercise the real entitlement checks without a live payment.
+    await Promise.all([
+      db.doc("testSeriesPayments/" + paymentId).set({
+        uid: createdUid, testId: catalogueTestId, paymentId, razorpayOrderId: orderId,
+        amount: 500, currency: "INR", status: "captured", amountRefunded: 0
+      }),
+      db.doc("testSeriesPaymentOrders/" + orderId).set({
+        uid: createdUid, testId: catalogueTestId, paymentId, razorpayOrderId: orderId,
+        amount: 500, currency: "INR", status: "paid"
+      }),
+      db.doc("testSeriesEntitlements/" + createdUid + "_" + catalogueTestId).set({
+        uid: createdUid, testId: catalogueTestId, paymentId, razorpayOrderId: orderId,
+        amount: 500, currency: "INR", status: "active"
+      })
+    ]);
+
+    const started = await callableWithIdToken("rmStartExam", { testId: catalogueTestId }, signedIn.idToken);
+    assert.ok(started.attemptId);
+    assert.equal(started.resumed, false);
+    attemptId = started.attemptId;
+
+    const paper = await callableWithIdToken("rmGetExamQuestions", { attemptId }, signedIn.idToken);
+    assert.equal(paper.questions.length, 2);
+    assert.equal(paper.questions[0].correctAnswer, undefined, "student question payload must not disclose answer keys");
+
+    const saved = await callableWithIdToken("rmSaveAnswer",
+      { attemptId, questionId: "otp-q1", answer: "1" }, signedIn.idToken);
+    assert.equal(saved.saved, true);
+
+    const resumed = await callableWithIdToken("rmStartExam", { testId: catalogueTestId }, signedIn.idToken);
+    assert.equal(resumed.attemptId, attemptId);
+    assert.equal(resumed.resumed, true);
+
+    const recovered = await callableWithIdToken("rmGetExamQuestions", { attemptId }, signedIn.idToken);
+    assert.equal(recovered.savedAnswers["otp-q1"], "1", "saved response must survive resume");
+
+    const submitted = await callableWithIdToken("rmSubmitExam", { attemptId }, signedIn.idToken);
+    assert.equal(submitted.submitted, true);
+    assert.equal(submitted.correct, 1);
+    assert.equal(submitted.wrong, 0);
+    assert.equal(submitted.unattempted, 1);
+    assert.equal(submitted.score, 2);
+
+    const result = await callableWithIdToken("rmGetCbtAttemptResult", { attemptId }, signedIn.idToken);
+    assert.equal(result.correct, 1);
+    assert.equal(result.score, 2);
+
+    const dashboard = await callableWithIdToken("rmGetStudentDashboard", {}, signedIn.idToken);
+    assert.ok(dashboard.results.some(item =>
+      item.attemptId === attemptId && item.testId === catalogueTestId && item.score === 2));  } finally {
+    await Promise.all([
+      testRef.delete().catch(() => {}),
+      questionSetRef.delete().catch(() => {}),
+      answerKeyRef.delete().catch(() => {})
+    ]);
+    if (createdUid) {
+      await Promise.all([
+        db.doc("testSeriesPayments/" + paymentId).delete().catch(() => {}),
+        db.doc("testSeriesPaymentOrders/" + orderId).delete().catch(() => {}),
+        db.doc("testSeriesEntitlements/" + createdUid + "_" + catalogueTestId).delete().catch(() => {}),
+        db.doc("testSeriesActiveSessions/" + createdUid).delete().catch(() => {}),
+        attemptId ? db.doc("testSeriesAttempts/" + attemptId).delete().catch(() => {}) : Promise.resolve(),
+        attemptId ? db.doc("testSeriesResults/" + attemptId).delete().catch(() => {}) : Promise.resolve(),
+        getAuth(app).deleteUser(createdUid).catch(() => {})
+      ]);
+    }
     await signOut(clientAuth).catch(() => {});
     await signInAsTestStudent(uid).catch(() => {});
   }
