@@ -8,9 +8,11 @@ import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoog
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
+import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
 
 export function initOwnerAdminDashboard(auth, functions) {
   const el = id => document.getElementById(id);
+  initOwnerQuestionMediaUpload(functions);
   const login = el("rm-admin-login"), setup = el("rm-admin-mfa-setup"), otpPanel = el("rm-admin-otp"), home = el("rm-admin-home");
   let pendingVerification = null;
   const status = message => { el("rm-owner-login-status").textContent = message; };
