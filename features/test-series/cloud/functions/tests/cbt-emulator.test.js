@@ -8,7 +8,7 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore } = require("firebase-admin/firestore");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
-const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signOut } = require("firebase/auth");
+const { getAuth: getClientAuth, connectAuthEmulator, signInWithCustomToken, signInWithEmailAndPassword, signOut } = require("firebase/auth");
 const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("firebase/functions");
 const { applyCapturedPayment } = require("../payment-ledger");
 const { applyProcessedRefund } = require("../payment-refund-ledger");
@@ -35,15 +35,27 @@ async function callable(name, data = {}) {
 
 async function getEmulatorMfaSmsCode(phoneNumber) {
   const endpoint = `http://127.0.0.1:9099/emulator/v1/projects/${PROJECT}/verificationCodes`;
+  const normalizePhone = value => String(value || "").replace(/\\D/g, "");
+  let lastObserved = [];
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const response = await fetch(endpoint);
     if (!response.ok) throw new Error(`Auth emulator SMS-code lookup failed: ${response.status}`);
     const payload = await response.json();
-    const match = (payload.verificationCodes || []).find(item => item.phoneNumber === phoneNumber);
-    if (match && typeof match.sessionCode === "string" && match.sessionCode) return match.sessionCode;
+    const codes = payload.verificationCodes || [];
+    lastObserved = codes.map(item => ({
+      phoneNumber: item.phoneNumber || null,
+      fields: Object.keys(item),
+      hasSessionCode: typeof item.sessionCode === "string" && Boolean(item.sessionCode)
+    }));
+    const match = codes.find(item =>
+      item.phoneNumber === phoneNumber ||
+      normalizePhone(item.phoneNumber) === normalizePhone(phoneNumber)
+    );
+    const code = match && (match.sessionCode || match.code);
+    if (typeof code === "string" && code) return code;
     await new Promise(resolve => setTimeout(resolve, 50));
   }
-  throw new Error("Auth emulator did not expose an SMS verification code for the enrolled Owner phone factor");
+  throw new Error("Auth emulator did not expose an SMS verification code for the enrolled Owner phone factor; observed=" + JSON.stringify(lastObserved));
 }
 
 async function authEmulatorRequest(path, data, { allowError = false } = {}) {
