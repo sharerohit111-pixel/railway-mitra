@@ -878,7 +878,10 @@ function ownerTestPayload(data) {
     if (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new HttpsError("invalid-argument", "Each question needs a valid correctIndex");
     const section = typeof q.section === "string" ? q.section.trim() : "";
     if (section.length > 80) throw new HttpsError("invalid-argument", "Question section name is too long");
-    publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options, ...(section ? { section } : {}) });
+    let media;
+    try { media = require("./question-media-contract").projectStudentQuestionMedia(q.media); }
+    catch (_) { throw new HttpsError("invalid-argument", "Question image metadata is invalid"); }
+    publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options, ...(section ? { section } : {}), ...(media ? { media } : {}) });
     addExamAnswerKeyEntry(answerQuestions, qid, q.correctIndex);
   }
   const sectionNames = [...new Set(publicQuestions.map(question => question.section).filter(Boolean))];
