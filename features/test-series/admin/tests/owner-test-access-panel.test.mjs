@@ -61,3 +61,10 @@ test("Owner access and audit filters have matching Firestore composite indexes",
     assert.ok(hasIndex("testSeriesAccessAudit", field, "createdAt"), "access audit index: " + field);
   }
 });
+
+test("Owner access pagination and failed requests ignore stale responses", () => {
+  assert.match(moduleSource, /if \(!reset && accessCursor\) payload\.cursor = accessCursor/);
+  assert.match(moduleSource, /if \(!reset && auditCursor\) payload\.cursor = auditCursor/);
+  assert.match(moduleSource, /catch \(error\) \{\s*if \(current !== accessGeneration \|\| currentSession !== sessionGeneration\) return;/);
+  assert.match(moduleSource, /catch \(error\) \{\s*if \(current !== auditGeneration \|\| currentSession !== sessionGeneration\) return;/);
+});
