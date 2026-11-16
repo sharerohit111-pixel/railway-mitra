@@ -103,3 +103,20 @@ No image decoder/re-encoder is currently declared in the isolated Functions pack
 
 Until this pipeline and its staging tests exist, question-image upload remains a draft-authoring capability only and diagram delivery remains a release blocker.
 
+
+
+### Decoder dependency feasibility review (2026-11-16)
+
+A first-party Sharp compatibility review was performed before adding any native dependency:
+- Sharp's current installation guidance requires a Node-API v9 runtime (Node.js >=20.9), so the repository's declared Node.js 22 engine meets the documented Node API floor.
+- Sharp publishes prebuilt Linux x64 and Linux ARM64 binaries, but the deployment's actual CPU architecture and glibc baseline must still be confirmed against the selected Cloud Functions runtime image. The documented prebuilt Linux baseline is glibc >=2.28 (and musl >=1.2.5 for musl builds).
+- Sharp documents that untrusted input is rejected when decode warnings occur and exposes controls such as `failOn`, `limitInputPixels` and `limitInputChannels`. These are useful controls, not a replacement for our own byte, pixel, concurrency and execution-time limits.
+- The Sharp npm package is Apache-2.0; its prebuilt libvips dependency has separate LGPL-3.0-or-later licensing. Review the full dependency license set before adoption.
+- The isolated Functions package currently has no package lock. Do not add Sharp until a reproducible lockfile with the required optional platform packages is generated and CI proves a clean Node 22 install on the same Linux architecture/runtime baseline used by deployment. Keep optional dependencies enabled.
+
+References reviewed:
+- https://sharp.pixelplumbing.com/install/
+- https://sharp.pixelplumbing.com/security/
+- https://www.npmjs.com/package/sharp
+
+**Decision:** Sharp is a technically plausible candidate for Node 22, but it is not yet approved or installed. The Cloud Functions architecture/glibc baseline, package-lock reproducibility, full transitive license inventory, CI install, cold-start and memory limits remain unverified. No dependency or runtime behavior was changed in this review. Continue to keep image publication blocked until the quarantine/decode/re-encode pipeline is implemented and tested.
