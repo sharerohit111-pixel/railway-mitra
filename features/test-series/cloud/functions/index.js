@@ -2,6 +2,7 @@ const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https")
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
 const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
@@ -305,6 +306,66 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
     }])),
     expiresAt: date(attempt.expiresAt).toISOString()
   };
+});
+
+// Issue a short-lived read URL only after verifying the authenticated active attempt
+// and resolving the media object exclusively from server-owned Firestore metadata.
+exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req);
+  const attemptId = id(req.data && req.data.attemptId);
+  const questionId = id(req.data && req.data.questionId);
+  const mediaId = id(req.data && req.data.mediaId);
+  const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
+  if (!attemptSnap.exists || attemptSnap.data().uid !== uid) {
+    throw new HttpsError("permission-denied", "Attempt not found");
+  }
+  const attempt = attemptSnap.data();
+  if (attempt.status !== "in_progress" || !date(attempt.expiresAt) || date(attempt.expiresAt) <= new Date()) {
+    throw new HttpsError("failed-precondition", "Exam is closed");
+  }
+  const paperSnap = await db.doc("testSeriesQuestionSets/" + id(attempt.testId)).get();
+  if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+  const question = (paperSnap.data().questions || []).find(item => item && item.id === questionId);
+  if (!question) throw new HttpsError("permission-denied", "Question does not belong to this attempt");
+  let safeQuestion;
+  try {
+    [safeQuestion] = projectStudentQuestions([question]);
+  } catch (_) {
+    throw new HttpsError("failed-precondition", "Question media metadata is invalid");
+  }
+  const media = (safeQuestion.media || []).find(item => item.id === mediaId);
+  if (!media) throw new HttpsError("permission-denied", "Question media not found");
+  const mappingId = [attempt.testId, questionId, mediaId].join("_");
+  const mappingSnap = await db.doc("testSeriesQuestionMedia/" + mappingId).get();
+  if (!mappingSnap.exists) throw new HttpsError("not-found", "Question image is not published");
+  const mapping = mappingSnap.data();
+  if (mapping.status !== "ready" || mapping.testId !== attempt.testId ||
+      mapping.questionId !== questionId || mapping.mediaId !== mediaId ||
+      mapping.contentType !== media.mimeType ||
+      typeof mapping.objectPath !== "string" || !mapping.objectPath.startsWith("test-series-question-media/")) {
+    throw new HttpsError("failed-precondition", "Question image metadata is inconsistent");
+  }
+  const bucket = getStorage().bucket();
+  const file = bucket.file(mapping.objectPath);
+  const [metadata] = await file.getMetadata().catch(() => [null]);
+  const size = Number(metadata && metadata.size);
+  const generation = String(metadata && metadata.generation || "");
+  const custom = metadata && metadata.metadata || {};
+  if (!metadata || !Number.isSafeInteger(size) || size < 1 || size > 5 * 1024 * 1024 ||
+      metadata.contentType !== media.mimeType || !mapping.generation ||
+      generation !== String(mapping.generation) ||
+      custom.testId !== attempt.testId || custom.questionId !== questionId || custom.mediaId !== mediaId) {
+    throw new HttpsError("failed-precondition", "Question image failed storage integrity checks");
+  }
+  const expiresAt = Date.now() + 60 * 1000;
+  const [url] = await file.getSignedUrl({
+    version: "v4",
+    action: "read",
+    expires: expiresAt,
+    responseType: media.mimeType,
+    queryParams: { "response-content-disposition": "inline" }
+  });
+  return { url, expiresAt: new Date(expiresAt).toISOString(), mimeType: media.mimeType, altText: media.altText };
 });
 
 exports.rmEnterCbtSection = onCall(CALLABLE_OPTIONS, async req => {
