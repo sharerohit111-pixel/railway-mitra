@@ -1,7 +1,33 @@
 {
   "version": 2,
-  "updatedAt": "2026-11-15",
+  "updatedAt": "2026-11-16",
   "notices": [
+    {
+      "id": "pib-rail-2337025",
+      "category": "medical",
+      "verified": true,
+      "publishedAt": "2026-11-16",
+      "titleEn": "Railway Minister Shri Ashwini Vaishnaw and Kanpur MP Shri Ramesh Awasthi Flag Off New Kanpur Express Between Kanpur Central and Anand Vihar Terminal",
+      "titleHi": "रेल मंत्रालय की आधिकारिक सूचना",
+      "summaryEn": "Official release published by the Ministry of Railways. Open the original PIB/Railway Board release for complete details and applicable dates.",
+      "summaryHi": "रेल मंत्रालय द्वारा जारी आधिकारिक सूचना। पूरी जानकारी और लागू तिथियों के लिए मूल सरकारी विज्ञप्ति देखें।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://www.pib.gov.in/PressReleseDetail.aspx?PRID=2337025",
+      "keywords": "Indian Railways Ministry of Railways Railway Board PIB official release"
+    },
+    {
+      "id": "pib-rail-2337025",
+      "category": "medical",
+      "verified": true,
+      "publishedAt": "2026-11-16",
+      "titleEn": "Railway Minister Shri Ashwini Vaishnaw and Kanpur MP Shri Ramesh Awasthi Flag Off New Kanpur Express Between Kanpur Central and Anand Vihar Terminal",
+      "titleHi": "रेल मंत्रालय की आधिकारिक सूचना",
+      "summaryEn": "Official release published by the Ministry of Railways. Open the original PIB/Railway Board release for complete details and applicable dates.",
+      "summaryHi": "रेल मंत्रालय द्वारा जारी आधिकारिक सूचना। पूरी जानकारी और लागू तिथियों के लिए मूल सरकारी विज्ञप्ति देखें।",
+      "sourceName": "Ministry of Railways / PIB",
+      "sourceUrl": "https://www.pib.gov.in/PressReleseDetail.aspx?PRID=2337025",
+      "keywords": "Indian Railways Ministry of Railways Railway Board PIB official release"
+    },
     {
       "id": "pib-rail-2336212",
       "category": "medical",
