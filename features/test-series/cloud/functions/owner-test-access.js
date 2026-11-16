@@ -41,6 +41,23 @@ function isOwnerAccessGrantUnexpired(request, nowMs = Date.now()) {
   return Number.isFinite(expiryMs) && expiryMs > nowMs;
 }
 
+function effectiveOwnerAccessStatus(status, expiresAt, nowMs = Date.now()) {
+  if (status !== "active" || expiresAt === null || expiresAt === undefined) return status;
+  let expiryMs;
+  if (expiresAt instanceof Date) {
+    expiryMs = expiresAt.getTime();
+  } else if (typeof expiresAt === "string") {
+    expiryMs = Date.parse(expiresAt);
+  } else if (typeof expiresAt === "object" && typeof expiresAt.toMillis === "function") {
+    try {
+      expiryMs = expiresAt.toMillis();
+    } catch (_) {
+      return "expired";
+    }
+  }
+  return Number.isFinite(expiryMs) && expiryMs > nowMs ? "active" : "expired";
+}
+
 function manualAccessDocumentId(studentUid, testId) {
   if (typeof studentUid !== "string" || !studentUid || typeof testId !== "string" || !testId) {
     invalid("Student UID and test ID are required");
