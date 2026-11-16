@@ -50,10 +50,20 @@ function ownerAccessRequestFingerprint(request) {
   ])).digest("hex");
 }
 
+function isValidCursorTimestamp(value) {
+  if (value instanceof Date) return Number.isFinite(value.getTime());
+  if (!value || typeof value !== "object" || typeof value.toMillis !== "function") return false;
+  try {
+    return Number.isFinite(value.toMillis());
+  } catch (_) {
+    return false;
+  }
+}
+
 function ownerAccessCursorMatches(cursorData, filterField, filterValue, timestampField) {
   if (!cursorData || typeof cursorData !== "object" ||
       !["updatedAt", "createdAt"].includes(timestampField) ||
-      !cursorData[timestampField]) return false;
+      !isValidCursorTimestamp(cursorData[timestampField])) return false;
   if (filterValue === null || filterValue === undefined) return true;
   return cursorData[filterField] === filterValue;
 }
