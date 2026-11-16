@@ -218,3 +218,8 @@ The CBT Functions Emulator regression saves, resumes and scores `__proto__`, `co
 ## Prototype-safe answer scoring
 
 Before a result is calculated, `rmSubmitExam` now projects the persisted answer map through `projectStudentSavedAnswers` against the current question paper. Only canonical option-index strings stored as own answer properties are eligible for scoring. Inherited object members such as `constructor`, `toString` or `__proto__` are never interpreted as student responses; a missing own answer is counted as unattempted. Unknown question IDs and malformed or out-of-range stored answers fail closed before a result is written. The CBT Functions Emulator regression submits a second attempt with an empty answer map for prototype-sensitive question IDs and verifies zero correct, zero wrong, all questions unattempted and a zero score.
+
+
+## Owner access cursor validation
+
+The Owner manual-access and access-audit callables reject cursors whose ordering timestamp is missing, malformed, or non-finite. Timestamp inspection is fail-closed even when an in-memory timestamp-like object's `toMillis` accessor or method throws. Native `Date` values are read through `Date.prototype.getTime`, so an overridden instance property cannot turn a valid date into an unexpected callable error. Invalid cursor timestamps are reported as invalid cursors before Firestore pagination continues.
