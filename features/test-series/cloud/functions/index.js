@@ -506,8 +506,8 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   const generation = String(metadata && metadata.generation || "");
   const custom = metadata && metadata.metadata || {};
   if (!metadata || !Number.isSafeInteger(size) || size < 1 || size !== mapping.sizeBytes || size > 5 * 1024 * 1024 ||
-      metadata.contentType !== media.mimeType || !mapping.generation ||
-      generation !== String(mapping.generation) ||
+      metadata.contentType !== media.mimeType || typeof mapping.generation !== "string" ||
+      !/^[1-9]\\d*$/.test(mapping.generation) || generation !== mapping.generation ||
       custom.testid !== attempt.testId || custom.questionid !== questionId || custom.mediaid !== mediaId ||
       custom.sha256 !== mapping.sha256) {
     throw new HttpsError("failed-precondition", "Question image failed storage integrity checks");
