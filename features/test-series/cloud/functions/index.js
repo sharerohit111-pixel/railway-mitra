@@ -417,6 +417,7 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
       size < 1 || size > MAX_IMAGE_BYTES || metadata.contentType !== upload.mimeType ||
       custom.testid !== upload.testId || custom.questionid !== upload.questionId ||
       custom.mediaid !== upload.mediaId || custom.sha256 !== upload.sha256 || !/^[1-9]\d*$/.test(generation)) {
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
     throw new HttpsError("failed-precondition", "Uploaded image metadata or size does not match the draft");
   }
   const [bytes] = await quarantineFile.download();
@@ -429,7 +430,7 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
   try {
     imageInfo = await sanitizeImageBuffer(bytes, upload.mimeType, { sharp: require("sharp") });
   } catch (_) {
-    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
     throw new HttpsError("failed-precondition", "Uploaded file could not be fully decoded and safely re-encoded");
   }
 
@@ -490,7 +491,7 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
     if (existing.exists) {
       const prior = existing.data();
       if (prior.status === "ready" && prior.generation === generation &&
-          prior.sha256 === upload.sha256 && prior.sizeBytes === upload.sizeBytes) return;
+          prior.sha256 === sanitizedSha256 && prior.sizeBytes === imageInfo.sizeBytes) return;
       throw new HttpsError("already-exists", "A different image version is already registered for this question");
     }
     tx.create(mappingRef, mapping);
