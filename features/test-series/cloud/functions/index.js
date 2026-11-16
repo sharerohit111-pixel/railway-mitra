@@ -3,6 +3,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
 const { getStorage } = require("firebase-admin/storage");
+const { inspectImageBuffer } = require("./question-image-inspector");
 const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
@@ -424,6 +425,13 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
     await file.delete({ ignoreNotFound: true }).catch(() => {});
     throw new HttpsError("failed-precondition", "Uploaded image checksum does not match");
   }
+  let imageInfo;
+  try {
+    imageInfo = inspectImageBuffer(bytes, upload.mimeType);
+  } catch (_) {
+    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Uploaded file is not a valid supported image or exceeds dimension limits");
+  }
   const mappingRef = db.doc("testSeriesQuestionMedia/" + upload.mappingId);
   const mapping = {
     testId: upload.testId,
@@ -433,6 +441,9 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
     contentType: upload.mimeType,
     sizeBytes: upload.sizeBytes,
     sha256: upload.sha256,
+    width: imageInfo.width,
+    height: imageInfo.height,
+    format: imageInfo.format,
     generation,
     status: "ready",
     createdAt: FieldValue.serverTimestamp(),
