@@ -584,3 +584,36 @@ html,body {
 @media(prefers-reduced-motion:reduce) {
   .feature-grid .rm-dashboard-shortcut {animation:none!important;opacity:1}
 }
+
+
+/* NATURAL-HEIGHT HOME FOLDERS — remove unused blank space below each folder's chips. */
+.feature-grid {
+  align-items:start!important;
+  align-content:start!important;
+  grid-auto-rows:max-content!important;
+}
+.feature-grid > .rm-favorite-card {
+  align-self:start!important;
+  height:fit-content!important;
+  min-height:0!important;
+  max-height:none!important;
+}
+.feature-grid > .rm-favorite-card.has-dashboard-shortcuts {
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  height:fit-content!important;
+  min-height:0!important;
+}
+.feature-grid > .rm-favorite-card.has-dashboard-shortcuts > .feature-card {
+  flex:0 0 auto!important;
+  height:auto!important;
+  min-height:145px;
+}
+.feature-grid > .rm-favorite-card.has-dashboard-shortcuts > .rm-dashboard-shortcuts {
+  flex:0 0 auto!important;
+  height:auto!important;
+  min-height:0!important;
+  padding-bottom:13px;
+}
