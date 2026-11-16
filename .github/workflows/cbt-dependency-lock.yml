@@ -1,0 +1,45 @@
+name: CBT dependency lockfile
+
+on:
+  push:
+    branches:
+      - feature/test-series-cloud-access
+    paths:
+      - "features/test-series/cloud/functions/package.json"
+      - ".github/workflows/cbt-dependency-lock.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  lock-dependencies:
+    if: github.actor == 'sharerohit111-pixel'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out CBT development branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/test-series-cloud-access
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate npm lockfile with optional native platform packages
+        working-directory: features/test-series/cloud/functions
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund --include=optional
+
+      - name: Commit reproducible dependency lockfile
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- features/test-series/cloud/functions/package-lock.json; then
+            echo "Dependency lockfile is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add features/test-series/cloud/functions/package-lock.json
+          git commit -m "build(cbt): lock isolated cloud function dependencies"
+          git push origin HEAD:feature/test-series-cloud-access
