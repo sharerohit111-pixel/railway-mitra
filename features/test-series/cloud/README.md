@@ -235,3 +235,8 @@ This changes the pre-launch document key from the legacy `{uid_testId}` format. 
 ### Payment request identity segment validation
 
 Payment request and student-test lock IDs are SHA-256 hashes of NUL-delimited identity tuples. The shared helper now accepts only canonical ASCII UID and test-ID segments matching `[A-Za-z0-9_-]{1,128}` before hashing. This prevents an embedded delimiter or path separator from making two different identity tuples ambiguous, and keeps direct helper use aligned with the callable's identifier validation. Invalid segments and malformed request-lock hashes fail closed before reservation decisions. Keep this contract aligned with the server's `id()` guard; do not weaken it to whitespace-only checks.
+
+
+### Razorpay webhook body ceiling
+
+The isolated Razorpay webhook handler rejects a raw request body larger than 1 MiB with HTTP 413 before HMAC verification or JSON parsing. The limit bounds application-level signature and parsing work; it does not replace an ingress/request-size limit because the hosting platform may already have buffered the request before the handler runs. Keep the ceiling above normal provider event payloads, and change it only with a matching boundary regression test. Signature verification continues to use the exact `req.rawBody` bytes.
