@@ -2641,6 +2641,168 @@ test("captured payment ledger grants one paid entitlement and deduplicates webho
 });
 
 
+
+
+test("concurrent partial refunds preserve the highest cumulative provider snapshot", async () => {
+  const refundTestId = "emulator-refund-concurrent-" + uid;
+  const orderId = "order_refund_concurrent_" + uid;
+  const paymentId = "pay_refund_concurrent_" + uid;
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, refundTestId));
+  const refundARef = db.doc("testSeriesRefunds/rfnd_concurrent_a_" + uid);
+  const refundBRef = db.doc("testSeriesRefunds/rfnd_concurrent_b_" + uid);
+  const eventARef = db.doc("testSeriesPaymentEvents/evt_refund_concurrent_a_" + uid);
+  const eventBRef = db.doc("testSeriesPaymentEvents/evt_refund_concurrent_b_" + uid);
+  const identity = {
+    uid, testId: refundTestId, paymentId, razorpayOrderId: orderId,
+    amount: 49900, currency: "INR"
+  };
+  const refundEvent = ({ refundId, amount, amountRefunded }) => ({
+    event: "refund.processed",
+    payload: {
+      refund: { entity: {
+        id: refundId, payment_id: paymentId, amount, currency: "INR", status: "processed"
+      } },
+      payment: { entity: {
+        id: paymentId, amount: 49900, amount_refunded: amountRefunded,
+        currency: "INR", refund_status: "partial", status: "captured", captured: true
+      } }
+    }
+  });
+
+  try {
+    await Promise.all([
+      paymentRef.set({ ...identity, status: "captured", amountRefunded: 0 }),
+      orderRef.set({ ...identity, status: "paid" }),
+      entitlementRef.set({ ...identity, status: "active" })
+    ]);
+
+    const [first, second] = await Promise.all([
+      applyProcessedRefund({
+        db,
+        event: refundEvent({ refundId: refundARef.id, amount: 10000, amountRefunded: 10000 }),
+        eventId: eventARef.id
+      }),
+      applyProcessedRefund({
+        db,
+        event: refundEvent({ refundId: refundBRef.id, amount: 15000, amountRefunded: 25000 }),
+        eventId: eventBRef.id
+      })
+    ]);
+
+    assert.equal(first.duplicate, false);
+    assert.equal(second.duplicate, false);
+    assert.equal(first.revoked, false);
+    assert.equal(second.revoked, false);
+    const payment = (await paymentRef.get()).data();
+    assert.equal(payment.status, "captured");
+    assert.equal(payment.amountRefunded, 25000,
+      "a retried older transaction must not overwrite a newer cumulative refund total");
+    assert.equal((await orderRef.get()).data().status, "paid");
+    assert.equal((await entitlementRef.get()).data().status, "active");
+    assert.equal((await refundARef.get()).exists, true);
+    assert.equal((await refundBRef.get()).exists, true);
+    assert.equal((await eventARef.get()).exists, true);
+    assert.equal((await eventBRef.get()).exists, true);
+  } finally {
+    await Promise.all([
+      paymentRef, orderRef, entitlementRef,
+      refundARef, refundBRef, eventARef, eventBRef
+    ].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
+test("a delayed partial-refund webhook cannot restore access after a full refund", async () => {
+  const refundTestId = "emulator-refund-out-of-order-" + uid;
+  const orderId = "order_refund_out_of_order_" + uid;
+  const paymentId = "pay_refund_out_of_order_" + uid;
+  const paymentRef = db.doc("testSeriesPayments/" + paymentId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + orderId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, refundTestId));
+  const fullRefundRef = db.doc("testSeriesRefunds/rfnd_refund_full_" + uid);
+  const delayedRefundRef = db.doc("testSeriesRefunds/rfnd_refund_delayed_" + uid);
+  const fullEventRef = db.doc("testSeriesPaymentEvents/evt_refund_full_" + uid);
+  const delayedEventRef = db.doc("testSeriesPaymentEvents/evt_refund_delayed_" + uid);
+  const replayEventRef = db.doc("testSeriesPaymentEvents/evt_refund_delayed_replay_" + uid);
+  const identity = {
+    uid, testId: refundTestId, paymentId, razorpayOrderId: orderId,
+    amount: 49900, currency: "INR"
+  };
+  const refundEvent = ({ refundId, amount, amountRefunded, refundStatus }) => ({
+    event: "refund.processed",
+    payload: {
+      refund: { entity: {
+        id: refundId, payment_id: paymentId, amount, currency: "INR", status: "processed"
+      } },
+      payment: { entity: {
+        id: paymentId, amount: 49900, amount_refunded: amountRefunded,
+        currency: "INR", refund_status: refundStatus,
+        status: refundStatus === "full" ? "refunded" : "captured",
+        captured: true
+      } }
+    }
+  });
+
+  try {
+    await Promise.all([
+      paymentRef.set({ ...identity, status: "captured", amountRefunded: 0 }),
+      orderRef.set({ ...identity, status: "paid" }),
+      entitlementRef.set({ ...identity, status: "active" })
+    ]);
+
+    // The provider's full-refund snapshot includes an earlier partial refund
+    // whose webhook has not yet reached this application.
+    const full = await applyProcessedRefund({
+      db,
+      event: refundEvent({
+        refundId: fullRefundRef.id, amount: 34900,
+        amountRefunded: 49900, refundStatus: "full"
+      }),
+      eventId: fullEventRef.id
+    });
+    assert.equal(full.revoked, true);
+    assert.equal((await paymentRef.get()).data().status, "refunded");
+    assert.equal((await orderRef.get()).data().status, "refunded");
+    assert.equal((await entitlementRef.get()).data().status, "revoked");
+
+    const delayed = await applyProcessedRefund({
+      db,
+      event: refundEvent({
+        refundId: delayedRefundRef.id, amount: 15000,
+        amountRefunded: 15000, refundStatus: "partial"
+      }),
+      eventId: delayedEventRef.id
+    });
+    assert.equal(delayed.duplicate, false);
+    assert.equal(delayed.revoked, true);
+    assert.equal((await paymentRef.get()).data().amountRefunded, 49900);
+    assert.equal((await paymentRef.get()).data().status, "refunded");
+    assert.equal((await orderRef.get()).data().status, "refunded");
+    assert.equal((await entitlementRef.get()).data().status, "revoked");
+
+    const replay = await applyProcessedRefund({
+      db,
+      event: refundEvent({
+        refundId: delayedRefundRef.id, amount: 15000,
+        amountRefunded: 15000, refundStatus: "partial"
+      }),
+      eventId: replayEventRef.id
+    });
+    assert.equal(replay.duplicate, true);
+    assert.equal(replay.revoked, true);
+    assert.equal((await replayEventRef.get()).exists, false,
+      "a replay under a new provider event ID must not create a second refund ledger entry");
+    assert.equal((await entitlementRef.get()).data().status, "revoked");
+  } finally {
+    await Promise.all([
+      paymentRef, orderRef, entitlementRef,
+      fullRefundRef, delayedRefundRef,
+      fullEventRef, delayedEventRef, replayEventRef
+    ].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("verified Razorpay webhook reaches the Firestore ledger exactly once", async () => {
   const paidTestId = "emulator-webhook-integration-test";
   const orderId = "order_webhook_integration";
