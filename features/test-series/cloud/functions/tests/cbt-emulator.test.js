@@ -1172,6 +1172,22 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(activeAttempt.found, true);
   assert.equal(activeAttempt.attemptId, started.attemptId);
   assert.equal(activeAttempt.status, "in_progress");
+
+  // Recovery must fail closed if the active pointer disagrees with the
+  // in-progress attempt's state or exact server-issued deadline.
+  const activeSessionRef = db.doc("testSeriesActiveSessions/" + uid);
+  const validActiveSession = (await activeSessionRef.get()).data();
+  await activeSessionRef.update({ status: "completed" });
+  const mismatchedStatus = await callable("rmGetStudentActiveAttempt", { testId });
+  assert.equal(mismatchedStatus.found, false);
+  await activeSessionRef.set({
+    ...validActiveSession,
+    expiresAt: new Date(validActiveSession.expiresAt.toDate().getTime() + 1000)
+  });
+  const mismatchedDeadline = await callable("rmGetStudentActiveAttempt", { testId });
+  assert.equal(mismatchedDeadline.found, false);
+  await activeSessionRef.set(validActiveSession);
+
   const otherTestAttempt = await callable("rmGetStudentActiveAttempt", { testId: "another-test" });
   assert.equal(otherTestAttempt.found, false);
 

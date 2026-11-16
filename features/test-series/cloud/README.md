@@ -8,7 +8,7 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmSaveAnswer: saves a scalar answer only for the authenticated attempt owner.
 - rmSubmitExam: scores using private server-side answer keys and records the result.
 - rmGetExamQuestions: returns the authenticated active attempt paper without private answer keys.
-- rmGetStudentActiveAttempt: discovers the authenticated student’s active/completed attempt for safe cross-device recovery.
+- rmGetStudentActiveAttempt: discovers the authenticated student’s active/completed attempt for safe cross-device recovery. It reads the session pointer and attempt in one Firestore transaction; in-progress status and the exact server-issued deadline must match, while a completed pointer must agree with a submitted attempt.
 - rmGetCbtAttemptResult: retrieves only the authenticated student’s submitted result.
 - rmListAvailableTests: lists published test metadata and access type.
 - rmGetStudentDashboard: returns only the authenticated student’s submitted results.
@@ -388,3 +388,10 @@ The isolated CBT Functions Emulator suite exercises the refund ledger against th
 ### Refund webhook retry behavior
 
 A verified `refund.processed` webhook that cannot be reconciled with the stored payment, order, refund and entitlement records must remain retryable (HTTP 500) rather than being acknowledged as a permanent rejection. This allows provider retries after a transient ordering gap or after an operator repairs a ledger inconsistency. Permanent identity and field conflicts remain acknowledged as rejected according to the webhook handler's explicit permanent-error allowlist. The handler regression uses a synthetic, internally consistent full-refund payload and verifies that `refund_ledger_inconsistent` is not silently acknowledged. No provider request or live payment is made.
+
+
+## Snapshot-consistent active-attempt recovery
+
+The student recovery callable reads `testSeriesActiveSessions/{uid}` and its referenced attempt in one read-only Firestore transaction. This prevents a session switch between separate reads from returning an obsolete attempt ID to a re-entering browser.
+
+An in-progress attempt is returned only when the active pointer matches the authenticated UID, attempt ID, test ID, in-progress status and exact unexpired server deadline. A submitted attempt is returned as completed only when the pointer is also marked completed. Missing, malformed, stale or contradictory pointers return `found: false`; they do not authorize exam access. The CBT Emulator regression covers mismatched session status and deadline, and the existing lifecycle regression verifies normal in-progress recovery and completed-result recovery.

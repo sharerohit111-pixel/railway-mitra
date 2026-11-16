@@ -768,22 +768,55 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
 
 exports.rmGetStudentActiveAttempt = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req), testId = id(req.data && req.data.testId);
-  const snap = await db.doc("testSeriesActiveSessions/" + uid).get();
-  if (!snap.exists) return { found: false };
-  const session = snap.data();
-  if (session.uid !== uid || session.testId !== testId || !session.attemptId) return { found: false };
-  const attemptId = id(session.attemptId);
-  const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
-  if (!attemptSnap.exists) return { found: false };
-  const attempt = attemptSnap.data();
-  if (attempt.uid !== uid || attempt.testId !== testId) return { found: false };
-  if (attempt.status !== "in_progress" && attempt.status !== "submitted") return { found: false };
-  return {
-    found: true,
-    attemptId,
-    status: attempt.status === "submitted" ? "completed" : "in_progress",
-    expiresAt: date(attempt.expiresAt)?.toISOString() || null
-  };
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+
+  // Read the active pointer and its attempt from one Firestore snapshot. A
+  // session switch between separate reads must not return a stale recovery ID.
+  return db.runTransaction(async tx => {
+    const sessionSnap = await tx.get(activeRef);
+    if (!sessionSnap.exists) return { found: false };
+    const session = sessionSnap.data();
+    if (session.uid !== uid || session.testId !== testId || !session.attemptId) {
+      return { found: false };
+    }
+
+    let attemptId;
+    try {
+      attemptId = id(session.attemptId);
+    } catch (_) {
+      return { found: false };
+    }
+
+    const attemptSnap = await tx.get(db.doc("testSeriesAttempts/" + attemptId));
+    if (!attemptSnap.exists) return { found: false };
+    const attempt = attemptSnap.data();
+    if (attempt.uid !== uid || attempt.testId !== testId) return { found: false };
+
+    if (attempt.status === "in_progress") {
+      const now = new Date();
+      if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession: session, now })) {
+        return { found: false };
+      }
+      return {
+        found: true,
+        attemptId,
+        status: "in_progress",
+        expiresAt: date(attempt.expiresAt).toISOString()
+      };
+    }
+
+    // A completed recovery pointer must agree with the submitted attempt.
+    if (attempt.status === "submitted" && session.status === "completed") {
+      return {
+        found: true,
+        attemptId,
+        status: "completed",
+        expiresAt: date(attempt.expiresAt)?.toISOString() || null
+      };
+    }
+
+    return { found: false };
+  });
 });
 
 exports.rmGetCbtAttemptResult = onCall(CALLABLE_OPTIONS, async req => {
