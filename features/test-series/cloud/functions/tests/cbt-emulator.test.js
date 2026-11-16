@@ -107,6 +107,16 @@ async function seedPaidAccess({ testId, paymentId, orderId, amount }) {
   return { paymentRef, orderRef, entitlementRef };
 }
 
+async function setActiveSessionForAttempt(attemptId, testId, expiresAt, startedAt = new Date()) {
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previous = await activeRef.get();
+  await activeRef.set({ uid, testId, attemptId, status: "in_progress", startedAt, expiresAt });
+  return async () => {
+    if (previous.exists) await activeRef.set(previous.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
+  };
+}
+
 before(async () => {
   app = initializeApp({ projectId: PROJECT }, "cbt-emulator-tests");
   db = getFirestore(app);
@@ -403,6 +413,7 @@ test("CBT rejects a persisted question whose section has no canonical test confi
   const testRef = db.doc("testSeriesTests/" + malformedTestId);
   const paperRef = db.doc("testSeriesQuestionSets/" + malformedTestId);
   const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  let restoreActiveSession = async () => {};
 
   await testRef.set({
     title: "Malformed Section Map", status: "published", price: 0,
@@ -418,11 +429,13 @@ test("CBT rejects a persisted question whose section has no canonical test confi
       { id: "q2", text: "Unsectioned answer must also fail?", options: ["A", "B"] }
     ]
   });
+  const startedAt = new Date();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
   await attemptRef.set({
     uid, testId: malformedTestId, status: "in_progress",
-    startedAt: new Date(), expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-    answers: {}
+    startedAt, expiresAt, answers: {}
   });
+  restoreActiveSession = await setActiveSessionForAttempt(attemptId, malformedTestId, expiresAt, startedAt);
 
   try {
     await assert.rejects(
@@ -445,6 +458,7 @@ test("CBT rejects a persisted question whose section has no canonical test confi
     assert.equal(savedAttempt.answers.q1, undefined);
     assert.equal(savedAttempt.answers.q2, undefined);
   } finally {
+    await restoreActiveSession();
     await attemptRef.delete();
     await paperRef.delete();
     await testRef.delete();
@@ -457,6 +471,7 @@ test("exam question delivery allowlists student-safe question fields", async () 
   const testRef = db.doc("testSeriesTests/" + privateTestId);
   const paperRef = db.doc("testSeriesQuestionSets/" + privateTestId);
   const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  let restoreActiveSession = async () => {};
   try {
     await testRef.set({
       title: "Safe Projection", status: "published", price: 0,
@@ -467,10 +482,12 @@ test("exam question delivery allowlists student-safe question fields", async () 
       correctIndex: 1, correctAnswer: "1", explanation: "Private explanation",
       ownerNote: "Internal note", tags: ["private"]
     }] });
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await attemptRef.set({
       uid, testId: privateTestId, status: "in_progress",
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000), answers: { "safe-q1": "1" }
+      expiresAt, answers: { "safe-q1": "1" }
     });
+    restoreActiveSession = await setActiveSessionForAttempt(attemptId, privateTestId, expiresAt);
 
     const paper = await callable("rmGetExamQuestions", { attemptId });
     assert.deepEqual(paper.questions[0], {
@@ -481,7 +498,69 @@ test("exam question delivery allowlists student-safe question fields", async () 
       assert.equal(Object.hasOwn(paper.questions[0], field), false, field + " must not be exposed");
     }
   } finally {
+    await restoreActiveSession();
     await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
+test("question delivery refuses a stale attempt after the student's active exam switches", async () => {
+  await signInAsTestStudent(uid);
+  const staleTestId = "emulator-stale-question-delivery";
+  const staleAttemptId = "emulator-stale-question-attempt";
+  const activeAttemptId = "emulator-current-question-attempt";
+  const testRef = db.doc("testSeriesTests/" + staleTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + staleTestId);
+  const staleAttemptRef = db.doc("testSeriesAttempts/" + staleAttemptId);
+  const activeAttemptRef = db.doc("testSeriesAttempts/" + activeAttemptId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 5 * 60_000);
+
+  try {
+    await Promise.all([
+      testRef.set({
+        title: "Stale Session Question Delivery",
+        status: "published",
+        price: 0,
+        mode: "mock",
+        durationMinutes: 10,
+        questionCount: 1,
+        sections: []
+      }),
+      paperRef.set({ questions: [{ id: "stale-q1", text: "Active paper?", options: ["A", "B"] }] }),
+      staleAttemptRef.set({
+        uid, testId: staleTestId, mode: "mock", status: "in_progress",
+        startedAt: now, expiresAt, answers: {}
+      }),
+      activeAttemptRef.set({
+        uid, testId: staleTestId, mode: "mock", status: "in_progress",
+        startedAt: now, expiresAt, answers: {}
+      }),
+      activeRef.set({
+        uid, testId: staleTestId, attemptId: activeAttemptId,
+        status: "in_progress", startedAt: now, expiresAt
+      })
+    ]);
+
+    await assert.rejects(
+      callable("rmGetExamQuestions", { attemptId: staleAttemptId }),
+      error => error.code === "functions/failed-precondition" &&
+        error.message.includes("Exam is not the active session")
+    );
+    const currentPaper = await callable("rmGetExamQuestions", { attemptId: activeAttemptId });
+    assert.equal(currentPaper.questions.length, 1);
+    assert.equal(currentPaper.questions[0].id, "stale-q1");
+    assert.equal((await activeRef.get()).data().attemptId, activeAttemptId);
+  } finally {
+    await Promise.all([
+      testRef.delete().catch(() => {}),
+      paperRef.delete().catch(() => {}),
+      staleAttemptRef.delete().catch(() => {}),
+      activeAttemptRef.delete().catch(() => {})
+    ]);
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
   }
 });
 
@@ -491,6 +570,7 @@ test("exam question delivery rejects unknown or malformed persisted saved-answer
   const testRef = db.doc("testSeriesTests/" + privateTestId);
   const paperRef = db.doc("testSeriesQuestionSets/" + privateTestId);
   const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  let restoreActiveSession = async () => {};
   try {
     await testRef.set({
       title: "Invalid Saved Answers", status: "published", price: 0,
@@ -499,17 +579,20 @@ test("exam question delivery rejects unknown or malformed persisted saved-answer
     await paperRef.set({ questions: [{
       id: "saved-q1", text: "Which option?", options: ["A", "B"]
     }] });
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await attemptRef.set({
       uid, testId: privateTestId, status: "in_progress",
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiresAt,
       answers: { "saved-q1": "1", privateNote: "must-not-be-forwarded" }
     });
+    restoreActiveSession = await setActiveSessionForAttempt(attemptId, privateTestId, expiresAt);
 
     await assert.rejects(
       callable("rmGetExamQuestions", { attemptId }),
       error => error.code === "functions/failed-precondition"
     );
   } finally {
+    await restoreActiveSession();
     await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
   }
 });
@@ -520,6 +603,7 @@ test("exam question delivery rejects nested option payloads instead of forwardin
   const testRef = db.doc("testSeriesTests/" + privateTestId);
   const paperRef = db.doc("testSeriesQuestionSets/" + privateTestId);
   const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  let restoreActiveSession = async () => {};
   try {
     await testRef.set({ title: "Malformed Option", status: "published", price: 0, mode: "mock", durationMinutes: 20 });
     await paperRef.set({ questions: [{
@@ -527,10 +611,12 @@ test("exam question delivery rejects nested option payloads instead of forwardin
       options: ["Safe choice", { label: "Private choice", correctAnswer: "1", explanation: "must not leak" }],
       correctIndex: 1
     }] });
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     await attemptRef.set({
       uid, testId: privateTestId, status: "in_progress",
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000), answers: {}
+      expiresAt, answers: {}
     });
+    restoreActiveSession = await setActiveSessionForAttempt(attemptId, privateTestId, expiresAt);
 
     await assert.rejects(
       callable("rmGetExamQuestions", { attemptId }),
@@ -546,6 +632,7 @@ test("exam question delivery rejects nested option payloads instead of forwardin
       "malformed option records must not accept a saved answer"
     );
   } finally {
+    await restoreActiveSession();
     await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
   }
 });
@@ -3165,6 +3252,8 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
   const activeRef = db.doc("testSeriesActiveSessions/" + uid);
   const previousActive = await activeRef.get();
   const answerQuestions = {};
+  const startedAt = new Date();
+  const expiresAt = new Date(Date.now() + 10 * 60_000);
   for (const questionId of questionIds) addExamAnswerKeyEntry(answerQuestions, questionId, 1);
 
   try {
@@ -3193,9 +3282,13 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
         testId: specialTestId,
         mode: "mock",
         status: "in_progress",
-        startedAt: new Date(),
-        expiresAt: new Date(Date.now() + 10 * 60_000),
+        startedAt,
+        expiresAt,
         answers: {}
+      }),
+      activeRef.set({
+        uid, testId: specialTestId, attemptId,
+        status: "in_progress", startedAt, expiresAt
       })
     ]);
 
@@ -3227,14 +3320,20 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
     assert.equal(scored.score, questionIds.length * 2);
 
     // An empty answer map must not inherit Object.prototype members for special IDs.
+    const unansweredStartedAt = new Date();
+    const unansweredExpiresAt = new Date(Date.now() + 10 * 60_000);
     await unansweredAttemptRef.set({
       uid,
       testId: specialTestId,
       mode: "mock",
       status: "in_progress",
-      startedAt: new Date(),
-      expiresAt: new Date(Date.now() + 10 * 60_000),
+      startedAt: unansweredStartedAt,
+      expiresAt: unansweredExpiresAt,
       answers: {}
+    });
+    await activeRef.set({
+      uid, testId: specialTestId, attemptId: unansweredAttemptId,
+      status: "in_progress", startedAt: unansweredStartedAt, expiresAt: unansweredExpiresAt
     });
     const unansweredPayload = await callable("rmGetExamQuestions", { attemptId: unansweredAttemptId });
     assert.deepEqual(unansweredPayload.savedAnswers, {});

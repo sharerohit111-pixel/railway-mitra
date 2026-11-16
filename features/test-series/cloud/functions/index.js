@@ -44,6 +44,7 @@ const {
   studentAnswerStorageKey
 } = require("./student-question-delivery");
 const { toValidDate } = require("./exam-time");
+const { isActiveAttemptSession } = require("./active-attempt-session");
 const { paidEntitlementDocumentId, getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { getTestLeaderboard } = require("./leaderboard-query");
 const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
@@ -271,8 +272,15 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   const attemptSnap = await db.doc("testSeriesAttempts/" + attemptId).get();
   if (!attemptSnap.exists || attemptSnap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
   const attempt = attemptSnap.data();
-  if (attempt.status !== "in_progress" || !date(attempt.expiresAt) || date(attempt.expiresAt) <= new Date()) {
+  const now = new Date();
+  const attemptExpiresAt = date(attempt.expiresAt);
+  if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
     throw new HttpsError("failed-precondition", "Exam is closed");
+  }
+  const activeSessionSnap = await db.doc("testSeriesActiveSessions/" + uid).get();
+  const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+  if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
+    throw new HttpsError("failed-precondition", "Exam is not the active session");
   }
   const [testSnap, questionsSnap] = await Promise.all([
     db.doc("testSeriesTests/" + attempt.testId).get(),
@@ -522,15 +530,7 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   }
   const activeSessionSnap = await db.doc("testSeriesActiveSessions/" + uid).get();
   const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
-  const activeExpiresAt = activeSession ? date(activeSession.expiresAt) : null;
-  if (!activeSession ||
-      activeSession.uid !== uid ||
-      activeSession.attemptId !== attemptId ||
-      activeSession.testId !== attempt.testId ||
-      activeSession.status !== "in_progress" ||
-      !activeExpiresAt ||
-      activeExpiresAt <= now ||
-      activeExpiresAt.getTime() !== attemptExpiresAt.getTime()) {
+  if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
     throw new HttpsError("failed-precondition", "Exam is not the active session");
   }
   const paperSnap = await db.doc("testSeriesQuestionSets/" + id(attempt.testId)).get();

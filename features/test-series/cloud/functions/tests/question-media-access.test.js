@@ -1,34 +1,47 @@
+"use strict";
+
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 
-test("question media URL callable is bound to authenticated active attempts and server-owned objects", () => {
+test("question media and question paper callables share the active-attempt authorization fence", () => {
   const source = readFileSync(require.resolve("../index"), "utf8");
-  const start = source.indexOf("exports.rmGetQuestionMediaUrl =");
-  const end = source.indexOf("exports.rmEnterCbtSection =", start);
-  const handler = source.slice(start, end);
-  assert.ok(start >= 0 && end > start, "media URL callable exists");
-  assert.match(handler, /const uid = student\(req\)/);
-  assert.match(handler, /attemptSnap\.data\(\)\.uid !== uid/);
-  assert.match(handler, /attempt\.status !== "in_progress"/);
-  assert.match(handler, /const attemptExpiresAt = date\(attempt\.expiresAt\)/);
-  assert.match(handler, /const activeSessionSnap = await db\.doc\("testSeriesActiveSessions\/" \+ uid\)\.get\(\)/);
-  assert.match(handler, /activeSession\.uid !== uid/);
-  assert.match(handler, /activeSession\.attemptId !== attemptId/);
-  assert.match(handler, /activeSession\.testId !== attempt\.testId/);
-  assert.match(handler, /activeSession\.status !== "in_progress"/);
-  assert.match(handler, /activeExpiresAt\.getTime\(\) !== attemptExpiresAt\.getTime\(\)/);
-  assert.match(handler, /projectStudentQuestions\(\[question\]\)/);
-  assert.match(handler, /createHash\("sha256"\)/);
-  assert.match(handler, /testSeriesQuestionMedia\//);
-  assert.match(handler, /mapping\.status !== "ready"/);
-  assert.match(handler, /typeof mapping\.generation !== "string"/);
-  assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
-  assert.match(handler, /generation !== mapping\.generation/);
-  assert.match(handler, /size !== mapping\.sizeBytes/);
-  assert.match(handler, /custom\.sha256 !== mapping\.sha256/);
-  assert.match(handler, /size > 5 \* 1024 \* 1024/);
-  assert.match(handler, /getSignedUrl/);
-  assert.match(handler, /expires: expiresAt/);
-  assert.doesNotMatch(handler, /req\.data\.(objectPath|storagePath|url|bucket)/);
+  const helper = readFileSync(require.resolve("../active-attempt-session"), "utf8");
+
+  const mediaStart = source.indexOf("exports.rmGetQuestionMediaUrl =");
+  const mediaEnd = source.indexOf("exports.rmEnterCbtSection =", mediaStart);
+  const mediaHandler = source.slice(mediaStart, mediaEnd);
+  assert.ok(mediaStart >= 0 && mediaEnd > mediaStart, "media URL callable exists");
+  assert.match(mediaHandler, /const uid = student\(req\)/);
+  assert.match(mediaHandler, /attemptSnap\.data\(\)\.uid !== uid/);
+  assert.match(mediaHandler, /attempt\.status !== "in_progress"/);
+  assert.match(mediaHandler, /const attemptExpiresAt = date\(attempt\.expiresAt\)/);
+  assert.match(mediaHandler, /isActiveAttemptSession\(\{ uid, attemptId, attempt, activeSession, now \}\)/);
+  assert.match(mediaHandler, /projectStudentQuestions\(\[question\]\)/);
+  assert.match(mediaHandler, /createHash\("sha256"\)/);
+  assert.match(mediaHandler, /testSeriesQuestionMedia\//);
+  assert.match(mediaHandler, /mapping\.status !== "ready"/);
+  assert.match(mediaHandler, /typeof mapping\.generation !== "string"/);
+  assert.ok(mediaHandler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
+  assert.match(mediaHandler, /generation !== mapping\.generation/);
+  assert.match(mediaHandler, /size !== mapping\.sizeBytes/);
+  assert.match(mediaHandler, /custom\.sha256 !== mapping\.sha256/);
+  assert.match(mediaHandler, /size > 5 \* 1024 \* 1024/);
+  assert.match(mediaHandler, /getSignedUrl/);
+  assert.match(mediaHandler, /expires: expiresAt/);
+  assert.doesNotMatch(mediaHandler, /req\.data\.(objectPath|storagePath|url|bucket)/);
+
+  const questionStart = source.indexOf("exports.rmGetExamQuestions =");
+  const questionEnd = source.indexOf("// Issue a short-lived read URL", questionStart);
+  const questionHandler = source.slice(questionStart, questionEnd);
+  assert.ok(questionStart >= 0 && questionEnd > questionStart, "question delivery callable exists");
+  assert.match(questionHandler, /const activeSessionSnap = await db\.doc\("testSeriesActiveSessions\/" \+ uid\)\.get\(\)/);
+  assert.match(questionHandler, /isActiveAttemptSession\(\{ uid, attemptId, attempt, activeSession, now \}\)/);
+
+  assert.match(helper, /attempt\.uid === uid/);
+  assert.match(helper, /activeSession\.uid === uid/);
+  assert.match(helper, /activeSession\.attemptId === attemptId/);
+  assert.match(helper, /activeSession\.testId === attempt\.testId/);
+  assert.match(helper, /activeSession\.status === "in_progress"/);
+  assert.match(helper, /activeExpiresAt\.getTime\(\) === attemptExpiresAt\.getTime\(\)/);
 });

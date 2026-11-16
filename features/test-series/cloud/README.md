@@ -314,3 +314,22 @@ expiry; changing the active-session pointer does not revoke an already-issued
 URL. The CBT Functions Emulator regression seeds two synthetic attempts and
 confirms that the stale attempt cannot obtain a new media URL. No live bucket
 or production account is used.
+
+
+## Active-session fence for student question delivery
+
+Both `rmGetExamQuestions` and `rmGetQuestionMediaUrl` require the requested
+attempt to match the authenticated student's server-owned
+`testSeriesActiveSessions/{uid}` record. UID, attempt ID, test ID, in-progress
+status and the original expiry timestamp must match; both deadlines must still
+be in the future. A stale but unexpired attempt cannot fetch a new question
+paper or request new image URLs after another exam becomes active.
+
+The shared pure validator is covered by unit tests for switched attempt IDs,
+cross-student/test pointers, invalid status and deadline mismatches. The CBT
+Functions Emulator regression starts with two synthetic in-progress attempts,
+points the active-session record at the newer attempt, confirms the older
+attempt is rejected, and confirms the current attempt still receives its
+student-safe paper. The submit callable remains separate: it may finalize a
+timed-out attempt from already-persisted answers without replacing a newer
+active-session pointer. No production data or SMS is used.
