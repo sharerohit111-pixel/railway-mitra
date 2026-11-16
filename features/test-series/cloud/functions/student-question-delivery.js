@@ -1,5 +1,6 @@
 "use strict";
 
+const { projectStudentQuestionMedia } = require("./question-media-contract");
 const QUESTION_ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
 const PROTOTYPE_SENSITIVE_IDS = new Set(["__proto__", "constructor", "toString", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "valueOf", "__defineGetter__", "__defineSetter__"]);
 const ENCODED_QUESTION_ID_PREFIX = "q:";
@@ -46,8 +47,8 @@ function isCanonicalStudentAnswerIndex(question, answer) {
 
 /**
  * Return only the public question fields required by the student CBT client.
- * Validate option primitives before projection so nested/private option metadata
- * can never cross the callable boundary.
+ * Validate option primitives and media descriptors before projection so nested
+ * private metadata, storage paths and download tokens never cross the callable boundary.
  */
 function projectStudentQuestions(questions) {
   if (!Array.isArray(questions) || questions.length < 1 || questions.length > 500) fail();
@@ -56,7 +57,7 @@ function projectStudentQuestions(questions) {
   return Array.from(questions, question => {
     if (!question || typeof question !== "object" || Array.isArray(question)) fail();
 
-    const { id, text, options, section } = question;
+    const { id, text, options, section, media } = question;
     if (typeof id !== "string" || !QUESTION_ID_PATTERN.test(id) || seenIds.has(id)) fail();
     seenIds.add(id);
 
@@ -68,6 +69,8 @@ function projectStudentQuestions(questions) {
       if (typeof section !== "string" || !section.trim() || section.length > 80) fail();
       safeQuestion.section = section;
     }
+    const safeMedia = projectStudentQuestionMedia(media);
+    if (safeMedia) safeQuestion.media = safeMedia;
     return safeQuestion;
   });
 }
