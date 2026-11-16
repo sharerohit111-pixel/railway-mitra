@@ -28,8 +28,27 @@ export function initOwnerQuestionMediaUpload(functions) {
   const addButton = el("rm-owner-media-add-descriptor");
   const uploadButton = el("rm-owner-media-upload");
   const status = el("rm-owner-media-status");
+  const preview = el("rm-owner-media-preview");
   const questionEditor = el("rm-test-questions");
-  if (![questionId, mediaId, altText, fileInput, testId, addButton, uploadButton, status, questionEditor].every(Boolean)) return;
+  if (![questionId, mediaId, altText, fileInput, testId, addButton, uploadButton, status, preview, questionEditor].every(Boolean)) return;
+  let previewUrl = null;
+  fileInput.addEventListener("change", () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null;
+    const file = fileInput.files?.[0];
+    if (!file || !ALLOWED_TYPES.has(file.type) || file.size < 1 || file.size > MAX_BYTES) {
+      preview.removeAttribute("src");
+      preview.hidden = true;
+      return;
+    }
+    previewUrl = URL.createObjectURL(file);
+    preview.src = previewUrl;
+    preview.alt = altText.value.trim() || "Selected question diagram preview";
+    preview.hidden = false;
+  });
+  altText.addEventListener("input", () => {
+    if (previewUrl) preview.alt = altText.value.trim() || "Selected question diagram preview";
+  });
 
   const report = message => { status.textContent = message; };
   addButton.addEventListener("click", () => {
