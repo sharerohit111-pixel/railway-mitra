@@ -9,3 +9,7 @@
 .rm-cbt-section{display:flex;align-items:center;gap:12px;justify-content:space-between}.rm-cbt-section small{color:#7df2c1;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
 
 .rm-cbt #rm-cbt-connection{font-size:11px;color:#7df2c1}.rm-cbt #rm-cbt-connection[data-state="offline"]{color:#ffd27a}.rm-cbt #rm-cbt-connection[data-state="online"]{color:#7df2c1}
+
+.rm-cbt-question-media{display:grid;gap:12px;margin:12px 0 18px}
+.rm-cbt-question-figure{margin:0;padding:8px;border:1px solid #347da4;border-radius:12px;background:#081c31;overflow:hidden}
+.rm-cbt-question-figure img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain;border-radius:8px}
