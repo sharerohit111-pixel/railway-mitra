@@ -31,12 +31,13 @@ export function initOwnerTestAccessPanel(functions) {
     const renderedSession = sessionGeneration;
     items.forEach(item => {
       const card = make("article", undefined, "rm-admin-access-item");
-      const title = make("strong", item.testId + " · " + item.status.toUpperCase());
+      const effectiveStatus = item.effectiveStatus || item.status;
+      const title = make("strong", item.testId + " · " + String(effectiveStatus || "unknown").toUpperCase());
       const detail = make("p", "Student UID: " + item.studentUid);
       const reason = make("p", "कारण: " + (item.reason || "—"));
       const expiry = make("small", "Expiry: " + dateLabel(item.expiresAt));
       card.append(title, detail, reason, expiry);
-      if (item.status === "active") {
+      if (effectiveStatus === "active") {
         const revoke = make("button", "Revoke access");
         revoke.type = "button";
         revoke.addEventListener("click", async () => {
