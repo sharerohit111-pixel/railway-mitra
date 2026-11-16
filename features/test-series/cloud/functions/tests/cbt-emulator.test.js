@@ -1666,7 +1666,7 @@ test("Owner manual access callables require real emulator password plus phone MF
     "emulator_owner_revoke_0001"
   ];
   const requestDocIds = requestIds.map(requestId =>
-    crypto.createHash("sha256").update(ownerUid).update("\\0").update(requestId).digest("hex")
+    crypto.createHash("sha256").update(ownerUid).update("\0").update(requestId).digest("hex")
   );
   let ownerCreated = false;
 
