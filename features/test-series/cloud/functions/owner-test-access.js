@@ -42,8 +42,8 @@ function manualAccessDocumentId(studentUid, testId) {
   return crypto.createHash("sha256").update(studentUid).update("\0").update(testId).digest("hex");
 }
 
-function ownerAccessRequestFingerprint(request) {
-  const validated = validateOwnerTestAccessRequest(request);
+function ownerAccessRequestFingerprint(request, nowMs = Date.now()) {
+  const validated = validateOwnerTestAccessRequest(request, nowMs);
   return crypto.createHash("sha256").update(JSON.stringify([
     validated.studentUid, validated.testId, validated.action,
     validated.reason, validated.expiresAt
