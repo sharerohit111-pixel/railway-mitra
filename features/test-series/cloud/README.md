@@ -19,6 +19,32 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmOwnerSetStudentTestAccess: Owner-only transaction that validates a real Firebase student account and a published test, then writes a per-student/test manual-access status, an append-only audit event, and an idempotency receipt atomically. It requires a bounded support reason and optional future ISO expiry; request-ID reuse with a different operation is rejected. **Current scope:** `rmStartExam` now checks an active Owner manual grant only for a published zero-price test that is not the configured one-time free test. A manual grant never unlocks a paid test and never bypasses the configured free-test claim. Grant expiry is enforced fail-closed. Revoking/expiring a grant prevents a new attempt; an already-started manual-access attempt may resume only until its original server deadline, and is not deleted or extended. Paid tests continue to require the captured payment + paid order + entitlement checks. Owner-only `rmOwnerListStudentTestAccess` and `rmOwnerListStudentAccessAudit` provide bounded, allow-listed pages; Firestore rules deny direct client access to the manual-access, audit and idempotency collections. The Owner UI is not implemented, and the dashboard tile remains disabled.
 - rmOwnerListPaymentReconciliation: Owner-only, read-only paginated view of payment-order requests in `creating` or `unknown` state. The Owner UID + phone-MFA guard runs before any Firestore read; the response is an explicit allow-list and excludes reservation tokens, request fingerprints, phone, email and provider payloads. It returns only a strictly validated server-generated `receiptRef` (not provider credentials or a payment token) so the Owner can search the Razorpay Dashboard when no provider order ID was durably recorded.
 
+## Question image quarantine and sanitization
+
+Owner uploads receive a short-lived signed write URL for the separate
+`test-series-question-media-quarantine/` prefix. The finalize callable verifies
+the uploaded object size, MIME metadata, generation and original SHA-256, then
+uses the pinned Sharp 0.35.5 runtime to fully decode a single-frame JPEG, PNG or
+WebP image, apply EXIF orientation, enforce pixel/dimension/channel limits and
+re-encode it without copying EXIF/XMP/IPTC metadata.
+
+Only the newly encoded bytes are written with a create-only generation
+precondition to `test-series-question-media/`. The server verifies the
+published object's size, MIME type, generation and sanitized SHA-256 before it
+creates the Firestore `ready` mapping. The raw quarantine object is then
+deleted. A failed decode, checksum, storage verification or mapping write
+fails closed and removes the associated temporary object.
+
+Firebase Storage rules deny direct client reads and writes to both prefixes.
+Student delivery continues to use an attempt-owner-checked callable and a
+short-lived signed read URL for the published object only. The header inspector
+is a bounded preflight/test helper; it is not the production image-sanitization
+boundary.
+
+The isolated Functions package pins Sharp exactly and commits its npm
+`package-lock.json`; CI installs optional native platform packages under
+Node.js 22 and exercises real JPEG, PNG and WebP decode/re-encode tests.
+
 ## CBT section mapping integrity
 
 The server validates each persisted question paper against its test's section configuration before returning questions, starting a section timer, or saving any answer (including an unsectioned question in a mixed paper). Every non-empty question section must match exactly one canonical configured section name; duplicate configured names (case-insensitive), malformed labels, invalid time limits and orphaned question-section references fail closed with a failed-precondition response. The returned section question counts are derived from the actual question paper rather than trusting stored counters. Unsectioned questions remain valid in tests that do not use sections. This protects the section timer and answer-save boundary even if a stale or manually corrupted Firestore document bypasses the Owner draft validator. The pure mapping rules are covered by tests/section-integrity.test.js, and a callable-emulator regression test confirms a mismatched persisted section cannot be read, entered or answered.
