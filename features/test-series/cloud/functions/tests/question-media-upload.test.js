@@ -75,3 +75,17 @@ test("Owner draft save preserves validated media descriptors in the student ques
   assert.match(payloadBuilder, /projectStudentQuestionMedia\(q\.media\)/);
   assert.match(payloadBuilder, /\.\.\.\(media \? \{ media \} : \{\}\)/);
 });
+
+test("publishing is blocked until every declared question image has a verified ready mapping", () => {
+  const { readFileSync } = require("node:fs");
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const start = source.indexOf("exports.rmOwnerPublishTest =");
+  const end = source.indexOf("exports.rmOwnerGetTest =", start);
+  const handler = source.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.match(handler, /mediaMappingId\(testId, questionId, media\.id\)/);
+  assert.match(handler, /tx\.get\(ref\)/);
+  assert.match(handler, /mapping\.status !== "ready"/);
+  assert.match(handler, /mapping\.objectPath !== mediaObjectPath\(testId, questionId, media\.id\)/);
+  assert.match(handler, /Every question image must be uploaded and verified before publishing/);
+});
