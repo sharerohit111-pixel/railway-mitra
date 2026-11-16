@@ -3,7 +3,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
 const { getStorage } = require("firebase-admin/storage");
-const { inspectImageBuffer } = require("./question-image-inspector");
+const { sanitizeImageBuffer } = require("./image-sanitization");
 const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
@@ -411,7 +411,7 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
   const file = bucket.file(upload.objectPath);
   const [metadata] = await file.getMetadata().catch(() => [null]);
   const size = Number(metadata && metadata.size);
-  const generation = String(metadata && metadata.generation || "");
+  let generation = String(metadata && metadata.generation || "");
   const custom = metadata && metadata.metadata || {};
   if (!metadata || !Number.isSafeInteger(size) || size !== upload.sizeBytes ||
       size < 1 || size > MAX_IMAGE_BYTES || metadata.contentType !== upload.mimeType ||
@@ -427,11 +427,45 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
   }
   let imageInfo;
   try {
-    imageInfo = inspectImageBuffer(bytes, upload.mimeType);
+    imageInfo = await sanitizeImageBuffer(bytes, upload.mimeType, { sharp: require("sharp") });
   } catch (_) {
     await file.delete({ ignoreNotFound: true }).catch(() => {});
-    throw new HttpsError("failed-precondition", "Uploaded file is not a valid supported image or exceeds dimension limits");
+    throw new HttpsError("failed-precondition", "Uploaded file could not be fully decoded and safely re-encoded");
   }
+
+  // Replace the private, unverified upload with the freshly encoded bytes.
+  // The generation precondition prevents overwriting an object changed after
+  // the verification read. No ready mapping exists until this succeeds.
+  const sanitizedSha256 = crypto.createHash("sha256").update(imageInfo.data).digest("hex");
+  try {
+    await file.save(imageInfo.data, {
+      resumable: false,
+      metadata: {
+        contentType: upload.mimeType,
+        metadata: {
+          testid: upload.testId,
+          questionid: upload.questionId,
+          mediaid: upload.mediaId,
+          sha256: sanitizedSha256
+        }
+      },
+      preconditionOpts: { ifGenerationMatch: generation }
+    });
+  } catch (_) {
+    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Sanitized image could not be stored safely");
+  }
+  const [sanitizedMetadata] = await file.getMetadata().catch(() => [null]);
+  const sanitizedGeneration = String(sanitizedMetadata && sanitizedMetadata.generation || "");
+  if (!sanitizedMetadata || Number(sanitizedMetadata.size) !== imageInfo.sizeBytes ||
+      sanitizedMetadata.contentType !== upload.mimeType ||
+      !/^[1-9]\\d*$/.test(sanitizedGeneration) ||
+      (sanitizedMetadata.metadata || {}).sha256 !== sanitizedSha256) {
+    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Sanitized image storage verification failed");
+  }
+  generation = sanitizedGeneration;
+
   const mappingRef = db.doc("testSeriesQuestionMedia/" + upload.mappingId);
   const mapping = {
     testId: upload.testId,
@@ -439,8 +473,8 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
     mediaId: upload.mediaId,
     objectPath: upload.objectPath,
     contentType: upload.mimeType,
-    sizeBytes: upload.sizeBytes,
-    sha256: upload.sha256,
+    sizeBytes: imageInfo.sizeBytes,
+    sha256: sanitizedSha256,
     width: imageInfo.width,
     height: imageInfo.height,
     format: imageInfo.format,
