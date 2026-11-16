@@ -333,3 +333,24 @@ attempt is rejected, and confirms the current attempt still receives its
 student-safe paper. The submit callable remains separate: it may finalize a
 timed-out attempt from already-persisted answers without replacing a newer
 active-session pointer. No production data or SMS is used.
+
+
+## Active-session fence for answer writes and section entry
+
+The student callables `rmSaveAnswer` and `rmEnterCbtSection` read the
+server-owned `testSeriesActiveSessions/{uid}` pointer inside the same
+Firestore transaction that validates and updates the attempt. The pointer must
+match the authenticated UID, attempt ID, test ID, in-progress status and exact
+original expiry timestamp; both attempt and pointer deadlines must still be
+in the future. A stale but unexpired attempt cannot save an answer or start /
+resume a timed section after another attempt becomes active.
+
+Because the active-session document is part of the transaction read set, a
+concurrent pointer switch causes Firestore to retry the transaction rather
+than committing an answer or section timer against a stale session. The CBT
+Functions Emulator regression creates two synthetic attempts, points the
+active-session record at the newer one, verifies that the stale attempt cannot
+save or enter a section, and verifies that the current attempt can enter its
+section and save an answer. The submit callable remains separate so a timed-out
+attempt can still be finalized from answers already persisted before expiry.
+No production data, OTP, or live Firebase resource is used.
