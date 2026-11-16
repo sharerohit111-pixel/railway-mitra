@@ -3,7 +3,8 @@ const assert = require("node:assert/strict");
 const {
   validateOwnerTestAccessRequest,
   manualAccessDocumentId,
-  ownerAccessRequestFingerprint
+  ownerAccessRequestFingerprint,
+  ownerAccessCursorMatches
 } = require("../owner-test-access");
 
 const base = Object.freeze({
@@ -54,4 +55,19 @@ test("request fingerprint is stable and changes when the requested operation cha
   assert.equal(first, ownerAccessRequestFingerprint({ ...base }));
   assert.notEqual(first, ownerAccessRequestFingerprint({ ...base, reason: "Different approved reason" }));
   assert.notEqual(first, ownerAccessRequestFingerprint({ ...base, action: "revoke" }));
+});
+
+test("access pagination cursors must belong to the active filter and carry its ordering timestamp", () => {
+  const accessCursor = { uid: "student_UID-123", testId: "gdce-je-civil-2026", status: "active", updatedAt: new Date() };
+  const auditCursor = { targetUid: "student_UID-123", testId: "gdce-je-civil-2026", action: "grant", createdAt: new Date() };
+  assert.equal(ownerAccessCursorMatches(accessCursor, "uid", "student_UID-123", "updatedAt"), true);
+  assert.equal(ownerAccessCursorMatches(accessCursor, "uid", "another-student", "updatedAt"), false);
+  assert.equal(ownerAccessCursorMatches(accessCursor, "testId", "another-test", "updatedAt"), false);
+  assert.equal(ownerAccessCursorMatches(accessCursor, "status", "revoked", "updatedAt"), false);
+  assert.equal(ownerAccessCursorMatches(accessCursor, "uid", null, "updatedAt"), true);
+  assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: null }, "uid", null, "updatedAt"), false);
+  assert.equal(ownerAccessCursorMatches(auditCursor, "targetUid", "student_UID-123", "createdAt"), true);
+  assert.equal(ownerAccessCursorMatches(auditCursor, "targetUid", "other", "createdAt"), false);
+  assert.equal(ownerAccessCursorMatches(auditCursor, "action", "revoke", "createdAt"), false);
+  assert.equal(ownerAccessCursorMatches(auditCursor, "targetUid", null, "updatedAt"), false);
 });
