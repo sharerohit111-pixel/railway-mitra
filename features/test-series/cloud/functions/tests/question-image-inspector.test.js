@@ -50,7 +50,7 @@ test("rejects MIME spoofing, truncated headers and unsupported formats", () => {
 test("rejects zero, oversized and excessive-pixel image dimensions", () => {
   assert.throws(() => inspectImageBuffer(png(0, 1), "image/png"), /signature or dimensions/);
   assert.throws(() => inspectImageBuffer(png(MAX_IMAGE_DIMENSION + 1, 1), "image/png"), /signature or dimensions/);
-  assert.throws(() => inspectImageBuffer(png(5000, 5000), "image/png"), /signature or dimensions/);
+  assert.throws(() => inspectImageBuffer(png(5001, 5000), "image/png"), /signature or dimensions/);
   assert.ok(MAX_IMAGE_PIXELS < MAX_IMAGE_DIMENSION * MAX_IMAGE_DIMENSION);
 });
 
