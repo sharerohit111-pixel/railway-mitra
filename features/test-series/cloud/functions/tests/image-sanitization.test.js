@@ -9,8 +9,15 @@ function fakeSharp({ data, info, error } = {}) {
     assert.ok(Buffer.isBuffer(input));
     assert.equal(options.failOn, "error");
     assert.equal(options.limitInputPixels, 25_000_000);
+    assert.equal(options.limitInputChannels, 4);
     const pipeline = {
       rotateCalled: false,
+      metadata: async () => ({
+        format: options.format || "png",
+        width: 640,
+        height: 480,
+        pages: options.pages === undefined ? 1 : options.pages
+      }),
       rotate() { this.rotateCalled = true; return this; },
       toFormat(format) { this.format = format; return this; },
       async toBuffer() {
@@ -29,7 +36,7 @@ test("fully decodes and re-encodes each supported format with bounded dimensions
   for (const [mimeType, format] of [
     ["image/jpeg", "jpeg"], ["image/png", "png"], ["image/webp", "webp"]
   ]) {
-    const result = await sanitizeImageBuffer(Buffer.from("input"), mimeType, { sharp: fakeSharp() });
+    const result = await sanitizeImageBuffer(Buffer.from("input"), mimeType, { sharp: fakeSharp({ format }) });
     assert.equal(result.format, format);
     assert.equal(result.mimeType, mimeType);
     assert.equal(result.width, 640);
@@ -53,6 +60,12 @@ test("rejects decoder errors, wrong output format and unsafe dimensions", async 
   }));
   await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
     sharp: fakeSharp({ info: { format: "png", width: 9000, height: 1 } })
+  }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ format: "jpeg" })
+  }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ pages: 2 })
   }));
   await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
     sharp: fakeSharp({ data: Buffer.alloc(MAX_IMAGE_BYTES + 1) })
