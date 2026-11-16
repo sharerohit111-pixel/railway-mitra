@@ -49,7 +49,7 @@ jobs:
         run: node -e "const c=require('./firebase.test-series-cbt-emulator.json'); const f=c.functions||[]; if(f.length!==1||f[0].codebase!=='test-series'||f[0].source!=='features/test-series/cloud/functions'||c.firestore?.rules!=='features/test-series/cloud/firestore.rules'||c.emulators?.singleProjectMode!==true) process.exit(1)"
       - name: Install isolated function dependencies
         working-directory: features/test-series/cloud/functions
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund --include=optional
       - name: Check JavaScript syntax
         working-directory: features/test-series/cloud/functions
         run: npm run lint
