@@ -94,6 +94,7 @@ export function initOwnerTestAccessPanel(functions) {
       byId("rm-admin-access-more").hidden = !result.hasMore;
       say((result.items || []).length + " access record(s) लोड हुए।");
     } catch (error) {
+      if (current !== accessGeneration || currentSession !== sessionGeneration) return;
       say(error.message || "Access records लोड नहीं हुए।");
     }
   }
