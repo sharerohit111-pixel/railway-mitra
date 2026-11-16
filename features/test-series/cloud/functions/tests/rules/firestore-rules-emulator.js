@@ -19,7 +19,10 @@ const protectedCollections = [
   "testSeriesPayments",
   "testSeriesPaymentEvents",
   "testSeriesPaymentAudit",
-  "testSeriesRefunds"
+  "testSeriesRefunds",
+  "testSeriesManualAccess",
+  "testSeriesAccessAudit",
+  "testSeriesAccessRequests"
 ];
 
 async function expectStatus(label, response, expected) {
@@ -88,6 +91,14 @@ async function main() {
     body: JSON.stringify({ writes: [updateWrite("testSeriesAnswerKeys/rules-probe", "must-be-denied")] })
   });
 
+  for (const collection of ["testSeriesManualAccess", "testSeriesAccessAudit", "testSeriesAccessRequests"]) {
+    await expectDenied(`unauthenticated write to ${collection}`, `${base}:commit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [updateWrite(`${collection}/rules-probe`, "must-be-denied")] })
+    });
+  }
+
   // Create two real Auth Emulator users and verify ownership boundaries.
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const userA = await createTestUser(`rules-a-${suffix}@example.test`);
@@ -136,11 +147,19 @@ async function main() {
       headers: auth(userA.token)
     });
   }
+
+  for (const collection of protectedCollections) {
+    await expectDenied(`authenticated user cannot write ${collection}`, `${base}:commit`, {
+      method: "POST",
+      headers: { ...auth(userA.token), "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [updateWrite(`${collection}/rules-probe`, "must-be-denied")] })
+    });
+  }
   await expectDenied("authenticated user cannot read unlisted collection", `${base}/unlistedCollection/rules-probe`, {
     headers: auth(userA.token)
   });
 
-  const checks = protectedCollections.length * 2 + 13;
+  const checks = protectedCollections.length * 3 + 16;
   console.log("RULES_TEST_RESULT", JSON.stringify({ projectId, checks, result: "passed" }));
 }
 
