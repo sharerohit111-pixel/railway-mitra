@@ -14,6 +14,10 @@ function mediaObjectPath(testId, questionId, mediaId) {
   return "test-series-question-media/" + testId + "/" + questionId + "/" + mediaId;
 }
 
+function mediaQuarantineObjectPath(testId, questionId, mediaId) {
+  return "test-series-question-media-quarantine/" + testId + "/" + questionId + "/" + mediaId;
+}
+
 function validateMediaUploadRequest({ testId, questionId, mediaId, mimeType, sizeBytes, sha256 }) {
   for (const value of [testId, questionId, mediaId]) {
     if (typeof value !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(value)) {
@@ -32,6 +36,7 @@ function validateMediaUploadRequest({ testId, questionId, mediaId, mimeType, siz
   return {
     testId, questionId, mediaId, mimeType, sizeBytes, sha256,
     objectPath: mediaObjectPath(testId, questionId, mediaId),
+    quarantineObjectPath: mediaQuarantineObjectPath(testId, questionId, mediaId),
     mappingId: mediaMappingId(testId, questionId, mediaId)
   };
 }
@@ -41,5 +46,6 @@ module.exports = {
   MAX_IMAGE_BYTES,
   mediaMappingId,
   mediaObjectPath,
+  mediaQuarantineObjectPath,
   validateMediaUploadRequest
 };
