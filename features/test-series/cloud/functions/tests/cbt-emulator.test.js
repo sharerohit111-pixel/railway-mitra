@@ -536,6 +536,15 @@ test("exam question delivery rejects nested option payloads instead of forwardin
       callable("rmGetExamQuestions", { attemptId }),
       error => error.code === "functions/failed-precondition"
     );
+    await assert.rejects(
+      callable("rmSaveAnswer", { attemptId, questionId: "unsafe-q1", answer: "1" }),
+      error => error.code === "functions/invalid-argument"
+    );
+    assert.deepEqual(
+      (await attemptRef.get()).data().answers,
+      {},
+      "malformed option records must not accept a saved answer"
+    );
   } finally {
     await Promise.all([testRef, paperRef, attemptRef].map(ref => ref.delete().catch(() => {})));
   }
