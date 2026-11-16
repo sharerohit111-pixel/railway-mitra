@@ -1,4 +1,4 @@
-import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt, enterCbtSection } from "../cloud/student-client.js";
+import { startCbtExam, getCbtExamQuestions, saveCbtAnswer, submitCbtExam, getCbtAttemptResult, getStudentActiveCbtAttempt, enterCbtSection, getCbtQuestionMediaUrl } from "../cloud/student-client.js";
 import { readPendingAnswerDraft, writePendingAnswerDraft } from "./answer-draft-store.mjs";
 import { buildCbtStorageKey } from "./attempt-storage-key.mjs";
 import { lockCbtExamControls } from "./exam-interaction-lock.mjs";
@@ -128,6 +128,38 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     try { return await retrying; }
     finally { retrying=null; }
   }
+  let mediaRenderVersion = 0;
+  async function renderQuestionMedia(question, host, requestVersion) {
+    const media = Array.isArray(question.media) ? question.media : [];
+    if (!media.length) return;
+    host.hidden = false;
+    host.textContent = "चित्र लोड हो रहे हैं…";
+    const figures = await Promise.all(media.map(async descriptor => {
+      const response = await getCbtQuestionMediaUrl(app, attemptId, question.id, descriptor.id);
+      if (!response || typeof response.url !== "string" || !response.url.startsWith("https://") ||
+          response.mimeType !== descriptor.mimeType ||
+          !["image/jpeg", "image/png", "image/webp"].includes(response.mimeType)) {
+        throw new Error("चित्र का सुरक्षित लिंक मान्य नहीं है।");
+      }
+      const figure = document.createElement("figure");
+      figure.className = "rm-cbt-question-figure";
+      const image = document.createElement("img");
+      image.src = response.url;
+      image.alt = response.altText || descriptor.altText;
+      image.loading = "lazy";
+      image.decoding = "async";
+      image.referrerPolicy = "no-referrer";
+      image.addEventListener("error", () => {
+        if (isActive() && requestVersion === mediaRenderVersion) {
+          figure.textContent = "चित्र लोड नहीं हो सका। कृपया इंटरनेट जाँचें।";
+        }
+      }, { once: true });
+      figure.append(image);
+      return figure;
+    }));
+    if (!isActive() || requestVersion !== mediaRenderVersion || paper.questions[index]?.id !== question.id) return;
+    host.replaceChildren(...figures);
+  }
   function render({ focusOptionIndex = null } = {}){
     if (!isActive() || !paper) return;
     const q=paper.questions[index]; el("rm-cbt-count").textContent="Question "+(index+1)+" of "+paper.questions.length;
@@ -135,6 +167,24 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     sectionHeading.querySelector("span").textContent = q.section || "";
     sectionHeading.hidden = !q.section;
     el("rm-cbt-question").textContent=q.text;
+    const mediaVersion = ++mediaRenderVersion;
+    let mediaHost = el("rm-cbt-question-media");
+    if (!mediaHost) {
+      mediaHost = document.createElement("div");
+      mediaHost.id = "rm-cbt-question-media";
+      mediaHost.className = "rm-cbt-question-media";
+      el("rm-cbt-question").after(mediaHost);
+    }
+    mediaHost.replaceChildren();
+    mediaHost.hidden = !(Array.isArray(q.media) && q.media.length);
+    if (mediaHost.hidden === false) {
+      renderQuestionMedia(q, mediaHost, mediaVersion).catch(error => {
+        if (isActive() && mediaVersion === mediaRenderVersion) {
+          mediaHost.textContent = "चित्र उपलब्ध नहीं है: " + (error.message || "सुरक्षित लोड असफल");
+          status("प्रश्न का चित्र सुरक्षित रूप से लोड नहीं हो सका।");
+        }
+      });
+    }
     const options=el("rm-cbt-options"); options.replaceChildren();
     q.options.forEach((value,i)=>{const b=document.createElement("button");b.type="button";b.className="rm-cbt-option";b.setAttribute("aria-pressed",String(Object.hasOwn(answers,q.id)&&String(answers[q.id])===String(i)));const mark=document.createElement("b");mark.textContent=String.fromCharCode(65+i)+".";
       const label=document.createElement("span");label.textContent=value;b.append(mark,label);b.addEventListener("click",()=>{if(finished)return;answers[q.id]=String(i);render({ focusOptionIndex: i });queueSave(q.id,String(i)).catch(()=>{});});options.append(b);});
