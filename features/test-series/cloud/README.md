@@ -240,3 +240,8 @@ Payment request and student-test lock IDs are SHA-256 hashes of NUL-delimited id
 ### Razorpay webhook body ceiling
 
 The isolated Razorpay webhook handler rejects a raw request body larger than 1 MiB with HTTP 413 before HMAC verification or JSON parsing. The limit bounds application-level signature and parsing work; it does not replace an ingress/request-size limit because the hosting platform may already have buffered the request before the handler runs. Keep the ceiling above normal provider event payloads, and change it only with a matching boundary regression test. Signature verification continues to use the exact `req.rawBody` bytes.
+
+
+### Razorpay webhook payload-limit boundary regression
+
+The 1 MiB application limit is inclusive: a raw body of exactly 1,048,576 bytes may proceed to HMAC verification and normal event handling, while any larger Buffer is rejected with HTTP 413 before signature-header lookup. The exact-boundary regression signs a valid capture event padded only with JSON whitespace, verifies the original event reaches the payment processor, and complements the existing one-byte-over-limit rejection test. Keep both sides of this boundary covered if the limit changes.
