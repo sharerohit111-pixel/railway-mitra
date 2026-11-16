@@ -76,3 +76,25 @@ test("access pagination cursors must belong to the active filter and carry its o
   assert.equal(ownerAccessCursorMatches(auditCursor, "action", "revoke", "createdAt"), false);
   assert.equal(ownerAccessCursorMatches(auditCursor, "targetUid", null, "updatedAt"), false);
 });
+
+test("cursor timestamp inspection fails closed when timestamp accessors throw", () => {
+  const accessCursor = { uid: "student_UID-123", updatedAt: new Date() };
+  const throwingTimestamp = {};
+  Object.defineProperty(throwingTimestamp, "toMillis", {
+    get() { throw new Error("unreadable timestamp accessor"); }
+  });
+  assert.equal(
+    ownerAccessCursorMatches({ ...accessCursor, updatedAt: throwingTimestamp }, "uid", null, "updatedAt"),
+    false
+  );
+
+  const overriddenDate = new Date();
+  Object.defineProperty(overriddenDate, "getTime", {
+    get() { throw new Error("unreadable Date accessor"); }
+  });
+  assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: overriddenDate }, "uid", null, "updatedAt"), true);
+  assert.equal(
+    ownerAccessCursorMatches({ ...accessCursor, updatedAt: new Proxy(new Date(), {}) }, "uid", null, "updatedAt"),
+    false
+  );
+});
