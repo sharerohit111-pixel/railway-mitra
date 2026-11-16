@@ -103,10 +103,14 @@ test("finalize rejects non-image bytes and records inspected image dimensions", 
   const start = source.indexOf("exports.rmOwnerFinalizeQuestionMediaUpload =");
   const end = source.indexOf("exports.rmGetQuestionMediaUrl =", start);
   const handler = source.slice(start, end);
-  assert.match(handler, /inspectImageBuffer\(bytes, upload\.mimeType\)/);
+  assert.match(handler, /sanitizeImageBuffer\(bytes, upload\.mimeType, \{ sharp: require\("sharp"\) \}\)/);
   assert.match(handler, /Uploaded file is not a valid supported image/);
   assert.match(handler, /await file\.delete\(\{ ignoreNotFound: true \}\)/);
   assert.match(handler, /width: imageInfo\.width/);
+  assert.match(handler, /file\.save\(imageInfo\.data/);
+  assert.match(handler, /preconditionOpts: \{ ifGenerationMatch: generation \}/);
+  assert.match(handler, /sanitizedSha256/);
+  assert.match(handler, /sanitizedGeneration/);
   assert.match(handler, /height: imageInfo\.height/);
   assert.ok(handler.includes('!/^[1-9]\\d*$/.test(generation)'));
 });
