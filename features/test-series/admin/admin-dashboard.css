@@ -31,3 +31,8 @@
 .rm-admin-review-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:sticky;bottom:0;background:#102b49;padding-top:10px}
 .rm-admin-review-actions button{width:100%}
 @media(max-width:480px){.rm-admin .rm-admin-review-panel{padding:11px}.rm-admin-review-summary{grid-template-columns:1fr}}
+
+#rm-owner-question-media-panel{margin:14px 0;border:1px solid #285477;background:#0b2038;border-radius:14px;padding:14px}
+#rm-owner-question-media-panel h4{margin:0 0 8px;color:#7de7ff}
+#rm-owner-question-media-panel .rm-admin-form-grid{margin:10px 0}
+#rm-owner-media-status{min-height:1.4em}
