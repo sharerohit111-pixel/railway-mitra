@@ -57,6 +57,19 @@ test("request fingerprint is stable and changes when the requested operation cha
   assert.notEqual(first, ownerAccessRequestFingerprint({ ...base, action: "revoke" }));
 });
 
+test("request fingerprint validates grant expiry against the same captured clock", () => {
+  const nowMs = Date.parse("2026-11-16T00:00:00.000Z");
+  const expiringGrant = { ...base, expiresAt: "2026-11-16T00:00:00.001Z" };
+  assert.equal(
+    ownerAccessRequestFingerprint(expiringGrant, nowMs),
+    ownerAccessRequestFingerprint({ ...expiringGrant }, nowMs)
+  );
+  assert.throws(
+    () => ownerAccessRequestFingerprint(expiringGrant, nowMs + 1),
+    /expiry/i
+  );
+});
+
 test("access pagination cursors must belong to the active filter and carry its ordering timestamp", () => {
   const accessCursor = { uid: "student_UID-123", testId: "gdce-je-civil-2026", status: "active", updatedAt: new Date() };
   const auditCursor = { targetUid: "student_UID-123", testId: "gdce-je-civil-2026", action: "grant", createdAt: new Date() };
