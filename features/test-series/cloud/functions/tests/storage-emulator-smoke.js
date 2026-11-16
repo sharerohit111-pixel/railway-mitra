@@ -1,6 +1,8 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
+const { inspectImageBuffer } = require("../question-image-inspector");
 const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getStorage } = require("firebase-admin/storage");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
@@ -17,7 +19,15 @@ async function main() {
   }, "test-series-storage-smoke");
   const bucket = getStorage(app).bucket();
   const objectPath = "test-series-question-media/emulator-smoke/question-1/diagram-1";
-  const bytes = Buffer.from("railway-mitra-storage-emulator-smoke");
+  // Minimal PNG signature + IHDR fixture used by the image-header inspector.
+  const bytes = Buffer.alloc(24);
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(bytes, 0);
+  bytes.writeUInt32BE(13, 8);
+  bytes.write("IHDR", 12, "ascii");
+  bytes.writeUInt32BE(640, 16);
+  bytes.writeUInt32BE(480, 20);
+  const sha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+  assert.deepEqual(inspectImageBuffer(bytes, "image/png"), { width: 640, height: 480, format: "png" });
   const file = bucket.file(objectPath);
   const clientApp = initializeClientApp({
     apiKey: "demo-api-key",
@@ -40,7 +50,7 @@ async function main() {
           testid: "emulator-smoke",
           questionid: "question-1",
           mediaid: "diagram-1",
-          sha256: "emulator-smoke-checksum"
+          sha256
         }
       },
       preconditionOpts: { ifGenerationMatch: 0 }
@@ -51,6 +61,7 @@ async function main() {
     assert.equal(metadata.metadata.testid, "emulator-smoke");
     assert.equal(metadata.metadata.questionid, "question-1");
     assert.equal(metadata.metadata.mediaid, "diagram-1");
+    assert.equal(metadata.metadata.sha256, sha256);
     assert.ok(Number(metadata.generation) > 0);
     const [downloaded] = await file.download();
     assert.deepEqual(downloaded, bytes);
@@ -68,7 +79,7 @@ async function main() {
       getBytes(ref(clientStorage, objectPath)),
       error => error.code === "storage/unauthorized"
     );
-    console.log("Storage Emulator smoke test passed: Admin upload/download, custom metadata, generation, byte-for-byte download, and authenticated client read/write denial.");
+    console.log("Storage Emulator smoke test passed: PNG header inspection, Admin upload/download, custom metadata/checksum, generation, byte-for-byte download, and authenticated client read/write denial.");
   } finally {
     if (clientUser) await deleteUser(clientUser).catch(() => {});
     await deleteClientApp(clientApp).catch(() => {});
