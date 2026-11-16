@@ -72,15 +72,6 @@ jobs:
         working-directory: features/test-series/cloud/functions
         run: npm ci --no-audit --no-fund --include=optional
 
-      - name: Export generated dependency lockfile for review
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cbt-functions-package-lock
-          path: features/test-series/cloud/functions/package-lock.json
-          if-no-files-found: error
-          retention-days: 1
-
       - name: Check CBT Functions syntax
         working-directory: features/test-series/cloud/functions
         run: npm run lint
