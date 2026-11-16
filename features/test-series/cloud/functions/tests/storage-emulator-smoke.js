@@ -8,7 +8,7 @@ const { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, deleteUser
 const { getStorage: getClientStorage, connectStorageEmulator, ref, uploadBytes, getBytes } = require("firebase/storage");
 
 async function main() {
-  if (process.env.STORAGE_EMULATOR_HOST !== "127.0.0.1:9199") {
+  if (process.env.STORAGE_EMULATOR_HOST !== "http://127.0.0.1:9199") {
     throw new Error("Storage smoke test requires the isolated loopback Storage Emulator");
   }
   const app = initializeApp({
