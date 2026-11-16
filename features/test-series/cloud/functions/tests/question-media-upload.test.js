@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const {
   mediaMappingId,
   mediaObjectPath,
+  mediaQuarantineObjectPath,
   validateMediaUploadRequest,
   MAX_IMAGE_BYTES
 } = require("../question-media-upload");
@@ -19,6 +20,8 @@ const valid = {
 test("creates deterministic opaque mapping IDs and canonical private object paths", () => {
   const expectedPath = "test-series-question-media/civil_mock_01/q_diagram_01/turnout_figure";
   assert.equal(mediaObjectPath(valid.testId, valid.questionId, valid.mediaId), expectedPath);
+  assert.equal(mediaQuarantineObjectPath(valid.testId, valid.questionId, valid.mediaId),
+    "test-series-question-media-quarantine/civil_mock_01/q_diagram_01/turnout_figure");
   assert.match(mediaMappingId(valid.testId, valid.questionId, valid.mediaId), /^[a-f0-9]{64}$/);
   assert.equal(mediaMappingId(valid.testId, valid.questionId, valid.mediaId),
     mediaMappingId(valid.testId, valid.questionId, valid.mediaId));
@@ -28,6 +31,7 @@ test("validates supported MIME types, bounded size and SHA-256 checksum", () => 
   assert.deepEqual(validateMediaUploadRequest(valid), {
     ...valid,
     objectPath: mediaObjectPath(valid.testId, valid.questionId, valid.mediaId),
+    quarantineObjectPath: mediaQuarantineObjectPath(valid.testId, valid.questionId, valid.mediaId),
     mappingId: mediaMappingId(valid.testId, valid.questionId, valid.mediaId)
   });
   for (const mimeType of ["image/svg+xml", "text/html", "application/pdf"]) {
@@ -58,6 +62,7 @@ test("Owner upload endpoints require Owner authorization and validate the draft 
   assert.match(createHandler, /testSnap\.data\(\)\.status !== "draft"/);
   assert.match(createHandler, /question\.media/);
   assert.match(createHandler, /action: "write"/);
+  assert.match(createHandler, /upload\.quarantineObjectPath/);
   assert.match(createHandler, /ifGenerationMatch: "0"/);
   assert.match(createHandler, /contentType: upload\.mimeType/);
   assert.match(createHandler, /extensionHeaders:/);
@@ -68,7 +73,9 @@ test("Owner upload endpoints require Owner authorization and validate the draft 
   assert.match(createHandler, /Date\.now\(\) \+ 5 \* 60 \* 1000/);
   assert.match(finalizeHandler, /owner\(req\)/);
   assert.match(finalizeHandler, /testSnap\.data\(\)\.status !== "draft"/);
-  assert.match(finalizeHandler, /file\.download\(\)/);
+  assert.match(finalizeHandler, /quarantineFile\.download\(\)/);
+  assert.match(finalizeHandler, /bucket\.file\(upload\.objectPath\)/);
+  assert.match(finalizeHandler, /quarantineFile\.delete\(\{ ignoreNotFound: true \}\)/);
   assert.match(finalizeHandler, /actualSha256 !== upload\.sha256/);
   assert.match(finalizeHandler, /tx\.create\(mappingRef, mapping\)/);
 });
@@ -104,10 +111,12 @@ test("finalize rejects non-image bytes and records inspected image dimensions", 
   const end = source.indexOf("exports.rmGetQuestionMediaUrl =", start);
   const handler = source.slice(start, end);
   assert.match(handler, /sanitizeImageBuffer\(bytes, upload\.mimeType, \{ sharp: require\("sharp"\) \}\)/);
-  assert.match(handler, /Uploaded file is not a valid supported image/);
+  assert.match(handler, /Uploaded file could not be fully decoded and safely re-encoded/);
   assert.match(handler, /await file\.delete\(\{ ignoreNotFound: true \}\)/);
   assert.match(handler, /width: imageInfo\.width/);
   assert.match(handler, /file\.save\(imageInfo\.data/);
+  assert.match(handler, /upload\.quarantineObjectPath/);
+  assert.match(handler, /ifGenerationMatch: 0/);
   assert.match(handler, /preconditionOpts: \{ ifGenerationMatch: generation \}/);
   assert.match(handler, /sanitizedSha256/);
   assert.match(handler, /sanitizedGeneration/);
