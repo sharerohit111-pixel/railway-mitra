@@ -7,7 +7,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "lint": "node --check index.js && node --check question-media-contract.js && node --check student-question-delivery.js && node --check owner-test-editor.js && node --check tests/question-media-contract.test.js && node --check tests/question-media-access.test.js && node --check tests/owner-test-editor.test.js && node --check tests/load/firestore-emulator-load.js && node --check tests/load/callable-emulator-load.js",
+    "lint": "node --check index.js && node --check question-media-contract.js && node --check question-media-upload.js && node --check student-question-delivery.js && node --check owner-test-editor.js && node --check tests/question-media-contract.test.js && node --check tests/question-media-upload.test.js && node --check tests/question-media-access.test.js && node --check tests/owner-test-editor.test.js && node --check tests/load/firestore-emulator-load.js && node --check tests/load/callable-emulator-load.js",
     "serve": "firebase emulators:start --only functions:test-series",
     "deploy": "firebase deploy --only functions:test-series",
     "test": "node --test tests/*.test.js",
