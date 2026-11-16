@@ -380,3 +380,7 @@ Authorization is evaluated against the transaction snapshot. A response
 already returned to a client cannot be recalled; signed question-image URLs
 remain short-lived (60 seconds) and are not retroactively revoked when the
 student's active attempt changes.
+
+## Refund entitlement Firestore Emulator regressions
+
+The isolated CBT Functions Emulator suite exercises the refund ledger against the real Firestore Emulator transaction engine using synthetic payment, order, entitlement, refund and event documents. It verifies that concurrent partial-refund deliveries preserve the highest cumulative `amountRefunded` snapshot instead of allowing a retried older transaction to regress it, while keeping the paid order and entitlement active. A separate out-of-order scenario applies a provider full-refund snapshot before an earlier partial-refund webhook arrives; the delayed event and its replay must leave the payment and order refunded and the entitlement revoked. The fixtures are deleted after each test. These tests do not contact Razorpay, use production credentials, or certify provider-side webhook delivery.
