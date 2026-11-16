@@ -15,11 +15,12 @@ This is metadata validation only. It does **not** fetch, authorize, sign or serv
 
 Keep original question media in a private Cloud Storage bucket. Store a server-owned mapping keyed by test ID, question ID and media ID. The mapping must include the exact object path, verified content type, byte size, checksum and immutable object generation. Never accept an object path or URL from the student client.
 
-Suggested server-only record:
-`testSeriesQuestionMedia/{testId_questionId_mediaId}`
+Suggested server-only record (document ID is the SHA-256 hex digest of the JSON tuple `[testId, questionId, mediaId]`):
+`testSeriesQuestionMedia/{sha256-id}`
 - `testId`, `questionId`, `mediaId`
-- `objectPath` (private; never returned to clients)
-- `contentType`, `sizeBytes`, `sha256`, `generation`
+- `objectPath` (private; never returned to clients; must start with `test-series-question-media/`)
+- `contentType`, `sizeBytes` (1 byte–5 MiB), `sha256` (64 lowercase hex characters), `generation`
+- Storage custom metadata must bind `testId`, `questionId`, `mediaId`, and `sha256` exactly to the record
 - `status` (`ready` only after upload validation)
 
 ## Authenticated delivery contract
