@@ -342,7 +342,7 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
   if (mapping.status !== "ready" || mapping.testId !== attempt.testId ||
       mapping.questionId !== questionId || mapping.mediaId !== mediaId ||
       mapping.contentType !== media.mimeType ||
-      typeof mapping.objectPath !== "string" || !mapping.objectPath.startsWith("test-series-question-media/") ||
+      mapping.objectPath !== "test-series-question-media/" + attempt.testId + "/" + questionId + "/" + mediaId ||
       !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 || mapping.sizeBytes > 5 * 1024 * 1024 ||
       typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256)) {
     throw new HttpsError("failed-precondition", "Question image metadata is inconsistent");
