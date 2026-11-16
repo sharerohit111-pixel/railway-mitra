@@ -219,3 +219,39 @@ test("older partial-refund webhook arriving after full refund cannot reactivate 
   assert.equal(h.docs.get(entitlementPath).status, "revoked");
   assert.equal(h.docs.get("testSeriesPayments/pay_refund_1").amountRefunded, 49900);
 });
+
+test("rejects payment status that contradicts the cumulative refund state before writing ledgers", async () => {
+  const fullRefundWithCapturedStatus = harness();
+  fullRefundWithCapturedStatus.event.payload.payment.entity.status = "captured";
+  await assert.rejects(
+    () => applyProcessedRefund({
+      db: fullRefundWithCapturedStatus.db,
+      event: fullRefundWithCapturedStatus.event,
+      eventId: "evt_full_status_mismatch"
+    }),
+    { code: "invalid_refund_fields" }
+  );
+  assert.equal(fullRefundWithCapturedStatus.docs.has("testSeriesRefunds/rfnd_1"), false);
+  assert.equal(fullRefundWithCapturedStatus.docs.has("testSeriesPaymentEvents/evt_full_status_mismatch"), false);
+  assert.equal(fullRefundWithCapturedStatus.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
+  assert.equal(fullRefundWithCapturedStatus.docs.get(entitlementPath).status, "active");
+
+  const partialRefundWithRefundedStatus = harness({
+    refundAmount: 10000,
+    amountRefunded: 10000,
+    refundStatus: "partial"
+  });
+  partialRefundWithRefundedStatus.event.payload.payment.entity.status = "refunded";
+  await assert.rejects(
+    () => applyProcessedRefund({
+      db: partialRefundWithRefundedStatus.db,
+      event: partialRefundWithRefundedStatus.event,
+      eventId: "evt_partial_status_mismatch"
+    }),
+    { code: "invalid_refund_fields" }
+  );
+  assert.equal(partialRefundWithRefundedStatus.docs.has("testSeriesRefunds/rfnd_1"), false);
+  assert.equal(partialRefundWithRefundedStatus.docs.has("testSeriesPaymentEvents/evt_partial_status_mismatch"), false);
+  assert.equal(partialRefundWithRefundedStatus.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
+  assert.equal(partialRefundWithRefundedStatus.docs.get(entitlementPath).status, "active");
+});
