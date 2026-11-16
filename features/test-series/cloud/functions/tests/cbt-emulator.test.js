@@ -3260,6 +3260,58 @@ test("CBT save, resume and scoring preserve prototype-sensitive question IDs as 
 });
 
 
+
+test("question media URL refuses a stale attempt when another exam session is active", async () => {
+  await signInAsTestStudent(uid);
+  const staleAttemptId = "emulator-media-stale-attempt";
+  const activeAttemptId = "emulator-media-current-attempt";
+  const staleAttemptRef = db.doc("testSeriesAttempts/" + staleAttemptId);
+  const activeAttemptRef = db.doc("testSeriesAttempts/" + activeAttemptId);
+  const activeSessionRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActiveSession = await activeSessionRef.get();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 5 * 60_000);
+
+  try {
+    await Promise.all([
+      staleAttemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: now, expiresAt, answers: {}
+      }),
+      activeAttemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: now, expiresAt, answers: {}
+      }),
+      activeSessionRef.set({
+        uid, testId, attemptId: activeAttemptId, status: "in_progress",
+        startedAt: now, expiresAt
+      })
+    ]);
+
+    await assert.rejects(
+      callable("rmGetQuestionMediaUrl", {
+        attemptId: staleAttemptId,
+        questionId: "q1",
+        mediaId: "diagram_01"
+      }),
+      error => error.code === "functions/failed-precondition" &&
+        error.message.includes("Exam is not the active session")
+    );
+    assert.equal((await staleAttemptRef.get()).data().status, "in_progress");
+    assert.equal((await activeSessionRef.get()).data().attemptId, activeAttemptId);
+  } finally {
+    await Promise.all([
+      staleAttemptRef.delete().catch(() => {}),
+      activeAttemptRef.delete().catch(() => {})
+    ]);
+    if (previousActiveSession.exists) {
+      await activeSessionRef.set(previousActiveSession.data()).catch(() => {});
+    } else {
+      await activeSessionRef.delete().catch(() => {});
+    }
+  }
+});
+
 test("late submission of an expired attempt does not replace a newer active exam session", async () => {
   const oldAttemptId = "emulator-late-submit-old-attempt";
   const newAttemptId = "emulator-late-submit-new-attempt";

@@ -296,3 +296,21 @@ Owner single-item saves and bulk imports share the same question-bank validator.
 ## Persisted student option-array integrity
 
 Student question delivery and answer-save validation share the same option validator. Every question must contain 2–6 dense array entries, and every option must be an own indexed, non-empty string of at most 1,000 characters. Sparse array slots, object-valued options, empty strings and oversized option text fail closed. This is a second defensive boundary for persisted Firestore data: a malformed paper cannot be projected to the student, and a direct callable answer-save request cannot select an invalid option index. Unit tests cover sparse question/option arrays; the Functions Emulator regression verifies that a nested object option is neither delivered nor answerable and that no answer is persisted.
+
+
+### Active-session binding for signed question media
+
+Before issuing a signed question-image read URL, `rmGetQuestionMediaUrl`
+now verifies the server-owned `testSeriesActiveSessions/{uid}` pointer against
+the requested attempt. The UID, attempt ID, test ID, in-progress state and
+original expiry timestamp must all match the authenticated student's active
+session. Missing, stale, switched, expired or inconsistent pointers fail
+closed before Storage metadata is read or a new signed URL is issued.
+
+This prevents an older still-unexpired attempt from obtaining fresh image URLs
+after the student has moved to a different active exam. A signed URL issued
+before the switch remains a short-lived bearer URL until its existing 60-second
+expiry; changing the active-session pointer does not revoke an already-issued
+URL. The CBT Functions Emulator regression seeds two synthetic attempts and
+confirms that the stale attempt cannot obtain a new media URL. No live bucket
+or production account is used.

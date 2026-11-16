@@ -515,8 +515,23 @@ exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
     throw new HttpsError("permission-denied", "Attempt not found");
   }
   const attempt = attemptSnap.data();
-  if (attempt.status !== "in_progress" || !date(attempt.expiresAt) || date(attempt.expiresAt) <= new Date()) {
+  const now = new Date();
+  const attemptExpiresAt = date(attempt.expiresAt);
+  if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
     throw new HttpsError("failed-precondition", "Exam is closed");
+  }
+  const activeSessionSnap = await db.doc("testSeriesActiveSessions/" + uid).get();
+  const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+  const activeExpiresAt = activeSession ? date(activeSession.expiresAt) : null;
+  if (!activeSession ||
+      activeSession.uid !== uid ||
+      activeSession.attemptId !== attemptId ||
+      activeSession.testId !== attempt.testId ||
+      activeSession.status !== "in_progress" ||
+      !activeExpiresAt ||
+      activeExpiresAt <= now ||
+      activeExpiresAt.getTime() !== attemptExpiresAt.getTime()) {
+    throw new HttpsError("failed-precondition", "Exam is not the active session");
   }
   const paperSnap = await db.doc("testSeriesQuestionSets/" + id(attempt.testId)).get();
   if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");

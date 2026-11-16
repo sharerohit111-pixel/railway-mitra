@@ -11,7 +11,13 @@ test("question media URL callable is bound to authenticated active attempts and 
   assert.match(handler, /const uid = student\(req\)/);
   assert.match(handler, /attemptSnap\.data\(\)\.uid !== uid/);
   assert.match(handler, /attempt\.status !== "in_progress"/);
-  assert.match(handler, /date\(attempt\.expiresAt\) <= new Date\(\)/);
+  assert.match(handler, /const attemptExpiresAt = date\(attempt\.expiresAt\)/);
+  assert.match(handler, /const activeSessionSnap = await db\.doc\("testSeriesActiveSessions\/" \+ uid\)\.get\(\)/);
+  assert.match(handler, /activeSession\.uid !== uid/);
+  assert.match(handler, /activeSession\.attemptId !== attemptId/);
+  assert.match(handler, /activeSession\.testId !== attempt\.testId/);
+  assert.match(handler, /activeSession\.status !== "in_progress"/);
+  assert.match(handler, /activeExpiresAt\.getTime\(\) !== attemptExpiresAt\.getTime\(\)/);
   assert.match(handler, /projectStudentQuestions\(\[question\]\)/);
   assert.match(handler, /createHash\("sha256"\)/);
   assert.match(handler, /testSeriesQuestionMedia\//);
