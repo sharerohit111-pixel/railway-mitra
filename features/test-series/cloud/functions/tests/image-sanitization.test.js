@@ -3,6 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { sanitizeImageBuffer, MAX_IMAGE_BYTES } = require("../image-sanitization");
+const sharp = require("sharp");
 
 function fakeSharp({ data, info, error, format = "png", pages = 1 } = {}) {
   return (input, options) => {
@@ -70,4 +71,22 @@ test("rejects decoder errors, wrong output format and unsafe dimensions", async 
   await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
     sharp: fakeSharp({ data: Buffer.alloc(MAX_IMAGE_BYTES + 1) })
   }));
+});
+
+test("uses the installed native Sharp runtime to decode and re-encode real JPEG, PNG and WebP images", async () => {
+  for (const [mimeType, format] of [
+    ["image/jpeg", "jpeg"], ["image/png", "png"], ["image/webp", "webp"]
+  ]) {
+    const source = await sharp({
+      create: { width: 32, height: 24, channels: 3, background: { r: 20, g: 80, b: 160 } }
+    }).toFormat(format).toBuffer();
+    const clean = await sanitizeImageBuffer(source, mimeType, { sharp });
+    const metadata = await sharp(clean.data).metadata();
+    assert.equal(metadata.format, format);
+    assert.equal(metadata.width, 32);
+    assert.equal(metadata.height, 24);
+    assert.equal(metadata.exif, undefined);
+    assert.equal(metadata.xmp, undefined);
+    assert.equal(metadata.iptc, undefined);
+  }
 });
