@@ -6,6 +6,7 @@ import { restoreCbtOptionFocus } from "./exam-focus.mjs";
 import { createCbtExamLifecycle } from "./exam-lifecycle.mjs";
 import { classifyCbtAttemptResultError } from "./attempt-recovery.mjs";
 import { createStudentAnswerState } from "./student-answer-state.mjs";
+import { isSafeCbtQuestionMediaResponse } from "./question-media-view.mjs";
 
 export function initStudentCbtExam({ app, testId, studentUid, root = document }) {
   if (typeof studentUid !== "string" || !studentUid.trim()) {
@@ -136,9 +137,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     host.textContent = "चित्र लोड हो रहे हैं…";
     const figures = await Promise.all(media.map(async descriptor => {
       const response = await getCbtQuestionMediaUrl(app, attemptId, question.id, descriptor.id);
-      if (!response || typeof response.url !== "string" || !response.url.startsWith("https://") ||
-          response.mimeType !== descriptor.mimeType ||
-          !["image/jpeg", "image/png", "image/webp"].includes(response.mimeType)) {
+      if (!isSafeCbtQuestionMediaResponse(response, descriptor)) {
         throw new Error("चित्र का सुरक्षित लिंक मान्य नहीं है।");
       }
       const figure = document.createElement("figure");
