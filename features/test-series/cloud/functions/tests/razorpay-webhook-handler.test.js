@@ -213,12 +213,35 @@ test("keeps inconsistent replay ledgers retryable instead of acknowledging a dam
 });
 
 
+test("keeps inconsistent refund ledgers retryable instead of acknowledging a damaged entitlement", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_inconsistent_handler", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_inconsistent_refund_handler" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("refund ledger does not match the payment and entitlement");
+      error.code = "refund_ledger_inconsistent";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});
+
 test("routes verified refund.processed events to the refund ledger", async () => {
   const refundEvent = {
     event: "refund.processed",
     payload: {
       refund: { entity: { id: "rfnd_handler_1", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
-      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "captured" } }
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded" } }
     }
   };
   let received;
