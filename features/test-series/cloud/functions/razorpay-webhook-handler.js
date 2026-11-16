@@ -2,6 +2,8 @@
 
 const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
 
+const MAX_WEBHOOK_BODY_BYTES = 1024 * 1024;
+
 async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, applyRefund } = {}) {
   if (req.method !== "POST") {
     res.set("Allow", "POST").status(405).send("Method not allowed");
@@ -9,6 +11,11 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, apply
   }
 
   const rawBody = req.rawBody;
+  if (Buffer.isBuffer(rawBody) && rawBody.length > MAX_WEBHOOK_BODY_BYTES) {
+    res.status(413).send("Webhook payload too large");
+    return;
+  }
+
   const signature = req.get("x-razorpay-signature");
   if (!verifyRazorpayWebhookSignature({ rawBody, signature, secret })) {
     res.status(400).send("Invalid webhook signature");
@@ -87,4 +94,4 @@ async function handleRazorpayWebhook({ req, res, secret, db, applyPayment, apply
   }
 }
 
-module.exports = { handleRazorpayWebhook };
+module.exports = { handleRazorpayWebhook, MAX_WEBHOOK_BODY_BYTES };
