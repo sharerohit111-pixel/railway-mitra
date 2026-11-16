@@ -21,6 +21,7 @@ on:
       - "features/test-series/cloud/firestore.rules"
       - "storage.rules"
       - "features/test-series/cloud/README.md"
+      - "features/test-series/cloud/INTEGRATION-REVIEW.md"
       - "features/test-series/cloud/firebase-emulator-config.mjs"
       - "features/test-series/student/**"
       - "firebase.json"
