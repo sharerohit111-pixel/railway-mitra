@@ -89,3 +89,16 @@ test("publishing is blocked until every declared question image has a verified r
   assert.match(handler, /mapping\.objectPath !== mediaObjectPath\(testId, questionId, media\.id\)/);
   assert.match(handler, /Every question image must be uploaded and verified before publishing/);
 });
+
+test("finalize rejects non-image bytes and records inspected image dimensions", () => {
+  const { readFileSync } = require("node:fs");
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const start = source.indexOf("exports.rmOwnerFinalizeQuestionMediaUpload =");
+  const end = source.indexOf("exports.rmGetQuestionMediaUrl =", start);
+  const handler = source.slice(start, end);
+  assert.match(handler, /inspectImageBuffer\(bytes, upload\.mimeType\)/);
+  assert.match(handler, /Uploaded file is not a valid supported image/);
+  assert.match(handler, /await file\.delete\(\{ ignoreNotFound: true \}\)/);
+  assert.match(handler, /width: imageInfo\.width/);
+  assert.match(handler, /height: imageInfo\.height/);
+});
