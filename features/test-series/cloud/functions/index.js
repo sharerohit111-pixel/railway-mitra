@@ -173,18 +173,16 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
           // interrupt an already-started manual-access attempt: that attempt
           // may be resumed until its original server deadline.
           const activeSnap = await tx.get(db.doc("testSeriesActiveSessions/" + uid));
-          if (activeSnap.exists && activeSnap.data().testId === testId &&
-              activeSnap.data().status === "in_progress" && date(activeSnap.data().expiresAt) > now) {
-            const priorAttemptId = id(activeSnap.data().attemptId);
+          const activeSession = activeSnap.exists ? activeSnap.data() : null;
+          if (activeSession && activeSession.testId === testId &&
+              activeSession.status === "in_progress" && date(activeSession.expiresAt) > now) {
+            const priorAttemptId = id(activeSession.attemptId);
             const priorAttempt = await tx.get(db.doc("testSeriesAttempts/" + priorAttemptId));
             const prior = priorAttempt.exists ? priorAttempt.data() : null;
             const isValidManualResume = Boolean(
               prior &&
-              prior.uid === uid &&
-              prior.testId === testId &&
               prior.accessSource === "owner_manual" &&
-              prior.status === "in_progress" &&
-              date(prior.expiresAt) > now
+              isActiveAttemptSession({ uid, attemptId: priorAttemptId, attempt: prior, activeSession, now })
             );
             if (!isValidManualResume) {
               throw new HttpsError("permission-denied", "Active Owner manual access required");
@@ -196,27 +194,53 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
       }
     }
     const activeRef = db.doc("testSeriesActiveSessions/" + uid), active = await tx.get(activeRef);
-    if (active.exists && active.data().status === "in_progress" && date(active.data().expiresAt) > now) {
-      const activeAttemptId = id(active.data().attemptId);
-      const activeAttemptSnap = await tx.get(db.doc("testSeriesAttempts/" + activeAttemptId));
-      if (activeAttemptSnap.exists) {
-        const activeAttempt = activeAttemptSnap.data();
-        const validActiveAttempt = activeAttempt.uid === uid &&
-          activeAttempt.testId === active.data().testId &&
-          activeAttempt.status === "in_progress" && date(activeAttempt.expiresAt) > now;
-        if (validActiveAttempt) {
-          if (active.data().testId !== testId) {
-            throw new HttpsError("already-exists", "Another exam session is active");
-          }
-          return {
-            attemptId: activeAttemptId,
-            startedAt: date(activeAttempt.startedAt).toISOString(),
-            expiresAt: date(activeAttempt.expiresAt).toISOString(),
-            resumed: true
-          };
-        }
+    if (active.exists && active.data().status === "in_progress") {
+      const activeSession = active.data();
+      let activeAttemptId = null;
+      try {
+        activeAttemptId = id(activeSession.attemptId);
+      } catch (_) {
+        // A malformed pointer is handled as an inconsistent session below.
       }
-      // A stale session pointer is not a valid active attempt; continue through normal creation checks.
+      const activeAttemptSnap = activeAttemptId
+        ? await tx.get(db.doc("testSeriesAttempts/" + activeAttemptId))
+        : null;
+      const activeAttempt = activeAttemptSnap && activeAttemptSnap.exists
+        ? activeAttemptSnap.data()
+        : null;
+      const validActiveAttempt = Boolean(activeAttempt && isActiveAttemptSession({
+        uid, attemptId: activeAttemptId, attempt: activeAttempt, activeSession, now
+      }));
+      if (validActiveAttempt) {
+        if (activeSession.testId !== testId) {
+          throw new HttpsError("already-exists", "Another exam session is active");
+        }
+        return {
+          attemptId: activeAttemptId,
+          startedAt: date(activeAttempt.startedAt).toISOString(),
+          expiresAt: date(activeAttempt.expiresAt).toISOString(),
+          resumed: true
+        };
+      }
+
+      // Do not create a second attempt while a referenced attempt owned by
+      // this student still claims to be live. A one-time free claim can repair
+      // its own pointer because the claim record independently anchors it.
+      const activeAttemptBelongsToStudent = Boolean(activeAttempt && activeAttempt.uid === uid);
+      const sessionExpiresAt = date(activeSession.expiresAt);
+      const attemptExpiresAt = activeAttempt ? date(activeAttempt.expiresAt) : null;
+      const sessionMayStillBeLive = activeAttemptBelongsToStudent &&
+        (!sessionExpiresAt || sessionExpiresAt > now);
+      const attemptMayStillBeLive = activeAttemptBelongsToStudent &&
+        (!attemptExpiresAt || attemptExpiresAt > now);
+      if ((sessionMayStillBeLive || attemptMayStillBeLive) && !freeClaimSnap) {
+        throw new HttpsError(
+          "failed-precondition",
+          "The active exam session is inconsistent; contact support before starting another exam"
+        );
+      }
+      // A dangling/foreign pointer may be replaced. A free claim may also
+      // repair its own pointer because the claim anchors the original attempt.
     }
     const attemptRef = freeClaimSnap
       ? db.doc("testSeriesAttempts/" + freeClaimSnap.data().attemptId)

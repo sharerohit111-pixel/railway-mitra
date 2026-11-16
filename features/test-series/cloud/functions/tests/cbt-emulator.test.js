@@ -1247,6 +1247,41 @@ test("student can start, save answers and submit with server-side scoring", asyn
       callable("rmStartExam", { testId: paidTestId }),
       error => error.code === "functions/already-exists"
     );
+
+    // A mismatched active-session deadline must not resume the attempt or
+    // silently create a second paid attempt while the referenced attempt is live.
+    const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+    const previousActive = await activeRef.get();
+    const staleAttemptId = "emulator-paid-stale-session-attempt";
+    const staleAttemptRef = db.doc("testSeriesAttempts/" + staleAttemptId);
+    const startedAt = new Date();
+    const attemptExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const pointerExpiresAt = new Date(attemptExpiresAt.getTime() + 1000);
+    try {
+      await staleAttemptRef.set({
+        uid, testId: paidTestId, mode: "mock", status: "in_progress",
+        startedAt, expiresAt: attemptExpiresAt, answers: {}
+      });
+      await activeRef.set({
+        uid, testId: paidTestId, attemptId: staleAttemptId,
+        status: "in_progress", startedAt, expiresAt: pointerExpiresAt
+      });
+      await assert.rejects(
+        callable("rmStartExam", { testId: paidTestId }),
+        error => error.code === "functions/failed-precondition" &&
+          error.message.includes("active exam session is inconsistent")
+      );
+      const studentAttempts = await db.collection("testSeriesAttempts").where("uid", "==", uid).get();
+      assert.equal(
+        studentAttempts.docs.filter(doc => doc.data().testId === paidTestId).length,
+        1,
+        "an inconsistent live session must not create a duplicate paid attempt"
+      );
+    } finally {
+      if (previousActive.exists) await activeRef.set(previousActive.data());
+      else await activeRef.delete().catch(() => {});
+      await staleAttemptRef.delete().catch(() => {});
+    }
   } finally {
     await db.doc("testSeriesTests/" + paidTestId).delete();
     if (paidAccess) {
