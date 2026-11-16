@@ -27,6 +27,10 @@ on:
       - ".github/workflows/test-series-cbt-emulator.yml"
   workflow_dispatch:
 
+concurrency:
+  group: test-series-cbt-emulator-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
