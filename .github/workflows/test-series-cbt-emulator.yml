@@ -57,11 +57,13 @@ jobs:
             functions[0].codebase !== "test-series" ||
             functions[0].source !== "features/test-series/cloud/functions" ||
             config.firestore?.rules !== "features/test-series/cloud/firestore.rules" ||
+            config.storage?.rules !== "storage.rules" ||
+            config.emulators?.storage?.port !== 9199 ||
             config.emulators?.singleProjectMode !== true
           ) {
             throw new Error("CBT emulator config must contain only the isolated Test Series Functions codebase and CBT Firestore rules.");
           }
-          console.log("Validated: Auth, Firestore and the Test Series Functions codebase only.");
+          console.log("Validated: isolated Auth, Firestore, Storage and Test Series Functions emulators only.");
           NODE
 
       - name: Install isolated CBT Functions dependencies
@@ -76,7 +78,7 @@ jobs:
         run: node --check features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js
 
       - name: Run CBT unit and Firestore Rules emulator tests
-        run: OWNER_UID=railway-mitra-cbt-emulator-owner TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore,functions "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"
+        run: OWNER_UID=railway-mitra-cbt-emulator-owner TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore,functions,storage "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && STORAGE_EMULATOR_HOST=127.0.0.1:9199 node features/test-series/cloud/functions/tests/storage-emulator-smoke.js"
 
       - name: Verify synthetic Auth and Firestore emulator backup/restore
         shell: bash
