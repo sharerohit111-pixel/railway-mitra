@@ -490,8 +490,9 @@ exports.rmOwnerSetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
   let request;
   let fingerprint;
   try {
-    request = validateOwnerTestAccessRequest(req.data || {});
-    fingerprint = ownerAccessRequestFingerprint(req.data || {});
+    const requestNowMs = Date.now();
+    request = validateOwnerTestAccessRequest(req.data || {}, requestNowMs);
+    fingerprint = ownerAccessRequestFingerprint(req.data || {}, requestNowMs);
   } catch (error) {
     throw new HttpsError("invalid-argument", error.message);
   }
