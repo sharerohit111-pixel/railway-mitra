@@ -108,6 +108,7 @@ test("finalize rejects non-image bytes and records inspected image dimensions", 
   assert.match(handler, /await file\.delete\(\{ ignoreNotFound: true \}\)/);
   assert.match(handler, /width: imageInfo\.width/);
   assert.match(handler, /height: imageInfo\.height/);
+  assert.match(handler, /!\/^\[1-9\]\\\\d\*\$\//);
 });
 
 test("publication requires a canonical positive decimal object-generation string", () => {
