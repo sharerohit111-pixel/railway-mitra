@@ -32,12 +32,20 @@ async function main() {
     });
     const [metadata] = await file.getMetadata();
     assert.equal(metadata.contentType, "image/png");
+    assert.equal(Number(metadata.size), bytes.length);
     assert.equal(metadata.metadata.testid, "emulator-smoke");
     assert.equal(metadata.metadata.questionid, "question-1");
     assert.equal(metadata.metadata.mediaid, "diagram-1");
     assert.ok(Number(metadata.generation) > 0);
     const [downloaded] = await file.download();
     assert.deepEqual(downloaded, bytes);
+    await assert.rejects(
+      file.save(Buffer.from("overwrite-must-fail"), {
+        resumable: false,
+        preconditionOpts: { ifGenerationMatch: 0 }
+      }),
+      error => Number(error.code) === 412
+    );
     console.log("Storage Emulator smoke test passed: create-only upload, custom metadata, generation and byte-for-byte download.");
   } finally {
     await file.delete({ ignoreNotFound: true }).catch(() => {});
