@@ -33,4 +33,4 @@ function getCallableOptions(env = process.env) {
   });
 }
 
-module.exports = { getCallableOptions };
+module.exports = { getCallableOptions, isIsolatedFunctionsEmulator };

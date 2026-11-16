@@ -257,3 +257,8 @@ The CBT Functions Emulator suite includes a synthetic paid-test fixture for the 
 The callable flow verifies the server-issued two-hour deadline, student-safe delivery of all 150 questions without answer-key fields, two saved answers, resume of the same attempt without extending its deadline, and server-side submission with one correct, one wrong and 148 unanswered answers. With 1 mark per correct answer and 1/3 negative marking, the expected score is 2/3. Synthetic Auth, payment, entitlement, attempt and result records are deleted by the fixture.
 
 This is a single-student local Emulator integration test. It is not a concurrency/load test, a live Razorpay payment, production OTP verification, or production-capacity certification.
+
+
+### Emulator-only student custom-auth fixture hardening
+
+The student callable guard accepts the normal Firebase phone provider in deployed environments. Its custom-token exception for synthetic tests requires **all** of the following: `FUNCTIONS_EMULATOR=true`, the explicit `TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true` test flag, a `demo-*` project ID, and the same isolated Functions Emulator runtime signature used by the App Check policy. The exact emulator-generated `K_SERVICE` plus `K_REVISION=1` marker pair is allowed only without `K_CONFIGURATION`; deployed Cloud Run service, revision or configuration markers disable the exception. Merely setting the two environment flags in a real Firebase project is not sufficient to authorize a custom-token student. Regression tests cover the real-project, missing-flag and deployed-runtime cases. This does not enable or relax deployed App Check enforcement.
