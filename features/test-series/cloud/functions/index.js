@@ -1105,6 +1105,32 @@ exports.rmOwnerPublishTest = onCall(CALLABLE_OPTIONS, async req => {
       console.error("Owner publish integrity check failed", { testId, message: error.message });
       throw new HttpsError("failed-precondition", "Test details, question paper, section configuration or private answer key is invalid; publishing is blocked");
     }
+    const mediaDescriptors = [];
+    for (const question of questions) {
+      for (const media of (question.media || [])) {
+        mediaDescriptors.push({ questionId: question.id, media });
+      }
+    }
+    if (mediaDescriptors.length) {
+      const mappingRefs = mediaDescriptors.map(({ questionId, media }) =>
+        db.doc("testSeriesQuestionMedia/" + mediaMappingId(testId, questionId, media.id)));
+      const mappingSnaps = await Promise.all(mappingRefs.map(ref => tx.get(ref)));
+      for (let index = 0; index < mappingSnaps.length; index += 1) {
+        const snap = mappingSnaps[index];
+        const { questionId, media } = mediaDescriptors[index];
+        const mapping = snap.exists ? snap.data() : null;
+        if (!mapping || mapping.status !== "ready" || mapping.testId !== testId ||
+            mapping.questionId !== questionId || mapping.mediaId !== media.id ||
+            mapping.contentType !== media.mimeType ||
+            mapping.objectPath !== mediaObjectPath(testId, questionId, media.id) ||
+            !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 ||
+            mapping.sizeBytes > MAX_IMAGE_BYTES ||
+            typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256) ||
+            typeof mapping.generation !== "string" || !mapping.generation) {
+          throw new HttpsError("failed-precondition", "Every question image must be uploaded and verified before publishing");
+        }
+      }
+    }
     tx.update(testRef, { status: "published", publishedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
     return { published: true, testId, questionCount: questions.length };
   });
