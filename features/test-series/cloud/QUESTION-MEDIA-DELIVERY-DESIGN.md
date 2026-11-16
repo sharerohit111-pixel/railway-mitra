@@ -72,3 +72,34 @@ Still required before release:
 The descriptor contract, student-safe projection, Owner metadata validation, authenticated callable for short-lived signed read URLs, and student CBT image rendering are implemented in this branch. The callable checks phone-OTP student access, App Check through the shared callable policy, attempt ownership/status/deadline, exact question/media membership, server-owned mapping status, object generation, content type and a 5 MiB object-size ceiling. Signed URLs expire after 60 seconds.
 
 Still pending: Storage bucket/project/IAM and CORS confirmation, abandoned-upload cleanup, end-to-end Storage Emulator coverage for signed upload/finalize and active-attempt reads, browser rendering/accessibility tests, per-attempt rate limiting, trusted image decode/re-encode or malware scanning, and staging verification. Owner-only upload and mapping creation are implemented, but these Firestore checks do not replace Storage Emulator or browser verification. Students must never write media mappings. Do not describe diagram questions as production-ready until these gates pass.
+
+## Image sanitization implementation plan (not yet implemented)
+
+The current `inspectImageBuffer` helper is a bounded header/dimension parser only. It is useful as an inexpensive preflight check, but it must never be described as proof that the complete image is decodable, harmless, or metadata-free.
+
+Before enabling question images in production, move the upload pipeline to a quarantine-to-published flow:
+
+1. The Owner upload URL writes only to a private quarantine prefix. The object is not referenced by student question mappings and cannot be read by students.
+2. A trusted server-side image processor reads the exact uploaded object generation, enforces the existing 5 MiB input cap and dimension/pixel limits, and fully decodes the image. Decode failures, truncated streams, unsupported codecs, animation, and resource-limit violations fail closed.
+3. Re-encode pixels into an allowlisted output format (JPEG, PNG or WebP), strip EXIF/XMP/IPTC and other ancillary metadata, and write a new immutable published object using a create-only generation precondition. Never copy the original bytes into the published prefix.
+4. Calculate SHA-256, byte size, MIME type and dimensions from the re-encoded output bytes. Create the ready media mapping only after the published object is read back and its generation/metadata are verified.
+5. Delete or lifecycle-expire quarantine originals and failed outputs. Cleanup must be idempotent and must not delete a published generation referenced by a ready mapping.
+6. Keep the student delivery endpoint restricted to the published prefix and server-owned ready mappings. It must never issue a read URL for quarantine objects.
+
+### Dependency and runtime decision
+
+No image decoder/re-encoder is currently declared in the isolated Functions package. Do not treat the existing signature parser as a substitute, and do not add an unpinned or transitively unreviewed native dependency. Before selecting a processor (for example, a pinned Sharp/libvips build compatible with the deployed Node 22 Linux runtime), verify its supported platform artifact, security-update policy, license, package-lock reproducibility, cold-start/memory footprint, and emulator/CI install behavior. If the Functions runtime cannot meet those constraints reliably, use a separately isolated image-processing service with explicit cost and IAM review rather than weakening the validation.
+
+### Required sanitizer tests
+
+- Valid JPEG, PNG and WebP decode and re-encode to valid output bytes.
+- Correctly signed but truncated/corrupt image data fails full decode.
+- MIME spoofing, polyglot/non-image payloads, animated formats and unsupported codecs fail closed.
+- EXIF GPS, camera, XMP/IPTC and ancillary metadata are absent from sanitized output.
+- Oversized compressed input, excessive dimensions/pixels and decompression/resource bombs are rejected within bounded memory/time.
+- The output MIME, dimensions, size and SHA-256 are computed from the output bytes, not copied from client metadata.
+- A failed sanitizer never creates a ready mapping; a retry cannot overwrite an existing published generation.
+- Student delivery cannot access quarantine paths, even with a valid attempt.
+
+Until this pipeline and its staging tests exist, question-image upload remains a draft-authoring capability only and diagram delivery remains a release blocker.
+
