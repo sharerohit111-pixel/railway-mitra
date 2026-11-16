@@ -348,7 +348,7 @@ exports.rmOwnerCreateQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req =>
   if (existing.exists && existing.data().status === "ready") {
     throw new HttpsError("already-exists", "This question image is already uploaded; create a new media ID to replace it");
   }
-  const file = getStorage().bucket().file(upload.objectPath);
+  const file = getStorage().bucket().file(upload.quarantineObjectPath);
   const expiresAt = Date.now() + 5 * 60 * 1000;
   const customMetadata = {
     testid: upload.testId,
@@ -372,7 +372,7 @@ exports.rmOwnerCreateQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req =>
   return {
     uploadUrl: url,
     expiresAt: new Date(expiresAt).toISOString(),
-    objectPath: upload.objectPath,
+    objectPath: upload.quarantineObjectPath,
     requiredHeaders: {
       "Content-Type": upload.mimeType,
       "x-goog-meta-testid": customMetadata.testid,
@@ -408,8 +408,8 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
     throw new HttpsError("failed-precondition", "Image descriptor does not belong to this draft question");
   }
   const bucket = getStorage().bucket();
-  const file = bucket.file(upload.objectPath);
-  const [metadata] = await file.getMetadata().catch(() => [null]);
+  const quarantineFile = bucket.file(upload.quarantineObjectPath);
+  const [metadata] = await quarantineFile.getMetadata().catch(() => [null]);
   const size = Number(metadata && metadata.size);
   let generation = String(metadata && metadata.generation || "");
   const custom = metadata && metadata.metadata || {};
@@ -419,10 +419,10 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
       custom.mediaid !== upload.mediaId || custom.sha256 !== upload.sha256 || !/^[1-9]\d*$/.test(generation)) {
     throw new HttpsError("failed-precondition", "Uploaded image metadata or size does not match the draft");
   }
-  const [bytes] = await file.download();
+  const [bytes] = await quarantineFile.download();
   const actualSha256 = crypto.createHash("sha256").update(bytes).digest("hex");
   if (actualSha256 !== upload.sha256) {
-    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
     throw new HttpsError("failed-precondition", "Uploaded image checksum does not match");
   }
   let imageInfo;
@@ -433,9 +433,9 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
     throw new HttpsError("failed-precondition", "Uploaded file could not be fully decoded and safely re-encoded");
   }
 
-  // Replace the private, unverified upload with the freshly encoded bytes.
-  // The generation precondition prevents overwriting an object changed after
-  // the verification read. No ready mapping exists until this succeeds.
+  // Write the clean re-encoded image to the separate published prefix.
+  // The original upload remains quarantined and is never used for student reads.
+  const file = bucket.file(upload.objectPath);
   const sanitizedSha256 = crypto.createHash("sha256").update(imageInfo.data).digest("hex");
   try {
     await file.save(imageInfo.data, {
@@ -449,10 +449,10 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
           sha256: sanitizedSha256
         }
       },
-      preconditionOpts: { ifGenerationMatch: generation }
+      preconditionOpts: { ifGenerationMatch: 0 }
     });
   } catch (_) {
-    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
     throw new HttpsError("failed-precondition", "Sanitized image could not be stored safely");
   }
   const [sanitizedMetadata] = await file.getMetadata().catch(() => [null]);
@@ -462,6 +462,7 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
       !/^[1-9]\\d*$/.test(sanitizedGeneration) ||
       (sanitizedMetadata.metadata || {}).sha256 !== sanitizedSha256) {
     await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
     throw new HttpsError("failed-precondition", "Sanitized image storage verification failed");
   }
   generation = sanitizedGeneration;
@@ -483,7 +484,8 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp()
   };
-  await db.runTransaction(async tx => {
+  try {
+    await db.runTransaction(async tx => {
     const existing = await tx.get(mappingRef);
     if (existing.exists) {
       const prior = existing.data();
@@ -492,7 +494,13 @@ exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req 
       throw new HttpsError("already-exists", "A different image version is already registered for this question");
     }
     tx.create(mappingRef, mapping);
-  });
+    });
+  } catch (error) {
+    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+    throw error;
+  }
+  await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
   return { uploaded: true, testId: upload.testId, questionId: upload.questionId, mediaId: upload.mediaId };
 });
 
