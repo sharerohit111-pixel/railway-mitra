@@ -34,5 +34,4 @@ This is a source-level integration review, not a live Firebase or real-device ce
 
 The current code PR head `132c54e163ae178b10200566f2a78ac07e0cc51d` has successful Test Series Functions Validation. The CBT emulator test step, including the Student OTP-to-exam flow and Owner MFA callable coverage, has passed; the same workflow is completing its synthetic Auth/Firestore backup-restore verification. Treat this as CI emulator evidence only, not live Firebase, real-device, staging, or production certification.
 
-<!-- Previous evidence superseded below -->
-The current code PR head `3f645ba24786f1c67321d663367980032ea169c0` has successful Test Series CBT Emulator Tests and Test Series Functions Validation workflows, including the Owner MFA callable test and synthetic Auth/Firestore backup-restore verification. The CBT workflow includes unit/Firestore Rules emulator tests and synthetic Auth/Firestore backup-restore verification. This is CI evidence only, not live Firebase, real-device, staging, or production certification.
+
