@@ -590,10 +590,15 @@ exports.rmEnterCbtSection = onCall(CALLABLE_OPTIONS, async req => {
     if (!attemptSnap.exists || attemptSnap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
     const attempt = attemptSnap.data(), now = new Date(), overallExpiry = date(attempt.expiresAt);
     if (attempt.status !== "in_progress" || !overallExpiry || overallExpiry <= now) throw new HttpsError("failed-precondition", "Exam is closed");
-    const [testSnap, paperSnap] = await Promise.all([
+    const [testSnap, paperSnap, activeSessionSnap] = await Promise.all([
       tx.get(db.doc("testSeriesTests/" + attempt.testId)),
-      tx.get(db.doc("testSeriesQuestionSets/" + attempt.testId))
+      tx.get(db.doc("testSeriesQuestionSets/" + attempt.testId)),
+      tx.get(db.doc("testSeriesActiveSessions/" + uid))
     ]);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
     if (!testSnap.exists || !paperSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
     const paperQuestions = paperSnap.data().questions || [];
     const sections = validatedExamSections(testSnap.data(), paperQuestions);
@@ -623,14 +628,21 @@ exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
   await db.runTransaction(async tx => {
     const snap = await tx.get(ref);
     if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
-    const a = snap.data();
+    const a = snap.data(), now = new Date();
     const expiresAt = date(a.expiresAt);
-    if (!expiresAt || !Number.isFinite(expiresAt.getTime()) || a.status !== "in_progress" || expiresAt <= new Date()) throw new HttpsError("failed-precondition", "Exam is closed or has an invalid deadline");
-    const questionSet = await tx.get(db.doc("testSeriesQuestionSets/" + a.testId));
+    if (!expiresAt || !Number.isFinite(expiresAt.getTime()) || a.status !== "in_progress" || expiresAt <= now) throw new HttpsError("failed-precondition", "Exam is closed or has an invalid deadline");
+    const [questionSet, testSnap, activeSessionSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesQuestionSets/" + a.testId)),
+      tx.get(db.doc("testSeriesTests/" + a.testId)),
+      tx.get(db.doc("testSeriesActiveSessions/" + uid))
+    ]);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt: a, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
     if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
     const question = (questionSet.data().questions || []).find(item => item.id === questionId);
     if (!question) throw new HttpsError("invalid-argument", "Question does not belong to this exam");
-    const testSnap = await tx.get(db.doc("testSeriesTests/" + a.testId));
     if (!testSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
     const sections = validatedExamSections(testSnap.data(), questionSet.data().questions || []);
     if (question.section !== undefined && question.section !== null) {
