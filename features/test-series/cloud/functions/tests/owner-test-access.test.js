@@ -65,6 +65,11 @@ test("access pagination cursors must belong to the active filter and carry its o
   assert.equal(ownerAccessCursorMatches(accessCursor, "testId", "another-test", "updatedAt"), false);
   assert.equal(ownerAccessCursorMatches(accessCursor, "status", "revoked", "updatedAt"), false);
   assert.equal(ownerAccessCursorMatches(accessCursor, "uid", null, "updatedAt"), true);
+  assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: { toMillis: () => 1794787200000 } }, "uid", null, "updatedAt"), true);
+  assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: { toMillis: () => NaN } }, "uid", null, "updatedAt"), false);
+  assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: { toMillis: () => { throw new Error("bad timestamp"); } } }, "uid", null, "updatedAt"), false);
+  assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: "not-a-timestamp" }, "uid", null, "updatedAt"), false);
+  assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: {} }, "uid", null, "updatedAt"), false);
   assert.equal(ownerAccessCursorMatches({ ...accessCursor, updatedAt: null }, "uid", null, "updatedAt"), false);
   assert.equal(ownerAccessCursorMatches(auditCursor, "targetUid", "student_UID-123", "createdAt"), true);
   assert.equal(ownerAccessCursorMatches(auditCursor, "targetUid", "other", "createdAt"), false);
