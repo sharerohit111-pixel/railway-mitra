@@ -24,15 +24,28 @@ async function sanitizeImageBuffer(input, mimeType, { sharp } = {}) {
   const output = OUTPUTS[mimeType];
   if (!output || typeof sharp !== "function") invalid();
 
+  const inputOptions = {
+    failOn: "error",
+    limitInputPixels: MAX_IMAGE_PIXELS,
+    limitInputChannels: 4,
+    sequentialRead: true,
+    animated: false
+  };
+  const expectedInputFormat = mimeType.slice(6);
   let result;
   try {
-    result = await sharp(input, {
-      failOn: "error",
-      limitInputPixels: MAX_IMAGE_PIXELS,
-      sequentialRead: true,
-      animated: false
-    })
-      // Apply EXIF orientation before metadata is discarded by re-encoding.
+    const sourceMetadata = await sharp(input, inputOptions).metadata();
+    if (!sourceMetadata || sourceMetadata.format !== expectedInputFormat ||
+        !Number.isInteger(sourceMetadata.width) || !Number.isInteger(sourceMetadata.height) ||
+        sourceMetadata.width < 1 || sourceMetadata.height < 1 ||
+        sourceMetadata.width > MAX_IMAGE_DIMENSION || sourceMetadata.height > MAX_IMAGE_DIMENSION ||
+        sourceMetadata.width * sourceMetadata.height > MAX_IMAGE_PIXELS ||
+        (Number.isInteger(sourceMetadata.pages) && sourceMetadata.pages !== 1)) invalid();
+
+    // Decode the complete source, apply EXIF orientation, and encode a fresh
+    // single-frame image. Sharp omits EXIF/XMP/IPTC metadata unless explicitly
+    // asked to preserve it; this pipeline never calls withMetadata().
+    result = await sharp(input, inputOptions)
       .rotate()
       .toFormat(output.format, output.options)
       .toBuffer({ resolveWithObject: true });
