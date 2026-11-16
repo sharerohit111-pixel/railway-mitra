@@ -98,6 +98,7 @@ function ownerAccessCursorMatches(cursorData, filterField, filterValue, timestam
 module.exports = {
   ownerAccessCursorMatches,
   isOwnerAccessGrantUnexpired,
+  effectiveOwnerAccessStatus,
   validateOwnerTestAccessRequest,
   manualAccessDocumentId,
   ownerAccessRequestFingerprint
