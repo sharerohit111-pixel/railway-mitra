@@ -73,6 +73,9 @@ function parseWebp(buffer) {
   invalidImage();
 }
 
+// Security boundary: this is a bounded signature/dimension preflight parser only.
+// It does NOT fully decode, sanitize, strip metadata or re-encode image content.
+// Never use its result alone to mark an uploaded image safe for student delivery.
 function inspectImageBuffer(input, mimeType) {
   const buffer = Buffer.isBuffer(input) ? input : Buffer.from(input || []);
   if (!Number.isSafeInteger(buffer.length) || buffer.length < 12 || buffer.length > 5 * 1024 * 1024) {
