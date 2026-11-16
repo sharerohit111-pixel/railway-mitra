@@ -25,7 +25,7 @@ const {
   inspectPaymentRequest
 } = require("./payment-order-request");
 const { validateOwnerPrice } = require("./owner-price");
-const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint } = require("./owner-test-access");
+const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint, ownerAccessCursorMatches } = require("./owner-test-access");
 const { listOwnerPaymentHistory } = require("./owner-payment-history");
 const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
 const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
@@ -616,6 +616,10 @@ exports.rmOwnerListStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
     }
     const cursor = await db.doc("testSeriesManualAccess/" + data.cursor).get();
     if (!cursor.exists) throw new HttpsError("invalid-argument", "Access cursor not found");
+    const cursorFilter = studentUid ? ["uid", studentUid] : testId ? ["testId", testId] : status ? ["status", status] : [null, null];
+    if (!ownerAccessCursorMatches(cursor.data(), cursorFilter[0], cursorFilter[1], "updatedAt")) {
+      throw new HttpsError("invalid-argument", "Access cursor does not match the active filter");
+    }
     query = query.startAfter(cursor);
   }
   const snap = await query.limit(pageSize + 1).get();
@@ -675,6 +679,10 @@ exports.rmOwnerListStudentAccessAudit = onCall(CALLABLE_OPTIONS, async req => {
     }
     const cursor = await db.doc("testSeriesAccessAudit/" + data.cursor).get();
     if (!cursor.exists) throw new HttpsError("invalid-argument", "Audit cursor not found");
+    const cursorFilter = studentUid ? ["targetUid", studentUid] : testId ? ["testId", testId] : action ? ["action", action] : [null, null];
+    if (!ownerAccessCursorMatches(cursor.data(), cursorFilter[0], cursorFilter[1], "createdAt")) {
+      throw new HttpsError("invalid-argument", "Audit cursor does not match the active filter");
+    }
     query = query.startAfter(cursor);
   }
   const snap = await query.limit(pageSize + 1).get();
