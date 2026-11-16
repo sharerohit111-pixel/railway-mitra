@@ -43,12 +43,14 @@ Implemented on the feature branch:
 - The create-upload callable requires Owner authorization, an existing draft test and a matching question/media descriptor. It issues a five-minute V4 write URL for the canonical object path, with a create-only generation precondition and signed content/metadata headers.
 - The finalize callable rechecks Owner authorization and draft/question membership, verifies exact byte size, content type, custom metadata and SHA-256 against the uploaded bytes, then creates a server-only ready mapping.
 - Only JPEG, PNG and WebP are accepted; maximum image size is 5 MiB. SVG/HTML are rejected. Object names are generated from validated test/question/media IDs; user filenames are never used.
+- Finalize checks the actual file signature and reads PNG/JPEG/WebP image dimensions. Width/height are capped at 8,192 pixels and total pixels at 25 million; invalid headers, MIME spoofing and oversized dimensions are rejected and the uploaded object is deleted.
+- The verified mapping records the inspected width, height and format along with checksum and immutable generation.
 - Test publication now fails closed unless every declared question image has a matching ready mapping with canonical object path, verified size, SHA-256 and immutable generation.
 - Replacing an image requires a new media ID; an existing ready mapping cannot be overwritten.
 
 Still required before release:
 - Configure and test Cloud Storage CORS for the signed PUT headers on the exact production/staging origins.
-- Add image signature/magic-byte decoding and dimension/pixel limits; MIME plus SHA-256 does not prove the file is a valid image.
+- Header inspection is not a full image decode/re-encode or malware scan. Before production, add a trusted decoder/re-encoder and consider metadata stripping and abuse scanning.
 - Verify Storage bucket IAM, private access and retention/cleanup of abandoned partial uploads.
 - Add image signature/magic-byte decoding and dimension/pixel limits; MIME plus SHA-256 does not prove the file is a valid image.
 - Merge the `test-series-question-media` deny rule into the actual live Storage rules; do not deploy this branch's partial `storage.rules` as a replacement for existing app rules.
