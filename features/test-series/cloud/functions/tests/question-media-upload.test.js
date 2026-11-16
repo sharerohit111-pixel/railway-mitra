@@ -121,3 +121,21 @@ test("publication requires a canonical positive decimal object-generation string
   assert.ok(handler.includes('typeof mapping.generation !== "string"'));
   assert.ok(handler.includes('!/^[1-9]\\d*$/.test(mapping.generation)'));
 });
+
+test("student signed image delivery enforces attempt ownership, active expiry, mapping integrity and 60-second inline reads", () => {
+  const { readFileSync } = require("node:fs");
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const start = source.indexOf("exports.rmGetQuestionMediaUrl =");
+  const end = source.indexOf("\nexports.", start + 1);
+  const handler = source.slice(start, end > 0 ? end : undefined);
+  assert.ok(start >= 0);
+  assert.match(handler, /const uid = student\(req\)/);
+  assert.match(handler, /attemptSnap\.data\(\)\.uid !== uid/);
+  assert.match(handler, /attempt\.status !== "in_progress"/);
+  assert.match(handler, /date\(attempt\.expiresAt\) <= new Date\(\)/);
+  assert.match(handler, /mapping\.status !== "ready"/);
+  assert.match(handler, /generation !== String\(mapping\.generation\)/);
+  assert.match(handler, /action: "read"/);
+  assert.match(handler, /Date\.now\(\) \+ 60 \* 1000/);
+  assert.match(handler, /response-content-disposition": "inline"/);
+});
