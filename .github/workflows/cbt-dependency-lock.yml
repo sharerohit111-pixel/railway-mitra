@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- features/test-series/cloud/functions/package-lock.json; then
+          if [ -z "$(git status --porcelain -- features/test-series/cloud/functions/package-lock.json)" ]; then
             echo "Dependency lockfile is already current."
             exit 0
           fi
