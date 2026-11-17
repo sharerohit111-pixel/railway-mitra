@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 const app = readFileSync(new URL("../../../../app.html", import.meta.url), "utf8");
 const landing = readFileSync(new URL("../../index.html", import.meta.url), "utf8");
 const authGuard = readFileSync(new URL("../../../../assets/js/auth-guard.js", import.meta.url), "utf8");
+const ownerReadme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 
 test("signed-in main app exposes exactly one departmental Test Series entry", () => {
   const entries = app.match(/href="features\/test-series\/index\.html"/g) || [];
@@ -38,4 +39,11 @@ test("Test Series landing page exposes Student and Owner navigation without embe
   assert.equal((landing.match(/href="\.\/student\/portal\.html"/g) || []).length, 1);
   assert.equal((landing.match(/href="\.\/admin\/portal\.html"/g) || []).length, 1);
   assert.doesNotMatch(landing, /OWNER_UID|RAZORPAY_KEY_SECRET|serviceAccount/i);
+});
+
+test("Owner portal documentation matches the navigation-only entry points", () => {
+  assert.match(ownerReadme, /signed-in Railway Mitra main app[\\s\\S]*Test Series card[\\s\\S]*landing page[\\s\\S]*Owner portal/i);
+  assert.match(ownerReadme, /navigation-only links/i);
+  assert.match(ownerReadme, /OWNER_UID[\\s\\S]*Phone MFA[\\s\\S]*App Check/i);
+  assert.doesNotMatch(ownerReadme, /not yet linked into the student portal or main app|not linked into the main app/i);
 });
