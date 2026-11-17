@@ -46,6 +46,7 @@ const {
 const { toValidDate } = require("./exam-time");
 const { isActiveAttemptSession } = require("./active-attempt-session");
 const { paidEntitlementDocumentId, getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
+const { getStudentTestAccessType } = require("./student-test-access");
 const { getTestLeaderboard } = require("./leaderboard-query");
 const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
@@ -1776,26 +1777,9 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   const freeTestId = freeConfig.exists && freeConfig.data().enabled ? freeConfig.data().testId : null;
   const tests = await Promise.all(pageDocs.map(async d => {
     const t = d.data(), price = Number(t.price || 0);
-    let accessType = d.id === freeTestId ? "free_trial" : (price > 0 ? "paid" : "unavailable");
-    if (price > 0 && accessType !== "free_trial") {
-      const entitlementSnap = await db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, d.id)).get();
-      const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
-      const ledgerRefs = getPaidEntitlementLedgerReferences({ uid, testId: d.id, entitlement });
-      if (ledgerRefs) {
-        const [paymentSnap, orderSnap] = await Promise.all([
-          db.doc("testSeriesPayments/" + ledgerRefs.paymentId).get(),
-          db.doc("testSeriesPaymentOrders/" + ledgerRefs.orderId).get()
-        ]);
-        const access = validatePaidEntitlement({
-          uid,
-          testId: d.id,
-          entitlement,
-          payment: paymentSnap.exists ? paymentSnap.data() : null,
-          order: orderSnap.exists ? orderSnap.data() : null
-        });
-        if (access.valid) accessType = "unlocked";
-      }
-    }
+    const accessType = await getStudentTestAccessType({
+      db, uid, testId: d.id, test: t, freeTestId
+    });
     return {
       testId: d.id,
       title: t.title || "",
@@ -1812,6 +1796,30 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   }));
   tests.sort((a, b) => a.title.localeCompare(b.title));
   return { tests, nextCursor, hasMore };
+});
+
+
+// Small, server-verified access lookup for one published test. This avoids
+// rescanning the full catalogue after a checkout status check.
+exports.rmGetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req);
+  const testId = id(req.data && req.data.testId);
+  const [testSnap, freeConfigSnap] = await Promise.all([
+    db.doc("testSeriesTests/" + testId).get(),
+    db.doc("testSeriesConfig/freeTest").get()
+  ]);
+  if (!testSnap.exists || testSnap.data().status !== "published") {
+    throw new HttpsError("not-found", "Published test not found");
+  }
+  const freeTestId = freeConfigSnap.exists && freeConfigSnap.data().enabled
+    ? freeConfigSnap.data().testId
+    : null;
+  const accessType = await getStudentTestAccessType({
+    db, uid, testId, test: testSnap.data(), freeTestId
+  });
+  // Keep this response minimal: the client cannot grant access from checkout
+  // callbacks or supply any part of the payment ledger.
+  return { testId, accessType };
 });
 
 

@@ -751,6 +751,9 @@ test("student catalogue marks a paid test unlocked only when all payment ledgers
     await testRef.set({ title: "Paid Catalogue Test", status: "published", price: 25, mode: "mock", durationMinutes: 10 });
     const before = await callable("rmListAvailableTests");
     assert.equal(before.tests.find(item => item.testId === paidTestId).accessType, "paid");
+    const singleBefore = await callable("rmGetStudentTestAccess", { testId: paidTestId });
+    assert.deepEqual(singleBefore, { testId: paidTestId, accessType: "paid" });
+    assert.deepEqual(Object.keys(singleBefore).sort(), ["accessType", "testId"]);
 
     // An active entitlement without its captured payment and paid order is not an unlock.
     await entitlementRef.set({
@@ -760,6 +763,7 @@ test("student catalogue marks a paid test unlocked only when all payment ledgers
     });
     const orphaned = await callable("rmListAvailableTests");
     assert.equal(orphaned.tests.find(item => item.testId === paidTestId).accessType, "paid");
+    assert.equal((await callable("rmGetStudentTestAccess", { testId: paidTestId })).accessType, "paid");
 
     paidAccess = await seedPaidAccess({
       testId: paidTestId, paymentId: "pay_catalogue_verified",
@@ -767,16 +771,28 @@ test("student catalogue marks a paid test unlocked only when all payment ledgers
     });
     const verified = await callable("rmListAvailableTests");
     assert.equal(verified.tests.find(item => item.testId === paidTestId).accessType, "unlocked");
+    assert.equal((await callable("rmGetStudentTestAccess", { testId: paidTestId })).accessType, "unlocked");
 
-    // A later refund or ledger drift must remove the catalogue's unlock hint.
-    await paidAccess.paymentRef.update({ status: "refunded" });
+    // Partial refunds retain access under the current product policy; a full
+    // cumulative refund and a revoked capture must remove the unlock hint.
+    await paidAccess.paymentRef.update({ amountRefunded: 500 });
+    assert.equal((await callable("rmGetStudentTestAccess", { testId: paidTestId })).accessType, "unlocked");
+    await paidAccess.paymentRef.update({ amountRefunded: 2500 });
+    assert.equal((await callable("rmGetStudentTestAccess", { testId: paidTestId })).accessType, "paid");
+    await paidAccess.paymentRef.update({ status: "refunded", amountRefunded: 2500 });
     const refunded = await callable("rmListAvailableTests");
     assert.equal(refunded.tests.find(item => item.testId === paidTestId).accessType, "paid");
+    assert.equal((await callable("rmGetStudentTestAccess", { testId: paidTestId })).accessType, "paid");
 
-    await paidAccess.paymentRef.update({ status: "captured" });
+    await paidAccess.paymentRef.update({ status: "captured", amountRefunded: 0 });
     await paidAccess.orderRef.update({ amount: 2501 });
     const mismatched = await callable("rmListAvailableTests");
     assert.equal(mismatched.tests.find(item => item.testId === paidTestId).accessType, "paid");
+    assert.equal((await callable("rmGetStudentTestAccess", { testId: paidTestId })).accessType, "paid");
+    await assert.rejects(
+      callable("rmGetStudentTestAccess", { testId: "emulator-draft-test" }),
+      error => error.code === "functions/not-found"
+    );
   } finally {
     const cleanup = [entitlementRef.delete().catch(() => {}), testRef.delete().catch(() => {})];
     if (paidAccess) {

@@ -10,7 +10,8 @@ See ARCHITECTURE.md for target architecture, data model, budget guardrails and d
 - rmGetExamQuestions: returns the authenticated active attempt paper without private answer keys.
 - rmGetStudentActiveAttempt: discovers the authenticated student’s active/completed attempt for safe cross-device recovery. It reads the session pointer and attempt in one Firestore transaction; in-progress status and the exact server-issued deadline must match, while a completed pointer must agree with a submitted attempt.
 - rmGetCbtAttemptResult: retrieves only the authenticated student’s submitted result.
-- rmListAvailableTests: lists published test metadata and access type.
+- rmListAvailableTests: lists published test metadata and access type. Paid-test unlock labels use the same captured-payment, paid-order and entitlement validator as exam start.
+- rmGetStudentTestAccess: returns only `{ testId, accessType }` for one published test, using the authenticated student's UID and the same complete payment-ledger validator. The Student Portal uses this bounded lookup after checkout instead of paging through the full catalogue; a checkout callback never grants access.
 - rmGetStudentDashboard: returns only the authenticated student’s submitted results.
 - rmGetTestLeaderboard: returns anonymized leaderboard entries and the requesting student’s own rank.
 - rmGetOwnerAdminSession: checks server-configured OWNER_UID and Firebase second-factor claim.

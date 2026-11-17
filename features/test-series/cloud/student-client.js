@@ -74,6 +74,13 @@ export async function listAvailableCbtTests(app, { pageSize = 100, cursor = null
   return (await callable(app, "rmListAvailableTests")({ pageSize, ...(cursor ? { cursor } : {}) })).data;
 }
 
+export async function getStudentCbtTestAccess(app, testId) {
+  if (typeof testId !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(testId)) {
+    throw new Error("A valid test ID is required");
+  }
+  return (await callable(app, "rmGetStudentTestAccess")({ testId })).data;
+}
+
 export async function getStudentCbtDashboard(app) {
   return (await callable(app, "rmGetStudentDashboard")({})).data;
 }

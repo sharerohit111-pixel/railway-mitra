@@ -1,4 +1,4 @@
-import { listAvailableCbtTests, claimFreeCbtAttempt, startCbtExam } from "../cloud/student-client.js";
+import { listAvailableCbtTests, getStudentCbtTestAccess, claimFreeCbtAttempt, startCbtExam } from "../cloud/student-client.js";
 import { startStudentTestCheckout } from "./payment-checkout.js";
 import {
   requirePaymentSessionStorage,
@@ -88,15 +88,13 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
             button.disabled = true;
             status.textContent = "Checking server-verified payment status…";
             try {
-              let checkCursor = null, latestTest = null, pagesChecked = 0;
-              do {
-                const page = await listAvailableCbtTests(app, { pageSize: 100, cursor: checkCursor });
-                latestTest = (page.tests || []).find(item => item.testId === test.testId) || latestTest;
-                checkCursor = page.nextCursor || null;
-                pagesChecked++;
-                if (latestTest || !page.hasMore || pagesChecked >= 100) break;
-              } while (true);
-              if (latestTest?.accessType === "unlocked") {
+              const access = await getStudentCbtTestAccess(app, test.testId);
+              if (!sessionIsActive()) return;
+              if (!access || access.testId !== test.testId ||
+                  !["free_trial", "paid", "unlocked", "unavailable"].includes(access.accessType)) {
+                throw new Error("The server returned an invalid test-access response.");
+              }
+              if (access.accessType === "unlocked") {
                 pendingPaymentChecks.delete(paymentStateKey);
                 clearPaymentSubmitted(storage, studentUid, test.testId);
                 test.accessType = "unlocked";
@@ -110,6 +108,7 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
                 button.disabled = false;
               }
             } catch (error) {
+              if (!sessionIsActive()) return;
               status.textContent = error.message || "Payment status could not be checked. Please retry.";
               button.disabled = false;
             }
@@ -127,10 +126,13 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
             if (test.accessType === "paid") {
               await startStudentTestCheckout({
                 app, test, studentUid, root, isSessionActive: sessionIsActive,
-                onStatus: message => { status.textContent = message; }
+                onStatus: message => { if (sessionIsActive()) status.textContent = message; }
               });
+              // Persist the marker under the initiating UID even if that user
+              // signs out while the external checkout window is open.
               markPaymentSubmitted(storage, studentUid, test.testId);
               pendingPaymentChecks.add(paymentStateKey);
+              if (!sessionIsActive()) return;
               button.textContent = "Check Payment Status";
               button.disabled = false;
               return;
@@ -144,6 +146,7 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
             if (!sessionIsActive()) return;
             await onStart({ test, session: claim });
           } catch (error) {
+            if (!sessionIsActive()) return;
             status.textContent = error.message || "Test could not be started.";
             button.disabled = false;
           }
