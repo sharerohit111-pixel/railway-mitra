@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
-import { assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion as mapQuestionBankItemToTestQuestion } from "./question-bank-transfer.mjs";
+import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson } from "./question-bank-transfer.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
@@ -962,9 +962,6 @@ export function initOwnerAdminDashboard(auth, functions) {
   function updateQuestionBankSelectionStatus() {
     el("rm-qb-selection-status").textContent = selectedQuestionBankIds.size + " प्रश्न चयनित हैं।";
   }
-  function questionBankItemAsTestQuestion(item) {
-    return mapQuestionBankItemToTestQuestion(item, activeQuestionSection);
-  }
   function renderQuestionSections() {
     const list = el("rm-qb-sections-list"); list.replaceChildren();
     const select = document.createElement("select"); select.id = "rm-qb-active-section";
@@ -1014,11 +1011,21 @@ export function initOwnerAdminDashboard(auth, functions) {
     try { current = target.value.trim() ? JSON.parse(target.value) : []; }
     catch { questionBankStatus.textContent = "पहले Test Management में प्रश्न JSON ठीक करें।"; return; }
     if (!Array.isArray(current)) { questionBankStatus.textContent = "Test प्रश्न सूची Array होनी चाहिए।"; return; }
-    const known = new Set(current.map(question => question.id));
-    const additions = items.map(questionBankItemAsTestQuestion).filter(question => !known.has(question.id));
-    if (!additions.length) { questionBankStatus.textContent = "चयनित प्रश्न पहले से इस टेस्ट में मौजूद हैं।"; return; }
-    target.value = JSON.stringify(current.concat(additions), null, 2);
-    questionBankStatus.textContent = additions.length + " प्रश्न Test Management के प्रश्न बॉक्स में जोड़ दिए गए। टेस्ट सुरक्षित करने के लिए Save Test दबाएँ।";
+    let result;
+    try {
+      result = appendQuestionBankItemsToTest(current, items, activeQuestionSection);
+    } catch (error) {
+      questionBankStatus.textContent = error.message || "चयनित प्रश्न Test Builder में नहीं जोड़े जा सके।";
+      return;
+    }
+    if (!result.addedCount) {
+      questionBankStatus.textContent = "चयनित प्रश्न पहले से इस टेस्ट में मौजूद हैं।";
+      return;
+    }
+    target.value = JSON.stringify(result.questions, null, 2);
+    questionBankStatus.textContent = result.addedCount + " प्रश्न Test Management के प्रश्न बॉक्स में जोड़ दिए गए।" +
+      (result.skippedCount ? " " + result.skippedCount + " पहले से मौजूद प्रश्न छोड़ दिए गए।" : "") +
+      " टेस्ट सुरक्षित करने के लिए Save Test दबाएँ।";
   }
   function resetQuestionBankForm() {
     questionBankForm.reset();
@@ -1071,21 +1078,7 @@ export function initOwnerAdminDashboard(auth, functions) {
         questionBankForm.scrollIntoView({ behavior: "smooth", block: "start" });
       });
       const addToTest = document.createElement("button"); addToTest.type = "button"; addToTest.textContent = "Add to Test";
-      addToTest.addEventListener("click", () => {
-        const target = el("rm-test-questions");
-        let current;
-        try { current = target.value.trim() ? JSON.parse(target.value) : []; }
-        catch { questionBankStatus.textContent = "पहले Test Management में प्रश्न JSON ठीक करें।"; return; }
-        if (!Array.isArray(current)) { questionBankStatus.textContent = "Test प्रश्न सूची Array होनी चाहिए।"; return; }
-        const question = { id: "bank_" + item.itemId, text: item.question?.text || "",
-          options: Array.isArray(item.question?.options) ? item.question.options : [],
-          correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "",
-          ...((activeQuestionSection || item.question?.section) ? { section: activeQuestionSection || item.question.section } : {}) };
-        if (current.some(existing => existing.id === question.id)) { questionBankStatus.textContent = "यह प्रश्न इस टेस्ट में पहले से जोड़ा गया है।"; return; }
-        current.push(question);
-        target.value = JSON.stringify(current, null, 2);
-        questionBankStatus.textContent = "प्रश्न Test Management के प्रश्न बॉक्स में जुड़ गया। टेस्ट सुरक्षित करने के लिए Save Test दबाएँ।";
-      });
+      addToTest.addEventListener("click", () => addQuestionBankItemsToTest([item]));
       const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Delete";
       remove.addEventListener("click", async () => {
         if (!window.confirm("क्या यह प्रश्न स्थायी रूप से हटाना चाहते हैं?")) return;

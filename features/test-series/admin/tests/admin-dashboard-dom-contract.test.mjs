@@ -44,3 +44,16 @@ test("both Owner import flows reject oversized files before reading or loading t
     }
   }
 });
+
+
+test("single and bulk Question Bank additions share one validated Test Builder preflight", () => {
+  assert.match(source, /appendQuestionBankItemsToTest\(current, items, activeQuestionSection\)/);
+  const start = source.indexOf('const addToTest = document.createElement("button")');
+  const end = source.indexOf("const remove =", start);
+  assert.notEqual(start, -1);
+  assert.notEqual(end, -1);
+  const singleHandler = source.slice(start, end);
+  assert.match(singleHandler, /addQuestionBankItemsToTest\(\[item\]\)/);
+  assert.doesNotMatch(singleHandler, /JSON\.parse|correctIndex|bank_/);
+  assert.match(source, /el\("rm-qb-add-selected"\)[\s\S]*?addQuestionBankItemsToTest\(selected\)/);
+});

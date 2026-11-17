@@ -81,6 +81,8 @@ The Question Bank UI supports selecting multiple questions from the currently lo
 
 The bulk-add controls can add every currently loaded question matching a selected topic, chapter, and/or folder to the Test Management JSON editor. The current loaded result pages are the selection scope; use Load More or narrow the Question Bank filters before adding if the target group is larger than the loaded pages. Duplicate IDs are skipped, and the test still requires the normal Owner review and Save Test action.
 
+Single-item **Add to Test**, selected-item append, and filtered bulk-add now share one pure preflight mapper. It validates the bank record ID (the `bank_` prefix must still keep the final question ID within the 100-character Test Builder/server limit), question text, 2–6 options, correct-answer index, section label and explanation before changing the editor. Duplicate IDs are skipped across both the existing draft and the current selection, and the final draft cannot exceed 500 questions. If any selected row is malformed or the combined draft would overflow, the entire append is rejected without partially changing the editor. This is client-side assembly protection; the normal Owner draft validation and server publish validation remain authoritative.
+
 
 ### Test Section Builder
 

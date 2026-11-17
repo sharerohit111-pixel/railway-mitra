@@ -71,3 +71,63 @@ test("bounds admin question imports to 10 MiB and rejects invalid file sizes", (
   }
   assert.throws(() => parseQuestionImportJson(" ".repeat(MAX_QUESTION_IMPORT_BYTES + 1)), /10 MiB/);
 });
+
+
+test("Test Builder mapping keeps bank-prefixed question IDs within the 100-character validator limit", () => {
+  const item = {
+    itemId: "x".repeat(95),
+    question: { text: "Question?", options: ["A", "B"] },
+    correctIndex: 1
+  };
+  assert.equal(questionBankItemAsTestQuestion(item).id.length, 100);
+  assert.throws(() => questionBankItemAsTestQuestion({ ...item, itemId: "x".repeat(96) }), /95/);
+  assert.throws(() => questionBankItemAsTestQuestion({ ...item, itemId: "../unsafe" }), /95/);
+});
+
+test("Test Builder mapping rejects malformed bank questions before they enter the draft", () => {
+  const base = {
+    itemId: "qb-1",
+    question: { text: "Question?", options: ["A", "B"], section: "Core", explanation: "Why" },
+    correctIndex: 1
+  };
+  for (const item of [
+    { ...base, question: null },
+    { ...base, question: { ...base.question, text: " " } },
+    { ...base, question: { ...base.question, options: ["A"] } },
+    { ...base, question: { ...base.question, options: ["A", "B"], correctIndex: 0 }, correctIndex: 2 },
+    { ...base, question: { ...base.question, section: "x".repeat(81) } },
+    { ...base, question: { ...base.question, explanation: "x".repeat(4001) } }
+  ]) {
+    assert.throws(() => questionBankItemAsTestQuestion(item));
+  }
+  assert.throws(() => questionBankItemAsTestQuestion(base, {}), TypeError);
+});
+
+test("Question Bank append shares IDs across existing and selected rows and never mutates the current draft", () => {
+  const existing = [{ id: "bank_qb-1", text: "Already present" }];
+  const source = id => ({
+    itemId: id,
+    question: { text: "Question " + id, options: ["A", "B"] },
+    correctIndex: 0
+  });
+  const result = appendQuestionBankItemsToTest(existing, [source("qb-1"), source("qb-2"), source("qb-2")]);
+  assert.equal(result.addedCount, 1);
+  assert.equal(result.skippedCount, 2);
+  assert.deepEqual(existing, [{ id: "bank_qb-1", text: "Already present" }]);
+  assert.deepEqual(result.questions.map(question => question.id), ["bank_qb-1", "bank_qb-2"]);
+});
+
+test("Question Bank append rejects a draft overflow atomically at the 500-question ceiling", () => {
+  const current = Array.from({ length: 499 }, (_, index) => ({ id: "q" + index }));
+  const source = id => ({
+    itemId: id,
+    question: { text: "Question " + id, options: ["A", "B"] },
+    correctIndex: 0
+  });
+  assert.throws(
+    () => appendQuestionBankItemsToTest(current, [source("bank-a"), source("bank-b")]),
+    /500/
+  );
+  assert.equal(current.length, 499);
+  assert.throws(() => appendQuestionBankItemsToTest([...current, { id: "q500" }], [source("bank-c")]), /500/);
+});
