@@ -1029,7 +1029,8 @@ export function initOwnerAdminDashboard(auth, functions) {
     questionBankSessionGeneration += 1;
     questionBankGeneration += 1;
     questionBankCursor = null;
-    questionBankItems = [];\n    updateQuestionBankExportState();
+    questionBankItems = [];
+    updateQuestionBankExportState();
     selectedQuestionBankIds.clear();
     updateQuestionBankSelectionStatus();
     questionBankList.replaceChildren();
