@@ -62,6 +62,50 @@ test("rejects scheduled tests with an end time before the start time", () => {
   );
 });
 
+
+test("enforces the fixed GDCE JE Civil pattern without restricting other tests", () => {
+  const questions = Array.from({ length: 150 }, (_, index) => question({
+    id: "q" + (index + 1)
+  }));
+  const valid = validateOwnerTestDraft(draft({
+    title: "GDCE JE Civil Mock Test",
+    category: "GDCE JE Civil",
+    durationMinutes: 120,
+    marksPerQuestion: 1,
+    negativeMarks: 1 / 3,
+    questions
+  }));
+  assert.equal(valid.questions.length, 150);
+  assert.equal(valid.durationMinutes, 120);
+  assert.equal(valid.negativeMarks, 1 / 3);
+
+  assert.throws(() => validateOwnerTestDraft(draft({
+    category: "GDCE JE Civil",
+    durationMinutes: 120,
+    marksPerQuestion: 1,
+    negativeMarks: 1 / 3,
+    questions: questions.slice(0, 149)
+  })), /150 प्रश्न/);
+
+  assert.throws(() => validateOwnerTestDraft(draft({
+    category: "GDCE JE Civil",
+    durationMinutes: 119,
+    marksPerQuestion: 1,
+    negativeMarks: 1 / 3,
+    questions
+  })), /150 प्रश्न/);
+
+  assert.throws(() => validateOwnerTestDraft(draft({
+    category: "GDCE JE Civil",
+    durationMinutes: 120,
+    marksPerQuestion: 1,
+    negativeMarks: 0.25,
+    questions
+  })), /150 प्रश्न/);
+
+  assert.equal(validateOwnerTestDraft(draft()).durationMinutes, 30);
+});
+
 test("normalizes valid scheduled wall-clock inputs to ISO timestamps", () => {
   const result = validateOwnerTestDraft(draft({
     mode: "scheduled",
