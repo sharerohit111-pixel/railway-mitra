@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
-import { exportQuestionBankRows, parseQuestionImportJson } from "./question-bank-transfer.mjs";
+import { exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion as mapQuestionBankItemToTestQuestion } from "./question-bank-transfer.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
@@ -958,10 +958,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     el("rm-qb-selection-status").textContent = selectedQuestionBankIds.size + " प्रश्न चयनित हैं।";
   }
   function questionBankItemAsTestQuestion(item) {
-    return { id: "bank_" + item.itemId, text: item.question?.text || "",
-      options: Array.isArray(item.question?.options) ? item.question.options : [],
-      correctIndex: Number(item.correctIndex), explanation: item.question?.explanation || "",
-      ...((activeQuestionSection || item.question?.section) ? { section: activeQuestionSection || item.question.section } : {}) };
+    return mapQuestionBankItemToTestQuestion(item, activeQuestionSection);
   }
   function renderQuestionSections() {
     const list = el("rm-qb-sections-list"); list.replaceChildren();
