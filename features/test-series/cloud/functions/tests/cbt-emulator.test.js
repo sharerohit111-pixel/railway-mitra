@@ -4093,7 +4093,16 @@ test("GDCE JE Civil 150-question paid exam preserves a 120-minute server deadlin
     assert.equal(savedAnswers[questionIds[0]], "0");
     assert.equal(savedAnswers[questionIds[1]], "1");
 
-    const submitted = await callable("rmSubmitExam", { attemptId });
+    // Two clients may race to finalize the same attempt after a timeout or
+    // a duplicated tap. Both calls must converge on the same transaction result.
+    const concurrentSubmissions = await Promise.all([
+      callable("rmSubmitExam", { attemptId }),
+      callable("rmSubmitExam", { attemptId })
+    ]);
+    const submitted = concurrentSubmissions[0];
+    for (const concurrentResult of concurrentSubmissions) {
+      assert.deepEqual(concurrentResult, submitted);
+    }
     assert.equal(submitted.submitted, true);
     assert.equal(submitted.timedOut, false);
     assert.equal(submitted.correct, 1);
