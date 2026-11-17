@@ -44,6 +44,8 @@ permissions:
 jobs:
   syntax:
     runs-on: ubuntu-latest
+    env:
+      GCLOUD_PROJECT: demo-railway-mitra-cbt
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -87,9 +89,12 @@ jobs:
         run: node --test features/test-series/student/tests/*.test.mjs
 
       - name: Run isolated CBT Auth, Firestore, Functions and Storage emulator tests
-        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project railway-mitra --only auth,firestore,functions,storage "npm --prefix features/test-series/cloud/functions test"
+        env:
+          OWNER_UID: railway-mitra-cbt-emulator-owner
+          TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR: "true"
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore,functions,storage "npm --prefix features/test-series/cloud/functions test"
       - name: Verify private question media Storage rules in emulator
-        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project railway-mitra --only auth,storage "node features/test-series/cloud/functions/tests/storage-emulator-smoke.js"
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,storage "node features/test-series/cloud/functions/tests/storage-emulator-smoke.js"
 
       - name: Verify Firestore user ownership and CBT default-deny rules in emulator
-        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project railway-mitra --only auth,firestore "node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore "node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"

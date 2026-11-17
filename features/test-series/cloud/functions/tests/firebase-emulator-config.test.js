@@ -2,6 +2,8 @@
 
 const assert = require("node:assert/strict");
 const test = require("node:test");
+const { readFileSync } = require("node:fs");
+const { resolve } = require("node:path");
 
 test("the explicit local opt-in selects only the demo Firebase project and local emulators", async () => {
   const { resolveTestSeriesFirebaseMode } = await import("../../firebase-emulator-config.mjs");
@@ -101,4 +103,30 @@ test("malformed or repeated emulator flags fail closed", async () => {
       /Invalid Test Series Firebase Emulator opt-in/
     );
   }
+});
+
+test("Functions validation emulator commands use the isolated demo project and explicit synthetic-auth opt-in", () => {
+  const workflowPath = resolve(__dirname, "../../../../../.github/workflows/test-series-functions.yml");
+  const workflow = readFileSync(workflowPath, "utf8");
+  const projectIds = [...workflow.matchAll(/emulators:exec[^\n]*--project\s+([^\s]+)/g)]
+    .map(match => match[1]);
+
+  assert.deepEqual(projectIds, [
+    "demo-railway-mitra-cbt",
+    "demo-railway-mitra-cbt",
+    "demo-railway-mitra-cbt"
+  ]);
+  assert.match(
+    workflow,
+    /syntax:\s*\n\s+runs-on: ubuntu-latest\s*\n\s+env:\s*\n\s+GCLOUD_PROJECT: demo-railway-mitra-cbt/
+  );
+
+  const start = workflow.indexOf("- name: Run isolated CBT Auth, Firestore, Functions and Storage emulator tests");
+  const end = workflow.indexOf("\n      - name:", start + 1);
+  assert.ok(start >= 0 && end > start, "The authenticated CBT emulator step must exist");
+  const step = workflow.slice(start, end);
+  assert.match(step, /OWNER_UID: railway-mitra-cbt-emulator-owner/);
+  assert.match(step, /TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR: ["']true["']/);
+  assert.match(step, /--project demo-railway-mitra-cbt/);
+  assert.doesNotMatch(workflow, /--project\s+railway-mitra(?:\s|$)/);
 });

@@ -290,6 +290,12 @@ This is a single-student local Emulator integration test. It is not a concurrenc
 
 The student callable guard accepts the normal Firebase phone provider in deployed environments. Its custom-token exception for synthetic tests requires **all** of the following: `FUNCTIONS_EMULATOR=true`, the explicit `TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true` test flag, a `demo-*` project ID, and the same isolated Functions Emulator runtime signature used by the App Check policy. The exact emulator-generated `K_SERVICE` plus `K_REVISION=1` marker pair is allowed only without `K_CONFIGURATION`; deployed Cloud Run service, revision or configuration markers disable the exception. Merely setting the two environment flags in a real Firebase project is not sufficient to authorize a custom-token student. Regression tests cover the real-project, missing-flag and deployed-runtime cases. This does not enable or relax deployed App Check enforcement.
 
+### CI emulator identity and synthetic student authentication
+
+The Functions-validation workflow follows the same emulator-only identity contract as the dedicated CBT emulator workflow: its `GCLOUD_PROJECT` and all Auth/Firestore/Functions/Storage emulator commands use `demo-railway-mitra-cbt`. The authenticated CBT test step supplies a synthetic `OWNER_UID` and the explicit `TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true` opt-in required by the custom-token fixture.
+
+Do not replace the demo project ID with a real Firebase project ID or copy the custom-auth opt-in into a deployed environment. The exception is restricted by the server-side student guard to the isolated Functions Emulator runtime; deployed Student access continues to require Firebase phone-provider sign-in.
+
 ### Owner question-bank explanation size contract
 
 Owner single-item saves and bulk imports share the same question-bank validator. An explanation may contain at most 4,000 characters; exactly 4,000 is accepted and 4,001 is rejected with an invalid-argument error. Oversized explanations are not silently truncated, so the Owner UI cannot report a successful save after losing part of the supplied content. The Auth + Functions Emulator regression verifies that an accepted boundary value persists and a rejected update leaves the previous question unchanged.
