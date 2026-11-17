@@ -42,8 +42,8 @@ test("Test Series landing page exposes Student and Owner navigation without embe
 });
 
 test("Owner portal documentation matches the navigation-only entry points", () => {
-  assert.match(ownerReadme, /signed-in Railway Mitra main app[\\s\\S]*Test Series card[\\s\\S]*landing page[\\s\\S]*Owner portal/i);
+  assert.match(ownerReadme, /signed-in Railway Mitra main app[\s\S]*Test Series card[\s\S]*landing page[\s\S]*Owner portal/i);
   assert.match(ownerReadme, /navigation-only links/i);
-  assert.match(ownerReadme, /OWNER_UID[\\s\\S]*Phone MFA[\\s\\S]*App Check/i);
+  assert.match(ownerReadme, /OWNER_UID[\s\S]*Phone MFA[\s\S]*App Check/i);
   assert.doesNotMatch(ownerReadme, /not yet linked into the student portal or main app|not linked into the main app/i);
 });
