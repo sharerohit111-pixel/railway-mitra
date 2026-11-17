@@ -1,37 +1,54 @@
 # Railway Mitra CBT — Integration Review
 
 Review scope: isolated Test Series modules on `feature/test-series-cloud-access`.
-This is a source-level integration review with local Firebase Emulator CI evidence, not live Firebase, real-device, staging or production certification.
+This is a source-level review with local Firebase Emulator CI evidence. It is not live Firebase, real-device, staging or production certification.
 
-## Confirmed module wiring
+## Confirmed isolated module wiring
 
-- Student standalone portal loads `student/portal.js` as an ES module and provides login, catalogue and results view containers.
-- Student portal links catalogue and dashboard views; catalogue calls the cloud student client for published tests and starts free, paid-checkout or already-unlocked flows.
-- Student dashboard reads the signed-in student's recent submitted results through the cloud client.
-- Leaderboard implementation is exposed from each submitted result through a `View Test Leaderboard` action. The portal passes that result's `testId` to the leaderboard module and provides a return path to My Results.
-- Owner standalone portal loads `admin/owner-portal.js`, fetches `admin-dashboard.html`, and initializes `admin-dashboard.js` with Firebase Auth and Functions.
-- Owner dashboard exposes Test Management, Question Bank, Students, Payments, Results/Ranking and protected Test Access Management. The access panel uses Owner-only callables for grants/revocations, bounded access listing and audit history; it displays server-computed expiry status and fences stale responses across session changes. Cloud Backup and System Settings remain explicitly disabled.
-- Student and Owner portals are standalone pages under the feature folder; this review does not establish that they are linked from the main Railway Mitra application.
+- Student standalone portal loads `student/portal.js` as an ES module and provides login, catalogue, dashboard, exam and results views.
+- Student catalogue uses the cloud client for published tests and routes free claims, paid checkout and already-unlocked tests through server-verified access checks.
+- Student exam flow starts or resumes server-timed attempts, fetches allow-listed question data, saves canonical answer indexes, restores pending local drafts, handles reconnect/timeout recovery, submits for server-side scoring and retrieves the student's own result.
+- Student question media is delivered through an attempt-owner-checked callable and short-lived URL. Published media is sanitized from a private quarantine flow; direct client access to the storage prefixes is denied by the feature rules.
+- Student results expose leaderboard navigation; leaderboard data is fetched separately and presented without exposing private student identifiers.
+- Owner standalone portal loads `admin/owner-portal.js`, fetches `admin-dashboard.html` and initializes the dashboard with Firebase Auth and Functions.
+- Owner dashboard includes test management, question bank, student activity, payment inspection/reconciliation, results/analytics and protected test-access management. Owner callables enforce the server-side UID + second-factor guard; UI requests are fenced across session changes.
+- Backup and system-settings controls remain disabled. Student and Owner portals remain standalone feature pages; this review does not establish that they are linked from the main Railway Mitra application.
 
-## Integration gaps / next work
+## Implemented and emulator-covered flows
 
-1. **Student leaderboard entry point — implemented in the isolated portal:** each submitted result exposes a `View Test Leaderboard` action. The portal passes that result's `testId` to the existing leaderboard module, checks the active student-session/view generation before navigation, and provides a return path to My Results. Ranking is loaded separately from the server.
-2. **Owner access management:** the isolated Owner access panel and server callables are implemented, with request idempotency, complimentary-test-only grants, audit writes, bounded/filterable pagination, cursor validation and effective expiry display. The CBT emulator suite creates an isolated verified email/password Owner, enables phone MFA in the Auth Emulator project config, enrolls a phone factor through the emulator Identity Toolkit REST flow, reads the SMS code only from the local emulator, and completes a fresh password + phone-MFA sign-in. It invokes Owner callables using the resulting emulator-issued ID token and verifies primary-only denial, grant, same-request replay without duplicate audit, conflicting request-ID rejection, effective access listing, revoke, and expected audit events. The test restores the prior MFA project config and cleans up synthetic records. This is emulator evidence, not production MFA certification; never weaken the Owner guard or fabricate MFA claims.
-3. **Student OTP-to-exam and scoring — implemented and emulator-tested:** a real Auth Emulator phone verification issues a phone-provider ID token; that token opens the published catalogue, starts a paid-test attempt backed by synthetic captured-payment/order/entitlement ledger rows, fetches the student-safe paper without answer-key leakage, saves answers, resumes the same attempt, restores saved answers, submits, and verifies server-side score/result/dashboard. The scoring fixture has one correct, one wrong and one unanswered question, with 1 mark per question and 1/3 negative marking; the expected server score is 2/3. Synthetic payment, attempt, result, active-session and Auth records are cleaned up. This validates the scoring rule with a small emulator fixture, not a full 150-question load or a live Razorpay payment/production OTP.
-4. **Question diagrams and image delivery — implemented in the isolated branch:** Owner image uploads first enter a private quarantine prefix. The finalize callable verifies the uploaded bytes/checksum, fully decodes the image with pinned Sharp, rejects MIME/format mismatches, unsafe dimensions and animated/multi-page images, applies orientation and re-encodes JPEG/PNG/WebP without carrying EXIF/XMP/IPTC metadata. Only the newly encoded bytes are written to the separate published prefix with create-only generation preconditions; the ready mapping records verified generation, dimensions and checksum. Student delivery checks phone-authenticated attempt ownership, active status/deadline, ready mapping and exact object generation before issuing a short-lived inline read URL. Storage rules deny direct client access to both prefixes. The student question view renders the delivered media descriptor. Regression tests cover real JPEG/PNG/WebP decoding, metadata stripping, invalid uploads, publication gating, access denial and rendering. **The GDCE JE Civil 150-question / 120-minute lifecycle is covered by a paid-test Emulator fixture:** it verifies the server-issued deadline, 150-question student-safe delivery, save/resume without deadline extension, and 1 correct + 1 wrong + 148 unanswered scoring at 1/3 negative marking. This is single-student Emulator evidence, not capacity/load or production certification.
-5. **Backup and system settings:** keep disabled until export/restore, retention, auditability, restore verification and Owner authorization are implemented and tested. Never expose backup controls as functional placeholders.
-6. **Main-app entry points and staging:** integration into the main app is a separate controlled step. Do not alter existing navigation or authentication guard without explicit approval and regression review. Run student OTP, Owner provider + phone MFA, create/publish test, question import, free claim, exam save/resume/submit, result/leaderboard, payment staging and support reconciliation against a dedicated Firebase staging project only after project identity, rules merge and cost approval are confirmed.
-7. **Capacity validation:** local emulator checks are not a production capacity claim. Run staged local emulator loads first; staging cloud load requires a written cost estimate and explicit approval.
+1. **Student OTP-to-exam and scoring:** Auth Emulator phone verification produces a phone-provider ID token. The test opens the published catalogue, starts a paid-test attempt using synthetic captured-payment/order/entitlement ledger rows, fetches student-safe questions without answer-key leakage, saves answers, resumes the same attempt, restores answers, submits and verifies server-side score/result/dashboard. A separate GDCE JE Civil fixture covers 150 questions and a 120-minute server deadline, save/resume without deadline extension, and scoring with 1 correct, 1 wrong and 148 unanswered at 1/3 negative marking.
+2. **Owner authorization and access management:** Emulator coverage enrolls phone MFA for an isolated verified Owner, completes a fresh password + phone-MFA sign-in, checks primary-only denial, grants/revokes complimentary-test access, validates idempotent replay and conflicting request IDs, and checks bounded access listing and audit events.
+3. **Question media:** Uploads enter private quarantine; finalization verifies bytes/checksum, decodes and re-encodes supported image formats without metadata, publishes with create-only generation preconditions and creates a ready mapping. Student delivery checks attempt ownership, active status/deadline, mapping and exact object generation before issuing a short-lived URL.
+4. **Question bank and test builder:** Client and server validation cover question shape, options, section labels, bulk import and test configuration. Server-side persisted-paper, section mapping, answer-key and scoring configuration are independently revalidated before delivery, answer save or submission.
+5. **Payment safety:** Checkout callbacks do not grant access. Paid access is based on server-validated payment/order/entitlement records; Owner payment inspection and reconciliation remain read-only support workflows. Emulator fixtures use synthetic ledger records and do not prove a live Razorpay transaction.
+6. **Exam recovery and lifecycle:** Server-issued deadlines, active-attempt ownership, answer persistence, reconnect recovery, automatic timeout submission recovery and stale-session/view fencing have unit and Emulator regression coverage.
 
-## Safety and release boundaries
+These are local CI/emulator results only. They do not certify production OTP, production MFA, live payment processing, real-device behavior or concurrent-user capacity.
 
-- Keep live payments, production OTP, production deployment and PR merge disabled pending explicit approval.
-- Do not deploy the draft Firestore rules as-is. Merge them with the current live rules and review all existing collection permissions first.
+## Remaining release gates
+
+- **Main-app integration:** Student/Owner entry points are not confirmed as integrated into the main Railway Mitra navigation. Keep this as a separately approved integration; do not modify existing navigation or authentication guards without explicit approval and regression review.
+- **Firebase staging:** Confirm project identity, merge/review existing Firestore and Storage rules, configure Auth providers and App Check, and obtain cost approval before any staging deployment. The feature's deny-all Firestore rules must not be deployed blindly over existing application rules.
+- **Real-device checks:** Verify student phone OTP, connectivity interruption/recovery, media rendering and Owner provider + phone-MFA behavior in an approved non-production environment.
+- **Razorpay Test Mode:** Complete a controlled staging order, signature/webhook, duplicate-event, refund/reconciliation and entitlement-revocation walkthrough. No live payment is enabled by this review.
+- **Backup/restore:** Implement and verify export, retention, restore, auditability and Owner authorization before enabling backup controls.
+- **Production readiness:** Complete privacy/security review, operational monitoring, retention policy, incident/recovery procedures and cost validation. No production-readiness claim is made here.
+
+## Safety and load-test boundaries
+
+- No merge, deployment, production OTP, live payment, Firebase billing change or App Check enforcement is authorized by this review.
 - Keep the current development authentication behavior unchanged.
-- No claim is made here that 500 concurrent examinees have been proven.
+- Synthetic 20/100/250/500-student load tests and capacity benchmarking are deferred at the user's request. Do not run them until separately authorized.
+- Emulator checks are not a production capacity claim; no concurrent-user capacity is certified.
 
-## Current CI evidence (reviewed 2026-11-17)
+## Current branch and CI evidence
 
-The latest verified code-bearing branch commit in the available Actions history is `b2430571284ad99a6b4d9e163aa2ae00f485773e`. It passed Test Series Functions validation run `44011094993` and CBT Emulator Tests run `44011095065`; both runs completed with `success` for that exact SHA. The subsequent commits `c36843b66f054b9081b68453b7378d03cc109891` and `b00fd213e6a734f3c80bfb0475b8cf2afce903bd` update only `ARCHITECTURE.md` and this cloud `README.md`, respectively. They are documentation-only commits; the two successful code checks above are not claimed as runs for those later SHAs. The latest branch head at this review is `b00fd213e6a734f3c80bfb0475b8cf2afce903bd`.
+Reviewed 2026-11-17. Branch head: `2b93c0505c2de53b2e269ba1ff93becb46e0c3d2`.
 
-This is CI syntax/unit/emulator evidence only, not live Firebase, real-device, staging or production certification. The manual-only synthetic load workflows (20/100/250/500 students) are intentionally deferred at the user's request and have not been run. No concurrent-user capacity is certified. Student real-device OTP/connectivity testing, Owner real-environment checks, approved Firebase staging, Razorpay Test Mode, backup/restore implementation and controlled main-app integration remain release gates.
+For that exact head SHA:
+- Test Series Functions validation: run [44062177441](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177441) — completed, **success**.
+- Test Series CBT Emulator tests: run [44062177830](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177830) — completed, **success**.
+
+Both workflows are verified against the current branch head. This evidence is limited to the checks above and does not imply live Firebase, real-device, staging or production certification.
+
+PR #136 remains open and draft. This review does not authorize merging it.
