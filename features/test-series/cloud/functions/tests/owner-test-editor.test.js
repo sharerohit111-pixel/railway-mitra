@@ -72,6 +72,44 @@ test("blocks publish for metadata, question count, duplicate IDs, malformed opti
     questions, validAnswerMap), /Scheduled test window/);
 });
 
+test("publish integrity independently enforces the fixed GDCE JE Civil pattern", () => {
+  const gdceQuestions = Array.from({ length: 150 }, (_, index) => ({
+    id: "gdce-" + index,
+    text: "Question " + (index + 1),
+    options: ["A", "B"],
+  }));
+  const gdceAnswers = Object.fromEntries(gdceQuestions.map(question => [
+    question.id,
+    { correctAnswer: "0" }
+  ]));
+  const metadata = {
+    ...validTestMetadata,
+    category: "GDCE JE Civil",
+    durationMinutes: 120,
+    marksPerQuestion: 1,
+    negativeMarks: 1 / 3,
+    questionCount: 150
+  };
+
+  assert.equal(validateOwnerQuestionPaper(metadata, gdceQuestions, gdceAnswers).length, 150);
+  assert.throws(() => validateOwnerQuestionPaper(
+    { ...metadata, questionCount: 149 },
+    gdceQuestions,
+    gdceAnswers
+  ), /count/);
+  assert.throws(() => validateOwnerQuestionPaper(
+    { ...metadata, durationMinutes: 119 },
+    gdceQuestions,
+    gdceAnswers
+  ), /GDCE JE Civil requires/);
+  assert.throws(() => validateOwnerQuestionPaper(
+    { ...metadata, negativeMarks: 0.25 },
+    gdceQuestions,
+    gdceAnswers
+  ), /GDCE JE Civil requires/);
+  assert.equal(validateOwnerQuestionPaper(validTestMetadata, questions, validAnswerMap).length, 2);
+});
+
 test("Owner loader fails closed when the question paper or private answer key is missing", () => {
   const source = readFileSync(require.resolve("../index"), "utf8");
   const start = source.indexOf("exports.rmOwnerGetTest =");
