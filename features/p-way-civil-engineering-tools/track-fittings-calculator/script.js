@@ -159,17 +159,6 @@ const rdsoData = {
     cutLiner: "RT-4511",
     warn: null
   },
-  "RT-8527_52kg": {
-    erc: "RT-5919 (Mk-V)",
-    metalGS: "RT-8616 (Check RDSO)",
-    metalNGS: "RT-8617 (Check RDSO)",
-    gfnGS: "RT-6938 (Check RDSO)",
-    gfnNGS: "RT-6939 (Check RDSO)",
-    grsp: "RT-8528",
-    insert: "RT-8526",
-    cutLiner: "RT-4322",
-    warn: "warn8527_52kg"
-  }
 };
 
 function toggleLanguage() {
