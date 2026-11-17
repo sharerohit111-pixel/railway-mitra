@@ -4105,6 +4105,24 @@ test("GDCE JE Civil 150-question paid exam preserves a 120-minute server deadlin
     const result = await callable("rmGetCbtAttemptResult", { attemptId });
     assert.equal(result.totalQuestions, 150);
     assert.ok(Math.abs(result.score - 2 / 3) < 1e-9);
+
+    // A repeated client submission after a network retry must be idempotent:
+    // it returns the already-finalized score and must not create another result.
+    const replayedSubmission = await callable("rmSubmitExam", { attemptId });
+    assert.deepEqual(replayedSubmission, {
+      submitted: true,
+      timedOut: false,
+      score: 2 / 3,
+      correct: 1,
+      wrong: 1,
+      unattempted: 148,
+      totalQuestions: 150
+    });
+    const persistedResults = await db.collection("testSeriesResults")
+      .where("attemptId", "==", attemptId).get();
+    assert.equal(persistedResults.size, 1, "submission retries must preserve exactly one result record");
+    const replayedResult = await callable("rmGetCbtAttemptResult", { attemptId });
+    assert.deepEqual(replayedResult, result);
   } finally {
     await signOut(clientAuth).catch(() => {});
     const cleanupRefs = [testRef, paperRef, keyRef, paymentRef, orderRef, entitlementRef, activeRef];
