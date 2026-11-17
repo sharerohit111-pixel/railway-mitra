@@ -66,3 +66,31 @@ test("ambiguous submit failures keep the same attempt available for an explicit 
   assert.doesNotMatch(finish, /attemptId\s*=\s*null|startCbtExam\(/,
     "a submit retry must not discard the attempt or silently create a replacement");
 });
+
+
+test("online recovery retries an expired timeout submission even when no answer drafts remain", () => {
+  const source = readFileSync(new URL("../exam.js", import.meta.url), "utf8");
+  const onlineStart = source.indexOf("const onOnline=");
+  const onlineEnd = source.indexOf("const onBeforeUnload", onlineStart);
+  assert.ok(onlineStart >= 0 && onlineEnd > onlineStart, "the reconnect handler must be present");
+  const online = source.slice(onlineStart, onlineEnd);
+
+  const deadlineCheck = online.indexOf("serverClock && remaining() <= 0");
+  const pendingDraftCheck = online.indexOf("pendingAnswers.size");
+  assert.ok(deadlineCheck >= 0 && pendingDraftCheck > deadlineCheck,
+    "expired attempts must be finalized before the handler considers pending local drafts");
+  assert.match(online, /reconnectFinalizePending = true;\s*if \(finished\) return;/,
+    "a reconnect observed during an in-flight finalization must be remembered");
+  assert.match(online, /finish\(true\)/,
+    "an expired attempt must retry server-side finalization after connectivity returns");
+
+  const finishStart = source.indexOf("async function finish(auto=false){");
+  const finishEnd = source.indexOf('el("rm-cbt-start")', finishStart);
+  const finish = source.slice(finishStart, finishEnd);
+  assert.match(finish, /reconnectFinalizePending && typeof window !== "undefined"/,
+    "a reconnect observed during a failed finalization must trigger a retry only while online");
+  assert.match(finish, /remaining\(\) <= 0\) finish\(true\)/,
+    "the deferred retry must remain restricted to an expired server-anchored deadline");
+  assert.match(finish, /reconnectFinalizePending = false/,
+    "the reconnect signal must be consumed to avoid an unbounded retry loop");
+});
