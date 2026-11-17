@@ -1,3 +1,7 @@
+function hasControlCharacters(value) {
+  return /[\u0000-\u001F\u007F]/u.test(value);
+}
+
 export function validateOwnerTestDraft(draft) {
   if (!draft || typeof draft !== "object" || Array.isArray(draft)) {
     throw new Error("Test विवरण का प्रारूप सही नहीं है।");
@@ -73,7 +77,9 @@ export function validateOwnerTestDraft(draft) {
       throw new Error("प्रश्न " + number + " का सही उत्तर (correctIndex) विकल्पों के अनुरूप नहीं है।");
     }
 
-    const section = typeof question.section === "string" ? question.section.trim() : "";
+    const rawSection = typeof question.section === "string" ? question.section : "";
+    if (hasControlCharacters(rawSection)) throw new Error("प्रश्न " + number + " के सेक्शन नाम में control characters स्वीकार नहीं हैं।");
+    const section = rawSection.trim();
     if (section.length > 80) throw new Error("प्रश्न " + number + " का सेक्शन नाम अधिकतम 80 अक्षरों का हो सकता है।");
     return { id, text: question.text.trim(), options: [...question.options], correctIndex: question.correctIndex,
       ...(section ? { section } : {}) };
@@ -87,7 +93,9 @@ export function validateOwnerTestDraft(draft) {
   if (suppliedSections.length > 50) throw new Error("अधिकतम 50 सेक्शन बनाए जा सकते हैं।");
   const sectionConfig = new Map();
   suppliedSections.forEach((section, index) => {
-    const name = typeof section?.name === "string" ? section.name.trim() : "";
+    const rawName = typeof section?.name === "string" ? section.name : "";
+    if (hasControlCharacters(rawName)) throw new Error("सेक्शन " + (index + 1) + " के नाम में control characters स्वीकार नहीं हैं।");
+    const name = rawName.trim();
     const timeLimitMinutes = Number(section?.timeLimitMinutes ?? 0);
     if (!name || name.length > 80 || !Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
       throw new Error("सेक्शन " + (index + 1) + " का नाम या समय सीमा सही नहीं है।");
