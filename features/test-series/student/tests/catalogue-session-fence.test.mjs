@@ -27,7 +27,7 @@ test("payment checkout checks session after script loading and order creation be
 });
 
 test("catalogue does not start a list request after its student view is stale", () => {
-  assert.match(catalogue, /async function loadPage\(\{ append = false \} = \) \{\s*if \(loading\) return;\s*if \(!sessionIsActive\(\)\) return \{ tests: \[\], stale: true \};\s*loading = true;/);
+  assert.match(catalogue, /async function loadPage\(\{ append = false \} = \{\}\) \{\s*if \(loading\) return;\s*if \(!sessionIsActive\(\)\) return \{ tests: \[\], stale: true \};\s*loading = true;/);
 });
 
 test("catalogue discards request failures after the student session changes", () => {
