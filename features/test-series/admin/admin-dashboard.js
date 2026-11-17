@@ -1137,7 +1137,8 @@ export function initOwnerAdminDashboard(auth, functions) {
       if (generation !== questionBankGeneration) return;
       const data = response.data || {};
       const items = Array.isArray(data.items) ? data.items : [];
-      questionBankItems = append ? questionBankItems.concat(items) : items;\n      updateQuestionBankExportState();
+      questionBankItems = append ? questionBankItems.concat(items) : items;
+      updateQuestionBankExportState();
       renderQuestionBankItems(items, append);
       questionBankCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
       questionBankMore.hidden = !questionBankCursor;
