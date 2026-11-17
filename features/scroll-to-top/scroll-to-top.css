@@ -1,0 +1,7 @@
+.rm-scroll-top{position:fixed;right:max(17px,env(safe-area-inset-right));bottom:calc(105px + env(safe-area-inset-bottom));z-index:899;width:52px;height:52px;display:grid;place-items:center;border:1.5px solid #58eaff;border-radius:50%;color:#fff;background:linear-gradient(145deg,#087fca,#6550e8 65%,#b23bc9);box-shadow:0 0 12px rgba(53,232,255,.7),0 0 25px rgba(180,55,220,.38),inset 0 1px 5px rgba(255,255,255,.35);opacity:0;visibility:hidden;transform:translateY(12px) scale(.88);transition:opacity .2s ease,transform .2s ease,visibility .2s;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rm-scroll-top.is-visible{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.rm-scroll-top svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.rm-scroll-top:active{transform:scale(.94)}
+.rm-scroll-top:focus-visible{outline:3px solid #fff;outline-offset:4px}
+@media(min-width:900px){.rm-scroll-top{bottom:112px}}
+@media(prefers-reduced-motion:reduce){.rm-scroll-top{transition:none}}
