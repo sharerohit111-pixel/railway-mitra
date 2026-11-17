@@ -4,6 +4,7 @@ import { buildCbtStorageKey } from "./attempt-storage-key.mjs";
 import { lockCbtExamControls } from "./exam-interaction-lock.mjs";
 import { restoreCbtOptionFocus } from "./exam-focus.mjs";
 import { createCbtExamLifecycle } from "./exam-lifecycle.mjs";
+import { createCbtServerClock } from "./server-clock.mjs";
 import { classifyCbtAttemptResultError } from "./attempt-recovery.mjs";
 import { createStudentAnswerState } from "./student-answer-state.mjs";
 import { isSafeCbtQuestionMediaResponse } from "./question-media-view.mjs";
@@ -20,6 +21,11 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   let attemptId=null, paper=null, index=0, answers=createStudentAnswerState(), pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
   const lifecycle = createCbtExamLifecycle();
   const isActive = () => lifecycle.isActive();
+  let serverClock = null;
+  const examNow = () => {
+    if (!serverClock) throw new Error("Server exam clock is not initialized");
+    return serverClock.now();
+  };
   const status = message => { if (isActive()) el("rm-cbt-status").textContent=message; };
   const storageIdentity = { appId: app?.options?.appId || "app", studentUid, testId };
   const attemptKey = () => buildCbtStorageKey({ ...storageIdentity, purpose: "attempt" });
@@ -47,11 +53,11 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     if(restored.unavailable)status("स्थानीय Draft पढ़ा नहीं जा सका। सर्वर पर सेव उत्तर उपलब्ध रहेंगे।");
     else if(restored.discarded)status("कुछ पुराने/अमान्य Draft हटाए गए; सर्वर पर सेव उत्तर सुरक्षित हैं।");
   }
-  const remaining = () => Math.max(0, Math.ceil((expiresAt-Date.now())/1000));
+  const remaining = () => Math.max(0, Math.ceil((expiresAt-examNow())/1000));
   function isQuestionAvailable(question) {
     if (!question?.section) return true;
     const timing = paper?.sectionTimings?.[question.section];
-    return !timing || (timing.expiresAt && new Date(timing.expiresAt).getTime() > Date.now());
+    return !timing || (timing.expiresAt && new Date(timing.expiresAt).getTime() > examNow());
   }
   function findAvailableIndex(start, direction) {
     for (let i = start; i >= 0 && i < paper.questions.length; i += direction) {
@@ -80,7 +86,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     try { localStorage.setItem(positionKey(), String(index)); } catch (_) {}
     render(); tick();
   }
-  function tick(){ if(!isActive()) return; const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-Date.now())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left){ sectionClock.textContent="सेक्शन समय समाप्त"; if(!sectionTransitioning&&!finished){ sectionTransitioning=true; const currentSection=paper.questions[index]?.section; const expired=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=Date.now()).map(([name])=>name)); if(currentSection)expired.add(currentSection); const nextIndex=paper.questions.findIndex((item,i)=>i>index&&(!item.section||!expired.has(item.section))); if(nextIndex>=0){ status("इस सेक्शन का समय समाप्त। अगले उपलब्ध सेक्शन में जा रहे हैं…"); activateQuestion(nextIndex).catch(error=>status(error.message||"अगला सेक्शन नहीं खुला।")).finally(()=>{sectionTransitioning=false;}); } else { status("सभी उपलब्ध सेक्शन का समय समाप्त। शेष प्रश्न लॉक हैं।"); const options=el("rm-cbt-options"); options.querySelectorAll("button").forEach(button=>button.disabled=true); } } } } if(!s&&!finished) finish(true); }
+  function tick(){ if(!isActive()) return; const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-examNow())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left){ sectionClock.textContent="सेक्शन समय समाप्त"; if(!sectionTransitioning&&!finished){ sectionTransitioning=true; const currentSection=paper.questions[index]?.section; const expired=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=examNow()).map(([name])=>name)); if(currentSection)expired.add(currentSection); const nextIndex=paper.questions.findIndex((item,i)=>i>index&&(!item.section||!expired.has(item.section))); if(nextIndex>=0){ status("इस सेक्शन का समय समाप्त। अगले उपलब्ध सेक्शन में जा रहे हैं…"); activateQuestion(nextIndex).catch(error=>status(error.message||"अगला सेक्शन नहीं खुला।")).finally(()=>{sectionTransitioning=false;}); } else { status("सभी उपलब्ध सेक्शन का समय समाप्त। शेष प्रश्न लॉक हैं।"); const options=el("rm-cbt-options"); options.querySelectorAll("button").forEach(button=>button.disabled=true); } } } } if(!s&&!finished) finish(true); }
   function queueSave(qid,value){
     if (!isActive()) return Promise.resolve();
     const active=inFlightSaves.get(qid);
@@ -323,6 +329,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
         if (!isActive()) return;
       }
       if (!isActive()) return;
+      serverClock = createCbtServerClock({ serverNow: paper.serverNow });
       answers=createStudentAnswerState(paper.savedAnswers);restorePending();
       for(const [qid,value] of pendingAnswers)answers[qid]=value;
       expiresAt=new Date(paper.expiresAt).getTime();startPanel.hidden=true;workspace.hidden=false;
@@ -331,7 +338,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
         const savedIndex=Number(localStorage.getItem(positionKey()));
         if(Number.isInteger(savedIndex)&&savedIndex>=0&&savedIndex<paper.questions.length)resumeIndex=savedIndex;
       } catch (_) {}
-      const expiredSections=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=Date.now()).map(([name])=>name));
+      const expiredSections=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=examNow()).map(([name])=>name));
       const candidates=[...Array(paper.questions.length).keys()].sort((a,b)=>((a-resumeIndex+paper.questions.length)%paper.questions.length)-((b-resumeIndex+paper.questions.length)%paper.questions.length));
       const firstAvailable=candidates.find(i=>!paper.questions[i].section||!expiredSections.has(paper.questions[i].section));
       if(firstAvailable===undefined)throw new Error("सभी सेक्शन का समय समाप्त हो चुका है।");

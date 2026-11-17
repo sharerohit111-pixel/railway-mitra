@@ -423,3 +423,8 @@ The student catalogue checks its authenticated view/session fence before startin
 ## Owner test section configuration save integrity
 
 The Owner test-save callable distinguishes an omitted `sections` field (which permits question section labels to be derived with the default zero-minute section limit) from an explicitly supplied malformed value. A supplied section configuration must be an array. Every configured section must contain at least one question in the same draft; otherwise the entire save is rejected before Firestore writes. The Owner Admin preflight enforces the same rule, so a section time limit cannot be silently discarded because its section is empty or the configuration has the wrong shape. The Auth + Functions Emulator regression verifies malformed and unused section configurations leave all three draft documents (metadata, question set and private answer key) absent, while a valid populated section preserves its canonical name, question count and time limit. This does not change published tests or student answer/scoring behavior.
+
+
+## Server clock anchor for student exam timing
+
+`rmGetExamQuestions` returns a server-generated ISO `serverNow` timestamp with the attempt's overall expiry and persisted section deadlines. The Student exam controller uses this anchor with a monotonic browser clock so a device wall-clock change cannot prematurely trigger the local overall timeout or lock a section early. Missing/invalid anchors fail the client exam initialization rather than silently falling back to device time. This is display/reliability protection only: `rmSaveAnswer`, `rmEnterCbtSection` and `rmSubmitExam` continue to enforce deadlines using server time. A client timer is never an authorization boundary.

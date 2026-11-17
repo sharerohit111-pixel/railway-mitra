@@ -101,3 +101,8 @@ The exam controller stores the current paper's answers in an isolated null-proto
 ## Student view error fencing
 
 Every asynchronous portal navigation now captures the expected view-request generation and the authenticated student's UID/auth generation. If loading a catalogue, dashboard, leaderboard or exam fragment fails after a newer view request, logout or account switch, the stale error is ignored instead of overwriting the shared portal status for the current screen. The guard treats missing/invalid generations and session-check exceptions as inactive. This is client-side presentation-race protection only; Firebase Auth claims, App Check and server callable authorization remain authoritative. The isolated Node regression suite covers current errors, superseded requests, logout/account-switch invalidation and fail-closed callback errors.
+
+
+## Server-anchored exam clock
+
+The question-delivery callable includes a server-generated `serverNow` timestamp alongside the overall and section deadlines. The exam controller anchors its display clock to that timestamp and advances it with the browser's monotonic `performance.now()` clock, not the device wall clock. Changing the device date/time while an exam is open therefore cannot prematurely expire the overall exam or a timed section in the UI. A missing or invalid server clock anchor prevents the exam controller from opening. The server remains authoritative for every answer save, section entry and submission deadline; a delayed network response may make the display slightly conservative, but it cannot extend server-side answer acceptance.

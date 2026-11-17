@@ -367,7 +367,9 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
       startedAt: date(timing.startedAt)?.toISOString() || null,
       expiresAt: date(timing.expiresAt)?.toISOString() || null
     }])),
-    expiresAt: date(attempt.expiresAt).toISOString()
+    expiresAt: date(attempt.expiresAt).toISOString(),
+    // Anchor the client display clock to server time; the client advances it monotonically.
+    serverNow: new Date().toISOString()
   };
 });
 
