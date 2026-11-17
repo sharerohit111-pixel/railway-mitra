@@ -5,6 +5,7 @@ on:
     paths:
       - "features/test-series/cloud/functions/**"
       - "features/test-series/cloud/firestore.rules"
+      - "storage.rules"
       - "features/test-series/cloud/README.md"
       - "features/test-series/cloud/app-check.js"
       - "features/test-series/cloud/firebase-app-check-init.js"
@@ -23,6 +24,7 @@ on:
     paths:
       - "features/test-series/cloud/functions/**"
       - "features/test-series/cloud/firestore.rules"
+      - "storage.rules"
       - "features/test-series/cloud/README.md"
       - "features/test-series/cloud/app-check.js"
       - "features/test-series/cloud/firebase-app-check-init.js"
