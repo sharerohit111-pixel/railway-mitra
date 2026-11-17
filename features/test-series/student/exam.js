@@ -18,7 +18,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   }
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
-  let attemptId=null, paper=null, index=0, answers=createStudentAnswerState(), pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false;
+  let attemptId=null, paper=null, index=0, answers=createStudentAnswerState(), pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false, reconnectFinalizePending=false;
   const lifecycle = createCbtExamLifecycle();
   const isActive = () => lifecycle.isActive();
   let serverClock = null;
@@ -241,12 +241,23 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
       }
       const score=await submitCbtExam(app,attemptId);
       if (!isActive()) return;
+      reconnectFinalizePending=false;
       // Submission is already confirmed by the server. Browser storage cleanup is best-effort
       // and must never hide a successful result when storage is disabled or quota-restricted.
       try{localStorage.removeItem(draftKey());}catch(_){}
       showResult(score,timeoutWarning);
     }catch(e){
       if (!isActive()) return;
+      const retryAfterReconnect = reconnectFinalizePending && typeof window !== "undefined" && window.navigator?.onLine !== false && remaining() <= 0;
+      reconnectFinalizePending = false;
+      if (retryAfterReconnect) {
+        finished = false;
+        status("कनेक्शन वापस आया है। परीक्षा का अंतिम Submit फिर से भेजा जा रहा है…");
+        Promise.resolve().then(() => {
+          if (isActive() && !finished && remaining() <= 0) finish(true);
+        });
+        return;
+      }
       finished=false;el("rm-cbt-submit").disabled=false;el("rm-cbt-retry").disabled=false;render();
       if(remaining()>0&&!timer)timer=setInterval(tick,1000);
       status(e.message||"Submit असफल। इंटरनेट जाँचकर फिर प्रयास करें।");
@@ -363,7 +374,17 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   const connection=el("rm-cbt-connection");
   const setConnectionState=online=>{if(!connection)return;connection.dataset.state=online?"online":"offline";connection.textContent=online?"Online · connected":"Offline · no connection";};
   const onOffline=()=>{if (!isActive()) return;setConnectionState(false);if(attemptId&&!finished){status("इंटरनेट कनेक्शन बंद है। उत्तर इस डिवाइस पर अस्थायी रूप से सुरक्षित होंगे; परीक्षा बंद न करें।");el("rm-cbt-saved").textContent="Offline · answers pending";}};
-  const onOnline=()=>{if (!isActive()) return;setConnectionState(true);if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>status("कनेक्शन वापस आया है, लेकिन कुछ उत्तर अभी सेव नहीं हुए। Retry दबाएँ।"));}};
+  const onOnline=()=>{if (!isActive()) return;
+    setConnectionState(true);
+    if (attemptId && serverClock && remaining() <= 0) {
+      reconnectFinalizePending = true;
+      if (finished) return;
+      status("समय सीमा समाप्त। सर्वर पर पहले से सुरक्षित उत्तरों से परीक्षा Submit की जा रही है…");
+      finish(true);
+      return;
+    }
+    if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>status("कनेक्शन वापस आया है, लेकिन कुछ उत्तर अभी सेव नहीं हुए। Retry दबाएँ।"));}
+  };
   const onBeforeUnload=event=>{
     if(isActive()&&!finished&&(pendingAnswers.size||inFlightSaves.size)){
       event.preventDefault();
