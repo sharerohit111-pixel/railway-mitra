@@ -1217,6 +1217,47 @@ test("student can start, save answers and submit with server-side scoring", asyn
   assert.equal(repairedActive.found, true);
   assert.equal(repairedActive.attemptId, started.attemptId);
 
+  // A free claim may repair its own stale pointer, but must not displace a
+  // different still-live attempt owned by the same student.
+  const previousActiveForClaimFence = await activeSessionRef.get();
+  const conflictingAttemptId = "emulator-free-claim-conflicting-live-attempt";
+  const conflictingTestId = "emulator-free-claim-conflicting-test";
+  const conflictingAttemptRef = db.doc("testSeriesAttempts/" + conflictingAttemptId);
+  const conflictingStartedAt = new Date();
+  const conflictingAttemptExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+  const conflictingPointerExpiresAt = new Date(conflictingAttemptExpiresAt.getTime() + 1000);
+  try {
+    await conflictingAttemptRef.set({
+      uid, testId: conflictingTestId, mode: "mock", status: "in_progress",
+      startedAt: conflictingStartedAt, expiresAt: conflictingAttemptExpiresAt, answers: {}
+    });
+    await activeSessionRef.set({
+      uid, testId: conflictingTestId, attemptId: conflictingAttemptId,
+      status: "in_progress", startedAt: conflictingStartedAt, expiresAt: conflictingPointerExpiresAt
+    });
+    await assert.rejects(
+      callable("rmStartExam", { testId }),
+      error => error.code === "functions/failed-precondition" &&
+        error.message.includes("active exam session is inconsistent")
+    );
+    const freeAttempts = await db.collection("testSeriesAttempts")
+      .where("uid", "==", uid).get();
+    assert.equal(
+      freeAttempts.docs.filter(doc => doc.data().testId === testId).length,
+      1,
+      "free-claim recovery must not create or displace another attempt"
+    );
+    const unchangedActive = await activeSessionRef.get();
+    assert.equal(unchangedActive.data().attemptId, conflictingAttemptId);
+  } finally {
+    if (previousActiveForClaimFence.exists) {
+      await activeSessionRef.set(previousActiveForClaimFence.data());
+    } else {
+      await activeSessionRef.delete().catch(() => {});
+    }
+    await conflictingAttemptRef.delete().catch(() => {});
+  }
+
   // A valid paid ledger must pass entitlement verification before the active-session guard.
   const paidTestId = "emulator-paid-concurrent-test";
   await db.doc("testSeriesTests/" + paidTestId).set({

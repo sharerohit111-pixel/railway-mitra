@@ -193,6 +193,7 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
         }
       }
     }
+    const freeClaimAttemptId = freeClaimSnap ? id(freeClaimSnap.data().attemptId) : null;
     const activeRef = db.doc("testSeriesActiveSessions/" + uid), active = await tx.get(activeRef);
     if (active.exists && active.data().status === "in_progress") {
       const activeSession = active.data();
@@ -233,17 +234,24 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
         (!sessionExpiresAt || sessionExpiresAt > now);
       const attemptMayStillBeLive = activeAttemptBelongsToStudent &&
         (!attemptExpiresAt || attemptExpiresAt > now);
-      if ((sessionMayStillBeLive || attemptMayStillBeLive) && !freeClaimSnap) {
+      const freeClaimAnchorsActiveAttempt = Boolean(
+        freeClaimAttemptId &&
+        activeAttempt &&
+        activeAttemptId === freeClaimAttemptId &&
+        activeAttempt.uid === uid &&
+        activeAttempt.testId === testId
+      );
+      if ((sessionMayStillBeLive || attemptMayStillBeLive) && !freeClaimAnchorsActiveAttempt) {
         throw new HttpsError(
           "failed-precondition",
           "The active exam session is inconsistent; contact support before starting another exam"
         );
       }
-      // A dangling/foreign pointer may be replaced. A free claim may also
-      // repair its own pointer because the claim anchors the original attempt.
+      // A free claim repairs only the exact attempt it created. It cannot
+      // displace a different still-live attempt belonging to this student.
     }
     const attemptRef = freeClaimSnap
-      ? db.doc("testSeriesAttempts/" + freeClaimSnap.data().attemptId)
+      ? db.doc("testSeriesAttempts/" + freeClaimAttemptId)
       : db.collection("testSeriesAttempts").doc();
     const duration = Math.max(1, Math.min(240, Number(test.durationMinutes || 30)));
     const startedAt = Timestamp.now(), expiresAt = Timestamp.fromDate(new Date(now.getTime() + duration * 60000));
