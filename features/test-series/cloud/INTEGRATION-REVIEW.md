@@ -7,6 +7,7 @@ This is a source-level review with local Firebase Emulator CI evidence. It is no
 
 - Student standalone portal loads `student/portal.js` as an ES module and provides login, catalogue, dashboard, exam and results views.
 - Student catalogue uses the cloud client for published tests and routes free claims, paid checkout and already-unlocked tests through server-verified access checks.
+- Student OTP reCAPTCHA is scoped to the Firebase Auth instance and DOM container; a failed SMS initiation clears the cached verifier so a retry creates a fresh challenge.
 - Student exam flow starts or resumes server-timed attempts, fetches allow-listed question data, saves canonical answer indexes, restores pending local drafts, handles reconnect/timeout recovery, submits for server-side scoring and retrieves the student's own result.
 - Student question media is delivered through an attempt-owner-checked callable and short-lived URL. Published media is sanitized from a private quarantine flow; direct client access to the storage prefixes is denied by the feature rules.
 - Student results expose leaderboard navigation; leaderboard data is fetched separately and presented without exposing private student identifiers.
@@ -16,7 +17,7 @@ This is a source-level review with local Firebase Emulator CI evidence. It is no
 
 ## Implemented and emulator-covered flows
 
-1. **Student OTP-to-exam and scoring:** Auth Emulator phone verification produces a phone-provider ID token. The test opens the published catalogue, starts a paid-test attempt using synthetic captured-payment/order/entitlement ledger rows, fetches student-safe questions without answer-key leakage, saves answers, resumes the same attempt, restores answers, submits and verifies server-side score/result/dashboard. A separate GDCE JE Civil fixture covers 150 questions and a 120-minute server deadline, save/resume without deadline extension, and scoring with 1 correct, 1 wrong and 148 unanswered at 1/3 negative marking.
+1. **Student OTP-to-exam and scoring:** Auth Emulator phone verification produces a phone-provider ID token. The browser verifier cache/retry lifecycle is covered by isolated Node regression tests; this does not send real SMS. The test opens the published catalogue, starts a paid-test attempt using synthetic captured-payment/order/entitlement ledger rows, fetches student-safe questions without answer-key leakage, saves answers, resumes the same attempt, restores answers, submits and verifies server-side score/result/dashboard. A separate GDCE JE Civil fixture covers 150 questions and a 120-minute server deadline, save/resume without deadline extension, and scoring with 1 correct, 1 wrong and 148 unanswered at 1/3 negative marking.
 2. **Owner authorization and access management:** Emulator coverage enrolls phone MFA for an isolated verified Owner, completes a fresh password + phone-MFA sign-in, checks primary-only denial, grants/revokes complimentary-test access, validates idempotent replay and conflicting request IDs, and checks bounded access listing and audit events.
 3. **Question media:** Uploads enter private quarantine; finalization verifies bytes/checksum, decodes and re-encodes supported image formats without metadata, publishes with create-only generation preconditions and creates a ready mapping. Student delivery checks attempt ownership, active status/deadline, mapping and exact object generation before issuing a short-lived URL.
 4. **Question bank and test builder:** Client and server validation cover question shape, options, section labels, bulk import and test configuration. Server-side persisted-paper, section mapping, answer-key and scoring configuration are independently revalidated before delivery, answer save or submission.
@@ -49,6 +50,6 @@ For that exact head SHA:
 - Test Series Functions validation: run [44062177441](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177441) — completed, **success**.
 - Test Series CBT Emulator tests: run [44062177830](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177830) — completed, **success**.
 
-Both workflows are verified against the current branch head. This evidence is limited to the checks above and does not imply live Firebase, real-device, staging or production certification.
+The two runs above apply only to the exact code-bearing baseline SHA listed above. The later documentation-only review commit `43075a92fa73aeb05d7e39605cd01b73c34738bc` separately passed CBT Emulator run [44062863593](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062863593); Functions validation was not triggered by that documentation-only path. Do not treat an older run as evidence for a later code change. This evidence is limited to the named local checks and does not imply live Firebase, real-device, staging or production certification.
 
 PR #136 remains open and draft. This review does not authorize merging it.

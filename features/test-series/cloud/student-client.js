@@ -2,15 +2,24 @@
 // Host app must initialize Firebase Auth, Functions and App Check before calling these helpers.
 import { RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
+import { getStudentRecaptchaVerifier, clearStudentRecaptchaVerifier } from "./student-recaptcha.mjs";
 
-let verifier = null;
 function getVerifier(auth, containerId = "rm-student-recaptcha") {
-  if (!verifier) verifier = new RecaptchaVerifier(auth, containerId, { size: "invisible" });
-  return verifier;
+  return getStudentRecaptchaVerifier(
+    auth,
+    containerId,
+    (boundAuth, id) => new RecaptchaVerifier(boundAuth, id, { size: "invisible" })
+  );
 }
 export async function sendStudentOtp(auth, phoneNumber) {
   if (!/^\+[1-9]\d{7,14}$/.test(phoneNumber)) throw new Error("मोबाइल नंबर country code सहित लिखें, जैसे +91XXXXXXXXXX");
-  return signInWithPhoneNumber(auth, phoneNumber, getVerifier(auth));
+  try {
+    return await signInWithPhoneNumber(auth, phoneNumber, getVerifier(auth));
+  } catch (error) {
+    // A failed SMS challenge must not leave a consumed/stale verifier cached.
+    clearStudentRecaptchaVerifier(auth);
+    throw error;
+  }
 }
 export async function verifyStudentOtp(confirmation, code) {
   if (!/^\d{6}$/.test(code)) throw new Error("6 अंकों का OTP दर्ज करें।");
