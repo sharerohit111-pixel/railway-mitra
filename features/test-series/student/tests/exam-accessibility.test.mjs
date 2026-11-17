@@ -27,6 +27,10 @@ test("navigation landmarks have distinct accessible labels", () => {
 });
 
 
+test("question palette is exposed as a labelled accessible group", () => {
+  assert.match(html, /id="rm-cbt-palette"[^>]*role="group"[^>]*aria-label="Question palette"/);
+});
+
 test("restores keyboard focus to the selected option after the option list is rebuilt", () => {
   const focused = [];
   const buttons = Array.from({ length: 4 }, (_, index) => ({
