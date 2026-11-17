@@ -176,7 +176,8 @@ test("rejects invalid or duplicate section time configuration", () => {
 
 
 test("rejects control characters in question and configured section labels", () => {
-  for (const section of ["Math\\nAbility", "Math\\tAbility", "Math\\u0000Ability", "Math\\u007FAbility"]) {
+  for (const codePoint of [10, 9, 0, 127]) {
+    const section = "Math" + String.fromCharCode(codePoint) + "Ability";
     assert.throws(() => validateOwnerTestDraft(validDraft({
       questions: [{ id: "q1", text: "Q", options: ["A", "B"], correctIndex: 0, section }]
     })), /control characters/);
