@@ -38,6 +38,14 @@ export function validateOwnerTestDraft(draft) {
     throw new Error("Questions JSON में 1 से 500 प्रश्नों की Array होनी चाहिए।");
   }
 
+  // GDCE JE Civil has a fixed departmental CBT pattern; keep this preset isolated
+  // so other Railway departmental tests retain their configurable settings.
+  if (category.trim().toLocaleLowerCase() === "gdce je civil" &&
+      (draft.questions.length !== 150 || durationMinutes !== 120 ||
+       marksPerQuestion !== 1 || Math.abs(negativeMarks - (1 / 3)) > 1e-9)) {
+    throw new Error("GDCE JE Civil के लिए 150 प्रश्न, 120 मिनट, प्रत्येक सही उत्तर पर 1 अंक और गलत उत्तर पर 1/3 अंक कटौती अनिवार्य है।");
+  }
+
   const questionIds = new Set();
   const questions = draft.questions.map((question, index) => {
     const number = index + 1;
