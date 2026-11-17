@@ -13,6 +13,7 @@ const { getFunctions, connectFunctionsEmulator, httpsCallable } = require("fireb
 const { applyCapturedPayment } = require("../payment-ledger");
 const { applyProcessedRefund } = require("../payment-refund-ledger");
 const { paidEntitlementDocumentId } = require("../payment-entitlement");
+const { getStudentTestAccessType } = require("../student-test-access");
 const crypto = require("node:crypto");
 const { handleRazorpayWebhook } = require("../razorpay-webhook-handler");
 const { hasVerifiedPhoneMfa } = require("../owner-auth");
@@ -795,6 +796,68 @@ test("student catalogue marks a paid test unlocked only when all payment ledgers
     );
   } finally {
     const cleanup = [entitlementRef.delete().catch(() => {}), testRef.delete().catch(() => {})];
+    if (paidAccess) {
+      cleanup.push(
+        paidAccess.paymentRef.delete().catch(() => {}),
+        paidAccess.orderRef.delete().catch(() => {}),
+        paidAccess.entitlementRef.delete().catch(() => {})
+      );
+    }
+    await Promise.all(cleanup);
+  }
+});
+
+test("paid access lookup keeps one Firestore snapshot while a refund commits concurrently", async () => {
+  const paidTestId = "emulator-access-snapshot-refund";
+  const testRef = db.doc("testSeriesTests/" + paidTestId);
+  let paidAccess = null;
+  try {
+    await testRef.set({
+      title: "Snapshot Refund Test", status: "published", price: 25,
+      mode: "mock", durationMinutes: 10
+    });
+    paidAccess = await seedPaidAccess({
+      testId: paidTestId,
+      paymentId: "pay_access_snapshot_refund",
+      orderId: "order_access_snapshot_refund",
+      amount: 2500
+    });
+
+    let refundCommitted = false;
+    const snapshotAccess = await db.runTransaction(async tx => {
+      const snapshotTx = {
+        get: async ref => {
+          const snap = await tx.get(ref);
+          if (!refundCommitted && ref.path === paidAccess.entitlementRef.path) {
+            refundCommitted = true;
+            // Commit the complete refund ledger after the read-only snapshot
+            // has been established but before it reads payment and order.
+            await db.runTransaction(async refundTx => {
+              refundTx.update(paidAccess.paymentRef, {
+                status: "refunded", amountRefunded: 2500
+              });
+              refundTx.update(paidAccess.orderRef, { status: "refunded" });
+              refundTx.update(paidAccess.entitlementRef, { status: "revoked" });
+            });
+          }
+          return snap;
+        }
+      };
+      return getStudentTestAccessType({
+        db, transaction: snapshotTx, uid, testId: paidTestId,
+        test: { price: 25 }, freeTestId: null
+      });
+    }, { readOnly: true });
+
+    assert.equal(refundCommitted, true);
+    assert.equal(snapshotAccess, "unlocked", "the in-flight snapshot must see the complete pre-refund ledger");
+    assert.deepEqual(
+      await callable("rmGetStudentTestAccess", { testId: paidTestId }),
+      { testId: paidTestId, accessType: "paid" },
+      "a fresh callable snapshot must see the completed refund"
+    );
+  } finally {
+    const cleanup = [testRef.delete().catch(() => {})];
     if (paidAccess) {
       cleanup.push(
         paidAccess.paymentRef.delete().catch(() => {}),

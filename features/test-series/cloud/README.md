@@ -396,3 +396,21 @@ A verified `refund.processed` webhook that cannot be reconciled with the stored 
 The student recovery callable reads `testSeriesActiveSessions/{uid}` and its referenced attempt in one read-only Firestore transaction. This prevents a session switch between separate reads from returning an obsolete attempt ID to a re-entering browser.
 
 An in-progress attempt is returned only when the active pointer matches the authenticated UID, attempt ID, test ID, in-progress status and exact unexpired server deadline. A submitted attempt is returned as completed only when the pointer is also marked completed. Missing, malformed, stale or contradictory pointers return `found: false`; they do not authorize exam access. The CBT Emulator regression covers mismatched session status and deadline, and the existing lifecycle regression verifies normal in-progress recovery and completed-result recovery.
+
+## Snapshot-consistent single-test access
+
+`rmGetStudentTestAccess` reads the published test, configured free-trial
+selection, entitlement, captured payment and paid order in one Firestore
+read-only transaction. The shared `getStudentTestAccessType` helper reuses a
+caller-owned transaction; catalogue lookups without one open their own
+read-only transaction for the payment ledger. This prevents a single response
+from combining records observed on opposite sides of an atomic refund update.
+
+The access response remains a point-in-time UI hint, not the final authorization
+to start an exam. A refund may commit after the snapshot is read, so
+`rmStartExam` must continue to revalidate the complete payment ledger in its
+own write transaction before creating or resuming an attempt. A Firestore
+Emulator regression commits a synthetic full refund between the entitlement
+read and payment/order reads: the in-flight snapshot sees the coherent
+pre-refund grant, while the next callable lookup sees the revoked grant. No
+Razorpay request, production credential or live Firebase resource is used.

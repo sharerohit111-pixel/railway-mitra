@@ -1804,22 +1804,27 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
 exports.rmGetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
   const uid = student(req);
   const testId = id(req.data && req.data.testId);
-  const [testSnap, freeConfigSnap] = await Promise.all([
-    db.doc("testSeriesTests/" + testId).get(),
-    db.doc("testSeriesConfig/freeTest").get()
-  ]);
-  if (!testSnap.exists || testSnap.data().status !== "published") {
-    throw new HttpsError("not-found", "Published test not found");
-  }
-  const freeTestId = freeConfigSnap.exists && freeConfigSnap.data().enabled
-    ? freeConfigSnap.data().testId
-    : null;
-  const accessType = await getStudentTestAccessType({
-    db, uid, testId, test: testSnap.data(), freeTestId
-  });
-  // Keep this response minimal: the client cannot grant access from checkout
-  // callbacks or supply any part of the payment ledger.
-  return { testId, accessType };
+  // Read the published test, free-trial selection and payment ledger from one
+  // read-only snapshot. The result is a UI hint; rmStartExam revalidates access
+  // in its own write transaction before creating or resuming an attempt.
+  return db.runTransaction(async tx => {
+    const [testSnap, freeConfigSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesTests/" + testId)),
+      tx.get(db.doc("testSeriesConfig/freeTest"))
+    ]);
+    if (!testSnap.exists || testSnap.data().status !== "published") {
+      throw new HttpsError("not-found", "Published test not found");
+    }
+    const freeTestId = freeConfigSnap.exists && freeConfigSnap.data().enabled
+      ? freeConfigSnap.data().testId
+      : null;
+    const accessType = await getStudentTestAccessType({
+      db, transaction: tx, uid, testId, test: testSnap.data(), freeTestId
+    });
+    // Keep this response minimal: the client cannot grant access from checkout
+    // callbacks or supply any part of the payment ledger.
+    return { testId, accessType };
+  }, { readOnly: true });
 });
 
 
