@@ -305,3 +305,126 @@ test("spreadsheet option cells are trimmed and numeric answers remain supported"
     question: { text: "Define BM", options: ["RL", "12"], correctIndex: 1, explanation: "" }
   });
 });
+
+test("Question Bank export JSON can be imported directly into the Test Builder", () => {
+  const exported = exportQuestionBankRows([{
+    topic: "Civil",
+    chapter: "Surveying",
+    folder: "Practice",
+    question: {
+      section: "Technical",
+      text: "Define benchmark",
+      options: ["Reduced Level", "Benchmark"],
+      explanation: "A fixed reference point"
+    },
+    correctIndex: 1
+  }]);
+  const parsed = parseQuestionBankImportJson(JSON.stringify(exported));
+  assert.deepEqual(normalizeTestBuilderImportRows(parsed), [{
+    id: "q1",
+    text: "Define benchmark",
+    options: ["Reduced Level", "Benchmark"],
+    correctIndex: 1,
+    section: "Technical",
+    explanation: "A fixed reference point"
+  }]);
+});
+
+test("Test Builder import normalizes JSON and spreadsheet columns without unsafe coercion", () => {
+  assert.deepEqual(normalizeTestBuilderImportRows([{
+    ID: "civil_1",
+    Question: "  What is BM?  ",
+    optionA: 10,
+    optionB: " 20 ",
+    correct_index: "1",
+    section: " Core "
+  }]), [{
+    id: "civil_1",
+    text: "What is BM?",
+    options: ["10", "20"],
+    correctIndex: 1,
+    section: "Core"
+  }]);
+
+  assert.deepEqual(normalizeTestBuilderImportRows([{
+    text: "Question",
+    options: '["A","B"]',
+    correctIndex: 0
+  }]), [{
+    id: "q1",
+    text: "Question",
+    options: ["A", "B"],
+    correctIndex: 0
+  }]);
+});
+
+test("Test Builder import accepts Question Bank items/questions envelopes and numeric answer text", () => {
+  const rows = [{ text: "Question", options: ["A", "B"], correctIndex: "1" }];
+  assert.deepEqual(
+    normalizeTestBuilderImportRows(parseQuestionBankImportJson(JSON.stringify({ items: rows }))),
+    [{ id: "q1", text: "Question", options: ["A", "B"], correctIndex: 1 }]
+  );
+  assert.deepEqual(
+    normalizeTestBuilderImportRows(parseQuestionBankImportJson(JSON.stringify({ questions: rows }))),
+    [{ id: "q1", text: "Question", options: ["A", "B"], correctIndex: 1 }]
+  );
+});
+
+test("Test Builder import rejects objects, booleans and duplicate normalized columns", () => {
+  const base = { text: "Question", options: ["A", "B"], correctIndex: 0 };
+  for (const row of [
+    { ...base, text: { value: "Question" } },
+    { ...base, optionA: true, options: undefined },
+    { ...base, section: { name: "Core" } },
+    { ...base, explanation: false },
+    { ...base, id: {} },
+    { ...base, options: ["A", { label: "B" }] }
+  ]) {
+    assert.throws(() => normalizeTestBuilderImportRows([row]), /पंक्ति 1:/);
+  }
+  assert.throws(
+    () => normalizeTestBuilderImportRows([{ text: "Question", TEXT: "Other", options: ["A", "B"], correctIndex: 0 }]),
+    /पंक्ति 1:.*column दोहराया/
+  );
+});
+
+test("Test Builder import rejects duplicate IDs, invalid indexes and malformed options", () => {
+  assert.throws(() => normalizeTestBuilderImportRows([
+    { id: "same", text: "Q1", options: ["A", "B"], correctIndex: 0 },
+    { id: "same", text: "Q2", options: ["A", "B"], correctIndex: 1 }
+  ]), /पंक्ति 2:.*ID दोहराई/);
+
+  for (const row of [
+    { text: "Q", options: ["A", "B"], correctIndex: -1 },
+    { text: "Q", options: ["A", "B"], correctIndex: 2 },
+    { text: "Q", options: ["A", "B"], correctIndex: "1.5" },
+    { text: "Q", options: "[not-json", optionA: "A", optionB: "B", correctIndex: 0 },
+    { text: "Q", options: ["A"], correctIndex: 0 },
+    { text: "Q", options: ["A", "B", "C", "D", "E", "F", "G"], correctIndex: 0 }
+  ]) {
+    assert.throws(() => normalizeTestBuilderImportRows([row]), /पंक्ति 1:/);
+  }
+});
+
+test("Test Builder import enforces text limits and rejects unsupported controls", () => {
+  const base = { text: "Question", options: ["A", "B"], correctIndex: 0 };
+  for (const row of [
+    { ...base, text: "x".repeat(5001) },
+    { ...base, text: "Question" + String.fromCharCode(0) + "text" },
+    { ...base, options: ["A", "B" + String.fromCharCode(7)] },
+    { ...base, section: "Core" + String.fromCharCode(10) + "Section" },
+    { ...base, explanation: "x".repeat(4001) }
+  ]) {
+    assert.throws(() => normalizeTestBuilderImportRows([row]), /पंक्ति 1:/);
+  }
+  const multiline = "Line 1" + String.fromCharCode(10) + "Line 2" + String.fromCharCode(9) + "continued";
+  assert.equal(normalizeTestBuilderImportRows([{ ...base, text: multiline }])[0].text, multiline);
+});
+
+test("Test Builder import validates the complete array before editor use", () => {
+  assert.throws(() => normalizeTestBuilderImportRows(null), /Array/);
+  assert.throws(() => normalizeTestBuilderImportRows([]), /1 से 500/);
+  assert.throws(() => normalizeTestBuilderImportRows(Array.from({ length: 501 }, () => ({
+    text: "Q", options: ["A", "B"], correctIndex: 0
+  }))), /1 से 500/);
+});

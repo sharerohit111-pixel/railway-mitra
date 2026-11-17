@@ -184,6 +184,148 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
   };
 }
 
+
+/**
+ * Normalize one direct Test Management JSON/spreadsheet row.
+ * This is intentionally separate from Question Bank persistence: it produces
+ * the exact question-editor shape and never coerces arbitrary objects/booleans
+ * into apparently valid question text.
+ */
+export function normalizeTestBuilderImportRow(row, rowNumber) {
+  if (!Number.isSafeInteger(rowNumber) || rowNumber < 1) {
+    throw new RangeError("Test import row number must be a positive integer.");
+  }
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    questionImportRowError(rowNumber, "प्रश्न रिकॉर्ड Object होना चाहिए।");
+  }
+
+  const normalized = Object.create(null);
+  for (const [rawKey, value] of Object.entries(row)) {
+    const key = String(rawKey).trim().toLowerCase();
+    if (!key) continue;
+    if (Object.prototype.hasOwnProperty.call(normalized, key)) {
+      questionImportRowError(rowNumber, "एक ही नाम का column दोहराया गया है: " + key + "।");
+    }
+    normalized[key] = value;
+  }
+
+  let id = "q" + rowNumber;
+  if (normalized.id !== undefined && normalized.id !== null && normalized.id !== "") {
+    if (typeof normalized.id === "string") id = normalized.id.trim();
+    else if (typeof normalized.id === "number" && Number.isSafeInteger(normalized.id)) id = String(normalized.id);
+    else questionImportRowError(rowNumber, "प्रश्न ID सुरक्षित text या integer होना चाहिए।");
+  }
+  if (!/^[A-Za-z0-9_-]{1,100}$/.test(id)) {
+    questionImportRowError(rowNumber, "प्रश्न ID में केवल 1 से 100 सुरक्षित अक्षर, अंक, _ या - स्वीकार हैं।");
+  }
+
+  const rawText = normalized.text ?? normalized.question ?? "";
+  if (typeof rawText !== "string") {
+    questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट text होना चाहिए।");
+  }
+  const text = rawText.trim();
+  if (!text || text.length > 5000 || hasDisallowedQuestionControls(text)) {
+    questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट आवश्यक है, अधिकतम 5000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+  }
+
+  let rawOptions = normalized.options;
+  if (typeof rawOptions === "string" && rawOptions.trim().startsWith("[")) {
+    try {
+      rawOptions = JSON.parse(rawOptions);
+    } catch {
+      questionImportRowError(rowNumber, "विकल्पों का JSON सही प्रारूप में नहीं है।");
+    }
+  }
+
+  const toOptionText = (value, index) => {
+    if (typeof value === "string") return value.trim();
+    if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " text या finite number होना चाहिए।");
+  };
+
+  let options;
+  if (Array.isArray(rawOptions)) {
+    options = rawOptions.map(toOptionText);
+  } else if (rawOptions === undefined || rawOptions === null || rawOptions === "" ||
+      (typeof rawOptions === "string" && !rawOptions.trim().startsWith("["))) {
+    const columns = ["a", "b", "c", "d", "e", "f"]
+      .map(letter => normalized["option" + letter])
+      .filter(value => value !== undefined && value !== null && value !== "");
+    options = columns.map(toOptionText);
+    if (!options.length && typeof rawOptions === "string" && rawOptions.trim()) {
+      questionImportRowError(rowNumber, "विकल्प Array या JSON Array text होना चाहिए।");
+    }
+  } else {
+    questionImportRowError(rowNumber, "विकल्प Array या JSON Array text होना चाहिए।");
+  }
+
+  if (options.length < 2 || options.length > 6 ||
+      options.some(option => !option || option.length > 1000 || hasDisallowedQuestionControls(option))) {
+    questionImportRowError(rowNumber, "2 से 6 गैर-खाली विकल्प आवश्यक हैं; हर विकल्प अधिकतम 1000 अक्षरों का होना चाहिए।");
+  }
+
+  const answerKey = ["correctindex", "correct_index", "answerindex", "answer_index"]
+    .find(key => Object.prototype.hasOwnProperty.call(normalized, key));
+  const rawIndex = answerKey ? normalized[answerKey] : undefined;
+  let correctIndex = NaN;
+  if (typeof rawIndex === "number") {
+    correctIndex = rawIndex;
+  } else if (typeof rawIndex === "string" && /^\d+$/.test(rawIndex.trim())) {
+    correctIndex = Number(rawIndex.trim());
+  } else {
+    questionImportRowError(rowNumber, "सही उत्तर का क्रमांक number या numeric text होना चाहिए।");
+  }
+  if (!Number.isSafeInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
+    questionImportRowError(rowNumber, "सही उत्तर का क्रमांक उपलब्ध विकल्पों की सीमा में होना चाहिए।");
+  }
+
+  const rawSection = normalized.section;
+  if (rawSection !== undefined && rawSection !== null && rawSection !== "" && typeof rawSection !== "string") {
+    questionImportRowError(rowNumber, "सेक्शन का नाम text होना चाहिए।");
+  }
+  const section = typeof rawSection === "string" ? rawSection.trim() : "";
+  if (section.length > 80 || hasControlCharacters(section)) {
+    questionImportRowError(rowNumber, "सेक्शन अधिकतम 80 अक्षरों का हो और उसमें control characters न हों।");
+  }
+
+  const rawExplanation = normalized.explanation;
+  if (rawExplanation !== undefined && rawExplanation !== null && rawExplanation !== "" && typeof rawExplanation !== "string") {
+    questionImportRowError(rowNumber, "Explanation text होना चाहिए।");
+  }
+  const explanation = typeof rawExplanation === "string" ? rawExplanation.trim() : "";
+  if (explanation.length > 4000 || hasDisallowedQuestionControls(explanation)) {
+    questionImportRowError(rowNumber, "Explanation अधिकतम 4000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+  }
+
+  return {
+    id,
+    text,
+    options,
+    correctIndex,
+    ...(section ? { section } : {}),
+    ...(explanation ? { explanation } : {})
+  };
+}
+
+/** Validate the complete import before the Test Management editor is changed. */
+export function normalizeTestBuilderImportRows(rows) {
+  if (!Array.isArray(rows)) {
+    throw new TypeError("Test import में प्रश्नों की Array होनी चाहिए।");
+  }
+  if (rows.length < 1 || rows.length > 500) {
+    throw new RangeError("एक Test में 1 से 500 प्रश्न आयात किए जा सकते हैं।");
+  }
+  const ids = new Set();
+  return rows.map((row, index) => {
+    const question = normalizeTestBuilderImportRow(row, index + 1);
+    if (ids.has(question.id)) {
+      questionImportRowError(index + 1, "प्रश्न ID दोहराई गई है: " + question.id + "।");
+    }
+    ids.add(question.id);
+    return question;
+  });
+}
+
 export function questionBankItemAsTestQuestion(item, activeSection = "") {
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     throw new TypeError("Question Bank record का प्रारूप सही नहीं है।");

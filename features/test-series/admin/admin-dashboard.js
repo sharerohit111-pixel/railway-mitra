@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
-import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, parseQuestionBankImportJson, normalizeQuestionBankImportRow } from "./question-bank-transfer.mjs";
+import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionBankImportJson, normalizeQuestionBankImportRow, normalizeTestBuilderImportRows } from "./question-bank-transfer.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
@@ -698,31 +698,20 @@ export function initOwnerAdminDashboard(auth, functions) {
     const button = el("rm-question-import"); button.disabled = true;
     try {
       assertQuestionImportSize(file.size);
-      let questions;
+      let rows;
       const ext = file.name.split(".").pop().toLowerCase();
       if (ext === "json") {
-        questions = parseQuestionImportJson(await file.text());
+        // Also accepts the flat JSON array exported by the Question Bank.
+        rows = parseQuestionBankImportJson(await file.text());
       } else if (["xlsx", "xls", "csv"].includes(ext)) {
         const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
         const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-        questions = rows.map((row, index) => {
-          const normalized = Object.fromEntries(Object.entries(row).map(([k, v]) => [String(k).trim().toLowerCase(), v]));
-          let options = normalized.options;
-          if (typeof options === "string" && options.trim().startsWith("[")) options = JSON.parse(options);
-          if (!Array.isArray(options)) options = ["a", "b", "c", "d", "e", "f"].map(key => normalized["option" + key.toUpperCase()]).filter(v => v !== "");
-          const rawIndex = normalized.correctindex ?? normalized.correct_index ?? normalized.answerindex;
-          // A blank spreadsheet cell must not silently become option 0 (A).
-          const correctIndex = rawIndex === undefined || rawIndex === null || String(rawIndex).trim() === "" ? NaN : Number(rawIndex);
-          return { id: String(normalized.id || "q" + (index + 1)).trim(), text: String(normalized.text ?? normalized.question ?? "").trim(),
-            options: options.map(value => String(value)), correctIndex,
-            ...(String(normalized.section ?? "").trim() ? { section: String(normalized.section).trim() } : {}),
-            ...(String(normalized.explanation ?? "").trim() ? { explanation: String(normalized.explanation).trim() } : {}) };
-        });
+        rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
       } else throw new Error("केवल JSON, XLSX, XLS या CSV file समर्थित है।");
-      if (!Array.isArray(questions) || !questions.length) throw new Error("File में प्रश्नों की Array नहीं मिली।");
-      if (questions.length > 500) throw new Error("एक टेस्ट में अधिकतम 500 प्रश्न हो सकते हैं।");
+      // Validate every row before replacing the current editor contents. JSON and
+      // spreadsheets share the same strict normalizer and 500-question ceiling.
+      const questions = normalizeTestBuilderImportRows(rows);
       el("rm-test-questions").value = JSON.stringify(questions, null, 2);
       status(questions.length + " प्रश्न Import हुए। Save करने से पहले JSON जाँच लें।");
     } catch (e) { status("Import असफल: " + (e.message || "File format जाँचें।")); }
