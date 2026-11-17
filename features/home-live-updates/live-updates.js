@@ -1,4 +1,4 @@
-/* Railway Mitra — isolated live updates ticker; reads only verified notices. */
+/* Railway Mitra — isolated live updates ticker. */
 (() => {
   "use strict";
   const grid = document.querySelector(".feature-grid");
@@ -6,7 +6,7 @@
 
   const style = document.createElement("link");
   style.rel = "stylesheet";
-  style.href = "features/home-live-updates/live-updates.css?v=2";
+  style.href = "features/home-live-updates/live-updates.css?v=3";
   document.head.appendChild(style);
 
   const section = document.createElement("section");
@@ -23,8 +23,38 @@
 
   const track = section.querySelector(".rm-live-updates__track");
   const lang = (() => { try { return localStorage.getItem("railwayMitraLanguage") === "hi" ? "hi" : "en"; } catch (_) { return "en"; } })();
+  let tickerAnimation = null;
+
+  function stopTicker() {
+    if (tickerAnimation) tickerAnimation.cancel();
+    tickerAnimation = null;
+  }
+
+  function startTicker() {
+    stopTicker();
+    const firstGroup = track.querySelector(".rm-live-updates__group");
+    if (!firstGroup || !track.querySelectorAll(".rm-live-updates__group").length) return;
+    const distance = Math.ceil(firstGroup.getBoundingClientRect().width);
+    if (distance < 20) {
+      requestAnimationFrame(startTicker);
+      return;
+    }
+    // Use the Web Animations API with an exact measured loop distance.
+    // This avoids CSS keyframe/viewport-width differences on Android WebView/PWA.
+    track.style.setProperty("animation", "none", "important");
+    if (typeof track.animate === "function") {
+      const duration = Math.max(12000, Math.round(distance / 38 * 1000));
+      tickerAnimation = track.animate(
+        [{ transform: "translate3d(0,0,0)" }, { transform: "translate3d(-" + distance + "px,0,0)" }],
+        { duration, iterations: Infinity, easing: "linear" }
+      );
+    } else {
+      track.style.setProperty("animation", "rm-live-scroll 34s linear infinite", "important");
+    }
+  }
 
   function showEmpty(message) {
+    stopTicker();
     track.replaceChildren();
     const group = document.createElement("div");
     group.className = "rm-live-updates__group";
@@ -33,7 +63,7 @@
     text.textContent = message;
     group.appendChild(text);
     track.appendChild(group);
-    track.style.animation = "none";
+    track.style.setProperty("animation", "none", "important");
   }
 
   function render(notices) {
@@ -65,7 +95,14 @@
       });
       track.appendChild(group);
     }
+    requestAnimationFrame(startTicker);
   }
+
+  section.addEventListener("pointerenter", () => tickerAnimation && tickerAnimation.pause());
+  section.addEventListener("pointerleave", () => tickerAnimation && tickerAnimation.play());
+  section.addEventListener("focusin", () => tickerAnimation && tickerAnimation.pause());
+  section.addEventListener("focusout", () => tickerAnimation && tickerAnimation.play());
+  window.addEventListener("resize", () => { if (track.querySelectorAll(".rm-live-updates__group").length) startTicker(); }, { passive: true });
 
   fetch("features/updates/notices.json", { cache: "no-store" })
     .then(response => { if (!response.ok) throw new Error("Feed unavailable"); return response.json(); })
