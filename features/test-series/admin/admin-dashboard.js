@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
+import { exportQuestionBankRows, parseQuestionImportJson } from "./question-bank-transfer.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
@@ -695,8 +696,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       let questions;
       const ext = file.name.split(".").pop().toLowerCase();
       if (ext === "json") {
-        const parsed = JSON.parse(await file.text());
-        questions = Array.isArray(parsed) ? parsed : parsed.questions;
+        questions = parseQuestionImportJson(await file.text());
       } else if (["xlsx", "xls", "csv"].includes(ext)) {
         const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
         const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
@@ -1227,16 +1227,7 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   questionBankExport.addEventListener("click", () => {
     if (!questionBankItems.length) return;
-    const rows = questionBankItems.map(item => ({
-      topic: item.topic || "",
-      chapter: item.chapter || "",
-      folder: item.folder || "General",
-      section: item.question?.section || "",
-      text: item.question?.text || "",
-      options: Array.isArray(item.question?.options) ? item.question.options : [],
-      correctIndex: Number(item.correctIndex),
-      explanation: item.question?.explanation || ""
-    }));
+    const rows = exportQuestionBankRows(questionBankItems);
     const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
