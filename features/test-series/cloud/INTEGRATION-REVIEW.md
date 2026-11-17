@@ -44,12 +44,12 @@ These are local CI/emulator results only. They do not certify production OTP, pr
 
 ## Current branch and CI evidence
 
-Reviewed 2026-11-17. Code-bearing branch baseline: `2b93c0505c2de53b2e269ba1ff93becb46e0c3d2`. This review refresh is documentation-only; its commit is recorded separately in the handoff.
+Reviewed 2026-11-17. The current code-bearing OTP verifier lifecycle change is commit `a594ee80da3b7a7312067e1338c0d63a6d77d600`.
 
-For that exact head SHA:
-- Test Series Functions validation: run [44062177441](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177441) — completed, **success**.
-- Test Series CBT Emulator tests: run [44062177830](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177830) — completed, **success**.
+For that exact code-bearing commit:
+- Test Series Functions validation: run [44071701022](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44071701022) — completed, **success**.
+- Test Series CBT Emulator tests: run [44071701147](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44071701147) — completed, **success**. The workflow passed isolated student regressions, 291 CBT backend/unit tests, Firestore Rules emulator checks, and the synthetic Auth/Firestore backup-restore smoke test.
 
-The two runs above apply only to the exact code-bearing baseline SHA listed above. The later documentation-only review commit `43075a92fa73aeb05d7e39605cd01b73c34738bc` separately passed CBT Emulator run [44062863593](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062863593); Functions validation was not triggered by that documentation-only path. Do not treat an older run as evidence for a later code change. This evidence is limited to the named local checks and does not imply live Firebase, real-device, staging or production certification.
+The earlier runs [44062177441](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177441) and [44062177830](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177830) apply only to code-bearing baseline `2b93c0505c2de53b2e269ba1ff93becb46e0c3d2`; they are historical evidence, not evidence for later changes. These checks are local CI/emulator results only and do not imply live Firebase, real-device, staging or production certification. Re-check the PR's latest checks after any subsequent code commit.
 
 PR #136 remains open and draft. This review does not authorize merging it.
