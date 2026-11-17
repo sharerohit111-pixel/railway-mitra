@@ -18,3 +18,16 @@ export function parseQuestionImportJson(source) {
   const parsed = JSON.parse(text);
   return Array.isArray(parsed) ? parsed : parsed?.questions;
 }
+
+export function questionBankItemAsTestQuestion(item, activeSection = "") {
+  return {
+    id: "bank_" + item.itemId,
+    text: item.question?.text || "",
+    options: Array.isArray(item.question?.options) ? item.question.options : [],
+    correctIndex: Number(item.correctIndex),
+    explanation: item.question?.explanation || "",
+    ...((activeSection || item.question?.section)
+      ? { section: activeSection || item.question.section }
+      : {})
+  };
+}
