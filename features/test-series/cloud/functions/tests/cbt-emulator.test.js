@@ -2394,12 +2394,12 @@ test("Owner manual access callables require real emulator password plus phone MF
         const invalidSectionCases = [
           {
             label: "question section with a leading tab",
-            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "\\tTechnical Ability" }],
+            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "\tTechnical Ability" }],
               sections: [{ name: "Technical Ability", timeLimitMinutes: 25 }] }
           },
           {
             label: "question section with a trailing newline",
-            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "Technical Ability\\n" }],
+            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "Technical Ability\n" }],
               sections: [{ name: "Technical Ability", timeLimitMinutes: 25 }] }
           },
           {
@@ -2410,12 +2410,12 @@ test("Owner manual access callables require real emulator password plus phone MF
           {
             label: "configured section with a leading tab",
             payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "Technical Ability" }],
-              sections: [{ name: "\\tTechnical Ability", timeLimitMinutes: 25 }] }
+              sections: [{ name: "\tTechnical Ability", timeLimitMinutes: 25 }] }
           },
           {
             label: "configured section with a trailing newline",
             payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "Technical Ability" }],
-              sections: [{ name: "Technical Ability\\n", timeLimitMinutes: 25 }] }
+              sections: [{ name: "Technical Ability\n", timeLimitMinutes: 25 }] }
           }
         ];
         for (const [index, invalidCase] of invalidSectionCases.entries()) {

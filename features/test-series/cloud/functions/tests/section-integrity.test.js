@@ -70,7 +70,7 @@ test("rejects malformed section configuration and time limits", () => {
 });
 
 test("rejects control characters before trimming either configured or question section labels", () => {
-  for (const label of ["\\tTechnical Ability", "Technical Ability\\n", "\\u0000Technical Ability", "Technical Ability\\u007f"]) {
+  for (const label of ["\tTechnical Ability", "Technical Ability\n", "\u0000Technical Ability", "Technical Ability\u007f"]) {
     assert.throws(() => getExamSectionConfig(
       { sections: [{ name: label, timeLimitMinutes: 0 }] },
       []
@@ -86,7 +86,7 @@ test("normalizes section labels only when the value is text and preserves option
   assert.equal(normalizeSectionLabel("  Technical Ability  "), "Technical Ability");
   assert.equal(normalizeSectionLabel("   ", true), "");
   assert.throws(() => normalizeSectionLabel(42, true));
-  assert.throws(() => normalizeSectionLabel("\\t", true));
+  assert.throws(() => normalizeSectionLabel("\t", true));
 });
 
 test("rejects malformed question section values", () => {
