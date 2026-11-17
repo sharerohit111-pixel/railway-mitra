@@ -36,7 +36,7 @@ const translations = {
     warn52on60: "Note: Combination liners (different GS & NGS) are required when laying 52 kg rail on a 60 kg sleeper.",
     warn52on8746: "Note: For the RT-8746 wider-base sleeper with 52 kg rail, the listed GS and NGS liner references are different. Verify the exact approved combination against the applicable RDSO drawing before field use.",
     warnNotRec: "Note: Laying 60 kg rail on a 52 kg sleeper (RT-2495) is generally not standard practice on Indian Railways.",
-    warn8527_52kg: "Important: The 52 kg rail combination for RT-8527 contains provisional drawing references marked “Check RDSO”. Do not use these references for field work until verified against the latest applicable RDSO drawing and railway instructions.",
+    warn8527_52kg: "Not verified: IRPWM-2024 and the CAMTECH track-components booklet list RT-8527 for 60 kg / 136RE rail, not 52 kg rail. No 52 kg fitting combination is approved here. Do not use a substitute; confirm the latest RDSO drawing and railway instructions.",
     mappingUnavailable: "No verified fitting combination is available for this selection. Do not use a substitute; confirm the applicable RDSO drawing and railway instructions."
   },
   hi: {
@@ -74,7 +74,7 @@ const translations = {
     warn52on60: "नोट: 60 kg स्लीपर पर 52 kg रेल बिछाने के लिए GS और NGS में अलग-अलग कॉम्बिनेशन लाइनर लगते हैं।",
     warn52on8746: "नोट: RT-8746 वाइडर-बेस स्लीपर पर 52 kg रेल के लिए सूचीबद्ध GS और NGS लाइनर संदर्भ अलग-अलग हैं। फील्ड में उपयोग से पहले लागू RDSO ड्राइंग से स्वीकृत संयोजन की पुष्टि करें।",
     warnNotRec: "नोट: 52 kg स्लीपर (RT-2495) पर 60 kg रेल बिछाना भारतीय रेलवे में मानक (Standard) नहीं है।",
-    warn8527_52kg: "महत्वपूर्ण: RT-8527 पर 52 kg रेल के लिए कुछ ड्राइंग संदर्भ “Check RDSO” के रूप में अस्थायी हैं। फील्ड में उपयोग से पहले नवीनतम लागू RDSO ड्राइंग और रेलवे निर्देशों से इनकी पुष्टि अवश्य करें।",
+    warn8527_52kg: "सत्यापित नहीं: IRPWM-2024 और CAMTECH ट्रैक-कम्पोनेंट पुस्तिका में RT-8527 को 60 kg / 136RE रेल के लिए सूचीबद्ध किया गया है, 52 kg रेल के लिए नहीं। यहाँ 52 kg का कोई स्वीकृत फिटिंग संयोजन उपलब्ध नहीं है। कोई विकल्प स्वयं न चुनें; नवीनतम RDSO ड्राइंग और रेलवे निर्देशों से पुष्टि करें।",
     mappingUnavailable: "इस चयन के लिए सत्यापित फिटिंग संयोजन उपलब्ध नहीं है। कोई दूसरा फिटिंग विकल्प स्वयं न चुनें; लागू RDSO ड्राइंग और रेलवे निर्देशों से पुष्टि करें।"
 
   }
@@ -216,6 +216,14 @@ function calculateFittings() {
   const data = rdsoData[key];
   const cardsGrid = document.getElementById('cardsGrid');
   const warnBox = document.getElementById('warningNote');
+
+  // RT-8527 is documented for 60 kg / 136RE rail; fail closed for 52 kg.
+  if (key === "RT-8527_52kg") {
+    cardsGrid.innerHTML = '';
+    warnBox.style.display = 'block';
+    warnBox.innerText = t.warn8527_52kg;
+    return;
+  }
 
   // Fail closed if a future UI option has no matching master-data entry.
   if (!data || !['metal', 'gfn'].includes(circuit)) {
