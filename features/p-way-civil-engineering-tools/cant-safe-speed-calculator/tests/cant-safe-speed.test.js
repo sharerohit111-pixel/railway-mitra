@@ -25,6 +25,9 @@ function harness({ curveType = 'radius', curveVal = '875', speed = '110', group 
     Math, Number
   };
   vm.runInNewContext(source, context, { filename: scriptPath });
+  // The calculator defaults to Hindi; switch the harness to English so the
+  // assertions below validate the English presentation contract explicitly.
+  vm.runInNewContext('toggleLang()', context);
   return { elements, alerts, calculate: () => vm.runInNewContext('calculateCant()', context) };
 }
 
