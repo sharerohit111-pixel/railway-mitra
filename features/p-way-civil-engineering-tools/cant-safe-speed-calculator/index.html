@@ -27,7 +27,8 @@
       <input type="number" min="0" step="any" id="trainSpeed" placeholder="जैसे: 110" inputmode="decimal">
       <label for="routeGroup" id="routeLabel">3. रूट की श्रेणी (Route Group - IRPWM):</label>
       <select id="routeGroup">
-        <option value="165_100" id="optABC">Group A, B, C (Max Ca = 165mm, Cd = 100mm)</option>
+        <option value="165_100" id="optAB">Group A, B (Max Ca = 165mm, Cd = 100mm)</option>
+        <option value="165_75" id="optC">Group C (Max Ca = 165mm, Cd = 75mm)</option>
         <option value="140_75" id="optDE">Group D, E (Max Ca = 140mm, Cd = 75mm)</option>
       </select>
       <button class="calc-btn" type="button" onclick="calculateCant()" id="calcBtn">गणना करें (Calculate)</button>
