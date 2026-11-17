@@ -7,6 +7,7 @@ on:
     paths:
       - "features/p-way-civil-engineering-tools/track-fittings-calculator/script.js"
       - "features/p-way-civil-engineering-tools/cant-safe-speed-calculator/script.js"
+      - "features/p-way-civil-engineering-tools/cant-safe-speed-calculator/tests/**"
       - ".github/workflows/pway-calculator-syntax.yml"
   pull_request:
     paths:
@@ -31,3 +32,5 @@ jobs:
         run: node --check features/p-way-civil-engineering-tools/track-fittings-calculator/script.js
       - name: Check cant and safe speed calculator syntax
         run: node --check features/p-way-civil-engineering-tools/cant-safe-speed-calculator/script.js
+      - name: Run cant and safe speed numerical regression tests
+        run: node --test features/p-way-civil-engineering-tools/cant-safe-speed-calculator/tests/*.test.js
