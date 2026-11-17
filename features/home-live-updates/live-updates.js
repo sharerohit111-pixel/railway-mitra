@@ -47,8 +47,17 @@
   function render(notices) {
     const lang = currentLanguage();
     if (labelText) labelText.textContent = lang === "hi" ? "🔔 नवीनतम अपडेट" : "🔔 LATEST UPDATES";
+    const seenSources = new Set();
     const latest = notices
-      .filter(n => n && n.verified === true && typeof n.sourceUrl === "string" && /^https:\/\//i.test(n.sourceUrl) && typeof n.publishedAt === "string")
+      .filter(n => {
+        if (!n || n.verified !== true || typeof n.sourceUrl !== "string" ||
+            !/^https:\/\//i.test(n.sourceUrl) || typeof n.publishedAt !== "string") return false;
+        // Treat URL-encoded and literal semicolons as the same official PDF.
+        const canonicalSource = n.sourceUrl.replace(/%3B/ig, ";").replace(/#.*$/, "").toLowerCase();
+        if (seenSources.has(canonicalSource)) return false;
+        seenSources.add(canonicalSource);
+        return true;
+      })
       .sort((a,b) => b.publishedAt.localeCompare(a.publishedAt))
       .slice(0, 8);
     if (!latest.length) { showEmpty(lang === "hi" ? "अभी कोई सत्यापित नया अपडेट उपलब्ध नहीं है" : "No verified updates available right now"); return; }
@@ -64,7 +73,8 @@
         link.href = n.sourceUrl;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.textContent = (lang === "hi" ? n.titleHi : n.titleEn) || n.titleEn || n.titleHi || "Railway notice";
+        const hindiTitle = n.titleHi && n.titleHi !== "रेलवे बोर्ड की आधिकारिक सूचना" ? n.titleHi : "";
+        link.textContent = (lang === "hi" ? (hindiTitle || n.titleEn) : n.titleEn) || hindiTitle || "Railway notice";
         if (copy === 1) link.tabIndex = -1;
         group.appendChild(link);
         const separator = document.createElement("span");
