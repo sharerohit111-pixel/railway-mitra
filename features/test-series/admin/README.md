@@ -2,9 +2,9 @@
 
 ## Standalone Owner Portal
 
-Open `portal.html` to load the dedicated Owner Control Centre. `owner-portal.js` initializes the existing Firebase app, loads the isolated dashboard fragment, connects Cloud Functions in `asia-south1`, and imports the Test Series App Check bootstrap before any Owner callable is invoked. The portal remains separate from the Railway Mitra home navigation; it is not yet linked into the student portal or main app. The backend must have the exact `OWNER_UID` configured, Phone MFA enrolled, App Check configured, and the Test Series Functions deployed before Owner access can succeed. The browser page alone does not grant privileges.
+Open `portal.html` to load the dedicated Owner Control Centre. `owner-portal.js` initializes the existing Firebase app, loads the isolated dashboard fragment, connects Cloud Functions in `asia-south1`, and imports the Test Series App Check bootstrap before any Owner callable is invoked. The signed-in Railway Mitra main app exposes one Test Series card that opens the landing page; that landing page links to this standalone Owner portal. These are navigation-only links and do not authorize an Owner session. The Owner portal remains separate from the Student portal. The backend must have the exact `OWNER_UID` configured, Phone MFA enrolled, App Check configured, and the Test Series Functions deployed before Owner access can succeed. The browser page alone does not grant privileges.
 
-Mobile-first dashboard shell and Firebase Authentication MFA client helpers. The standalone portal route is available, but is not linked into the main app; do not link until Firebase and backend authorization are configured.
+The mobile-first dashboard shell and Firebase Authentication MFA client helpers are available at this standalone route. Keep the route separate from the Student portal; navigation must never be treated as an authorization signal.
 
 ## Login methods
 - Google popup
