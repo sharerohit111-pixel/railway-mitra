@@ -15,6 +15,7 @@ const { randomUUID } = require("node:crypto");
 const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { paidEntitlementDocumentId } = require("../../payment-entitlement");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 // Supports a staged ramp up to 500 synthetic identities; this is a harness ceiling, not a capacity claim.
@@ -132,7 +133,7 @@ async function main() {
         db.doc("testSeriesPaymentOrders/" + student.orderId).set({
           ...identity, status: "paid", paidAt: FieldValue.serverTimestamp()
         }),
-        db.doc("testSeriesEntitlements/" + student.uid + "_" + TEST_ID).set({
+        db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(student.uid, TEST_ID)).set({
           ...identity, status: "active", grantedAt: FieldValue.serverTimestamp()
         })
       ]);
@@ -183,7 +184,7 @@ async function main() {
     if (failures || attemptIds.length !== STUDENTS) process.exitCode = 1;
   } finally {
     const cleanupRefs = [
-      ...students.map(s => db.doc("testSeriesEntitlements/" + s.uid + "_" + TEST_ID)),
+      ...students.map(s => db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(s.uid, TEST_ID))),
       ...students.map(s => db.doc("testSeriesPayments/" + s.paymentId)),
       ...students.map(s => db.doc("testSeriesPaymentOrders/" + s.orderId)),
       ...students.map(s => db.doc("testSeriesActiveSessions/" + s.uid)),
