@@ -173,3 +173,27 @@ test("rejects invalid or duplicate section time configuration", () => {
     questions: [{ id: "q1", text: "Q", options: ["A", "B"], correctIndex: 0, section: "Maths" }]
   })), /दोहराया/);
 });
+
+
+test("rejects malformed section collections instead of silently discarding them", () => {
+  for (const sections of [null, {}, "Technical Ability", 3]) {
+    assert.throws(() => validateOwnerTestDraft(validDraft({ sections })), /सेक्शन सूची/);
+  }
+});
+
+test("rejects configured sections with no mapped questions instead of dropping their time limits", () => {
+  assert.throws(() => validateOwnerTestDraft(validDraft({
+    sections: [
+      { name: "Technical Ability", timeLimitMinutes: 25 },
+      { name: "General Awareness", timeLimitMinutes: 10 }
+    ],
+    questions: [{ id: "q1", text: "Question?", options: ["A", "B"], correctIndex: 0, section: "Technical Ability" }]
+  })), /हर बनाए गए सेक्शन में कम से कम एक प्रश्न/);
+});
+
+test("still derives an unconfigured section from question metadata when no explicit section is supplied", () => {
+  const payload = validateOwnerTestDraft(validDraft({
+    questions: [{ id: "q1", text: "Question?", options: ["A", "B"], correctIndex: 0, section: "Technical Ability" }]
+  }));
+  assert.deepEqual(payload.sections, [{ name: "Technical Ability", timeLimitMinutes: 0, questionCount: 1 }]);
+});

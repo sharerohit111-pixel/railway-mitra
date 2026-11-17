@@ -72,7 +72,10 @@ export function validateOwnerTestDraft(draft) {
   });
 
   const sectionNames = [...new Set(questions.map(question => question.section).filter(Boolean))];
-  const suppliedSections = Array.isArray(draft.sections) ? draft.sections : [];
+  if (draft.sections !== undefined && !Array.isArray(draft.sections)) {
+    throw new Error("सेक्शन सूची का प्रारूप Array होना चाहिए।");
+  }
+  const suppliedSections = draft.sections === undefined ? [] : draft.sections;
   if (suppliedSections.length > 50) throw new Error("अधिकतम 50 सेक्शन बनाए जा सकते हैं।");
   const sectionConfig = new Map();
   suppliedSections.forEach((section, index) => {
@@ -97,7 +100,10 @@ export function validateOwnerTestDraft(draft) {
   const sections = [...sectionConfig.values()].map(section => ({
     ...section,
     questionCount: questions.filter(question => question.section?.toLocaleLowerCase() === section.name.toLocaleLowerCase()).length
-  })).filter(section => section.questionCount > 0);
+  }));
+  if (sections.some(section => section.questionCount === 0)) {
+    throw new Error("हर बनाए गए सेक्शन में कम से कम एक प्रश्न जोड़ें।");
+  }
 
   const payload = {
     title,

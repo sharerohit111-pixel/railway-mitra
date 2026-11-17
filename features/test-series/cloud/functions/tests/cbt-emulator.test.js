@@ -2370,6 +2370,61 @@ test("Owner manual access callables require real emulator password plus phone MF
     );
 
     {
+      const sectionTestId = "emulator-owner-section-integrity";
+      const sectionTestRef = db.doc("testSeriesTests/" + sectionTestId);
+      const sectionPaperRef = db.doc("testSeriesQuestionSets/" + sectionTestId);
+      const sectionAnswerRef = db.doc("testSeriesAnswerKeys/" + sectionTestId);
+      const sectionPayload = {
+        testId: sectionTestId,
+        title: "Owner section integrity",
+        category: "Civil Engineering",
+        folder: "Emulator Validation",
+        mode: "mock",
+        durationMinutes: 30,
+        price: 0,
+        marksPerQuestion: 1,
+        negativeMarks: 0,
+        status: "draft",
+        questions: [{ id: "section_q1", text: "Section mapping?", options: ["A", "B"], correctIndex: 1, section: "technical ability" }]
+      };
+      try {
+        await assert.rejects(
+          callableWithIdToken("rmOwnerSaveTest", {
+            ...sectionPayload,
+            sections: { name: "Technical Ability", timeLimitMinutes: 25 }
+          }, signedIn.idToken),
+          error => error.code === "functions/invalid-argument"
+        );
+        assert.equal((await sectionTestRef.get()).exists, false,
+          "malformed section metadata must be rejected before any draft documents are written");
+
+        await assert.rejects(
+          callableWithIdToken("rmOwnerSaveTest", {
+            ...sectionPayload,
+            sections: [{ name: "Unused Section", timeLimitMinutes: 25 }]
+          }, signedIn.idToken),
+          error => error.code === "functions/invalid-argument"
+        );
+        assert.equal((await sectionTestRef.get()).exists, false,
+          "an empty configured section must not be silently dropped");
+
+        const savedSectionTest = await callableWithIdToken("rmOwnerSaveTest", {
+          ...sectionPayload,
+          sections: [{ name: "Technical Ability", timeLimitMinutes: 25 }]
+        }, signedIn.idToken);
+        assert.equal(savedSectionTest.saved, true);
+        assert.deepEqual((await sectionTestRef.get()).data().sections, [
+          { name: "Technical Ability", timeLimitMinutes: 25, questionCount: 1 }
+        ]);
+        assert.equal((await sectionPaperRef.get()).data().questions[0].section, "Technical Ability",
+          "the server must persist the canonical configured section spelling");
+        assert.equal((await sectionAnswerRef.get()).exists, true);
+      } finally {
+        await Promise.all([sectionTestRef, sectionPaperRef, sectionAnswerRef].map(ref => ref.delete().catch(() => {})));
+      }
+    }
+
+    {
       const { mediaMappingId, mediaObjectPath } = require("../question-media-upload");
       const mediaTestId = "emulator-owner-media-publish-gate";
       const mediaQuestionId = "media_q1";

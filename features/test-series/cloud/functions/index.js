@@ -1211,7 +1211,10 @@ function ownerTestPayload(data) {
     addExamAnswerKeyEntry(answerQuestions, qid, q.correctIndex);
   }
   const sectionNames = [...new Set(publicQuestions.map(question => question.section).filter(Boolean))];
-  const suppliedSections = Array.isArray(data.sections) ? data.sections : [];
+  if (data.sections !== undefined && !Array.isArray(data.sections)) {
+    throw new HttpsError("invalid-argument", "Sections must be an array when supplied");
+  }
+  const suppliedSections = data.sections === undefined ? [] : data.sections;
   if (suppliedSections.length > 50) throw new HttpsError("invalid-argument", "At most 50 sections are allowed");
   const sectionConfig = new Map();
   suppliedSections.forEach((section, index) => {
@@ -1237,7 +1240,10 @@ function ownerTestPayload(data) {
     ...section,
     questionCount: publicQuestions.filter(question => question.section &&
       question.section.toLocaleLowerCase() === section.name.toLocaleLowerCase()).length
-  })).filter(section => section.questionCount > 0);
+  }));
+  if (sections.some(section => section.questionCount === 0)) {
+    throw new HttpsError("invalid-argument", "Every configured section must contain at least one question");
+  }
 
   return {
     metadata: { title, category, folder: folderParts.join(" / "), mode, durationMinutes, price, marksPerQuestion, negativeMarks, status,

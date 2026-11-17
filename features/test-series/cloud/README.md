@@ -418,3 +418,8 @@ Razorpay request, production credential or live Firebase resource is used.
 ## Student catalogue request lifecycle
 
 The student catalogue checks its authenticated view/session fence before starting a page request and after the request settles. If the student signs out, switches accounts, or navigates away while the catalogue request is pending, both successful and failed responses are discarded. A stale request cannot replace the current view's status message or re-enable an obsolete Load More control. Session-guard exceptions are treated as inactive (fail closed). This protects UI state only; all test access and payment authorization remain server-enforced by the callable and `rmStartExam` transaction.
+
+
+## Owner test section configuration save integrity
+
+The Owner test-save callable distinguishes an omitted `sections` field (which permits question section labels to be derived with the default zero-minute section limit) from an explicitly supplied malformed value. A supplied section configuration must be an array. Every configured section must contain at least one question in the same draft; otherwise the entire save is rejected before Firestore writes. The Owner Admin preflight enforces the same rule, so a section time limit cannot be silently discarded because its section is empty or the configuration has the wrong shape. The Auth + Functions Emulator regression verifies malformed and unused section configurations leave all three draft documents (metadata, question set and private answer key) absent, while a valid populated section preserves its canonical name, question count and time limit. This does not change published tests or student answer/scoring behavior.
