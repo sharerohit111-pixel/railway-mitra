@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { exportQuestionBankRows, parseQuestionImportJson } from "../question-bank-transfer.mjs";
+import { exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
 
 test("question bank export preserves metadata and the server question schema", () => {
   const rows = exportQuestionBankRows([{
@@ -47,4 +47,17 @@ test("parser accepts the wrapped questions format and rejects non-text input", (
   const rows = [{ text: "Q", options: ["A", "B"], correctIndex: 1 }];
   assert.deepEqual(parseQuestionImportJson(JSON.stringify({ questions: rows })), rows);
   assert.throws(() => parseQuestionImportJson(null), TypeError);
+});
+
+test("Test Builder mapping preserves answer data and applies the selected section", () => {
+  const item = {
+    itemId: "qb-42",
+    question: { text: "What is a benchmark?", options: ["RL", "BM"], section: "Survey" },
+    correctIndex: 1
+  };
+  assert.deepEqual(questionBankItemAsTestQuestion(item), {
+    id: "bank_qb-42", text: "What is a benchmark?", options: ["RL", "BM"],
+    correctIndex: 1, explanation: "", section: "Survey"
+  });
+  assert.equal(questionBankItemAsTestQuestion(item, "Technical").section, "Technical");
 });
