@@ -76,7 +76,11 @@ export function initOwnerAdminDashboard(auth, functions) {
     subscribe: callback => onAuthStateChanged(auth, callback),
     hasPhoneMfa,
     verifyOwner: async () => (await verifyOwnerSession({})).data,
-    signOut: () => signOut(auth),
+    signOut: expectedUser => {
+      // A stale authorization failure must never sign out a different account.
+      if (expectedUser && auth.currentUser?.uid !== expectedUser.uid) return Promise.resolve();
+      return signOut(auth);
+    },
     onChecking: () => {
       // Hide privileged content before any cleanup that could throw.
       home.hidden = true;

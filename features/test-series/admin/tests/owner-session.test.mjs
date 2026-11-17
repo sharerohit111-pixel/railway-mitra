@@ -233,3 +233,11 @@ test("Owner logout hides privileged content synchronously before awaiting Fireba
   assert.ok(catchBlock > signOutCall, "sign-out failures are handled without reopening the dashboard");
   assert.match(dashboard.slice(catchBlock, catchBlock + 500), /Owner dashboard remains locked/);
 });
+
+test("Owner session adapter signs out only the UID rejected by the current authorization generation", async () => {
+  const dashboard = readFileSync(new URL("../admin-dashboard.js", import.meta.url), "utf8");
+  assert.match(dashboard, /signOut: expectedUser => \{/);
+  assert.match(dashboard, /auth\.currentUser\?\.uid !== expectedUser\.uid/);
+  assert.match(dashboard, /if \(expectedUser && auth\.currentUser\?\.uid !== expectedUser\.uid\) return Promise\.resolve\(\)/);
+  assert.match(dashboard, /return signOut\(auth\)/);
+});
