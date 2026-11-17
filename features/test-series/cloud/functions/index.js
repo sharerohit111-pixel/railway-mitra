@@ -1195,6 +1195,13 @@ function ownerTestPayload(data) {
     }
   }
   if (!Array.isArray(data.questions) || data.questions.length < 1 || data.questions.length > 500) throw new HttpsError("invalid-argument", "Add 1–500 questions");
+  // Enforce the GDCE JE Civil pattern on the trusted server, independently
+  // of browser-side validation. Other departmental exams remain configurable.
+  if (category.trim().toLocaleLowerCase() === "gdce je civil" &&
+      (data.questions.length !== 150 || durationMinutes !== 120 ||
+       marksPerQuestion !== 1 || Math.abs(negativeMarks - (1 / 3)) > 1e-9)) {
+    throw new HttpsError("invalid-argument", "GDCE JE Civil requires 150 questions, 120 minutes, 1 mark per correct answer and 1/3 negative marking");
+  }
   const seen = new Set();
   const publicQuestions = [], answerQuestions = {};
   for (const q of data.questions) {
