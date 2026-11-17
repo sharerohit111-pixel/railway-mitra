@@ -28,7 +28,7 @@ These are local CI/emulator results only. They do not certify production OTP, pr
 
 ## Remaining release gates
 
-- **Main-app integration:** Student/Owner entry points are not confirmed as integrated into the main Railway Mitra navigation. Keep this as a separately approved integration; do not modify existing navigation or authentication guards without explicit approval and regression review.
+- **Main-app integration:** A minimal signed-in main-app card now links to the Test Series landing page, which exposes Student and Owner Admin navigation links. These are navigation-only links; they do not bypass student phone-provider authentication or Owner UID + primary-provider + phone-MFA + App Check authorization. The main-app change is intentionally limited to one feature-card insertion; existing authentication guards and calculator logic were not changed in this integration step. Still verify the signed-in navigation on real Android devices before release.
 - **Firebase staging:** Confirm project identity, merge/review existing Firestore and Storage rules, configure Auth providers and App Check, and obtain cost approval before any staging deployment. The feature's deny-all Firestore rules must not be deployed blindly over existing application rules.
 - **Real-device checks:** Verify student phone OTP, connectivity interruption/recovery, media rendering and Owner provider + phone-MFA behavior in an approved non-production environment.
 - **Razorpay Test Mode:** Complete a controlled staging order, signature/webhook, duplicate-event, refund/reconciliation and entitlement-revocation walkthrough. No live payment is enabled by this review.
@@ -44,7 +44,7 @@ These are local CI/emulator results only. They do not certify production OTP, pr
 
 ## Current branch and CI evidence
 
-Reviewed 2026-11-17. The current code-bearing OTP verifier lifecycle change is commit `a594ee80da3b7a7312067e1338c0d63a6d77d600`.
+Reviewed 2026-11-17. Historical CI evidence below applies only to the exact commits listed. The latest PR head at the time of this follow-up is `48c182df84cc502214781d97021934b6baf385c2`; the GitHub PR workflow/status query returned no runs or status checks for that head, so the latest navigation/documentation commits are not CI-certified.
 
 For that exact code-bearing commit:
 - Test Series Functions validation: run [44071701022](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44071701022) — completed, **success**.
@@ -53,3 +53,10 @@ For that exact code-bearing commit:
 The earlier runs [44062177441](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177441) and [44062177830](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177830) apply only to code-bearing baseline `2b93c0505c2de53b2e269ba1ff93becb46e0c3d2`; they are historical evidence, not evidence for later changes. These checks are local CI/emulator results only and do not imply live Firebase, real-device, staging or production certification. Re-check the PR's latest checks after any subsequent code commit.
 
 PR #136 remains open and draft. This review does not authorize merging it.
+
+
+## Follow-up integration check
+
+- Main app card insertion and landing-page Student/Owner links were read back from `feature/test-series-cloud-access` and confirmed present.
+- PR #136 currently reports `mergeable: false`; no merge was attempted.
+- The PR's changed-file list currently includes unrelated live-updates and P-Way calculator files in addition to the CBT modules. Keep those files under explicit regression review; do not assume the PR is CBT-only or merge based on the CBT checks alone.
