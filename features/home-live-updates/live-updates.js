@@ -6,7 +6,7 @@
 
   const style = document.createElement("link");
   style.rel = "stylesheet";
-  style.href = "features/home-live-updates/live-updates.css?v=1";
+  style.href = "features/home-live-updates/live-updates.css?v=2";
   document.head.appendChild(style);
 
   const section = document.createElement("section");
