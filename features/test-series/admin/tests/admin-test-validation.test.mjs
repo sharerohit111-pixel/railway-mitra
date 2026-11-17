@@ -71,6 +71,14 @@ test("enforces question and option text limits and valid option counts", () => {
   }
 });
 
+test("rejects non-text question section values instead of silently dropping them", () => {
+  for (const section of [42, true, {}, []]) {
+    assert.throws(() => validateOwnerTestDraft(validDraft({
+      questions: [{ id: "q1", text: "Question?", options: ["A", "B"], correctIndex: 0, section }]
+    })), /सेक्शन नाम text होना चाहिए/);
+  }
+});
+
 test("rejects invalid correct-answer indexes", () => {
   for (const correctIndex of [-1, 2, 0.5, "0", NaN]) {
     assert.throws(() => validateOwnerTestDraft(validDraft({ questions: [

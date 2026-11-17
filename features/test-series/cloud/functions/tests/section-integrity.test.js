@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { getExamSectionConfig } = require("../section-integrity");
+const { getExamSectionConfig, normalizeSectionLabel } = require("../section-integrity");
 
 test("returns section counts derived from the question paper and preserves Hindi names", () => {
   const sections = getExamSectionConfig({
@@ -67,6 +67,26 @@ test("rejects malformed section configuration and time limits", () => {
   ]) {
     assert.throws(() => getExamSectionConfig({ sections }, [{ id: "q1" }]));
   }
+});
+
+test("rejects control characters before trimming either configured or question section labels", () => {
+  for (const label of ["\\tTechnical Ability", "Technical Ability\\n", "\\u0000Technical Ability", "Technical Ability\\u007f"]) {
+    assert.throws(() => getExamSectionConfig(
+      { sections: [{ name: label, timeLimitMinutes: 0 }] },
+      []
+    ));
+    assert.throws(() => getExamSectionConfig(
+      { sections: [{ name: "Technical Ability", timeLimitMinutes: 0 }] },
+      [{ id: "q1", section: label }]
+    ));
+  }
+});
+
+test("normalizes section labels only when the value is text and preserves optional blank question sections", () => {
+  assert.equal(normalizeSectionLabel("  Technical Ability  "), "Technical Ability");
+  assert.equal(normalizeSectionLabel("   ", true), "");
+  assert.throws(() => normalizeSectionLabel(42, true));
+  assert.throws(() => normalizeSectionLabel("\\t", true));
 });
 
 test("rejects malformed question section values", () => {

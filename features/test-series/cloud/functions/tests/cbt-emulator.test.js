@@ -2391,6 +2391,52 @@ test("Owner manual access callables require real emulator password plus phone MF
         questions: [{ id: "section_q1", text: "Section mapping?", options: ["A", "B"], correctIndex: 1, section: "technical ability" }]
       };
       try {
+        const invalidSectionCases = [
+          {
+            label: "question section with a leading tab",
+            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "\\tTechnical Ability" }],
+              sections: [{ name: "Technical Ability", timeLimitMinutes: 25 }] }
+          },
+          {
+            label: "question section with a trailing newline",
+            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "Technical Ability\\n" }],
+              sections: [{ name: "Technical Ability", timeLimitMinutes: 25 }] }
+          },
+          {
+            label: "non-text question section",
+            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: 42 }],
+              sections: [{ name: "Technical Ability", timeLimitMinutes: 25 }] }
+          },
+          {
+            label: "configured section with a leading tab",
+            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "Technical Ability" }],
+              sections: [{ name: "\\tTechnical Ability", timeLimitMinutes: 25 }] }
+          },
+          {
+            label: "configured section with a trailing newline",
+            payload: { ...sectionPayload, questions: [{ ...sectionPayload.questions[0], section: "Technical Ability" }],
+              sections: [{ name: "Technical Ability\\n", timeLimitMinutes: 25 }] }
+          }
+        ];
+        for (const [index, invalidCase] of invalidSectionCases.entries()) {
+          const invalidTestId = sectionTestId + "-invalid-" + index;
+          const refs = ["testSeriesTests", "testSeriesQuestionSets", "testSeriesAnswerKeys"]
+            .map(collection => db.doc(collection + "/" + invalidTestId));
+          try {
+            await assert.rejects(
+              callableWithIdToken("rmOwnerSaveTest", { ...invalidCase.payload, testId: invalidTestId }, signedIn.idToken),
+              error => error.code === "functions/invalid-argument",
+              invalidCase.label
+            );
+            for (const ref of refs) {
+              assert.equal((await ref.get()).exists, false,
+                invalidCase.label + " must be rejected before any draft document is written");
+            }
+          } finally {
+            await Promise.all(refs.map(ref => ref.delete().catch(() => {})));
+          }
+        }
+
         await assert.rejects(
           callableWithIdToken("rmOwnerSaveTest", {
             ...sectionPayload,

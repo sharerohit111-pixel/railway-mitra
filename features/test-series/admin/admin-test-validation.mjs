@@ -77,6 +77,9 @@ export function validateOwnerTestDraft(draft) {
       throw new Error("प्रश्न " + number + " का सही उत्तर (correctIndex) विकल्पों के अनुरूप नहीं है।");
     }
 
+    if (question.section !== undefined && question.section !== null && typeof question.section !== "string") {
+      throw new Error("प्रश्न " + number + " का सेक्शन नाम text होना चाहिए।");
+    }
     const rawSection = typeof question.section === "string" ? question.section : "";
     if (hasControlCharacters(rawSection)) throw new Error("प्रश्न " + number + " के सेक्शन नाम में control characters स्वीकार नहीं हैं।");
     const section = rawSection.trim();

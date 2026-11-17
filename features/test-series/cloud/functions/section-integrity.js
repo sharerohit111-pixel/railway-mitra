@@ -3,10 +3,21 @@ function fail(message) {
 }
 
 function hasControlCharacters(value) {
-  return Array.from(value).some(character => {
+  return typeof value === "string" && Array.from(value).some(character => {
     const code = character.charCodeAt(0);
     return code <= 31 || code === 127;
   });
+}
+
+function normalizeSectionLabel(value, allowEmpty = false) {
+  if (typeof value !== "string" || hasControlCharacters(value)) {
+    fail("Invalid exam section label");
+  }
+  const name = value.trim();
+  if ((!allowEmpty && !name) || name.length > 80) {
+    fail("Invalid exam section label");
+  }
+  return name;
 }
 
 /**
@@ -30,10 +41,9 @@ function getExamSectionConfig(test, questions) {
     if (!section || typeof section !== "object" || Array.isArray(section)) {
       fail("Invalid exam section at index " + index);
     }
-    const name = typeof section.name === "string" ? section.name.trim() : "";
+    const name = normalizeSectionLabel(section.name);
     const timeLimitMinutes = Number(section.timeLimitMinutes ?? 0);
-    if (!name || name.length > 80 || hasControlCharacters(name) ||
-        !Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
+    if (!Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
       fail("Invalid exam section at index " + index);
     }
     const key = name.toLocaleLowerCase();
@@ -51,8 +61,8 @@ function getExamSectionConfig(test, questions) {
     if (typeof question.section !== "string") {
       fail("Question section must be text");
     }
-    const name = question.section.trim();
-    if (!name || question.section !== name || name.length > 80 || hasControlCharacters(name)) {
+    const name = normalizeSectionLabel(question.section);
+    if (question.section !== name) {
       fail("Invalid question section at index " + index);
     }
     const config = sections.get(name.toLocaleLowerCase());
@@ -65,4 +75,4 @@ function getExamSectionConfig(test, questions) {
   return [...sections.values()];
 }
 
-module.exports = { getExamSectionConfig };
+module.exports = { getExamSectionConfig, normalizeSectionLabel };

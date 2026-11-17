@@ -34,7 +34,7 @@ const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
 const { getCallableOptions } = require("./app-check-policy");
 const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require("./question-bank-validation");
 const { selectQuestionBankPage } = require("./question-bank-pagination");
-const { getExamSectionConfig } = require("./section-integrity");
+const { getExamSectionConfig, normalizeSectionLabel } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
 const { getExamAnswerKey, addExamAnswerKeyEntry } = require("./exam-answer-key");
 const {
@@ -1211,8 +1211,14 @@ function ownerTestPayload(data) {
     if (typeof q.text !== "string" || !q.text.trim() || q.text.length > 5000) throw new HttpsError("invalid-argument", "Each question needs text (max 5000 characters)");
     if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6 || q.options.some(x => typeof x !== "string" || !x.trim() || x.length > 1000)) throw new HttpsError("invalid-argument", "Each question needs 2–6 text options");
     if (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new HttpsError("invalid-argument", "Each question needs a valid correctIndex");
-    const section = typeof q.section === "string" ? q.section.trim() : "";
-    if (section.length > 80) throw new HttpsError("invalid-argument", "Question section name is too long");
+    let section = "";
+    if (q.section !== undefined && q.section !== null) {
+      try {
+        section = normalizeSectionLabel(q.section, true);
+      } catch (_) {
+        throw new HttpsError("invalid-argument", "Question section name is invalid");
+      }
+    }
     let media;
     try { media = require("./question-media-contract").projectStudentQuestionMedia(q.media); }
     catch (_) { throw new HttpsError("invalid-argument", "Question image metadata is invalid"); }
@@ -1227,9 +1233,14 @@ function ownerTestPayload(data) {
   if (suppliedSections.length > 50) throw new HttpsError("invalid-argument", "At most 50 sections are allowed");
   const sectionConfig = new Map();
   suppliedSections.forEach((section, index) => {
-    const name = section && typeof section.name === "string" ? section.name.trim() : "";
+    let name;
+    try {
+      name = normalizeSectionLabel(section && section.name);
+    } catch (_) {
+      throw new HttpsError("invalid-argument", "Invalid section configuration at index " + index);
+    }
     const timeLimitMinutes = Number(section && section.timeLimitMinutes !== undefined ? section.timeLimitMinutes : 0);
-    if (!name || name.length > 80 || !Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
+    if (!Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
       throw new HttpsError("invalid-argument", "Invalid section configuration at index " + index);
     }
     const key = name.toLocaleLowerCase();
