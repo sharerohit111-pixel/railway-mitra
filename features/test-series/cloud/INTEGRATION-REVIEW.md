@@ -68,3 +68,11 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - The regression is source-level only. It does not edit `app.html` or `assets/js/auth-guard.js`, change the current development authentication behavior, or replace a real Android signed-in navigation test.
 - `.github/workflows/test-series-functions.yml` already includes `features/test-series/admin/**`, `app.html` and `features/test-series/index.html` in its push and pull-request path filters, so the admin regression suite runs for these integration changes.
 - On code-bearing head `06835ba3ad9abdc1d8de34d50be1500b8ca242a0`, Test Series Functions validation run [44079941355](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44079941355) completed, **success**; this includes the admin regression suite. CBT Emulator run [44079941286](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44079941286) was still in progress at the time of this review. Check its final result before claiming full emulator validation.
+
+
+## Submission retry regression follow-up
+
+- Added a GDCE JE Civil 150-question emulator assertion that repeats `rmSubmitExam` for the same completed attempt, verifies the retry returns the original score/counts, confirms exactly one `testSeriesResults` document exists for the attempt, and re-reads the unchanged result.
+- This covers idempotent client retry after a lost response at the emulator-test level; it does not certify a live network or production deployment.
+- Latest PR #136 head checked during this review: `13fccdca52fd68f2a85e95e4025910a6d2181a60`. GitHub reported no PR workflow runs and no combined status checks for this head at the time of the check. Do not infer a CI pass from earlier commits; rerun and verify checks on the current head.
+- PR #136 remains open, draft, and `mergeable: false`; no merge or deployment was performed.
