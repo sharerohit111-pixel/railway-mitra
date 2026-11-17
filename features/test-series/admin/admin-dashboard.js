@@ -1125,6 +1125,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (!append) {
       questionBankCursor = null;
       questionBankItems = [];
+      updateQuestionBankExportState();
       selectedQuestionBankIds.clear();
       updateQuestionBankSelectionStatus();
       questionBankList.replaceChildren();
@@ -1236,7 +1237,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       correctIndex: Number(item.correctIndex),
       explanation: item.question?.explanation || ""
     }));
-    const blob = new Blob(["\uFEFF", JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
+    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
