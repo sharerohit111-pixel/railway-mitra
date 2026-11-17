@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_QUESTION_IMPORT_BYTES, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
+import { MAX_QUESTION_IMPORT_BYTES, appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
 
 test("question bank export preserves metadata and the server question schema", () => {
   const rows = exportQuestionBankRows([{
