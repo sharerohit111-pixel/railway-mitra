@@ -16,4 +16,7 @@
 @keyframes rm-live-label-pulse{50%{filter:brightness(1.3);box-shadow:0 0 18px rgba(255,69,212,.85)}}
 @keyframes rm-live-dot{50%{opacity:.25}}
 @media(max-width:480px){.rm-live-updates{gap:7px;min-height:58px;margin:15px 0;padding:8px 8px;border-radius:18px}.rm-live-updates__label{gap:5px;padding:7px 8px;font-size:10px}.rm-live-updates__group{gap:15px;padding-right:15px}.rm-live-updates__track{animation-duration:29s}}
-@media(prefers-reduced-motion:reduce){.rm-live-updates,.rm-live-updates__label,.rm-live-updates__dot,.rm-live-updates__track{animation:none!important}.rm-live-updates__viewport{overflow-x:auto}}
+/* Keep the news ticker moving even when the device requests reduced motion; this is a user-requested live marquee. */
+.rm-live-updates__track{animation:rm-live-scroll 34s linear infinite!important;will-change:transform}
+@media(max-width:480px){.rm-live-updates__track{animation-duration:29s!important}}
+.rm-live-updates__track:hover,.rm-live-updates__viewport:focus-within .rm-live-updates__track{animation-play-state:paused!important}
