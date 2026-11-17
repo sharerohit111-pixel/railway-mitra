@@ -4,16 +4,16 @@
 1,000 registered students; design and load-test for 500 simultaneous examinees. Login: mobile number + OTP only. Supports mock and scheduled exams.
 
 ## Firebase project status
-No Firebase configuration or project files were found in the inspected repository branch. This does not prove whether a project exists in the user's Google account. Check Firebase Console before creating a new project to avoid duplicates.
+The branch contains `firebase.json` with separate `default` and `test-series` Functions codebases, and `firebase-app-check-init.js` contains the public web configuration for Firebase project `railway-mitra`. This public client configuration is not a service-account credential or proof that the deployed services are ready. A `.firebaserc` deployment target, verified Console settings, deployed Functions/rules, production `OWNER_UID`, and Razorpay secrets are not established by the source tree. Confirm the intended existing project and its current live configuration in Firebase Console before any deployment; do not create a duplicate project.
 
 ## Services
-- Firebase Authentication: Phone provider; Firebase UID is the stable student identity.
-- Cloud Firestore: test metadata, private answer keys, attempts, answer records, entitlements and results.
-- Cloud Functions v2 in asia-south1: start, save, submit, scoring and owner authorization.
-- Cloud Storage: optional question media and PDFs.
-- App Check: enforced on callable endpoints.
-- Razorpay: later phase; order creation and signature/webhook verification must be server-side.
-- Owner dashboard: separate module; OWNER_UID is configured only in backend environment.
+- Firebase Authentication: phone-provider sign-in is required for deployed student callables; Firebase UID is the stable student identity. Owner access uses a separate protected sign-in flow with server-verified phone second factor.
+- Cloud Firestore: test metadata, private answer keys, attempts, answer records, payment ledgers, entitlements and results; browser clients are denied direct access to protected collections by the isolated rules.
+- Cloud Functions v2 in `asia-south1`: exam lifecycle, scoring, question delivery, Owner administration and Razorpay order/webhook handlers are implemented in the isolated codebase.
+- Cloud Storage: private question-media quarantine and published media prefixes are implemented with server-side sanitization and signed student delivery.
+- App Check: client bootstrap and fail-closed callable enforcement are implemented in source. Provider registration, real-origin token verification and staging validation remain release gates.
+- Razorpay: server-side order creation, checkout-signature verification, captured-payment webhook ledger and refund handling are implemented in source. Razorpay Test Mode end-to-end verification and operational reconciliation remain outstanding.
+- Owner dashboard: separate protected module includes test/question management, student activity, payment inspection/reconciliation, result analytics and complimentary-test access management. `OWNER_UID` must be configured securely in the backend environment.
 
 ## Data model
 - testSeriesTests/{testId}: title, status, mode ('mock'|'scheduled'), durationMinutes, scheduleStartAt, scheduleEndAt, price, marksPerQuestion, negativeMarks.
@@ -72,23 +72,30 @@ The callable functions are a foundation, not a completed TCS-scale platform. For
 ## Budget guardrail
 The user's initial monthly target is ₹500. This is a target, not a guaranteed maximum. Firebase Phone Auth SMS, Cloud Functions, Firestore overages, storage and egress may exceed it. Do not enable paid usage, deploy billable functions, send production OTPs, or run load tests without explicit user approval after a cost estimate. Use test phone numbers and Firebase Emulator first.
 
-## Deployment prerequisites
-1. Confirm existing Firebase project in Firebase Console; don't create duplicate.
-2. Configure Phone Authentication and authorized domains.
-3. Configure App Check for the web/PWA client.
-4. Deploy Firestore rules (deny all direct client access).
-5. Deploy Functions codebase and set OWNER_UID securely server-side.
-6. Add test metadata and answer keys through owner-only backend.
-7. Implement student-safe question delivery (without correct answers).
-8. Add robust attempt policy, idempotent submission, schedule controls and monitoring.
-9. Load-test 500 virtual users in a staging project.
-10. Review billing and alerts before public release.
+## Deployment and release prerequisites
+1. Confirm the existing `railway-mitra` Firebase project, authorized domains, current live rules, indexes, Storage rules and enabled providers in Firebase Console; do not create a duplicate project.
+2. Verify Phone Authentication, browser reCAPTCHA behavior and real-device OTP delivery on an approved staging origin.
+3. Register the correct web App Check provider/site key and verify valid App Check tokens from both Student and Owner portals on staging.
+4. Reconcile the isolated Firestore rules and Storage rules with the current live rules before deployment; never replace shared live rules with this feature-only ruleset without a reviewed merge.
+5. Configure `OWNER_UID`, Razorpay Test Mode API credentials and webhook secret through approved server-side secret/configuration mechanisms. Never commit private credentials.
+6. Deploy only the isolated `test-series` Functions codebase to the confirmed staging project after cost approval; verify function region, App Check enforcement and webhook endpoint configuration.
+7. Run the complete Student OTP → catalogue → free claim / paid checkout → exam start → answer save/resume → submit → result/leaderboard flow in a real browser against staging.
+8. Run Owner sign-in + phone MFA, test/question CRUD, import/export, media upload, payment inspection/reconciliation and access grant/revoke workflows against staging.
+9. Verify Razorpay Test Mode order creation, checkout signature, captured-payment webhook, duplicate delivery, refund and reconciliation behavior end-to-end. Keep paid access disabled until this passes.
+10. Review Firestore indexes, logs, alerting, backup/restore procedures, data retention and the ₹500/month target against actual Firebase/SMS usage before public release.
+11. Main-app navigation integration and any shared-rule changes require a separate minimal-diff review to preserve unrelated Railway Mitra features.
+12. Capacity/load benchmarking is deferred until the user explicitly asks to resume it; no concurrency target is certified by the current emulator suite.
 
-## Current limitations
-- Student-facing question delivery and CBT UI integration are not complete.
-- Free-attempt claim is one per Firebase UID, not fraud-proof against multiple phone numbers.
-- Payment verification, owner CRUD endpoints, question import, backup/restore and full MFA onboarding are pending.
-- Firestore rules deny all direct client access; server functions use Admin SDK and are unaffected.
+## Current limitations and release blockers
+- The branch contains a substantial Student CBT portal and protected Owner dashboard, but source-level integration and emulator tests do not certify a deployed or real-device production flow.
+- Firebase project settings, authorized domains, App Check provider registration, live rules/index reconciliation, `OWNER_UID`, deployed Functions and Storage configuration must be verified in the intended project.
+- Student browser reCAPTCHA/real-device OTP, Owner provider linking + phone MFA, Razorpay Test Mode checkout/webhook/refund reconciliation and complete staging end-to-end journeys remain unverified.
+- The isolated feature rules must be reviewed and merged with current live rules; do not deploy them as a replacement for shared app rules.
+- Cloud Backup and System Settings are intentionally disabled in the Owner UI until a secure, audited implementation exists.
+- Free-attempt claims are one per Firebase UID; this is not fraud-proof against multiple phone numbers.
+- Main-app entry-point integration is not established by the standalone Student/Owner portals and must be a separate minimal-diff change.
+- Capacity/load benchmarking is intentionally deferred at the user's request. No 20/100/250/500-user capacity claim is made.
+- Firestore rules deny direct client access to protected CBT data; server Functions use the Admin SDK and remain subject to callable authorization and App Check.
 
 ## One pending paid order per student and test
 
