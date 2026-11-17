@@ -33,7 +33,7 @@ test("both Owner import flows reject oversized files before reading or loading t
   ]) {
     const start = source.indexOf(marker);
     assert.notEqual(start, -1, "Missing import handler: " + marker);
-    const end = source.indexOf("\\n  });", start);
+    const end = source.indexOf("\n  });", start);
     assert.notEqual(end, -1, "Could not locate import handler boundary: " + marker);
     const handler = source.slice(start, end);
     const guard = handler.indexOf("assertQuestionImportSize(file.size)");
