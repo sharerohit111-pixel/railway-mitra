@@ -29,6 +29,19 @@ export function parseQuestionImportJson(source) {
   return Array.isArray(parsed) ? parsed : parsed?.questions;
 }
 
+export function parseQuestionBankImportJson(source) {
+  if (typeof source !== "string") throw new TypeError("Question Bank import JSON must be text.");
+  assertQuestionImportSize(new TextEncoder().encode(source).byteLength);
+  const text = source.charCodeAt(0) === 0xFEFF ? source.slice(1) : source;
+  const parsed = JSON.parse(text);
+  const rows = Array.isArray(parsed) ? parsed
+    : Array.isArray(parsed?.items) ? parsed.items
+      : Array.isArray(parsed?.questions) ? parsed.questions
+        : null;
+  if (!rows) throw new TypeError("Question Bank JSON must be an array or contain an items/questions array.");
+  return rows;
+}
+
 export function questionBankItemAsTestQuestion(item, activeSection = "") {
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     throw new TypeError("Question Bank record का प्रारूप सही नहीं है।");

@@ -57,3 +57,15 @@ test("single and bulk Question Bank additions share one validated Test Builder p
   assert.doesNotMatch(singleHandler, /JSON\.parse|correctIndex|bank_/);
   assert.match(source, /el\("rm-qb-add-selected"\)[\s\S]*?addQuestionBankItemsToTest\(selected\)/);
 });
+
+
+test("Question Bank bulk JSON import uses the shared bounded BOM-safe parser", () => {
+  assert.match(source, /parseQuestionBankImportJson/);
+  const start = source.indexOf('el("rm-qb-bulk-import").addEventListener');
+  const end = source.indexOf("\n  });", start);
+  assert.ok(start >= 0 && end > start, "Question Bank bulk import handler exists");
+  const handler = source.slice(start, end);
+  assert.match(handler, /assertQuestionImportSize\(file\.size\)/);
+  assert.match(handler, /parseQuestionBankImportJson\(await file\.text\(\)\)/);
+  assert.doesNotMatch(handler, /JSON\.parse\(await file\.text\(\)\)/);
+});

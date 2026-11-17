@@ -162,3 +162,8 @@ The Owner Control Centre now includes a separate Test Access Management panel. I
 - Access and audit lists are paginated (25 records per request). Server responses are allow-listed.
 - A revoked/expired grant cannot start a new attempt. An already-started manual attempt can resume only until its original server deadline.
 - This UI does not activate Razorpay, alter payment entitlements, reset free claims, or enable production deployment.
+
+
+## Question Bank JSON interchange
+
+Question Bank export produces a flat row array with `topic`, `chapter`, `folder`, optional `section`, `text`, `options`, zero-based `correctIndex`, and optional `explanation`. The bulk JSON importer accepts that exported array as-is, as well as `{ "items": [...] }` and `{ "questions": [...] }` envelopes. It strips a leading UTF-8 BOM before parsing, validates the UTF-8 byte limit before parsing, and still sends every normalized row through the server-side Question Bank validator. XLSX, XLS and CSV imports use the same row fields. Each bulk request is limited to 100 rows and the shared file limit is 10 MiB. Export includes only rows currently loaded in the Owner list; use Load More until the desired records are loaded before exporting.

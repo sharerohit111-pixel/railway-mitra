@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_QUESTION_IMPORT_BYTES, appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
+import { MAX_QUESTION_IMPORT_BYTES, appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, parseQuestionBankImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
 
 test("question bank export preserves metadata and the server question schema", () => {
   const rows = exportQuestionBankRows([{
@@ -130,4 +130,29 @@ test("Question Bank append rejects a draft overflow atomically at the 500-questi
   );
   assert.equal(current.length, 499);
   assert.throws(() => appendQuestionBankItemsToTest([...current, { id: "q500" }], [source("bank-c")]), /500/);
+});
+
+
+test("Question Bank JSON import accepts arrays, items/questions envelopes and a UTF-8 BOM", () => {
+  const rows = [{ topic: "Civil", chapter: "Surveying", folder: "Practice", section: "Core", text: "Define BM", options: ["A", "B"], correctIndex: 1, explanation: "Benchmark" }];
+  assert.deepEqual(parseQuestionBankImportJson(JSON.stringify(rows)), rows);
+  assert.deepEqual(parseQuestionBankImportJson("\uFEFF" + JSON.stringify({ items: rows })), rows);
+  assert.deepEqual(parseQuestionBankImportJson(JSON.stringify({ questions: rows })), rows);
+});
+
+test("Question Bank JSON import rejects invalid envelopes, non-text input and oversized UTF-8 content", () => {
+  for (const source of [JSON.stringify({ rows: [] }), JSON.stringify({ items: "not-an-array" }), "null", "42"]) {
+    assert.throws(() => parseQuestionBankImportJson(source), TypeError);
+  }
+  assert.throws(() => parseQuestionBankImportJson(null), TypeError);
+  assert.throws(() => parseQuestionBankImportJson(" ".repeat(MAX_QUESTION_IMPORT_BYTES + 1)), /10 MiB/);
+});
+
+test("Question Bank export JSON remains directly importable without reshaping its flat row schema", () => {
+  const rows = exportQuestionBankRows([{
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    question: { section: "Core", text: "Define BM", options: ["A", "B"], explanation: "Benchmark" },
+    correctIndex: 1
+  }]);
+  assert.deepEqual(parseQuestionBankImportJson(JSON.stringify(rows)), rows);
 });

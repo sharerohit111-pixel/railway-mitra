@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
-import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson } from "./question-bank-transfer.mjs";
+import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, parseQuestionBankImportJson } from "./question-bank-transfer.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
@@ -1264,8 +1264,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       const ext = file.name.split(".").pop().toLowerCase();
       let rows;
       if (ext === "json") {
-        const parsed = JSON.parse(await file.text());
-        rows = Array.isArray(parsed) ? parsed : parsed.items || parsed.questions;
+        rows = parseQuestionBankImportJson(await file.text());
       } else if (["xlsx", "xls", "csv"].includes(ext)) {
         const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
         const workbook = XLSX.read(await file.arrayBuffer(), { type: "array" });
