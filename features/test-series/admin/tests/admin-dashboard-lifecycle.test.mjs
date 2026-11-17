@@ -93,3 +93,19 @@ test("Test Management save errors cannot update the dashboard after Owner sessio
   assert.match(handler, /await httpsCallable\(functions, "rmOwnerSaveTest"\)[\s\S]*?if \(generation !== testManagementGeneration\) return;/);
   assert.match(handler, /catch \(e\) \{\s*if \(generation !== testManagementGeneration\) return;/);
 });
+
+test("Question Bank bulk-import controls reset on Owner session change without stale unlocks", () => {
+  const clearStart = source.indexOf("function clearQuestionBank() {");
+  const clearEnd = source.indexOf("\n  }", clearStart);
+  assert.ok(clearStart >= 0 && clearEnd > clearStart, "Question Bank cleanup must exist");
+  const cleanup = source.slice(clearStart, clearEnd);
+  assert.match(cleanup, /questionBankSessionGeneration \+= 1/);
+  assert.match(cleanup, /el\("rm-qb-bulk-import"\)\.disabled = false/);
+
+  const importStart = source.indexOf('el("rm-qb-bulk-import").addEventListener("click"');
+  const importEnd = source.indexOf("\n  });", importStart);
+  assert.ok(importStart >= 0 && importEnd > importStart, "Question Bank bulk import handler must exist");
+  const handler = source.slice(importStart, importEnd);
+  assert.match(handler, /const sessionGeneration = questionBankSessionGeneration/);
+  assert.match(handler, /finally \{\s*if \(sessionGeneration === questionBankSessionGeneration\) button\.disabled = false;\s*\}/);
+});
