@@ -43,7 +43,7 @@ These are local CI/emulator results only. They do not certify production OTP, pr
 
 ## Current branch and CI evidence
 
-Reviewed 2026-11-17. Branch head: `2b93c0505c2de53b2e269ba1ff93becb46e0c3d2`.
+Reviewed 2026-11-17. Code-bearing branch baseline: `2b93c0505c2de53b2e269ba1ff93becb46e0c3d2`. This review refresh is documentation-only; its commit is recorded separately in the handoff.
 
 For that exact head SHA:
 - Test Series Functions validation: run [44062177441](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44062177441) — completed, **success**.
