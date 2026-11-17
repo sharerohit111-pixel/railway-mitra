@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
+import { MAX_QUESTION_IMPORT_BYTES, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
 
 test("question bank export preserves metadata and the server question schema", () => {
   const rows = exportQuestionBankRows([{
@@ -60,4 +60,14 @@ test("Test Builder mapping preserves answer data and applies the selected sectio
     correctIndex: 1, explanation: "", section: "Survey"
   });
   assert.equal(questionBankItemAsTestQuestion(item, "Technical").section, "Technical");
+});
+
+
+test("bounds admin question imports to 10 MiB and rejects invalid file sizes", () => {
+  assert.equal(assertQuestionImportSize(MAX_QUESTION_IMPORT_BYTES), MAX_QUESTION_IMPORT_BYTES);
+  assert.equal(assertQuestionImportSize(0), 0);
+  for (const size of [-1, 1.5, NaN, Infinity, undefined, MAX_QUESTION_IMPORT_BYTES + 1]) {
+    assert.throws(() => assertQuestionImportSize(size), RangeError);
+  }
+  assert.throws(() => parseQuestionImportJson(" ".repeat(MAX_QUESTION_IMPORT_BYTES + 1)), /10 MiB/);
 });

@@ -26,7 +26,7 @@ Still required before production use: confirm the Firebase project and deploy th
 
 
 ## Test authoring validation
-The owner test form uses the pure helper `admin-test-validation.mjs` before calling the backend. It checks the same question count, safe unique IDs, text/option limits, answer indexes, duration, price and marking ranges enforced by `ownerTestPayload`. Scheduled tests must have valid start/end values with the end strictly after the start. Server-side validation remains authoritative.
+The owner test form uses the pure helper `admin-test-validation.mjs` before calling the backend. It checks the same question count, safe unique IDs, text/option limits, answer indexes, duration, price and marking ranges enforced by `ownerTestPayload`. Scheduled tests must have valid start/end values with the end strictly after the start. Server-side validation remains authoritative. Test Management imports (JSON/XLSX/XLS/CSV) and Question Bank bulk imports also enforce a shared 10 MiB file-size ceiling before reading file contents or loading the spreadsheet parser. The JSON Test Management parser independently checks UTF-8 byte size for direct callers. This is a browser-side resource guard, not a replacement for row-level and server-side validation.
 
 Run the isolated helper tests with Node.js 22:
 
@@ -67,7 +67,7 @@ The Question Bank module stores reusable question records separately in `testSer
 
 ### Bulk import and adding bank items to a draft
 
-The Owner Question Bank supports XLSX, XLS, CSV and JSON bulk import (up to 100 records per request). Spreadsheet columns are `topic`, `chapter`, `folder`, `text` (or `question`), `optionA`–`optionF` or `options` as a JSON array, `correctIndex` (zero-based), and optional `explanation`. Blank or invalid correct indexes are rejected server-side. Each batch is validated before its Firestore batch write. The Question Bank list also offers **Add to Test**, which copies the selected question into the existing Test Management question editor; the Owner must still save the test through the normal draft/publish workflow. Direct browser Firestore access to `testSeriesQuestionBank` is denied.
+The Owner Question Bank supports XLSX, XLS, CSV and JSON bulk import (up to 100 records per request and a 10 MiB source-file limit). Spreadsheet columns are `topic`, `chapter`, `folder`, `text` (or `question`), `optionA`–`optionF` or `options` as a JSON array, `correctIndex` (zero-based), and optional `explanation`. Blank or invalid correct indexes are rejected server-side. Each batch is validated before its Firestore batch write. The Question Bank list also offers **Add to Test**, which copies the selected question into the existing Test Management question editor; the Owner must still save the test through the normal draft/publish workflow. Direct browser Firestore access to `testSeriesQuestionBank` is denied.
 
 
 ### Question Bank search, filters and pagination

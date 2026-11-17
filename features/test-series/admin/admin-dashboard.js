@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
-import { exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion as mapQuestionBankItemToTestQuestion } from "./question-bank-transfer.mjs";
+import { assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, questionBankItemAsTestQuestion as mapQuestionBankItemToTestQuestion } from "./question-bank-transfer.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
@@ -697,6 +697,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     if (!file) { status("पहले JSON या Excel file चुनें।"); return; }
     const button = el("rm-question-import"); button.disabled = true;
     try {
+      assertQuestionImportSize(file.size);
       let questions;
       const ext = file.name.split(".").pop().toLowerCase();
       if (ext === "json") {
@@ -1266,6 +1267,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     const button = el("rm-qb-bulk-import"); button.disabled = true;
     questionBankStatus.textContent = "File पढ़ी जा रही है…";
     try {
+      assertQuestionImportSize(file.size);
       const ext = file.name.split(".").pop().toLowerCase();
       let rows;
       if (ext === "json") {

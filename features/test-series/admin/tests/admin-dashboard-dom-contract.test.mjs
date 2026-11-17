@@ -24,3 +24,23 @@ test("Owner dashboard markup does not define duplicate element IDs", () => {
   }
   assert.deepEqual([...duplicates], [], "Duplicate Owner dashboard element IDs: " + [...duplicates].join(", "));
 });
+
+
+test("both Owner import flows reject oversized files before reading or loading the spreadsheet parser", () => {
+  for (const marker of [
+    'el("rm-question-import").addEventListener',
+    'el("rm-qb-bulk-import").addEventListener'
+  ]) {
+    const start = source.indexOf(marker);
+    assert.notEqual(start, -1, "Missing import handler: " + marker);
+    const end = source.indexOf("\\n  });", start);
+    assert.notEqual(end, -1, "Could not locate import handler boundary: " + marker);
+    const handler = source.slice(start, end);
+    const guard = handler.indexOf("assertQuestionImportSize(file.size)");
+    assert.notEqual(guard, -1, "Missing pre-read file-size guard: " + marker);
+    for (const operation of ["file.text()", "file.arrayBuffer()", 'import("https://cdn.sheetjs.com']) {
+      const index = handler.indexOf(operation);
+      if (index >= 0) assert.ok(guard < index, operation + " must follow the size guard in " + marker);
+    }
+  }
+});
