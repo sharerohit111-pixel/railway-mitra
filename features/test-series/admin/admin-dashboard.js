@@ -6,7 +6,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/fi
 import { watchOwnerSession } from "./owner-session.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
-import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, parseQuestionBankImportJson } from "./question-bank-transfer.mjs";
+import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, parseQuestionBankImportJson, normalizeQuestionBankImportRow } from "./question-bank-transfer.mjs";
 import { getPaymentInspectionGuidance } from "./payment-inspection-guidance.mjs";
 import { initOwnerTestAccessPanel } from "./owner-test-access-panel.mjs";
 import { initOwnerQuestionMediaUpload } from "./owner-question-media-upload.mjs";
@@ -1272,23 +1272,14 @@ export function initOwnerAdminDashboard(auth, functions) {
       } else throw new Error("केवल XLSX, XLS, CSV या JSON file समर्थित है।");
       if (!Array.isArray(rows) || !rows.length) throw new Error("File में प्रश्न नहीं मिले।");
       if (rows.length > 100) throw new Error("एक बार में अधिकतम 100 प्रश्न आयात करें।");
-      const items = rows.map(row => {
-        const normalized = Object.fromEntries(Object.entries(row).map(([key, value]) => [String(key).trim().toLowerCase(), value]));
-        let options = normalized.options;
-        if (typeof options === "string" && options.trim().startsWith("[")) options = JSON.parse(options);
-        if (!Array.isArray(options)) options = ["a", "b", "c", "d", "e", "f"].map(key => normalized["option" + key.toUpperCase()]).filter(value => value !== "");
-        const rawIndex = normalized.correctindex ?? normalized.correct_index ?? normalized.answerindex;
-        return {
-          topic: String(normalized.topic || el("rm-qb-topic").value || "").trim(),
-          chapter: String(normalized.chapter || el("rm-qb-chapter").value || "").trim(),
-          folder: String(normalized.folder || el("rm-qb-folder").value || "General").trim(),
-          question: { text: String(normalized.text ?? normalized.question ?? "").trim(),
-            ...(String(normalized.section || "").trim() ? { section: String(normalized.section).trim() } : {}),
-            options: Array.isArray(options) ? options.map(value => String(value)) : [],
-            correctIndex: rawIndex === undefined || rawIndex === null || String(rawIndex).trim() === "" ? NaN : Number(rawIndex),
-            explanation: String(normalized.explanation || "") }
-        };
-      });
+      const defaults = {
+        topic: el("rm-qb-topic").value,
+        chapter: el("rm-qb-chapter").value,
+        folder: el("rm-qb-folder").value || "General"
+      };
+      const items = rows.map((row, index) =>
+        normalizeQuestionBankImportRow(row, index + 1, defaults)
+      );
       // Reject malformed rows in the browser before sending a bulk write.
       // Server validation remains authoritative; this gives the Owner a precise
       // row-level error instead of a generic callable failure.

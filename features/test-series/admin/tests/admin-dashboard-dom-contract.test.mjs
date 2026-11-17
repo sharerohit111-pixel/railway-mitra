@@ -69,3 +69,14 @@ test("Question Bank bulk JSON import uses the shared bounded BOM-safe parser", (
   assert.match(handler, /parseQuestionBankImportJson\(await file\.text\(\)\)/);
   assert.doesNotMatch(handler, /JSON\.parse\(await file\.text\(\)\)/);
 });
+
+
+test("Question Bank bulk import validates row types before constructing callable payloads", () => {
+  assert.match(source, /normalizeQuestionBankImportRow\(row, index \+ 1, defaults\)/);
+  const start = source.indexOf('el("rm-qb-bulk-import").addEventListener');
+  const end = source.indexOf("\n  });", start);
+  assert.ok(start >= 0 && end > start, "Question Bank bulk import handler exists");
+  const handler = source.slice(start, end);
+  assert.match(handler, /normalizeQuestionBankImportRow/);
+  assert.doesNotMatch(handler, /Object\.entries\(row\)|String\(normalized\.(?:topic|chapter|folder|text|explanation)/);
+});

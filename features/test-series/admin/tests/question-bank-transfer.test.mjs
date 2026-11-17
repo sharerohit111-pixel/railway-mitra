@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MAX_QUESTION_IMPORT_BYTES, appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, parseQuestionBankImportJson, questionBankItemAsTestQuestion } from "../question-bank-transfer.mjs";
+import { MAX_QUESTION_IMPORT_BYTES, appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionImportJson, parseQuestionBankImportJson, questionBankItemAsTestQuestion, normalizeQuestionBankImportRow } from "../question-bank-transfer.mjs";
 
 test("question bank export preserves metadata and the server question schema", () => {
   const rows = exportQuestionBankRows([{
@@ -155,4 +155,90 @@ test("Question Bank export JSON remains directly importable without reshaping it
     correctIndex: 1
   }]);
   assert.deepEqual(parseQuestionBankImportJson(JSON.stringify(rows)), rows);
+});
+
+
+test("normalizes spreadsheet rows without coercing malformed values into text", () => {
+  const normalized = normalizeQuestionBankImportRow({
+    topic: "Civil",
+    chapter: "Surveying",
+    folder: "",
+    question: "Define benchmark",
+    optionA: 1,
+    optionB: 2,
+    correct_index: "1",
+    explanation: "A reference point"
+  }, 4, { folder: "Practice" });
+  assert.deepEqual(normalized, {
+    topic: "Civil",
+    chapter: "Surveying",
+    folder: "Practice",
+    question: {
+      text: "Define benchmark",
+      options: ["1", "2"],
+      correctIndex: 1,
+      explanation: "A reference point"
+    }
+  });
+});
+
+test("normalizes JSON option arrays and preserves an optional section label", () => {
+  assert.deepEqual(normalizeQuestionBankImportRow({
+    topic: "Civil",
+    chapter: "Soil Mechanics",
+    folder: "GDCE",
+    text: "What is LL?",
+    section: "Technical",
+    options: '["Liquid limit", "Plastic limit"]',
+    correctIndex: 0
+  }, 1), {
+    topic: "Civil",
+    chapter: "Soil Mechanics",
+    folder: "GDCE",
+    question: {
+      text: "What is LL?",
+      section: "Technical",
+      options: ["Liquid limit", "Plastic limit"],
+      correctIndex: 0,
+      explanation: ""
+    }
+  });
+});
+
+test("rejects malformed row and non-text metadata/question fields with row context", () => {
+  const base = {
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    text: "Define BM", options: ["A", "B"], correctIndex: 0
+  };
+  for (const row of [
+    null,
+    [],
+    { ...base, topic: { value: "Civil" } },
+    { ...base, chapter: 12 },
+    { ...base, folder: false },
+    { ...base, text: { value: "Define BM" } },
+    { ...base, section: true },
+    { ...base, explanation: { value: "Reason" } },
+    { ...base, options: ["A", { label: "B" }] },
+    { ...base, options: [true, "B"] },
+    { ...base, options: "{not-json" },
+    { ...base, correctIndex: { value: 0 } }
+  ]) {
+    assert.throws(
+      () => normalizeQuestionBankImportRow(row, 7),
+      /पंक्ति 7:/
+    );
+  }
+});
+
+test("rejects malformed option JSON and invalid import defaults", () => {
+  const base = {
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    text: "Define BM", options: ["A", "B"], correctIndex: 0
+  };
+  assert.throws(() => normalizeQuestionBankImportRow({
+    ...base, options: '["A",'
+  }, 2), /पंक्ति 2:.*विकल्पों का JSON/);
+  assert.throws(() => normalizeQuestionBankImportRow(base, 2, []), /पंक्ति 2:/);
+  assert.throws(() => normalizeQuestionBankImportRow(base, 0), /row number/);
 });
