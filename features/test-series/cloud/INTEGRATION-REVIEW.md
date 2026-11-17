@@ -44,7 +44,7 @@ These are local CI/emulator results only. They do not certify production OTP, pr
 
 ## Current branch and CI evidence
 
-Reviewed 2026-11-17. Historical CI evidence below applies only to the exact commits listed. The latest PR head at the time of this follow-up is `88706ec890c055a10c7801713c4b33c65386fce5`; the GitHub PR workflow/status query returned no runs or status checks for that head, so the latest navigation/documentation commits are not CI-certified.
+Reviewed 2026-11-17. Historical CI evidence below applies only to the exact commits listed. At the preceding checkpoint, PR head was `88706ec890c055a10c7801713c4b33c65386fce5`; the GitHub workflow/status query returned no runs or status checks for that checkpoint. This is historical context only; check the current PR head before treating any change as CI-certified.
 
 For that exact code-bearing commit:
 - Test Series Functions validation: run [44071701022](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44071701022) — completed, **success**.
