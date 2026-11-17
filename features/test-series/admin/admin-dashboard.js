@@ -814,9 +814,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) {
       if (generation !== testManagementGeneration) return;
       status(e.message || "Test सेव नहीं हुआ।");
-    } finally {
-      if (sessionGeneration === questionBankSessionGeneration) button.disabled = false;
-    }
+    } finally { button.disabled = false; }
   });
   const studentsPanel = el("rm-admin-students-panel");
   const studentsList = el("rm-admin-students-list");
@@ -1312,7 +1310,9 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (error) {
       if (sessionGeneration !== questionBankSessionGeneration) return;
       questionBankStatus.textContent = error.message || "Bulk import पूरा नहीं हुआ।";
-    } finally { button.disabled = false; }
+    } finally {
+      if (sessionGeneration === questionBankSessionGeneration) button.disabled = false;
+    }
   });
   const analyticsPanel = el("rm-admin-analytics-panel");
   const analyticsStatus = el("rm-admin-analytics-status");
