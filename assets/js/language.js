@@ -131,6 +131,11 @@
     "NPS & Pension":"NPS एवं पेंशन"
   });
 
+  // Make the homepage dictionary bidirectional so Hindi can switch back to English too.
+  Object.entries(EN_HI).forEach(([english, hindi]) => {
+    if (hindi && !HI_EN[hindi]) HI_EN[hindi] = english;
+  });
+
   let lang = localStorage.getItem(KEY) === "hi" ? "hi" : "en";
   const originals = new WeakMap();
   function replaceText(value, map) {
