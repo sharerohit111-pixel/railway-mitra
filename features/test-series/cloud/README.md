@@ -414,3 +414,7 @@ Emulator regression commits a synthetic full refund between the entitlement
 read and payment/order reads: the in-flight snapshot sees the coherent
 pre-refund grant, while the next callable lookup sees the revoked grant. No
 Razorpay request, production credential or live Firebase resource is used.
+
+## Student catalogue request lifecycle
+
+The student catalogue checks its authenticated view/session fence before starting a page request and after the request settles. If the student signs out, switches accounts, or navigates away while the catalogue request is pending, both successful and failed responses are discarded. A stale request cannot replace the current view's status message or re-enable an obsolete Load More control. Session-guard exceptions are treated as inactive (fail closed). This protects UI state only; all test access and payment authorization remain server-enforced by the callable and `rmStartExam` transaction.

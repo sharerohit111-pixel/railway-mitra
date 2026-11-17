@@ -11,11 +11,18 @@ import {
 const pendingPaymentChecks = new Set();
 
 export async function initStudentTestCatalogue({ app, studentUid, root = document, onStart, isSessionActive = () => true }) {
-  const sessionIsActive = () => typeof isSessionActive === "function" && isSessionActive();
+  const sessionIsActive = () => {
+    try {
+      return typeof isSessionActive === "function" && isSessionActive();
+    } catch {
+      return false;
+    }
+  };
   const status = root.getElementById("rm-catalogue-status");
   const list = root.getElementById("rm-catalogue-list");
   if (typeof onStart !== "function") throw new Error("onStart callback is required");
   if (typeof studentUid !== "string" || !studentUid) throw new Error("A verified student account is required");
+  if (!sessionIsActive()) return { tests: [], stale: true };
 
   status.textContent = "Loading published tests…";
   list.replaceChildren();
@@ -30,6 +37,7 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
 
   async function loadPage({ append = false } = {}) {
     if (loading) return;
+    if (!sessionIsActive()) return { tests: [], stale: true };
     loading = true;
     if (!append) {
       status.textContent = "Loading published tests…";
@@ -170,11 +178,12 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
       }
       return { tests, nextCursor: cursor, hasMore };
     } catch (error) {
+      if (!sessionIsActive()) return { tests: [], stale: true };
       status.textContent = error.message || "Tests could not be loaded. Please retry.";
       return { tests: [], error };
     } finally {
       loading = false;
-      if (loadButton) loadButton.disabled = false;
+      if (sessionIsActive() && loadButton) loadButton.disabled = false;
     }
   }
 

@@ -25,3 +25,19 @@ test("payment checkout checks session after script loading and order creation be
   assert.match(checkout, /order = await createStudentPaymentOrder\(app, test\.testId, requestId\);\s*assertSessionActive\(\);/);
   assert.match(checkout, /assertSessionActive\(\);\s*return new Promise\(\(resolve, reject\) => \{/);
 });
+
+test("catalogue does not start a list request after its student view is stale", () => {
+  assert.match(catalogue, /async function loadPage\(\{ append = false \} = \) \{\s*if \(loading\) return;\s*if \(!sessionIsActive\(\)\) return \{ tests: \[\], stale: true \};\s*loading = true;/);
+});
+
+test("catalogue discards request failures after the student session changes", () => {
+  assert.match(catalogue, /catch \(error\) \{\s*if \(!sessionIsActive\(\)\) return \{ tests: \[\], stale: true \};\s*status\.textContent = error\.message/);
+});
+
+test("catalogue restores a load-more control only while its original view is active", () => {
+  assert.match(catalogue, /finally \{\s*loading = false;\s*if \(sessionIsActive\(\) && loadButton\) loadButton\.disabled = false;/);
+});
+
+test("catalogue treats session-guard exceptions as inactive rather than allowing UI updates", () => {
+  assert.match(catalogue, /const sessionIsActive = \(\) => \{\s*try \{\s*return typeof isSessionActive === "function" && isSessionActive\(\);\s*\} catch \{\s*return false;\s*\}\s*\};/);
+});
