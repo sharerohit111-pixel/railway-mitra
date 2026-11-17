@@ -5,6 +5,7 @@ import { initStudentCbtExam } from "./exam.js";
 import { initStudentDashboard } from "./dashboard.js";
 import { initStudentLeaderboard } from "./leaderboard.js";
 import { invalidateStudentPortalSession } from "./session-transition.mjs";
+import { shouldApplyStudentViewError } from "./view-error-fence.mjs";
 import { createStudentOtpFlowGuard } from "./otp-flow-guard.mjs";
 import { createStudentLogoutRecovery } from "./logout-recovery.mjs";
 
@@ -55,6 +56,23 @@ function isCurrentStudentSession(version, uid) {
   return version === portalState.authStateVersion && Boolean(uid) && auth.currentUser?.uid === uid && portalState.currentUser?.uid === uid;
 }
 
+function showViewSafely(name) {
+  // showView increments its request version synchronously before its first await.
+  // Capture both the expected view generation and authenticated student identity
+  // so an old network failure cannot overwrite a newer view or signed-out screen.
+  const expectedRequestVersion = portalState.viewRequestVersion + 1;
+  const sessionVersion = portalState.authStateVersion;
+  const sessionUid = portalState.currentUser?.uid;
+  return showView(name).catch(error => {
+    if (!shouldApplyStudentViewError({
+      expectedRequestVersion,
+      currentRequestVersion: portalState.viewRequestVersion,
+      isSessionActive: () => isCurrentStudentSession(sessionVersion, sessionUid)
+    })) return;
+    portalStatus.textContent = error.message || "Student view could not be opened.";
+  });
+}
+
 async function showView(name) {
   const requestVersion = ++portalState.viewRequestVersion;
   const sessionVersion = portalState.authStateVersion;
@@ -93,7 +111,7 @@ async function showView(name) {
       onLeaderboard: testId => {
       if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
       portalState.currentTestId = testId;
-      showView("leaderboard").catch(error => { portalStatus.textContent = error.message || "Leaderboard could not be opened."; });
+      showViewSafely("leaderboard");
     }});
     if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
   } else if (name === "leaderboard") {
@@ -108,7 +126,7 @@ async function showView(name) {
     back.type = "button";
     back.className = "rm-portal-back";
     back.textContent = "← Back to My Results";
-    back.addEventListener("click", () => showView("dashboard"));
+    back.addEventListener("click", () => showViewSafely("dashboard"));
     view.prepend(back);
     await initStudentLeaderboard({ app, testId, root: document,
       isSessionActive: () => requestVersion === portalState.viewRequestVersion && isCurrentStudentSession(sessionVersion, sessionUid)
@@ -126,14 +144,14 @@ async function showView(name) {
     back.type = "button";
     back.className = "rm-portal-back";
     back.textContent = "← Back to Available Tests";
-    back.addEventListener("click", () => showView("catalogue"));
+    back.addEventListener("click", () => showViewSafely("catalogue"));
     view.prepend(back);
     portalState.activeExamController = initStudentCbtExam({ app, testId, studentUid: sessionUid, root: document });
   }
 }
 async function showExam(test) {
   portalState.currentTestId = test.testId;
-  await showView("exam");
+  await showViewSafely("exam");
 }
 async function openWorkspace(user) {
   portalState.currentUser = user;
@@ -141,7 +159,7 @@ async function openWorkspace(user) {
   workspace.hidden = false;
   el("rm-portal-logout").hidden = false;
   el("rm-student-account").textContent = user.phoneNumber || "Verified student";
-  await showView("catalogue");
+  await showViewSafely("catalogue");
   if (!isCurrentStudentSession(portalState.authStateVersion, user.uid)) return;
 }
 async function sendOtp() {
@@ -246,7 +264,7 @@ logoutButton.addEventListener("click", async () => {
   }
 });
 document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => {
-  showView(button.dataset.view).catch(error => { portalStatus.textContent = error.message; });
+  showViewSafely(button.dataset.view);
 }));
 
 onAuthStateChanged(auth, async user => {

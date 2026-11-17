@@ -96,3 +96,8 @@ The Auth Emulator session-switch test covers Student A signing out before Studen
 ## Prototype-safe student answer state
 
 The exam controller stores the current paper's answers in an isolated null-prototype map. This keeps valid question IDs such as `__proto__`, `constructor`, `toString` and `hasOwnProperty` as ordinary own data keys instead of inheriting JavaScript object behavior. Restored server answers are copied only from own enumerable string data properties; inherited fields and accessor-backed values are rejected. Answered-state rendering uses explicit own-property checks. The isolated `student-answer-state.mjs` helper has Node regression tests for special IDs, mutation, inherited-property exclusion and malformed/accessor-backed maps. This is a client-side data-structure safeguard; server-side question validation, attempt ownership and scoring remain authoritative.
+
+
+## Student view error fencing
+
+Every asynchronous portal navigation now captures the expected view-request generation and the authenticated student's UID/auth generation. If loading a catalogue, dashboard, leaderboard or exam fragment fails after a newer view request, logout or account switch, the stale error is ignored instead of overwriting the shared portal status for the current screen. The guard treats missing/invalid generations and session-check exceptions as inactive. This is client-side presentation-race protection only; Firebase Auth claims, App Check and server callable authorization remain authoritative. The isolated Node regression suite covers current errors, superseded requests, logout/account-switch invalidation and fail-closed callback errors.
