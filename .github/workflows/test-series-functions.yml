@@ -86,3 +86,5 @@ jobs:
 
       - name: Run isolated CBT Auth, Firestore, Functions and Storage emulator tests
         run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project railway-mitra --only auth,firestore,functions,storage "npm --prefix features/test-series/cloud/functions test"
+      - name: Verify private question media Storage rules in emulator
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project railway-mitra --only auth,storage "node features/test-series/cloud/functions/tests/storage-emulator-smoke.js"
