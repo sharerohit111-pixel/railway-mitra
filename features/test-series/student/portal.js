@@ -110,7 +110,9 @@ async function showView(name) {
     back.textContent = "← Back to My Results";
     back.addEventListener("click", () => showView("dashboard"));
     view.prepend(back);
-    await initStudentLeaderboard({ app, testId, root: document });
+    await initStudentLeaderboard({ app, testId, root: document,
+      isSessionActive: () => requestVersion === portalState.viewRequestVersion && isCurrentStudentSession(sessionVersion, sessionUid)
+    });
     if (requestVersion !== portalState.viewRequestVersion || !isCurrentStudentSession(sessionVersion, sessionUid)) return;
   } else if (name === "exam") {
     const testId = portalState.currentTestId;
