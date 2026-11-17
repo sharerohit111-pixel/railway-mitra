@@ -74,7 +74,7 @@ jobs:
 
       - name: Install isolated Test Series Functions dependencies
         working-directory: features/test-series/cloud/functions
-        run: npm install --no-audit --no-fund
+        run: npm ci --ignore-scripts --no-audit --no-fund --include=optional
 
       - name: Run authenticated callable load against local emulators only
         env:
