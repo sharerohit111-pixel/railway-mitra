@@ -70,6 +70,7 @@
     const latest = notices
       .filter(n => n && n.verified === true && typeof n.sourceUrl === "string" && /^https:\/\//i.test(n.sourceUrl) && typeof n.publishedAt === "string")
       .sort((a,b) => b.publishedAt.localeCompare(a.publishedAt))
+      .filter((notice, index, all) => all.findIndex(item => item.sourceUrl === notice.sourceUrl) === index)
       .slice(0, 8);
     if (!latest.length) { showEmpty(lang === "hi" ? "अभी कोई सत्यापित नया अपडेट उपलब्ध नहीं है" : "No verified updates available right now"); return; }
 
