@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const scriptPath = path.resolve(here, '../cant-safe-speed-calculator/script.js');
+const scriptPath = path.resolve(here, '../script.js');
 const source = fs.readFileSync(scriptPath, 'utf8');
 const elementIds = ["langBtn","mainTitle","subTitle","inputTypeLabel","curveType","optDeg","optRad","curveValLabel","curveVal","speedLabel","trainSpeed","routeLabel","routeGroup","optAB","optC","optDE","calcBtn","resultBox","resCantTitle","cantOutput","statusBadge","extraInfo","principleBox","disclaimer"];
 function harness({ curveType = 'radius', curveVal = '875', speed = '110', group = '165_75' } = {}) {
