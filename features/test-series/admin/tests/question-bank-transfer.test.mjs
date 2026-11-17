@@ -270,20 +270,26 @@ test("import normalizer matches server-required Question Bank field limits", () 
 });
 
 test("import normalizer rejects disallowed control characters but preserves ordinary multiline text", () => {
+  const newline = String.fromCharCode(10);
+  const carriageReturn = String.fromCharCode(13);
+  const tab = String.fromCharCode(9);
+  const nul = String.fromCharCode(0);
+  const bell = String.fromCharCode(7);
   const base = {
     topic: "Civil", chapter: "Surveying", folder: "Practice",
-    text: "Line one\\nLine two\\tcontinued", options: ["A", "B"], correctIndex: 0,
-    explanation: "Reason\\r\\ncontinued"
+    text: "Line one" + newline + "Line two" + tab + "continued",
+    options: ["A", "B"], correctIndex: 0,
+    explanation: "Reason" + carriageReturn + newline + "continued"
   };
   assert.equal(normalizeQuestionBankImportRow(base, 1).question.text, base.text);
   assert.equal(normalizeQuestionBankImportRow(base, 1).question.explanation, base.explanation);
   for (const row of [
-    { ...base, topic: "Civil\\nTrack" },
-    { ...base, chapter: "Survey\\u0000ing" },
-    { ...base, section: "Core\\tSection" },
-    { ...base, text: "Question\\u0000text" },
-    { ...base, options: ["A\\u0000", "B"] },
-    { ...base, explanation: "Why\\u0007" }
+    { ...base, topic: "Civil" + newline + "Track" },
+    { ...base, chapter: "Survey" + nul + "ing" },
+    { ...base, section: "Core" + tab + "Section" },
+    { ...base, text: "Question" + nul + "text" },
+    { ...base, options: ["A" + nul, "B"] },
+    { ...base, explanation: "Why" + bell }
   ]) {
     assert.throws(() => normalizeQuestionBankImportRow(row, 3), /पंक्ति 3:/);
   }
