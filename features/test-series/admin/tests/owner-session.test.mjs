@@ -8,7 +8,7 @@ import { watchOwnerSession } from "../owner-session.mjs";
 function createHarness(overrides = {}) {
   let listener;
   let unsubscribed = false;
-  const calls = { verify: 0, signOut: 0, signedOut: 0, checking: [], mfaRequired: 0, authorized: [], errors: [] };
+  const calls = { verify: 0, signOut: 0, signOutUsers: [], signedOut: 0, checking: [], mfaRequired: 0, authorized: [], errors: [] };
   const stop = watchOwnerSession({
     subscribe(callback) {
       listener = callback;
@@ -19,7 +19,7 @@ function createHarness(overrides = {}) {
       calls.verify += 1;
       return { authorized: true, email: "owner@example.test" };
     },
-    signOut: async () => { calls.signOut += 1; },
+    signOut: async user => { calls.signOut += 1; calls.signOutUsers.push(user); },
     onSignedOut: () => { calls.signedOut += 1; },
     onChecking: user => calls.checking.push(user),
     onMfaRequired: () => { calls.mfaRequired += 1; },
@@ -79,12 +79,42 @@ test("requires phone MFA enrollment before calling the Owner authorization endpo
 });
 
 test("signs out a restored session when the server rejects Owner authorization", async () => {
+  const user = { uid: "not-authorized" };
   const h = createHarness({ verifyOwner: async () => ({ authorized: false }) });
-  h.emit({ uid: "not-authorized" });
+  h.emit(user);
   await flush();
 
   assert.equal(h.calls.authorized.length, 0);
   assert.equal(h.calls.signOut, 1);
+  assert.deepEqual(h.calls.signOutUsers, [user]);
+  assert.equal(h.calls.errors.length, 1);
+});
+
+test("an error-reporting callback cannot prevent sign-out after server authorization is rejected", async () => {
+  const user = { uid: "rejected-owner" };
+  const h = createHarness({
+    verifyOwner: async () => ({ authorized: false }),
+    onError: () => { throw new Error("status element unavailable"); }
+  });
+  h.emit(user);
+  await flush();
+
+  assert.equal(h.calls.signOut, 1);
+  assert.deepEqual(h.calls.signOutUsers, [user]);
+  assert.equal(h.calls.authorized.length, 0);
+});
+
+test("signs out when pre-authorization workspace cleanup fails and skips server verification", async () => {
+  const user = { uid: "owner-with-cleanup-error" };
+  const h = createHarness({
+    onChecking: () => { throw new Error("workspace cleanup failed"); }
+  });
+  h.emit(user);
+  await flush();
+
+  assert.equal(h.calls.verify, 0);
+  assert.equal(h.calls.signOut, 1);
+  assert.deepEqual(h.calls.signOutUsers, [user]);
   assert.equal(h.calls.errors.length, 1);
 });
 
@@ -147,6 +177,43 @@ test("ignores an earlier account authorization when the signed-in Owner account 
   assert.equal(h.calls.signOut, 0);
 });
 
+test("a stale authorization failure cannot sign out a newer Owner account", async () => {
+  let rejectFirst;
+  const firstUser = { uid: "owner-one" };
+  const secondUser = { uid: "owner-two" };
+  const h = createHarness({
+    verifyOwner: user => user.uid === firstUser.uid
+      ? new Promise((resolve, reject) => { rejectFirst = reject; })
+      : Promise.resolve({ authorized: true, email: "second@example.test" })
+  });
+
+  h.emit(firstUser);
+  await Promise.resolve();
+  h.emit(secondUser);
+  await flush();
+  rejectFirst(new Error("old account verification failed"));
+  await flush();
+
+  assert.equal(h.calls.authorized.length, 1);
+  assert.equal(h.calls.authorized[0].user, secondUser);
+  assert.equal(h.calls.signOut, 0);
+});
+
+test("disposing the watcher makes late failures inert and unsubscribes", async () => {
+  let rejectVerification;
+  const h = createHarness({
+    verifyOwner: () => new Promise((resolve, reject) => { rejectVerification = reject; })
+  });
+  h.emit({ uid: "owner-uid" });
+  await Promise.resolve();
+  h.stop();
+  rejectVerification(new Error("late failure"));
+  await flush();
+
+  assert.equal(h.unsubscribed, true);
+  assert.equal(h.calls.signOut, 0);
+  assert.equal(h.calls.errors.length, 0);
+});
 
 test("Owner logout hides privileged content synchronously before awaiting Firebase signOut", async () => {
   const dashboard = readFileSync(new URL("../admin-dashboard.js", import.meta.url), "utf8");

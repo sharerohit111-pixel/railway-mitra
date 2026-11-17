@@ -40,6 +40,8 @@ The standalone portal observes Firebase Auth state on every load. A persisted us
 
 The session observer is isolated in `owner-session.mjs` and covered by Node tests for restored sessions, missing phone MFA, server rejection, sign-out races, and teardown. On every authenticated, signed-out, or MFA-required transition, the dashboard hides the privileged home before attempting to clear payment, test, student-activity, analytics and question-bank state. If cleanup fails during the checking transition, the watcher does not continue to server authorization and the privileged home remains hidden. This does not replace backend authorization and does not make the portal production-ready before the required Firebase configuration and deployment.
 
+If workspace cleanup, local MFA inspection, or the MFA-setup callback throws, the watcher keeps the privileged UI fail-closed, reports the error on a best-effort basis, and attempts to sign out the same rejected Owner session before stopping authorization. A broken error/status callback cannot suppress that sign-out attempt. Sign-out failures are reported defensively, and late failures from an older auth generation are ignored so they cannot sign out or overwrite a newer Owner session. The adapter passes the rejected user to its sign-out callback and checks that Firebase still holds that UID before signing out.
+
 
 ## Owner payment history
 
@@ -112,6 +114,7 @@ The Results & Ranking module can export its per-test aggregates as CSV or open a
 
 The Owner Results & Ranking screen can filter the loaded per-test aggregates by test ID or title and sort by attempts, average score, average correct-answer percentage, or test name. CSV and print/PDF exports use the currently visible filtered and sorted test rows, while the report continues to label the bounded server-side sample. The filter is client-side over the returned analytics snapshot and does not expand the latest-500 server query.
 
+
 ### Live Razorpay order inspection (read-only)
 
 For reconciliation requests that contain a provider order ID observed after a Firestore write failure, the Owner can request a live Razorpay lookup from the reconciliation queue. The Owner-only callable reads the request record, fetches the Razorpay order and its payment attempts using server-held API credentials, and compares the provider receipt, amount, currency, and server-owned UID/test notes against the reserved request. The response is a strict allow-list and excludes provider notes, contact details, email, and raw payloads. Each payment attempt must use a documented Razorpay status (created, authorized, captured, refunded, or failed), a positive INR amount, a valid matching order ID, and a boolean captured flag consistent with the status; unknown or contradictory provider rows fail closed. This operation is read-only: it does not retry order creation, mark a request resolved, release a student-test lock, grant access, or alter payment records. Requests without a known provider order ID remain support cases and cannot be inspected through this control. A captured provider payment must still be reconciled through the separately verified payment-ledger workflow; this lookup alone never grants access.
@@ -125,6 +128,7 @@ Every Owner live Razorpay order inspection writes an append-only record to `test
 ### Owner Payment Inspection Audit History
 
 The Payments module now includes a separate, Owner-only audit history panel backed by `rmOwnerListPaymentAudit`. It is cursor-paginated (25 records by default, maximum 50) and returns only allow-listed inspection metadata: audit ID, Owner UID, payment request reference, lookup outcome, request-match result, order/payment statuses, payment count and server timestamp. The raw Razorpay response, receipt value, credentials, phone, email and arbitrary Firestore fields are excluded. The browser clears the audit list when the Owner session ends. The audit collection remains inaccessible to browser clients under the default-deny Firestore rules. Viewing audit history is read-only and does not resolve or release payment locks or change student entitlements.
+
 
 ### Razorpay inspection decision guidance
 
@@ -156,5 +160,3 @@ The Owner Control Centre now includes a separate Test Access Management panel. I
 - Access and audit lists are paginated (25 records per request). Server responses are allow-listed.
 - A revoked/expired grant cannot start a new attempt. An already-started manual attempt can resume only until its original server deadline.
 - This UI does not activate Razorpay, alter payment entitlements, reset free claims, or enable production deployment.
-
-The panel is initialized only after the Owner session passes the existing server-side authorization/MFA check. The Owner tile remains inside the protected Owner workspace.

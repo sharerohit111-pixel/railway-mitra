@@ -18,12 +18,38 @@ export function watchOwnerSession({
   let disposed = false;
   let generation = 0;
 
+  const isCurrent = currentGeneration => !disposed && currentGeneration === generation;
+  const reportError = error => {
+    // A broken status/notification callback must never interrupt session cleanup.
+    try {
+      const result = onError(error);
+      if (result && typeof result.catch === "function") result.catch(() => {});
+    } catch (_) {
+      // Error reporting is best-effort; authorization cleanup remains mandatory.
+    }
+  };
+  const rejectCurrentSession = async (user, currentGeneration, error) => {
+    if (!isCurrent(currentGeneration)) return;
+    reportError(error);
+    if (!isCurrent(currentGeneration)) return;
+    try {
+      // Pass the rejected user so adapters can avoid signing out a different account.
+      await signOut(user);
+    } catch (signOutError) {
+      if (isCurrent(currentGeneration)) reportError(signOutError);
+    }
+  };
+
   const unsubscribe = subscribe(user => {
     const currentGeneration = ++generation;
     if (disposed) return;
 
     if (!user) {
-      onSignedOut();
+      try {
+        onSignedOut();
+      } catch (error) {
+        reportError(error);
+      }
       return;
     }
 
@@ -32,7 +58,7 @@ export function watchOwnerSession({
     try {
       onChecking(user);
     } catch (error) {
-      onError(error);
+      void rejectCurrentSession(user, currentGeneration, error);
       return;
     }
 
@@ -40,33 +66,29 @@ export function watchOwnerSession({
     try {
       phoneMfaReady = hasPhoneMfa(user);
     } catch (error) {
-      onError(error);
+      void rejectCurrentSession(user, currentGeneration, error);
       return;
     }
 
     if (!phoneMfaReady) {
-      onMfaRequired(user);
+      try {
+        onMfaRequired(user);
+      } catch (error) {
+        void rejectCurrentSession(user, currentGeneration, error);
+      }
       return;
     }
 
     Promise.resolve()
       .then(() => verifyOwner(user))
       .then(authorization => {
-        if (disposed || currentGeneration !== generation) return;
+        if (!isCurrent(currentGeneration)) return;
         if (!authorization || authorization.authorized !== true) {
           throw new Error("Owner authorization was not confirmed by the server.");
         }
         onAuthorized(user, authorization);
       })
-      .catch(async error => {
-        if (disposed || currentGeneration !== generation) return;
-        onError(error);
-        try {
-          await signOut();
-        } catch (signOutError) {
-          if (!disposed && currentGeneration === generation) onError(signOutError);
-        }
-      });
+      .catch(error => rejectCurrentSession(user, currentGeneration, error));
   });
 
   return () => {
