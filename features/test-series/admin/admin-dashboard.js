@@ -814,7 +814,9 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) {
       if (generation !== testManagementGeneration) return;
       status(e.message || "Test सेव नहीं हुआ।");
-    } finally { button.disabled = false; }
+    } finally {
+      if (sessionGeneration === questionBankSessionGeneration) button.disabled = false;
+    }
   });
   const studentsPanel = el("rm-admin-students-panel");
   const studentsList = el("rm-admin-students-list");
@@ -1036,6 +1038,9 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   function clearQuestionBank() {
     questionBankSessionGeneration += 1;
+    // Release a pending import control for the new auth generation. The older
+    // request's finally block is generation-fenced and cannot unlock a newer run.
+    el("rm-qb-bulk-import").disabled = false;
     questionBankGeneration += 1;
     questionBankCursor = null;
     questionBankItems = [];
