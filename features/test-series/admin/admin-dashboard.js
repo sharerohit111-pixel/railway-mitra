@@ -1029,7 +1029,7 @@ export function initOwnerAdminDashboard(auth, functions) {
     questionBankSessionGeneration += 1;
     questionBankGeneration += 1;
     questionBankCursor = null;
-    questionBankItems = [];
+    questionBankItems = [];\n    updateQuestionBankExportState();
     selectedQuestionBankIds.clear();
     updateQuestionBankSelectionStatus();
     questionBankList.replaceChildren();
@@ -1137,7 +1137,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       if (generation !== questionBankGeneration) return;
       const data = response.data || {};
       const items = Array.isArray(data.items) ? data.items : [];
-      questionBankItems = append ? questionBankItems.concat(items) : items;
+      questionBankItems = append ? questionBankItems.concat(items) : items;\n      updateQuestionBankExportState();
       renderQuestionBankItems(items, append);
       questionBankCursor = typeof data.nextCursor === "string" ? data.nextCursor : null;
       questionBankMore.hidden = !questionBankCursor;
@@ -1217,6 +1217,33 @@ export function initOwnerAdminDashboard(auth, functions) {
     const selected = questionBankItems.filter(item => selectedQuestionBankIds.has(item.itemId));
     if (!selected.length) { questionBankStatus.textContent = "पहले प्रश्न चुनें।"; return; }
     addQuestionBankItemsToTest(selected);
+  });
+  const questionBankExport = el("rm-qb-export-json");
+  function updateQuestionBankExportState() {
+    questionBankExport.disabled = questionBankItems.length === 0;
+  }
+  questionBankExport.addEventListener("click", () => {
+    if (!questionBankItems.length) return;
+    const rows = questionBankItems.map(item => ({
+      topic: item.topic || "",
+      chapter: item.chapter || "",
+      folder: item.folder || "General",
+      section: item.question?.section || "",
+      text: item.question?.text || "",
+      options: Array.isArray(item.question?.options) ? item.question.options : [],
+      correctIndex: Number(item.correctIndex),
+      explanation: item.question?.explanation || ""
+    }));
+    const blob = new Blob(["\\uFEFF", JSON.stringify(rows, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "railway-mitra-question-bank-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    questionBankStatus.textContent = rows.length + " लोड हुए प्रश्न JSON में निर्यात हुए। सभी प्रश्नों के लिए Load More करके फिर Export करें।";
   });
   el("rm-admin-refresh-question-bank").addEventListener("click", () => refreshQuestionBank());
   questionBankMore.addEventListener("click", () => refreshQuestionBank({ append: true }));
