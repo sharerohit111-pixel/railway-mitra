@@ -17,7 +17,8 @@ function applyLang() {
   set('optRad', en ? 'Radius of Curve (R in metres)' : 'कर्व की त्रिज्या (Radius - R मीटर में)');
   set('speedLabel', en ? '2. Enter Train Speed (km/h):' : '2. ट्रेन की गति डालें (Speed in km/h):');
   set('routeLabel', en ? '3. Route Category (IRPWM):' : '3. रूट की श्रेणी (Route Group - IRPWM):');
-  set('optABC', en ? 'Group A, B, C (Max Ca = 165mm, Cd = 100mm)' : 'Group A, B, C (अधिकतम Ca = 165mm, Cd = 100mm)');
+  set('optAB', en ? 'Group A, B (Max Ca = 165mm, Cd = 100mm)' : 'Group A, B (अधिकतम Ca = 165mm, Cd = 100mm)');
+  set('optC', en ? 'Group C (Max Ca = 165mm, Cd = 75mm)' : 'Group C (अधिकतम Ca = 165mm, Cd = 75mm)');
   set('optDE', en ? 'Group D, E (Max Ca = 140mm, Cd = 75mm)' : 'Group D, E (अधिकतम Ca = 140mm, Cd = 75mm)');
   set('calcBtn', en ? 'Calculate Cant & Speed' : 'गणना करें (Calculate)');
   set('resCantTitle', en ? 'Equilibrium Cant required:' : 'आवश्यक इक्विलिब्रियम कैंट (Equilibrium Cant):');
