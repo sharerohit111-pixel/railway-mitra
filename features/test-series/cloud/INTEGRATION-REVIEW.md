@@ -13,7 +13,7 @@ This is a source-level review with local Firebase Emulator CI evidence. It is no
 - Student results expose leaderboard navigation; leaderboard data is fetched separately and presented without exposing private student identifiers.
 - Owner standalone portal loads `admin/owner-portal.js`, fetches `admin-dashboard.html` and initializes the dashboard with Firebase Auth and Functions.
 - Owner dashboard includes test management, question bank, student activity, payment inspection/reconciliation, results/analytics and protected test-access management. Owner callables enforce the server-side UID + second-factor guard; UI requests are fenced across session changes.
-- Backup and system-settings controls remain disabled. Student and Owner portals remain standalone feature pages; this review does not establish that they are linked from the main Railway Mitra application.
+- Backup and system-settings controls remain disabled. The signed-in main app now exposes a single Railway Departmental Test Series card linking to `features/test-series/index.html`; that landing page links to the Student portal and the Owner Admin portal. The Owner link is navigation only: the backend still independently enforces the configured Owner UID, approved primary provider, verified phone MFA and App Check. These links do not establish that Firebase is deployed or that either portal has passed real-device testing.
 
 ## Implemented and emulator-covered flows
 
