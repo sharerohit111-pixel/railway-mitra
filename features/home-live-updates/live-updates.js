@@ -22,7 +22,15 @@
   section.style.gridColumn = "1 / -1";
 
   const track = section.querySelector(".rm-live-updates__track");
-  const lang = (() => { try { return localStorage.getItem("railwayMitraLanguage") === "hi" ? "hi" : "en"; } catch (_) { return "en"; } })();
+  const labelText = section.querySelector(".rm-live-updates__label span");
+  let latestNotices = [];
+  function currentLanguage() {
+    try {
+      return window.RailwayMitraLanguage && window.RailwayMitraLanguage.get() === "en" ? "en" : "hi";
+    } catch (_) {
+      return "hi";
+    }
+  }
 
   function showEmpty(message) {
     track.replaceChildren();
@@ -37,6 +45,8 @@
   }
 
   function render(notices) {
+    const lang = currentLanguage();
+    if (labelText) labelText.textContent = lang === "hi" ? "🔔 नवीनतम अपडेट" : "🔔 LATEST UPDATES";
     const latest = notices
       .filter(n => n && n.verified === true && typeof n.sourceUrl === "string" && /^https:\/\//i.test(n.sourceUrl) && typeof n.publishedAt === "string")
       .sort((a,b) => b.publishedAt.localeCompare(a.publishedAt))
@@ -69,6 +79,20 @@
 
   fetch("features/updates/notices.json", { cache: "no-store" })
     .then(response => { if (!response.ok) throw new Error("Feed unavailable"); return response.json(); })
-    .then(payload => render(Array.isArray(payload && payload.notices) ? payload.notices : []))
-    .catch(error => { console.warn("Railway Mitra live updates ticker:", error); showEmpty(lang === "hi" ? "अपडेट लोड नहीं हो सके" : "Updates could not be loaded"); });
+    .then(payload => {
+      latestNotices = Array.isArray(payload && payload.notices) ? payload.notices : [];
+      render(latestNotices);
+    })
+    .catch(error => {
+      console.warn("Railway Mitra live updates ticker:", error);
+      const lang = currentLanguage();
+      if (labelText) labelText.textContent = lang === "hi" ? "🔔 नवीनतम अपडेट" : "🔔 LATEST UPDATES";
+      showEmpty(lang === "hi" ? "अपडेट लोड नहीं हो सके" : "Updates could not be loaded");
+    });
+
+  document.addEventListener("click", event => {
+    if (event.target && event.target.closest("#rmLanguageToggle") && latestNotices.length) {
+      window.setTimeout(() => render(latestNotices), 0);
+    }
+  });
 })();
