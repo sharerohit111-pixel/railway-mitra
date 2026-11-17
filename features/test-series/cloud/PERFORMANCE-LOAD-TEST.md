@@ -1,5 +1,11 @@
 # Test Series performance and load-test runbook
 
+## Current project hold — 2026-11-18
+
+All synthetic load tests and capacity/load benchmarking, including the 20, 100, 250 and 500 student scenarios, are deferred until the project owner separately asks to resume them. Do not dispatch either manual workflow during this hold. The default input values are examples only, not authorization. This hold applies even though the workflows have a separate manual confirmation gate.
+
+Normal pull-request and branch CI may continue to run focused unit tests, single-student callable/Firestore emulator regressions and security-rules checks. Those checks must not invoke either load harness.
+
 ## Purpose
 
 Prepare the isolated CBT backend for the design target of 1,000 registered students and 500 simultaneous examinees. The checked-in harness measures the current Firestore attempt-document answer-save pattern under a synthetic emulator workload. Each synthetic student now saves every question in the paper in each wave, with students running concurrently and each student's answers saved sequentially. It is a development diagnostic, not a production capacity certification.
@@ -51,6 +57,7 @@ If attempt-document growth, contention, or p95/p99 latency is unacceptable, eval
 - Firestore rules merged with current live rules and reviewed; the branch rules file is not approved for deployment.
 - Razorpay test-mode order creation, webhook delivery, reconciliation, refund/support workflow and entitlement verification.
 - Cost estimate and explicit approval before any billable deployment or load test.
+
 ## Run through GitHub Actions
 
 The workflow **Actions → Test Series Firestore load test (local emulator only)** is manual-only. It has no `push`, `pull_request`, or marker-file trigger. The required `confirm_load_test` boolean defaults to `false`; the job is skipped unless a person deliberately checks that confirmation when dispatching the workflow.
@@ -58,7 +65,6 @@ The workflow **Actions → Test Series Firestore load test (local emulator only)
 Default bounded inputs are 25 students, 2 full-paper waves and 10 workers. Inputs remain capped at 500 students, 20 waves and 500 workers, with concurrency no greater than the student count. The workflow uses only the GitHub-hosted local Firestore/Auth emulators; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic.
 
 A load test is still a load test even when it targets a local emulator. Do not dispatch it unless the project owner has explicitly approved that run. Ordinary pull-request/push CBT CI runs unit, callable-emulator and Firestore Rules tests only; it must never invoke either load harness. The obsolete `LOAD-TEST-TRIGGER` marker has been removed.
-
 
 ## Authenticated callable workflow
 
