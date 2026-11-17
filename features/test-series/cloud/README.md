@@ -141,7 +141,7 @@ After staging configuration and explicit billing approval, deploy only the CBT b
 firebase deploy --only functions:test-series
 ```
 
-Install dependencies for local validation from `features/test-series/cloud/functions/` with `npm install`. GitHub Actions also checks the isolated codebase configuration and JavaScript syntax. This does not deploy anything.
+Install the locked dependencies for local validation from `features/test-series/cloud/functions/` with `npm ci --ignore-scripts --no-audit --no-fund --include=optional` under Node.js 22. This reproduces the committed lockfile used by CI. GitHub Actions also checks the isolated codebase configuration and JavaScript syntax. Validation does not deploy anything.
 
 **Important:** The existing project may require the Blaze plan for Cloud Functions deployment. Do not upgrade or deploy until the projected cost and budget are approved. The ₹500 target cannot be guaranteed for 500 simultaneous exam users.
 
