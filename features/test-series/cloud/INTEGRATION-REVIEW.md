@@ -44,7 +44,7 @@ These are local CI/emulator results only. They do not certify production OTP, pr
 
 ## Current branch and CI evidence
 
-Reviewed 2026-11-17. Historical CI evidence below applies only to the exact commits listed. The latest PR head at the time of this follow-up is `48c182df84cc502214781d97021934b6baf385c2`; the GitHub PR workflow/status query returned no runs or status checks for that head, so the latest navigation/documentation commits are not CI-certified.
+Reviewed 2026-11-17. Historical CI evidence below applies only to the exact commits listed. The latest PR head at the time of this follow-up is `88706ec890c055a10c7801713c4b33c65386fce5`; the GitHub PR workflow/status query returned no runs or status checks for that head, so the latest navigation/documentation commits are not CI-certified.
 
 For that exact code-bearing commit:
 - Test Series Functions validation: run [44071701022](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44071701022) — completed, **success**.
@@ -60,3 +60,10 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - Main app card insertion and landing-page Student/Owner links were read back from `feature/test-series-cloud-access` and confirmed present.
 - PR #136 currently reports `mergeable: false`; no merge was attempted.
 - The PR's changed-file list currently includes unrelated live-updates and P-Way calculator files in addition to the CBT modules. Keep those files under explicit regression review; do not assume the PR is CBT-only or merge based on the CBT checks alone.
+
+
+## Main-app entry regression follow-up
+
+- Added `features/test-series/admin/tests/main-app-integration.test.mjs`. It checks for exactly one Test Series entry in `app.html`, verifies that the existing `assets/js/auth-guard.js` module script remains present, and checks for exactly one Student and Owner navigation link on the Test Series landing page without embedding credentials.
+- Updated `.github/workflows/test-series-functions.yml` so changes to `app.html` and `features/test-series/index.html` trigger the admin regression suite on both push and pull request.
+- These are source-level regression assertions; they do not replace a real Android signed-in navigation test. The current GitHub status query returned no checks for the latest head, so no CI pass is claimed.
