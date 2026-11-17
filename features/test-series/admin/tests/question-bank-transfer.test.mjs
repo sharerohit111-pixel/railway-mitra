@@ -242,3 +242,60 @@ test("rejects malformed option JSON and invalid import defaults", () => {
   assert.throws(() => normalizeQuestionBankImportRow(base, 2, []), /पंक्ति 2:/);
   assert.throws(() => normalizeQuestionBankImportRow(base, 0), /row number/);
 });
+
+
+test("import normalizer matches server-required Question Bank field limits", () => {
+  const base = {
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    text: "Define BM", options: ["A", "B"], correctIndex: 0
+  };
+  const invalidRows = [
+    { ...base, topic: " " },
+    { ...base, topic: "x".repeat(81) },
+    { ...base, chapter: "x".repeat(101) },
+    { ...base, folder: "x".repeat(121) },
+    { ...base, text: " " },
+    { ...base, text: "x".repeat(4001) },
+    { ...base, options: ["A"] },
+    { ...base, options: ["A", "B", "C", "D", "E", "F", "G"] },
+    { ...base, options: ["A", "x".repeat(1001)] },
+    { ...base, options: ["A", "B"], correctIndex: 2 },
+    { ...base, options: ["A", "B"], correctIndex: 0.5 },
+    { ...base, section: "x".repeat(81) },
+    { ...base, explanation: "x".repeat(4001) }
+  ];
+  for (const row of invalidRows) {
+    assert.throws(() => normalizeQuestionBankImportRow(row, 9), /पंक्ति 9:/);
+  }
+});
+
+test("import normalizer rejects disallowed control characters but preserves ordinary multiline text", () => {
+  const base = {
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    text: "Line one\\nLine two\\tcontinued", options: ["A", "B"], correctIndex: 0,
+    explanation: "Reason\\r\\ncontinued"
+  };
+  assert.equal(normalizeQuestionBankImportRow(base, 1).question.text, base.text);
+  assert.equal(normalizeQuestionBankImportRow(base, 1).question.explanation, base.explanation);
+  for (const row of [
+    { ...base, topic: "Civil\\nTrack" },
+    { ...base, chapter: "Survey\\u0000ing" },
+    { ...base, section: "Core\\tSection" },
+    { ...base, text: "Question\\u0000text" },
+    { ...base, options: ["A\\u0000", "B"] },
+    { ...base, explanation: "Why\\u0007" }
+  ]) {
+    assert.throws(() => normalizeQuestionBankImportRow(row, 3), /पंक्ति 3:/);
+  }
+});
+
+test("spreadsheet option cells are trimmed and numeric answers remain supported", () => {
+  const row = normalizeQuestionBankImportRow({
+    topic: " Civil ", chapter: " Surveying ", folder: " Practice ",
+    text: " Define BM ", optionA: " RL ", optionB: 12, correctIndex: "1"
+  }, 2);
+  assert.deepEqual(row, {
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    question: { text: "Define BM", options: ["RL", "12"], correctIndex: 1, explanation: "" }
+  });
+});

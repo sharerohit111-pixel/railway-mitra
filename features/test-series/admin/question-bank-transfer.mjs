@@ -49,6 +49,22 @@ function questionImportRowError(rowNumber, message) {
   throw new TypeError(prefix + message);
 }
 
+function hasControlCharacters(value) {
+  return Array.from(value).some(character => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
+}
+
+function hasDisallowedQuestionControls(value) {
+  // Preserve ordinary multiline question formatting (LF, CR and TAB).
+  return Array.from(value).some(character => {
+    const code = character.charCodeAt(0);
+    return code === 0 || (code >= 1 && code <= 8) ||
+      code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127;
+  });
+}
+
 /**
  * Normalize one spreadsheet/JSON import row without coercing arbitrary values
  * into strings. Numeric answer options remain supported for spreadsheet cells.
@@ -67,35 +83,48 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
   const normalized = Object.fromEntries(
     Object.entries(row).map(([key, value]) => [String(key).trim().toLowerCase(), value])
   );
-  const readLabel = (value, fallback, label) => {
+  const readLabel = (value, fallback, label, maxLength) => {
     const candidate = value === undefined || value === null || value === "" ? fallback : value;
     if (candidate === undefined || candidate === null || typeof candidate !== "string") {
       questionImportRowError(rowNumber, label + " text होना चाहिए।");
     }
-    return candidate.trim();
+    const normalizedValue = candidate.trim();
+    if (!normalizedValue || normalizedValue.length > maxLength || hasControlCharacters(normalizedValue)) {
+      questionImportRowError(rowNumber, label + " आवश्यक है और अधिकतम " + maxLength + " अक्षरों का होना चाहिए।");
+    }
+    return normalizedValue;
   };
 
-  const topic = readLabel(normalized.topic, defaults.topic ?? "", "विषय");
-  const chapter = readLabel(normalized.chapter, defaults.chapter ?? "", "अध्याय");
-  const folder = readLabel(normalized.folder, defaults.folder ?? "General", "फ़ोल्डर");
+  const topic = readLabel(normalized.topic, defaults.topic ?? "", "विषय", 80);
+  const chapter = readLabel(normalized.chapter, defaults.chapter ?? "", "अध्याय", 100);
+  const folder = readLabel(normalized.folder, defaults.folder ?? "General", "फ़ोल्डर", 120);
 
   const rawText = normalized.text ?? normalized.question ?? "";
   if (typeof rawText !== "string") {
     questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट text होना चाहिए।");
   }
   const text = rawText.trim();
+  if (!text || text.length > 4000 || hasDisallowedQuestionControls(text)) {
+    questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट आवश्यक है, अधिकतम 4000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+  }
 
   const rawSection = normalized.section;
   if (rawSection !== undefined && rawSection !== null && rawSection !== "" && typeof rawSection !== "string") {
     questionImportRowError(rowNumber, "सेक्शन का नाम text होना चाहिए।");
   }
   const section = typeof rawSection === "string" ? rawSection.trim() : "";
+  if (section.length > 80 || hasControlCharacters(section)) {
+    questionImportRowError(rowNumber, "सेक्शन अधिकतम 80 अक्षरों का हो और उसमें control characters न हों।");
+  }
 
   const rawExplanation = normalized.explanation;
   if (rawExplanation !== undefined && rawExplanation !== null && typeof rawExplanation !== "string") {
     questionImportRowError(rowNumber, "Explanation text होना चाहिए।");
   }
   const explanation = typeof rawExplanation === "string" ? rawExplanation : "";
+  if (explanation.length > 4000 || hasDisallowedQuestionControls(explanation)) {
+    questionImportRowError(rowNumber, "Explanation अधिकतम 4000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+  }
 
   let rawOptions = normalized.options;
   if (typeof rawOptions === "string" && rawOptions.trim().startsWith("[")) {
@@ -107,7 +136,7 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
   }
 
   const toOptionText = (value, index) => {
-    if (typeof value === "string") return value;
+    if (typeof value === "string") return value.trim();
     if (typeof value === "number" && Number.isFinite(value)) return String(value);
     questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " text या finite number होना चाहिए।");
   };
@@ -123,6 +152,10 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
   } else {
     questionImportRowError(rowNumber, "विकल्प Array या JSON Array text होना चाहिए।");
   }
+  if (options.length < 2 || options.length > 6 ||
+      options.some(option => !option || option.length > 1000 || hasDisallowedQuestionControls(option))) {
+    questionImportRowError(rowNumber, "2 से 6 गैर-खाली विकल्प आवश्यक हैं; हर विकल्प अधिकतम 1000 अक्षरों का होना चाहिए।");
+  }
 
   const rawIndex = normalized.correctindex ?? normalized.correct_index ?? normalized.answerindex;
   let correctIndex = NaN;
@@ -132,6 +165,9 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
     correctIndex = Number(rawIndex.trim());
   } else if (rawIndex !== undefined && rawIndex !== null && rawIndex !== "") {
     questionImportRowError(rowNumber, "सही उत्तर का क्रमांक number या numeric text होना चाहिए।");
+  }
+  if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
+    questionImportRowError(rowNumber, "सही उत्तर का क्रमांक उपलब्ध विकल्पों की सीमा में होना चाहिए।");
   }
 
   return {
