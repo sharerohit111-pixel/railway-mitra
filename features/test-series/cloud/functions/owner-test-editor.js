@@ -62,6 +62,13 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
       !Number.isInteger(test.questionCount) || publicQuestions.length !== test.questionCount) {
     throw new Error("Question count does not match test metadata");
   }
+  // Publishing is a separate trust boundary: enforce the fixed GDCE JE Civil
+  // pattern here too, including legacy or directly modified draft documents.
+  if (test.category.trim().toLocaleLowerCase() === "gdce je civil" &&
+      (publicQuestions.length !== 150 || test.durationMinutes !== 120 ||
+       test.marksPerQuestion !== 1 || Math.abs(test.negativeMarks - (1 / 3)) > 1e-9)) {
+    throw new Error("GDCE JE Civil requires 150 questions, 120 minutes, 1 mark per correct answer and 1/3 negative marking");
+  }
   const ids = new Set();
   for (const [index, question] of publicQuestions.entries()) {
     if (!question || typeof question !== "object" || Array.isArray(question)) {
