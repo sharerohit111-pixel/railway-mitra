@@ -30,6 +30,8 @@ on:
       - "features/test-series/cloud/student-client.js"
       - "features/test-series/student/**"
       - "features/test-series/admin/**"
+      - "app.html"
+      - "features/test-series/index.html"
       - "firebase.json"
       - "firebase.test-series-cbt-emulator.json"
       - ".github/workflows/test-series-functions.yml"
