@@ -117,7 +117,7 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
     options = rawOptions.map(toOptionText);
   } else if (rawOptions === undefined || rawOptions === null || rawOptions === "") {
     const columns = ["A", "B", "C", "D", "E", "F"]
-      .map(letter => normalized["option" + letter])
+      .map(letter => normalized["option" + letter.toLowerCase()])
       .filter(value => value !== undefined && value !== null && value !== "");
     options = columns.map(toOptionText);
   } else {
