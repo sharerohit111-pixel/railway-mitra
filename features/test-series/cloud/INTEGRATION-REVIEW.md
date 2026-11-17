@@ -32,6 +32,6 @@ This is a source-level integration review with local Firebase Emulator CI eviden
 
 ## Current CI evidence
 
-The current branch head `a7552c82bffda1e0b19e8aa25e5f0236b2523a0d` passed CBT Emulator workflow run `43872741580`. The completed job passed isolated emulator configuration validation, Functions dependency installation and syntax checks, emulator backup fixture syntax, CBT unit tests, Firestore Rules Emulator tests, and synthetic Auth/Firestore backup-restore verification. This is CI emulator evidence only, not live Firebase, real-device, staging or production certification.
+The current branch head `d48e116f76585caff06ac700c00c4fa454b0b932` passed both required PR-triggered checks on 2026-11-17: Functions validation run `44008213537` and CBT Emulator Tests run `44008213566`. The Functions validation check and CBT Emulator check both completed with `success` for this exact head SHA. Earlier runs for the preceding commit `de1610c1c9c203108ff59b9ef15127a1523031f1` failed; the follow-up fix was committed as `d48e116f76585caff06ac700c00c4fa454b0b932`, and both checks then passed. This is CI emulator evidence only, not live Firebase, real-device, staging or production certification.
 
 The branch's manual-only local load workflows remain opt-in and were not run as part of this CI result. The 500-concurrent-user target is not certified. Student real-device OTP/connectivity testing, Owner real-environment checks, approved Firebase staging, Razorpay Test Mode, and controlled main-app integration remain release gates.
