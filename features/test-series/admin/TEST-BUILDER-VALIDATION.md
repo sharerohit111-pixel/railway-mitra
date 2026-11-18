@@ -52,3 +52,13 @@ Focused regression command:
 ```bash
 node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
 ```
+
+
+### Raw-input validation before trimming
+
+All Question Bank import, direct Test Builder import, and Question Bank-to-Test
+mapping helpers inspect the original string before trimming. This prevents
+JavaScript `trim()` from silently removing a disallowed control character at
+the beginning or end of a question, option, or section label. The policy still
+permits ordinary TAB, LF and CR in question text, options and explanations,
+while section labels reject every control character.

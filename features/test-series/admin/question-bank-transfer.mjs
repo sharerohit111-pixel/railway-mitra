@@ -103,8 +103,11 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
   if (typeof rawText !== "string") {
     questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट text होना चाहिए।");
   }
+  if (rawText.length > 4000 || hasDisallowedQuestionControls(rawText)) {
+    questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट आवश्यक है, अधिकतम 4000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+  }
   const text = rawText.trim();
-  if (!text || text.length > 4000 || hasDisallowedQuestionControls(text)) {
+  if (!text) {
     questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट आवश्यक है, अधिकतम 4000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
   }
 
@@ -113,7 +116,8 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
     questionImportRowError(rowNumber, "सेक्शन का नाम text होना चाहिए।");
   }
   const section = typeof rawSection === "string" ? rawSection.trim() : "";
-  if (section.length > 80 || hasControlCharacters(section)) {
+  if ((typeof rawSection === "string" && rawSection.length > 80) ||
+      (typeof rawSection === "string" && hasControlCharacters(rawSection))) {
     questionImportRowError(rowNumber, "सेक्शन अधिकतम 80 अक्षरों का हो और उसमें control characters न हों।");
   }
 
@@ -136,9 +140,14 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
   }
 
   const toOptionText = (value, index) => {
-    if (typeof value === "string") return value.trim();
-    if (typeof value === "number" && Number.isFinite(value)) return String(value);
-    questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " text या finite number होना चाहिए।");
+    let text;
+    if (typeof value === "string") text = value;
+    else if (typeof value === "number" && Number.isFinite(value)) text = String(value);
+    else questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " text या finite number होना चाहिए।");
+    if (!text.trim() || text.length > 1000 || hasDisallowedQuestionControls(text)) {
+      questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " गैर-खाली होना चाहिए, अधिकतम 1000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+    }
+    return text.trim();
   };
 
   let options;
@@ -223,8 +232,11 @@ export function normalizeTestBuilderImportRow(row, rowNumber) {
   if (typeof rawText !== "string") {
     questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट text होना चाहिए।");
   }
+  if (rawText.length > 5000 || hasDisallowedQuestionControls(rawText)) {
+    questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट आवश्यक है, अधिकतम 5000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+  }
   const text = rawText.trim();
-  if (!text || text.length > 5000 || hasDisallowedQuestionControls(text)) {
+  if (!text) {
     questionImportRowError(rowNumber, "प्रश्न का टेक्स्ट आवश्यक है, अधिकतम 5000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
   }
 
@@ -238,9 +250,14 @@ export function normalizeTestBuilderImportRow(row, rowNumber) {
   }
 
   const toOptionText = (value, index) => {
-    if (typeof value === "string") return value.trim();
-    if (typeof value === "number" && Number.isFinite(value)) return String(value);
-    questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " text या finite number होना चाहिए।");
+    let text;
+    if (typeof value === "string") text = value;
+    else if (typeof value === "number" && Number.isFinite(value)) text = String(value);
+    else questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " text या finite number होना चाहिए।");
+    if (!text.trim() || text.length > 1000 || hasDisallowedQuestionControls(text)) {
+      questionImportRowError(rowNumber, "विकल्प " + (index + 1) + " गैर-खाली होना चाहिए, अधिकतम 1000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
+    }
+    return text.trim();
   };
 
   let options;
@@ -284,7 +301,8 @@ export function normalizeTestBuilderImportRow(row, rowNumber) {
     questionImportRowError(rowNumber, "सेक्शन का नाम text होना चाहिए।");
   }
   const section = typeof rawSection === "string" ? rawSection.trim() : "";
-  if (section.length > 80 || hasControlCharacters(section)) {
+  if ((typeof rawSection === "string" && rawSection.length > 80) ||
+      (typeof rawSection === "string" && hasControlCharacters(rawSection))) {
     questionImportRowError(rowNumber, "सेक्शन अधिकतम 80 अक्षरों का हो और उसमें control characters न हों।");
   }
 
@@ -292,10 +310,11 @@ export function normalizeTestBuilderImportRow(row, rowNumber) {
   if (rawExplanation !== undefined && rawExplanation !== null && rawExplanation !== "" && typeof rawExplanation !== "string") {
     questionImportRowError(rowNumber, "Explanation text होना चाहिए।");
   }
-  const explanation = typeof rawExplanation === "string" ? rawExplanation.trim() : "";
-  if (explanation.length > 4000 || hasDisallowedQuestionControls(explanation)) {
+  const rawExplanationText = typeof rawExplanation === "string" ? rawExplanation : "";
+  if (rawExplanationText.length > 4000 || hasDisallowedQuestionControls(rawExplanationText)) {
     questionImportRowError(rowNumber, "Explanation अधिकतम 4000 अक्षरों का हो और उसमें असमर्थित control characters न हों।");
   }
+  const explanation = rawExplanationText.trim();
 
   return {
     id,
@@ -340,17 +359,18 @@ export function questionBankItemAsTestQuestion(item, activeSection = "") {
   if (!source || typeof source !== "object" || Array.isArray(source)) {
     throw new TypeError("Question Bank प्रश्न का प्रारूप सही नहीं है।");
   }
-  const text = typeof source.text === "string" ? source.text.trim() : "";
-  if (!text || text.length > 5000 || hasDisallowedQuestionControls(text)) {
+  const rawText = typeof source.text === "string" ? source.text : "";
+  if (!rawText.trim() || rawText.length > 5000 || hasDisallowedQuestionControls(rawText)) {
     throw new RangeError("Question Bank प्रश्न-पाठ आवश्यक है (अधिकतम 5000 अक्षर) और उसमें असमर्थित control characters नहीं होने चाहिए।");
   }
-  const options = Array.isArray(source.options)
-    ? source.options.map(option => typeof option === "string" ? option.trim() : "")
-    : [];
-  if (options.length < 2 || options.length > 6 ||
-      options.some(option => !option || option.length > 1000 || hasDisallowedQuestionControls(option))) {
+  const text = rawText.trim();
+  const rawOptions = Array.isArray(source.options) ? source.options : [];
+  if (rawOptions.length < 2 || rawOptions.length > 6 ||
+      rawOptions.some(option => typeof option !== "string" || !option.trim() ||
+        option.length > 1000 || hasDisallowedQuestionControls(option))) {
     throw new RangeError("Question Bank प्रश्न में 2 से 6 वैध विकल्प होने चाहिए और उनमें असमर्थित control characters नहीं होने चाहिए।");
   }
+  const options = rawOptions.map(option => option.trim());
   const correctIndex = item.correctIndex;
   if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
     throw new RangeError("Question Bank प्रश्न का सही उत्तर विकल्पों के अनुरूप नहीं है।");
@@ -361,11 +381,13 @@ export function questionBankItemAsTestQuestion(item, activeSection = "") {
   if (source.section !== undefined && source.section !== null && typeof source.section !== "string") {
     throw new TypeError("Question Bank Section का प्रारूप सही नहीं है।");
   }
-  const section = (typeof activeSection === "string" ? activeSection.trim() : "") ||
-    (typeof source.section === "string" ? source.section.trim() : "");
-  if (section.length > 80 || hasControlCharacters(section)) {
+  const rawActiveSection = typeof activeSection === "string" ? activeSection : "";
+  const rawStoredSection = typeof source.section === "string" ? source.section : "";
+  const rawSection = rawActiveSection.trim() ? rawActiveSection : rawStoredSection;
+  if (rawSection.length > 80 || hasControlCharacters(rawSection)) {
     throw new RangeError("Question Bank Section अधिकतम 80 अक्षरों का हो सकता है और उसमें control characters नहीं होने चाहिए।");
   }
+  const section = rawSection.trim();
   const explanation = source.explanation === undefined || source.explanation === null ? "" : source.explanation;
   if (typeof explanation !== "string" || explanation.length > 4000 ||
       hasDisallowedQuestionControls(explanation)) {

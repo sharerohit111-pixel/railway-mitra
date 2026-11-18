@@ -475,3 +475,49 @@ test("Question Bank mapping preserves TAB, LF and CR formatting accepted by publ
   assert.equal(mapped.explanation, item.question.explanation);
   assert.equal(mapped.section, "Technical Ability");
 });
+
+
+test("Question Bank and Test Builder preflight reject trailing controls before trimming", () => {
+  const verticalTab = String.fromCharCode(11);
+  const trailingTab = String.fromCharCode(9);
+  const trailingNewline = String.fromCharCode(10);
+  const bankRow = {
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    text: "Question?", options: ["A", "B"], correctIndex: 0
+  };
+  const builderRow = { text: "Question?", options: ["A", "B"], correctIndex: 0 };
+  const bankItem = {
+    itemId: "qb-trailing",
+    question: { text: "Question?", options: ["A", "B"], section: "Core", explanation: "Reason" },
+    correctIndex: 0
+  };
+
+  for (const value of [
+    { ...bankRow, text: "Question?" + verticalTab },
+    { ...bankRow, options: ["A" + verticalTab, "B"] }
+  ]) {
+    assert.throws(() => normalizeQuestionBankImportRow(value, 1), /पंक्ति 1:/);
+  }
+  for (const value of [
+    { ...builderRow, text: "Question?" + verticalTab },
+    { ...builderRow, options: ["A" + verticalTab, "B"] }
+  ]) {
+    assert.throws(() => normalizeTestBuilderImportRows([value]), /पंक्ति 1:/);
+  }
+  assert.throws(() => questionBankItemAsTestQuestion({
+    ...bankItem, question: { ...bankItem.question, text: "Question?" + verticalTab }
+  }), RangeError);
+  assert.throws(() => questionBankItemAsTestQuestion({
+    ...bankItem, question: { ...bankItem.question, options: ["A" + verticalTab, "B"] }
+  }), RangeError);
+  assert.throws(() => questionBankItemAsTestQuestion({
+    ...bankItem, question: { ...bankItem.question, explanation: "Reason" + verticalTab }
+  }), RangeError);
+
+  assert.throws(() => normalizeQuestionBankImportRow({ ...bankRow, section: "Core" + trailingTab }, 1), /पंक्ति 1:/);
+  assert.throws(() => normalizeTestBuilderImportRows([{ ...builderRow, section: "Core" + trailingNewline }]), /पंक्ति 1:/);
+  assert.throws(() => questionBankItemAsTestQuestion({
+    ...bankItem, question: { ...bankItem.question, section: "Core" + trailingNewline }
+  }), RangeError);
+  assert.throws(() => questionBankItemAsTestQuestion(bankItem, "Technical" + trailingTab), RangeError);
+});
