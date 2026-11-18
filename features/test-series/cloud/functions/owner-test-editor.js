@@ -55,7 +55,7 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
   if (!title || title.length > 160) throw new Error("Test title is invalid");
   const category = typeof test.category === "string" ? test.category.trim() : "";
   const folder = typeof test.folder === "string" ? test.folder.trim() : "";
-  const safeMetadataLabel = /^[\\p{L}\\p{M}\\p{N} _-]+$/u;
+  const safeMetadataLabel = /^[\p{L}\p{M}\p{N} _-]+$/u;
   const folderParts = folder.split("/");
   if (!category || category.length > 60 || !safeMetadataLabel.test(category) ||
       !folder || folder.length > 120 || folderParts.length > 4 ||
