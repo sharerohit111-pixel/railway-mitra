@@ -90,3 +90,11 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - If a student changes an answer while an older retry is in flight, the newer value remains pending, is picked up on the next drain pass, and must receive its own server acknowledgement before Retry resolves.
 - A failed latest write still rejects the retry and remains in the local pending draft for a later explicit retry; this change does not treat local queue completion as proof of server persistence.
 - Explicit exam submission locks answer controls before draining the queue, so the submission waits for the final selected values. Server-side attempt ownership, deadline checks, Firestore writes and scoring remain authoritative.
+
+
+## Publish-boundary question text validation
+
+- The server-side Owner publish validator now independently rejects non-printing control characters in legacy or directly modified draft question text, options, section labels and optional explanations.
+- Question text, options and explanations retain ordinary line breaks and tabs where applicable; section labels reject all control characters.
+- Optional explanations are type-checked and bounded to 4,000 characters, matching the question-bank input contract.
+- This is a publish-time integrity check. Owner authorization, private answer-key separation and student allowlist projection remain unchanged.

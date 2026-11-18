@@ -154,3 +154,54 @@ test("Owner paper validation accepts safe image descriptors and rejects unsafe m
     questions[1]
   ], validAnswerMap), /media descriptors are invalid/);
 });
+
+
+test("publish integrity rejects non-printing controls in legacy question text, options and explanations", () => {
+  const rejectedCodes = [0, 1, 8, 11, 12, 14, 31, 127];
+  for (const code of rejectedCodes) {
+    const control = String.fromCharCode(code);
+    assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+      { ...questions[0], text: "Question" + control + "1" }, questions[1]
+    ], validAnswerMap), /text is invalid/, "question text control code " + code);
+    assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+      { ...questions[0], options: ["A" + control, "B"] }, questions[1]
+    ], validAnswerMap), /options are invalid/, "option control code " + code);
+    assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+      { ...questions[0], explanation: "Reason" + control }, questions[1]
+    ], validAnswerMap), /explanation is invalid/, "explanation control code " + code);
+  }
+});
+
+test("publish integrity rejects all control characters in section labels", () => {
+  for (const code of [0, 9, 10, 13, 127]) {
+    const section = "Technical" + String.fromCharCode(code) + "Ability";
+    assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+      { ...questions[0], section }, questions[1]
+    ], validAnswerMap), /section is invalid/, "section control code " + code);
+  }
+});
+
+test("publish integrity preserves normal multiline formatting and bounds optional explanations", () => {
+  const formatted = {
+    ...questions[0],
+    text: "Question line 1\\nQuestion line 2",
+    options: ["Option\\tA", "Option B"],
+    section: "Technical Ability",
+    explanation: "Reason line 1\\r\\nReason line 2"
+  };
+  const result = validateOwnerQuestionPaper(validTestMetadata, [formatted, questions[1]], validAnswerMap);
+  assert.equal(result[0].text, formatted.text);
+  assert.equal(result[0].options[0], "Option\\tA");
+  assert.equal(result[0].explanation, formatted.explanation);
+
+  const exactExplanation = "x".repeat(4000);
+  assert.equal(validateOwnerQuestionPaper(validTestMetadata, [
+    { ...questions[0], explanation: exactExplanation }, questions[1]
+  ], validAnswerMap)[0].explanation.length, 4000);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+    { ...questions[0], explanation: exactExplanation + "x" }, questions[1]
+  ], validAnswerMap), /explanation is invalid/);
+  assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+    { ...questions[0], explanation: { text: "not text" } }, questions[1]
+  ], validAnswerMap), /explanation is invalid/);
+});

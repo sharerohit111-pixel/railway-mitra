@@ -3,6 +3,23 @@
 const { answerKeyStorageKey } = require("./exam-answer-key");
 const { projectStudentQuestionMedia } = require("./question-media-contract");
 
+function hasControlCharacters(value) {
+  return Array.from(value).some(character => {
+    const code = character.charCodeAt(0);
+    return code <= 31 || code === 127;
+  });
+}
+
+function hasDisallowedQuestionControls(value) {
+  // Keep ordinary multiline formatting (LF, CR and TAB), but reject non-printing
+  // controls that can corrupt imported, rendered or exported question content.
+  return Array.from(value).some(character => {
+    const code = character.charCodeAt(0);
+    return code === 0 || (code >= 1 && code <= 8) ||
+      code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127;
+  });
+}
+
 function restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap) {
   if (!Array.isArray(publicQuestions)) {
     throw new Error("Public question set is invalid");
@@ -81,16 +98,21 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
     if (Object.prototype.hasOwnProperty.call(question, "correctIndex")) {
       throw new Error("Public question paper must not contain private answer indexes");
     }
-    if (typeof question.text !== "string" || !question.text.trim() || question.text.length > 5000) {
+    if (typeof question.text !== "string" || !question.text.trim() || question.text.length > 5000 || hasDisallowedQuestionControls(question.text)) {
       throw new Error("Question " + (index + 1) + " text is invalid");
     }
     if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
-        question.options.some(option => typeof option !== "string" || !option.trim() || option.length > 1000)) {
+        question.options.some(option => typeof option !== "string" || !option.trim() || option.length > 1000 || hasDisallowedQuestionControls(option))) {
       throw new Error("Question " + (index + 1) + " options are invalid");
     }
     if (question.section !== undefined && question.section !== null &&
-        (typeof question.section !== "string" || !question.section.trim() || question.section.length > 80)) {
+        (typeof question.section !== "string" || !question.section.trim() || question.section.length > 80 || hasControlCharacters(question.section))) {
       throw new Error("Question " + (index + 1) + " section is invalid");
+    }
+    if (question.explanation !== undefined && question.explanation !== null &&
+        (typeof question.explanation !== "string" || question.explanation.length > 4000 ||
+         hasDisallowedQuestionControls(question.explanation))) {
+      throw new Error("Question " + (index + 1) + " explanation is invalid");
     }
     try {
       projectStudentQuestionMedia(question.media);
