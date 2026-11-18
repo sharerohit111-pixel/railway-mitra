@@ -40,7 +40,7 @@ test("Owner Test Builder rejects non-printing controls in question text and opti
 });
 
 test("Owner Test Builder preserves ordinary TAB, LF and CR formatting accepted by publish validation", () => {
-  const text = "Question line 1\nQuestion line 2";
+  const text = "Question line 1\r\nQuestion line 2";
   const option = "Option\tA";
   const payload = validateOwnerTestDraft(validDraft({ text, options: [option, "Option B"] }));
   assert.equal(payload.questions[0].text, text);
