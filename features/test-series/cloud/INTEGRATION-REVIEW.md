@@ -22,7 +22,7 @@ This is a source-level review with local Firebase Emulator CI evidence. It is no
 3. **Question media:** Uploads enter private quarantine; finalization verifies bytes/checksum, decodes and re-encodes supported image formats without metadata, publishes with create-only generation preconditions and creates a ready mapping. Student delivery checks attempt ownership, active status/deadline, mapping and exact object generation before issuing a short-lived URL.
 4. **Question bank and test builder:** Client and server validation cover question shape, options, section labels, bulk import and test configuration. Server-side persisted-paper, section mapping, answer-key and scoring configuration are independently revalidated before delivery, answer save or submission.
 5. **Payment safety:** Checkout callbacks do not grant access. Paid access is based on server-validated payment/order/entitlement records; Owner payment inspection and reconciliation remain read-only support workflows. Emulator fixtures use synthetic ledger records and do not prove a live Razorpay transaction.
-6. **Exam recovery and lifecycle:** Server-issued deadlines, active-attempt ownership, answer persistence, reconnect recovery, automatic timeout submission recovery and stale-session/view fencing have unit and Emulator regression coverage.
+6. **Exam recovery and lifecycle:** Server-issued deadlines, active-attempt ownership, answer persistence, reconnect recovery, automatic timeout submission recovery and stale-session/view fencing have unit and Emulator regression coverage. A dedicated Emulator case also saves different question IDs concurrently, then verifies both answers survive resume and server-side scoring.
 
 These are local CI/emulator results only. They do not certify production OTP, production MFA, live payment processing, real-device behavior or concurrent-user capacity.
 
@@ -76,3 +76,10 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - This covers idempotent client retry after a lost response at the emulator-test level; it does not certify a live network or production deployment.
 - Latest PR #136 head checked during this review: `13fccdca52fd68f2a85e95e4025910a6d2181a60`. GitHub reported no PR workflow runs and no combined status checks for this head at the time of the check. Do not infer a CI pass from earlier commits; rerun and verify checks on the current head.
 - PR #136 remains open, draft, and `mergeable: false`; no merge or deployment was performed.
+
+
+## Concurrent answer-write regression follow-up
+
+- Added `concurrent saves for different questions preserve both answers through resume and scoring` to `features/test-series/cloud/functions/tests/cbt-emulator.test.js`.
+- The test starts one synthetic paid-test attempt in the isolated Auth/Firestore/Functions Emulator, sends two `rmSaveAnswer` calls for different question IDs concurrently, verifies both values in the attempt document and resumed question payload, then checks the final server-side score and result.
+- This is a correctness regression using synthetic emulator fixtures, not a synthetic load test or capacity benchmark. The 20/100/250/500-student tests and all capacity benchmarking remain deferred until separately authorized.

@@ -1800,6 +1800,91 @@ test("concurrent CBT start, answer-save and submit transactions preserve one aut
   }
 });
 
+test("concurrent saves for different questions preserve both answers through resume and scoring", async () => {
+  await signInAsTestStudent(uid);
+  const parallelTestId = "emulator-cbt-parallel-answer-save";
+  const testRef = db.doc("testSeriesTests/" + parallelTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + parallelTestId);
+  const keyRef = db.doc("testSeriesAnswerKeys/" + parallelTestId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  let paidAccess;
+  let attemptId;
+
+  try {
+    await activeRef.delete().catch(() => {});
+    await Promise.all([
+      testRef.set({
+        title: "Parallel Answer Save Regression", status: "published", price: 32,
+        mode: "mock", durationMinutes: 10, marksPerQuestion: 2,
+        negativeMarks: 0.5, questionCount: 2
+      }),
+      paperRef.set({ questions: [
+        { id: "parallel-q1", text: "First concurrent answer?", options: ["A", "B"] },
+        { id: "parallel-q2", text: "Second concurrent answer?", options: ["A", "B"] }
+      ] }),
+      keyRef.set({ questions: {
+        "parallel-q1": { correctAnswer: "1" },
+        "parallel-q2": { correctAnswer: "0" }
+      } })
+    ]);
+    paidAccess = await seedPaidAccess({
+      testId: parallelTestId,
+      paymentId: "pay_emulator_parallel_answer_save",
+      orderId: "order_emulator_parallel_answer_save",
+      amount: 3200
+    });
+
+    const started = await callable("rmStartExam", { testId: parallelTestId });
+    attemptId = started.attemptId;
+    assert.ok(attemptId);
+
+    const saves = await Promise.all([
+      callable("rmSaveAnswer", { attemptId, questionId: "parallel-q1", answer: "1" }),
+      callable("rmSaveAnswer", { attemptId, questionId: "parallel-q2", answer: "0" })
+    ]);
+    assert.equal(saves.every(item => item.saved === true), true);
+
+    const persistedAttempt = (await db.doc("testSeriesAttempts/" + attemptId).get()).data();
+    assert.equal(persistedAttempt.answers["parallel-q1"], "1");
+    assert.equal(persistedAttempt.answers["parallel-q2"], "0");
+
+    const resumedPaper = await callable("rmGetExamQuestions", { attemptId });
+    const resumedAnswers = Object.fromEntries(resumedPaper.savedAnswerEntries);
+    assert.deepEqual(resumedAnswers, {
+      "parallel-q1": "1",
+      "parallel-q2": "0"
+    });
+
+    const submitted = await callable("rmSubmitExam", { attemptId });
+    assert.equal(submitted.submitted, true);
+    assert.equal(submitted.correct, 2);
+    assert.equal(submitted.wrong, 0);
+    assert.equal(submitted.unattempted, 0);
+    assert.equal(submitted.score, 4);
+
+    const result = await callable("rmGetCbtAttemptResult", { attemptId });
+    assert.equal(result.correct, 2);
+    assert.equal(result.score, 4);
+  } finally {
+    const cleanupRefs = [testRef, paperRef, keyRef];
+    if (attemptId) {
+      cleanupRefs.push(
+        db.doc("testSeriesAttempts/" + attemptId),
+        db.doc("testSeriesResults/" + attemptId)
+      );
+    }
+    if (paidAccess) cleanupRefs.push(
+      paidAccess.paymentRef,
+      paidAccess.orderRef,
+      paidAccess.entitlementRef
+    );
+    await Promise.all(cleanupRefs.map(ref => ref.delete().catch(() => {})));
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
+  }
+});
+
 test("CBT repairs a stale active pointer and starts independent section clocks exactly once", async () => {
   const scenarioTestId = "emulator-cbt-section-race";
   const testRef = db.doc("testSeriesTests/" + scenarioTestId);
