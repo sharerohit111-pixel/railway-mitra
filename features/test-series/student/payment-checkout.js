@@ -1,5 +1,6 @@
 import { createPaymentRequestId, createStudentPaymentOrder } from "../cloud/student-client.js";
 import { createCheckoutScriptLoader } from "./checkout-script-loader.mjs";
+import { runStudentCheckoutOnce } from "./checkout-flight.mjs";
 import {
   clearPaymentRequestId,
   getOrCreatePaymentRequestId,
@@ -33,7 +34,26 @@ function loadCheckoutScript(root = document) {
 
 // A checkout success callback is only a user-facing acknowledgement. Access is
 // granted exclusively by the verified server-side captured-payment webhook.
-export async function startStudentTestCheckout({ app, test, studentUid, onStatus, isSessionActive = () => true, root = document }) {
+// Keep one checkout/order flow active per Firebase app, student and test in this JS realm.
+// The server-side request lock and verified webhook remain authoritative across tabs/devices.
+export function startStudentTestCheckout(options = {}) {
+  const app = options && options.app;
+  const studentUid = options && options.studentUid;
+  const testId = options && options.test && options.test.testId;
+  if (!app || (typeof app !== "object" && typeof app !== "function") ||
+      typeof studentUid !== "string" || !studentUid ||
+      typeof testId !== "string" || !testId) {
+    return performStudentTestCheckout(options);
+  }
+  return runStudentCheckoutOnce({
+    app,
+    studentUid,
+    testId,
+    operation: () => performStudentTestCheckout(options)
+  });
+}
+
+async function performStudentTestCheckout({ app, test, studentUid, onStatus, isSessionActive = () => true, root = document } = {}) {
   const assertSessionActive = () => {
     if (typeof isSessionActive !== "function" || !isSessionActive()) {
       throw new Error("Student session changed. Payment checkout was paused; sign in again to continue.");
