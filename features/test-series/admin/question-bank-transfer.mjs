@@ -7,6 +7,81 @@ export function assertQuestionImportSize(size) {
   return size;
 }
 
+function assertNoDuplicateJsonObjectKeys(source) {
+  const stack = [];
+  let index = 0;
+  const length = source.length;
+  const skipWhitespace = () => {
+    while (index < length && /[\u0009\u000A\u000D\u0020]/u.test(source[index])) index += 1;
+  };
+  const stringEnd = start => {
+    let cursor = start + 1;
+    while (cursor < length) {
+      if (source[cursor] === "\\") { cursor += 2; continue; }
+      if (source[cursor] === '"') return cursor + 1;
+      cursor += 1;
+    }
+    throw new SyntaxError("Unterminated JSON string.");
+  };
+  const consumeValue = () => {
+    skipWhitespace();
+    const character = source[index];
+    if (character === "{") {
+      index += 1;
+      stack.push({ type: "object", state: "keyOrEnd", keys: new Set() });
+      return;
+    }
+    if (character === "[") {
+      index += 1;
+      stack.push({ type: "array", state: "valueOrEnd" });
+      return;
+    }
+    if (character === '"') { index = stringEnd(index); return; }
+    const start = index;
+    while (index < length && !/[,\]}\u0009\u000A\u000D\u0020]/u.test(source[index])) index += 1;
+    if (index === start) throw new SyntaxError("Expected a JSON value.");
+  };
+
+  // JSON.parse remains the authoritative syntax validator. This pass preserves
+  // raw object-member information that JSON.parse otherwise silently discards.
+  consumeValue();
+  while (stack.length) {
+    skipWhitespace();
+    const frame = stack[stack.length - 1];
+    if (frame.type === "object") {
+      if (frame.state === "keyOrEnd") {
+        if (source[index] === "}") { index += 1; stack.pop(); continue; }
+        const end = stringEnd(index);
+        const key = JSON.parse(source.slice(index, end));
+        const normalized = key.trim().toLowerCase();
+        if (normalized) {
+          if (frame.keys.has(normalized)) {
+            throw new TypeError("JSON में duplicate normalized object key है: " + normalized + "।");
+          }
+          frame.keys.add(normalized);
+        }
+        index = end;
+        frame.state = "colon";
+        continue;
+      }
+      if (frame.state === "colon") { index += 1; frame.state = "value"; continue; }
+      if (frame.state === "value") { frame.state = "commaOrEnd"; consumeValue(); continue; }
+      if (source[index] === ",") { index += 1; frame.state = "keyOrEnd"; continue; }
+      if (source[index] === "}") { index += 1; stack.pop(); continue; }
+      throw new SyntaxError("Invalid JSON object structure.");
+    }
+    if (frame.state === "valueOrEnd") {
+      if (source[index] === "]") { index += 1; stack.pop(); continue; }
+      frame.state = "commaOrEnd";
+      consumeValue();
+      continue;
+    }
+    if (source[index] === ",") { index += 1; frame.state = "valueOrEnd"; continue; }
+    if (source[index] === "]") { index += 1; stack.pop(); continue; }
+    throw new SyntaxError("Invalid JSON array structure.");
+  }
+}
+
 export function exportQuestionBankRows(items) {
   if (!Array.isArray(items)) throw new TypeError("Question Bank items must be an array.");
   return items.map(item => ({
@@ -26,6 +101,7 @@ export function parseQuestionImportJson(source) {
   assertQuestionImportSize(new TextEncoder().encode(source).byteLength);
   const text = source.charCodeAt(0) === 0xFEFF ? source.slice(1) : source;
   const parsed = JSON.parse(text);
+  assertNoDuplicateJsonObjectKeys(text);
   return Array.isArray(parsed) ? parsed : parsed?.questions;
 }
 
@@ -34,6 +110,7 @@ export function parseQuestionBankImportJson(source) {
   assertQuestionImportSize(new TextEncoder().encode(source).byteLength);
   const text = source.charCodeAt(0) === 0xFEFF ? source.slice(1) : source;
   const parsed = JSON.parse(text);
+  assertNoDuplicateJsonObjectKeys(text);
   const rows = Array.isArray(parsed) ? parsed
     : Array.isArray(parsed?.items) ? parsed.items
       : Array.isArray(parsed?.questions) ? parsed.questions

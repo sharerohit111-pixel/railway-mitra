@@ -581,3 +581,31 @@ test("Question Bank import rejects duplicate columns after case and whitespace n
     /पंक्ति 6:.*column दोहराया गया है: optiona/
   );
 });
+
+
+test("JSON import rejects duplicate object keys before JSON.parse can overwrite them", () => {
+  const duplicateSources = [
+    '[{"text":"first","text":"second"}]',
+    '[{"text":"first","te\\u0078t":"second"}]',
+    '[{"text":"first"," TEXT ":"second"}]',
+    '{"items":[{"text":"Question","options":["A","B"],"correctIndex":0,"metadata":{"source":"one","source":"two"}}]}'
+  ];
+  for (const source of duplicateSources) {
+    assert.throws(
+      () => parseQuestionBankImportJson(source),
+      /duplicate normalized object key/i
+    );
+  }
+  assert.throws(
+    () => parseQuestionImportJson('[{"text":"first","text":"second"}]'),
+    /duplicate normalized object key/i
+  );
+});
+
+test("JSON import permits the same property names in separate row objects", () => {
+  const rows = [
+    { topic: "Civil", chapter: "Surveying", folder: "Practice", text: "Question 1", options: ["A", "B"], correctIndex: 0 },
+    { topic: "Civil", chapter: "Surveying", folder: "Practice", text: "Question 2", options: ["A", "B"], correctIndex: 1 }
+  ];
+  assert.deepEqual(parseQuestionBankImportJson(JSON.stringify(rows)), rows);
+});
