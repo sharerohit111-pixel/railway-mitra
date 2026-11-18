@@ -7,6 +7,7 @@ import { createCbtExamLifecycle } from "./exam-lifecycle.mjs";
 import { createCbtServerClock } from "./server-clock.mjs";
 import { classifyCbtAttemptResultError } from "./attempt-recovery.mjs";
 import { createStudentAnswerState } from "./student-answer-state.mjs";
+import { createStudentAnswerSaveQueue } from "./answer-save-queue.mjs";
 import { isSafeCbtQuestionMediaResponse } from "./question-media-view.mjs";
 
 export function initStudentCbtExam({ app, testId, studentUid, root = document }) {
@@ -18,7 +19,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   }
   const el = id => root.getElementById(id);
   const startPanel=el("rm-cbt-start-panel"), workspace=el("rm-cbt-workspace"), resultPanel=el("rm-cbt-result");
-  let attemptId=null, paper=null, index=0, answers=createStudentAnswerState(), pendingAnswers=new Map(), expiresAt=0, sectionExpiresAt=0, timer=null, saving=Promise.resolve(), retrying=null, inFlightSaves=new Map(), finished=false, sectionTransitioning=false, reconnectFinalizePending=false;
+  let attemptId=null, paper=null, index=0, answers=createStudentAnswerState(), expiresAt=0, sectionExpiresAt=0, timer=null, finished=false, sectionTransitioning=false, reconnectFinalizePending=false;
   const lifecycle = createCbtExamLifecycle();
   const isActive = () => lifecycle.isActive();
   let serverClock = null;
@@ -45,6 +46,27 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     const saved=writePendingAnswerDraft({storage,key:draftKey(),entries:[...pendingAnswers.entries()]});
     if(!saved)status("स्थानीय Draft सुरक्षित नहीं हो सका। परीक्षा खुली रखें और सेव स्थिति जाँचें।");
   }
+  const answerSaveQueue = createStudentAnswerSaveQueue({
+    saveAnswer: (qid,value) => saveCbtAnswer(app,attemptId,qid,value),
+    isActive,
+    onPending: () => {
+      persistPending();
+      el("rm-cbt-saved").textContent="Saving…";
+    },
+    onSaved: pending => {
+      persistPending();
+      el("rm-cbt-saved").textContent=pending.size?"Some answers pending":"All changes saved";
+      el("rm-cbt-retry").hidden=pending.size===0;
+    },
+    onError: (error,pending) => {
+      el("rm-cbt-saved").textContent="Save failed · "+pending.size+" pending";
+      el("rm-cbt-retry").hidden=false;
+      status(error.message||"उत्तर सेव नहीं हुआ। इंटरनेट जाँचकर Retry दबाएँ।");
+    }
+  });
+  const pendingAnswers = answerSaveQueue.pendingAnswers;
+  const queueSave = answerSaveQueue.queueSave;
+  const retryPending = answerSaveQueue.retryPending;
   function restorePending(){
     let storage;
     try { storage=window.localStorage; } catch (_) {}
@@ -87,54 +109,6 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     render(); tick();
   }
   function tick(){ if(!isActive()) return; const s=remaining(); el("rm-cbt-clock").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); const sectionClock=el("rm-cbt-section-clock"); if(sectionClock){ const left=sectionExpiresAt?Math.max(0,Math.ceil((sectionExpiresAt-examNow())/1000)):0; sectionClock.textContent=sectionExpiresAt?("सेक्शन समय "+String(Math.floor(left/60)).padStart(2,"0")+":"+String(left%60).padStart(2,"0")):""; if(sectionExpiresAt&&!left){ sectionClock.textContent="सेक्शन समय समाप्त"; if(!sectionTransitioning&&!finished){ sectionTransitioning=true; const currentSection=paper.questions[index]?.section; const expired=new Set(Object.entries(paper.sectionTimings||{}).filter(([,timing])=>!timing.expiresAt||new Date(timing.expiresAt).getTime()<=examNow()).map(([name])=>name)); if(currentSection)expired.add(currentSection); const nextIndex=paper.questions.findIndex((item,i)=>i>index&&(!item.section||!expired.has(item.section))); if(nextIndex>=0){ status("इस सेक्शन का समय समाप्त। अगले उपलब्ध सेक्शन में जा रहे हैं…"); activateQuestion(nextIndex).catch(error=>status(error.message||"अगला सेक्शन नहीं खुला।")).finally(()=>{sectionTransitioning=false;}); } else { status("सभी उपलब्ध सेक्शन का समय समाप्त। शेष प्रश्न लॉक हैं।"); const options=el("rm-cbt-options"); options.querySelectorAll("button").forEach(button=>button.disabled=true); } } } } if(!s&&!finished) finish(true); }
-  function queueSave(qid,value){
-    if (!isActive()) return Promise.resolve();
-    const active=inFlightSaves.get(qid);
-    if(active&&active.value===value) return active.promise;
-    pendingAnswers.set(qid,value);
-    persistPending();
-    el("rm-cbt-saved").textContent="Saving…";
-    const entry={value,promise:null};
-    entry.promise=saving=saving.catch(()=>{}).then(()=>{
-      if (!isActive()) return;
-      return saveCbtAnswer(app,attemptId,qid,value);
-    }).then(()=>{
-      if(pendingAnswers.get(qid)===value)pendingAnswers.delete(qid);
-      if (!isActive()) return;
-      persistPending();
-      el("rm-cbt-saved").textContent=pendingAnswers.size?"Some answers pending":"All changes saved";
-      el("rm-cbt-retry").hidden=pendingAnswers.size===0;
-    }).catch(e=>{
-      if (!isActive()) throw e;
-      el("rm-cbt-saved").textContent="Save failed · "+pendingAnswers.size+" pending";
-      el("rm-cbt-retry").hidden=false;
-      status(e.message||"उत्तर सेव नहीं हुआ। इंटरनेट जाँचकर Retry दबाएँ।");
-      throw e;
-    }).finally(()=>{
-      if(inFlightSaves.get(qid)===entry) inFlightSaves.delete(qid);
-    });
-    inFlightSaves.set(qid,entry);
-    return entry.promise;
-  }
-  async function retryPending(){
-    // Online events, the Retry button, and refresh recovery can request a retry
-    // at nearly the same time. Share one in-flight pass to avoid duplicate writes.
-    if(retrying) return retrying;
-    retrying=(async()=>{
-      const entries=[...pendingAnswers.entries()];
-      for(const [qid,value] of entries){
-        if (!isActive()) return;
-        // A newer selection may have replaced this snapshot while retry was waiting.
-        if(pendingAnswers.get(qid)!==value) continue;
-        await queueSave(qid,value);
-        if (!isActive()) return;
-      }
-      if (!isActive()) return;
-      if(pendingAnswers.size) throw new Error("कुछ उत्तर अभी सर्वर पर सेव नहीं हुए हैं।");
-    })();
-    try { return await retrying; }
-    finally { retrying=null; }
-  }
   let mediaRenderVersion = 0;
   async function renderQuestionMedia(question, host, requestVersion) {
     const media = Array.isArray(question.media) ? question.media : [];
@@ -226,7 +200,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
         // prevent the server from finalizing the attempt.
         let graceTimer;
         await Promise.race([
-          saving.catch(()=>{}),
+          answerSaveQueue.waitForSaves().catch(()=>{}),
           new Promise(resolve=>{graceTimer=setTimeout(resolve,5000);})
         ]);
         clearTimeout(graceTimer);
@@ -235,7 +209,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
       }else{
         // A failed autosave must not short-circuit the explicit retry pass.
         // Wait for the current queue to settle, then retry every still-pending answer.
-        await saving.catch(()=>{});
+        await answerSaveQueue.waitForSaves().catch(()=>{});
         await retryPending();
         if (!isActive()) return;
       }
@@ -386,7 +360,7 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
     if(attemptId&&pendingAnswers.size&&!finished){status("इंटरनेट वापस आ गया है। लंबित उत्तर सेव किए जा रहे हैं…");retryPending().then(()=>status("सभी लंबित उत्तर सर्वर पर सुरक्षित हैं।")).catch(()=>status("कनेक्शन वापस आया है, लेकिन कुछ उत्तर अभी सेव नहीं हुए। Retry दबाएँ।"));}
   };
   const onBeforeUnload=event=>{
-    if(isActive()&&!finished&&(pendingAnswers.size||inFlightSaves.size)){
+    if(isActive()&&!finished&&(pendingAnswers.size||answerSaveQueue.hasInFlightSaves())){
       event.preventDefault();
       event.returnValue="";
     }

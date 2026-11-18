@@ -1,0 +1,107 @@
+"use strict";
+
+const noop = () => {};
+
+/**
+ * Serialize one exam controller's answer writes while preserving the newest
+ * pending value for each question. The server remains the source of truth.
+ */
+export function createStudentAnswerSaveQueue({
+  saveAnswer,
+  isActive = () => true,
+  onPending = noop,
+  onSaved = noop,
+  onError = noop
+} = {}) {
+  if (typeof saveAnswer !== "function") throw new TypeError("An answer-save function is required");
+  if (typeof isActive !== "function") throw new TypeError("An activity check is required");
+  for (const callback of [onPending, onSaved, onError]) {
+    if (typeof callback !== "function") throw new TypeError("Answer-save callbacks must be functions");
+  }
+
+  const pendingAnswers = new Map();
+  const inFlightSaves = new Map();
+  let saving = Promise.resolve();
+  let retrying = null;
+
+  function isCurrent() {
+    try {
+      return isActive() === true;
+    } catch {
+      return false;
+    }
+  }
+
+  function notify(callback, ...args) {
+    try {
+      callback(...args);
+    } catch {
+      // UI/storage callbacks must not change the outcome of a server save.
+    }
+  }
+
+  function queueSave(questionId, value) {
+    if (typeof questionId !== "string" || !questionId || typeof value !== "string") {
+      return Promise.reject(new TypeError("A question ID and string answer are required"));
+    }
+    if (!isCurrent()) return Promise.resolve();
+
+    const active = inFlightSaves.get(questionId);
+    if (active && active.value === value) return active.promise;
+
+    pendingAnswers.set(questionId, value);
+    notify(onPending, new Map(pendingAnswers), questionId, value);
+
+    const entry = { value, promise: null };
+    const operation = saving.catch(() => {}).then(() => {
+      if (!isCurrent()) return { skipped: true };
+      return Promise.resolve(saveAnswer(questionId, value)).then(result => ({ skipped: false, result }));
+    });
+
+    entry.promise = operation.then(outcome => {
+      // A controller destroyed before this queued write starts must not be
+      // mistaken for a successful server acknowledgement.
+      if (outcome.skipped) return;
+      if (pendingAnswers.get(questionId) === value) pendingAnswers.delete(questionId);
+      if (!isCurrent()) return;
+      notify(onSaved, new Map(pendingAnswers), questionId, value);
+    }).catch(error => {
+      if (isCurrent()) notify(onError, error, new Map(pendingAnswers), questionId, value);
+      throw error;
+    }).finally(() => {
+      if (inFlightSaves.get(questionId) === entry) inFlightSaves.delete(questionId);
+    });
+
+    saving = entry.promise;
+    inFlightSaves.set(questionId, entry);
+    return entry.promise;
+  }
+
+  async function retryPending() {
+    if (retrying) return retrying;
+    retrying = (async () => {
+      const entries = [...pendingAnswers.entries()];
+      for (const [questionId, value] of entries) {
+        if (!isCurrent()) return;
+        // A newer selection supersedes this retry snapshot.
+        if (pendingAnswers.get(questionId) !== value) continue;
+        await queueSave(questionId, value);
+      }
+      if (!isCurrent()) return;
+      if (pendingAnswers.size) throw new Error("Some student answers are still pending server confirmation.");
+    })();
+    try {
+      return await retrying;
+    } finally {
+      retrying = null;
+    }
+  }
+
+  return Object.freeze({
+    pendingAnswers,
+    queueSave,
+    retryPending,
+    waitForSaves: () => saving,
+    hasInFlightSaves: () => inFlightSaves.size > 0
+  });
+}
