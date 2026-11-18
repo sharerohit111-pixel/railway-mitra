@@ -78,6 +78,7 @@ test("invalid inputs and failed factories do not leave cached Owner verifier sta
 
 test("both Owner MFA sign-in and enrollment clear the verifier after success or failure", () => {
   const source = readFileSync(new URL("../admin-auth.js", import.meta.url), "utf8");
+  const helper = readFileSync(new URL("../owner-mfa-session.mjs", import.meta.url), "utf8");
   assert.match(source, /import \{\s*clearOwnerRecaptchaVerifier,\s*getOwnerRecaptchaVerifier\s*\} from "\.\/owner-recaptcha\.mjs"/);
   assert.match(source, /getOwnerRecaptchaVerifier\(\s*auth,\s*"rm-admin-recaptcha",\s*\(instance, containerId\) => new RecaptchaVerifier\(instance, containerId, \{ size: "invisible" \}\)\s*\)/);
   assert.doesNotMatch(source, /let recaptcha\s*=\s*null/);
@@ -90,5 +91,6 @@ test("both Owner MFA sign-in and enrollment clear the verifier after success or 
   const enrollStart = source.indexOf("export async function enrollOwnerPhoneMfa");
   const enrollEnd = source.indexOf("export function hasPhoneMfa", enrollStart);
   const enroll = source.slice(enrollStart, enrollEnd);
-  assert.match(enroll, /try \{[\s\S]*finally \{\s*clearOwnerRecaptchaVerifier\(auth\);\s*\}/);
+  assert.match(enroll, /clearVerifier: \(\) => clearOwnerRecaptchaVerifier\(auth\)/);
+  assert.match(helper, /finally\s*\{\s*try\s*\{\s*clearVerifier\(\);/);
 });
