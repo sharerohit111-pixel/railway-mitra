@@ -6,6 +6,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { linkOwnerProvider } from "./owner-provider-linking.mjs";
 import { clearOwnerRecaptchaVerifier, getOwnerRecaptchaVerifier } from "./owner-recaptcha.mjs";
+import { runOwnerPhoneMfaEnrollment } from "./owner-mfa-session.mjs";
 
 function verifier(auth) {
   return getOwnerRecaptchaVerifier(
@@ -36,16 +37,21 @@ export async function signInOwnerEmail(auth, email, password, requestOtp) {
   catch (e) { if (e.code !== "auth/multi-factor-auth-required") throw e; return finishMfa(auth, e, requestOtp); }
 }
 export async function enrollOwnerPhoneMfa(auth, phoneNumber, requestOtp) {
-  if (!auth.currentUser) throw new Error("पहले Owner अकाउंट से लॉगिन करें।");
-  const session = await multiFactor(auth.currentUser).getSession();
-  const provider = new PhoneAuthProvider(auth);
-  try {
-    const id = await provider.verifyPhoneNumber({ phoneNumber, session }, verifier(auth));
-    const credential = PhoneAuthProvider.credential(id, await requestOtp());
-    await multiFactor(auth.currentUser).enroll(PhoneMultiFactorGenerator.assertion(credential), "Railway Mitra Owner OTP");
-  } finally {
-    clearOwnerRecaptchaVerifier(auth);
-  }
+  return runOwnerPhoneMfaEnrollment({
+    auth,
+    getSession: user => multiFactor(user).getSession(),
+    sendPhoneChallenge: session => new PhoneAuthProvider(auth).verifyPhoneNumber(
+      { phoneNumber, session },
+      verifier(auth)
+    ),
+    requestOtp,
+    createCredential: (verificationId, otp) => PhoneAuthProvider.credential(verificationId, otp),
+    enrollFactor: (user, credential) => multiFactor(user).enroll(
+      PhoneMultiFactorGenerator.assertion(credential),
+      "Railway Mitra Owner OTP"
+    ),
+    clearVerifier: () => clearOwnerRecaptchaVerifier(auth)
+  });
 }
 export function hasPhoneMfa(user) {
   return !!user && multiFactor(user).enrolledFactors.some(f => f.factorId === PhoneMultiFactorGenerator.FACTOR_ID);
