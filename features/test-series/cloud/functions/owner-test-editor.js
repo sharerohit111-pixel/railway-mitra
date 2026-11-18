@@ -6,8 +6,19 @@ const { projectStudentQuestionMedia } = require("./question-media-contract");
 function hasControlCharacters(value) {
   return Array.from(value).some(character => {
     const code = character.charCodeAt(0);
-    return code <= 31 || code === 127;
+    return code <= 31 || (code >= 0x7f && code <= 0x9f);
   });
+}
+
+function normalizeOwnerTestTitle(value) {
+  if (typeof value !== "string" || hasControlCharacters(value)) {
+    throw new Error("Test title is invalid");
+  }
+  const title = value.trim();
+  if (!title || title.length > 160) {
+    throw new Error("Test title is invalid");
+  }
+  return title;
 }
 
 function hasDisallowedQuestionControls(value) {
@@ -51,8 +62,7 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
   if (!test || typeof test !== "object" || Array.isArray(test)) {
     throw new Error("Test metadata is invalid");
   }
-  const title = typeof test.title === "string" ? test.title.trim() : "";
-  if (!title || title.length > 160) throw new Error("Test title is invalid");
+  const title = normalizeOwnerTestTitle(test.title);
   const category = typeof test.category === "string" ? test.category.trim() : "";
   const folder = typeof test.folder === "string" ? test.folder.trim() : "";
   const safeMetadataLabel = /^[\p{L}\p{M}\p{N} _-]+$/u;
@@ -137,4 +147,4 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
   return restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap);
 }
 
-module.exports = { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper };
+module.exports = { normalizeOwnerTestTitle, restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper };
