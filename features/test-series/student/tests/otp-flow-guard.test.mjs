@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createStudentOtpFlowGuard } from "../otp-flow-guard.mjs";
+import { setStudentOtpControlsLocked } from "../otp-control-state.mjs";
 
 function deferred() {
   let resolve;
@@ -230,4 +231,53 @@ test("Student Portal blocks overlapping SMS sends and locks both controls during
   assert.ok(verify.indexOf("setOtpControlsLocked(true)") < verify.indexOf("await activeConfirmation.confirm(code)"));
   assert.match(verify, /otpFlow\.finishVerification\(requestVersion\) && otpFlow\.isCurrent\(requestVersion\)/);
   assert.match(verify, /setOtpControlsLocked\(false\)/);
+});
+
+
+test("unlocking Student OTP controls restores labels left busy by an invalidated request", () => {
+  const controls = {
+    sendButton: { disabled: true, textContent: "Sending OTP…" },
+    verifyButton: { disabled: true, textContent: "Verifying…" }
+  };
+  setStudentOtpControlsLocked(controls, false);
+  assert.equal(controls.sendButton.disabled, false);
+  assert.equal(controls.verifyButton.disabled, false);
+  assert.equal(controls.sendButton.textContent, "Send OTP");
+  assert.equal(controls.verifyButton.textContent, "Verify & Sign in");
+});
+
+test("locking preserves busy labels and disables both Student OTP controls", () => {
+  const controls = {
+    sendButton: { disabled: false, textContent: "Sending OTP…" },
+    verifyButton: { disabled: false, textContent: "Verifying…" }
+  };
+  setStudentOtpControlsLocked(controls, true);
+  assert.equal(controls.sendButton.disabled, true);
+  assert.equal(controls.verifyButton.disabled, true);
+  assert.equal(controls.sendButton.textContent, "Sending OTP…");
+  assert.equal(controls.verifyButton.textContent, "Verifying…");
+});
+
+test("invalid OTP control configuration fails closed", () => {
+  assert.throws(() => setStudentOtpControlsLocked({}, false), /Both Student OTP controls/);
+  assert.throws(() => setStudentOtpControlsLocked({
+    sendButton: { disabled: false, textContent: "Send OTP" },
+    verifyButton: { disabled: false, textContent: "Verify & Sign in" }
+  }, undefined), /must be boolean/);
+});
+
+test("Student Portal uses the tested control helper and resets labels on auth transitions", () => {
+  const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
+  assert.ok(portal.includes('import { setStudentOtpControlsLocked } from "./otp-control-state.mjs";'));
+  const lockStart = portal.indexOf("function setOtpControlsLocked(locked)");
+  const lockEnd = portal.indexOf("async function retryPendingSignOut()", lockStart);
+  const lockBody = portal.slice(lockStart, lockEnd);
+  assert.ok(lockStart >= 0 && lockEnd > lockStart);
+  assert.match(lockBody, /setStudentOtpControlsLocked\(/);
+  const authStart = portal.indexOf("onAuthStateChanged(auth, async user => {");
+  const authEnd = portal.indexOf("\n});", authStart);
+  const authBody = portal.slice(authStart, authEnd);
+  assert.ok(authStart >= 0 && authEnd > authStart);
+  assert.match(authBody, /otpFlow\.invalidate\(\)/);
+  assert.match(authBody, /setOtpControlsLocked\(false\)/);
 });
