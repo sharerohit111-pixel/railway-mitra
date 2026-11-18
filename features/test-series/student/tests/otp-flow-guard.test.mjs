@@ -18,6 +18,36 @@ test("a newly started OTP request is current and owns the send lock", () => {
   assert.equal(guard.isSending(), false);
 });
 
+
+test("idle and invalid generation tokens cannot finish an OTP operation", () => {
+  const guard = createStudentOtpFlowGuard();
+  assert.equal(guard.isCurrent(0), false, "generation zero is not an active OTP request");
+  assert.equal(guard.finishSend(null), false);
+  assert.equal(guard.finishVerification(null), false);
+  assert.equal(guard.finishSend(0), false);
+  assert.equal(guard.finishVerification(0), false);
+
+  const token = guard.begin();
+  assert.equal(token, 1);
+  assert.equal(guard.isCurrent(token), true);
+  assert.equal(guard.finishSend(token), true);
+  assert.equal(guard.beginVerification(token), true);
+  assert.equal(guard.finishVerification(token), true);
+});
+
+test("a stale send completion cannot release a newer generation's send lock", () => {
+  const guard = createStudentOtpFlowGuard();
+  const staleToken = guard.begin();
+  guard.invalidate();
+
+  const currentToken = guard.begin();
+  assert.notEqual(currentToken, staleToken);
+  assert.equal(guard.finishSend(staleToken), false);
+  assert.equal(guard.isSending(), true);
+  assert.equal(guard.isCurrent(currentToken), true);
+  assert.equal(guard.finishSend(currentToken), true);
+});
+
 test("logout or an auth transition invalidates a pending OTP send", () => {
   const guard = createStudentOtpFlowGuard();
   const pendingRequest = guard.begin();

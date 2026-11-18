@@ -15,4 +15,7 @@ Regression coverage is in `tests/student-portal-recaptcha-integration.test.mjs`;
 
 ## Serialized OTP verification
 
+The generation guard also treats zero, null, non-integer and otherwise inactive tokens as stale. Both `finishSend` and `finishVerification` require the exact current positive generation as well as ownership of the corresponding in-flight lock; an idle or stale completion cannot report a successful release. Regression tests cover the initial idle state and an old send settling after a newer generation has acquired the lock.
+
+
 The Student Portal treats phone-code confirmation as a single-flight operation. While Firebase is verifying a code, both the Verify and Send OTP controls remain locked, and a second SMS challenge cannot supersede the in-flight confirmation. This avoids racing a new confirmation request against a Firebase operation that may already be establishing the signed-in session. If verification fails, the same current confirmation can be retried after the request settles. Logout or any Auth state transition invalidates the verification generation; a late completion cannot unlock controls or alter a newer session. The behavior is covered by `tests/otp-flow-guard.test.mjs` and remains client-side UX/race protection only; server-side phone-provider and App Check checks remain authoritative.

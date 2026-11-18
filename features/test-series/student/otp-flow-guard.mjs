@@ -9,7 +9,7 @@ export function createStudentOtpFlowGuard() {
   let sendingGeneration = null;
   let verificationGeneration = null;
 
-  const isCurrent = token => Number.isSafeInteger(token) && token === generation;
+  const isCurrent = token => Number.isSafeInteger(token) && token > 0 && token === generation;
 
   return Object.freeze({
     begin() {
@@ -19,7 +19,7 @@ export function createStudentOtpFlowGuard() {
       return generation;
     },
     finishSend(token) {
-      if (sendingGeneration !== token) return false;
+      if (!isCurrent(token) || sendingGeneration !== token) return false;
       sendingGeneration = null;
       return true;
     },
@@ -42,7 +42,7 @@ export function createStudentOtpFlowGuard() {
       return true;
     },
     finishVerification(token) {
-      if (verificationGeneration !== token) return false;
+      if (!isCurrent(token) || verificationGeneration !== token) return false;
       verificationGeneration = null;
       return true;
     }
