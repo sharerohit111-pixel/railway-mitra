@@ -130,3 +130,27 @@ node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
 
 The browser validation and save callable remain separate early-validation
 layers; this server publish check is the final integrity gate for legacy drafts.
+
+
+### Server-side test-title validation at draft save and publish
+
+The Owner draft-save callable and the final publish integrity validator now use
+one shared title normalizer. It checks the original value before trimming, so
+leading or trailing control characters cannot disappear through JavaScript
+`trim()` and pass validation.
+
+- Titles must be strings containing 1–160 characters after safe trimming.
+- C0 controls, DEL and C1 controls are rejected anywhere in the original title.
+- Unicode titles and ordinary punctuation remain supported.
+- The draft-save callable reports an invalid argument; legacy drafts with an
+  unsafe title are blocked again at the publish boundary.
+
+Focused server regression command:
+
+```bash
+node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
+```
+
+This is isolated Test Series validation logic. It does not change Firebase
+project configuration, live Auth providers, App Check enforcement, payments,
+or deployment behavior.
