@@ -4,6 +4,7 @@ import { testAnalyticsCsv, testAnalyticsPrintHtml, filterAndSortTestAnalytics } 
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 import { watchOwnerSession } from "./owner-session.mjs";
+import { createOwnerAuthOperationGate } from "./owner-auth-operation-gate.mjs";
 import { signInOwnerGoogle, signInOwnerEmail, enrollOwnerPhoneMfa, linkOwnerGoogleProvider, linkOwnerEmailProvider, hasPhoneMfa, signOut } from "./admin-auth.js";
 import { validateOwnerTestDraft } from "./admin-test-validation.mjs";
 import { appendQuestionBankItemsToTest, assertQuestionImportSize, exportQuestionBankRows, parseQuestionBankImportJson, normalizeQuestionBankImportRow, normalizeTestBuilderImportRows } from "./question-bank-transfer.mjs";
@@ -17,6 +18,12 @@ export function initOwnerAdminDashboard(auth, functions) {
   const login = el("rm-admin-login"), setup = el("rm-admin-mfa-setup"), otpPanel = el("rm-admin-otp"), home = el("rm-admin-home");
   let pendingVerification = null;
   const status = message => { el("rm-owner-login-status").textContent = message; };
+  const ownerAuthGate = createOwnerAuthOperationGate();
+  const ownerAuthButtons = [
+    el("rm-owner-google"),
+    el("rm-owner-email-login"),
+    el("rm-owner-enroll-otp")
+  ];
   const paymentsPanel = el("rm-admin-payments-panel");
   const paymentsList = el("rm-admin-payments-list");
   const paymentsStatus = el("rm-admin-payments-status");
@@ -56,15 +63,44 @@ export function initOwnerAdminDashboard(auth, functions) {
     paymentAuditMore.disabled = false;
   }
   const showOtp = verificationId => new Promise((resolve, reject) => {
+    if (pendingVerification) {
+      reject(new Error("An Owner OTP challenge is already active. Cancel it before starting another authentication step."));
+      return;
+    }
     pendingVerification = { verificationId, resolve, reject };
     otpPanel.hidden = false;
     el("rm-owner-otp").value = "";
     el("rm-owner-otp").focus();
   });
+  function cancelPendingOtp(message = "Owner authentication was interrupted. Restart sign-in.") {
+    const pending = pendingVerification;
+    pendingVerification = null;
+    otpPanel.hidden = true;
+    el("rm-owner-otp").value = "";
+    if (pending) pending.reject(new Error(message));
+  }
+  async function runOwnerAuthOperation(label, operation, fallbackMessage) {
+    if (ownerAuthGate.isPending()) {
+      status("An Owner authentication step is already in progress. Complete or cancel the OTP challenge.");
+      return;
+    }
+    ownerAuthButtons.forEach(button => { button.disabled = true; });
+    try {
+      status(label);
+      await ownerAuthGate.run(operation);
+    } catch (error) {
+      status(error.message || fallbackMessage);
+    } finally {
+      ownerAuthButtons.forEach(button => { button.disabled = false; });
+    }
+  }
   el("rm-owner-otp-confirm").addEventListener("click", () => {
     const code = el("rm-owner-otp").value.trim();
     if (!pendingVerification || !/^\d{6}$/.test(code)) { status("कृपया 6 अंकों का OTP दर्ज करें।"); return; }
     const p = pendingVerification; pendingVerification = null; otpPanel.hidden = true; p.resolve(code);
+  });
+  el("rm-owner-otp-cancel").addEventListener("click", () => {
+    cancelPendingOtp("Owner OTP sign-in was cancelled. You can try again.");
   });
   let ownerAccessPanel = null;
   const resetOwnerAccessPanel = () => ownerAccessPanel?.reset();
@@ -82,6 +118,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       return signOut(auth);
     },
     onChecking: () => {
+      cancelPendingOtp();
       // Hide privileged content before any cleanup that could throw.
       home.hidden = true;
       setup.hidden = true;
@@ -94,6 +131,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       resetOwnerAccessPanel();
     },
     onSignedOut: () => {
+      cancelPendingOtp();
       // A signed-out transition must hide the old Owner workspace first.
       home.hidden = true;
       setup.hidden = true;
@@ -106,6 +144,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       resetOwnerAccessPanel();
     },
     onMfaRequired: () => {
+      cancelPendingOtp();
       // Keep the privileged workspace hidden while switching to MFA setup.
       home.hidden = true;
       setup.hidden = true;
@@ -119,6 +158,7 @@ export function initOwnerAdminDashboard(auth, functions) {
       setup.hidden = false;
     },
     onAuthorized: (user, authorization) => {
+      cancelPendingOtp();
       login.hidden = true;
       setup.hidden = true;
       home.hidden = false;
@@ -128,20 +168,28 @@ export function initOwnerAdminDashboard(auth, functions) {
     },
     onError: error => status(error.message || "Owner authorization असफल।")
   });
-  el("rm-owner-google").addEventListener("click", async () => {
-    try { status("Google Login…"); await signInOwnerGoogle(auth, () => showOtp()); }
-    catch (e) { status(e.message || "Login असफल।"); }
+  el("rm-owner-google").addEventListener("click", () => {
+    void runOwnerAuthOperation(
+      "Google Login…",
+      () => signInOwnerGoogle(auth, () => showOtp()),
+      "Login असफल।"
+    );
   });
-  el("rm-owner-email-login").addEventListener("click", async () => {
-    try { status("Email Login…"); await signInOwnerEmail(auth, el("rm-owner-email").value, el("rm-owner-password").value, () => showOtp()); }
-    catch (e) { status(e.message || "Login असफल।"); }
+  el("rm-owner-email-login").addEventListener("click", () => {
+    void runOwnerAuthOperation(
+      "Email Login…",
+      () => signInOwnerEmail(auth, el("rm-owner-email").value, el("rm-owner-password").value, () => showOtp()),
+      "Login असफल।"
+    );
   });
-  el("rm-owner-enroll-otp").addEventListener("click", async () => {
-    try {
+  el("rm-owner-enroll-otp").addEventListener("click", () => {
+    void runOwnerAuthOperation("Owner phone MFA enrollment…", async () => {
       await enrollOwnerPhoneMfa(auth, el("rm-owner-phone").value.trim(), () => showOtp());
       status("OTP सुरक्षा सक्रिय। अब Logout करके दोबारा Login करें ताकि OTP challenge जाँचा जा सके।");
-      await signOut(auth); setup.hidden = true; login.hidden = false;
-    } catch (e) { status(e.message || "OTP enrollment असफल।"); }
+      await signOut(auth);
+      setup.hidden = true;
+      login.hidden = false;
+    }, "OTP enrollment असफल।");
   });
 
   const providerStatus = message => { el("rm-owner-provider-status").textContent = message; };
