@@ -428,3 +428,50 @@ test("Test Builder import validates the complete array before editor use", () =>
     text: "Q", options: ["A", "B"], correctIndex: 0
   }))), /1 से 500/);
 });
+
+
+test("Question Bank to Test Builder preflight rejects unsupported controls before draft insertion", () => {
+  const base = {
+    itemId: "qb-controls",
+    question: { text: "Question?", options: ["A", "B"], section: "Core", explanation: "Reason" },
+    correctIndex: 1
+  };
+  for (const code of [0, 7, 11, 12, 127]) {
+    const control = String.fromCharCode(code);
+    assert.throws(() => questionBankItemAsTestQuestion({
+      ...base, question: { ...base.question, text: "Question" + control }
+    }), RangeError, "question text control code " + code);
+    assert.throws(() => questionBankItemAsTestQuestion({
+      ...base, question: { ...base.question, options: ["A" + control, "B"] }
+    }), RangeError, "option control code " + code);
+    assert.throws(() => questionBankItemAsTestQuestion({
+      ...base, question: { ...base.question, explanation: "Reason" + control }
+    }), RangeError, "explanation control code " + code);
+  }
+  for (const code of [0, 9, 10, 13, 127]) {
+    const control = String.fromCharCode(code);
+    assert.throws(() => questionBankItemAsTestQuestion({
+      ...base, question: { ...base.question, section: "Core" + control + "Section" }
+    }), RangeError, "stored section control code " + code);
+    assert.throws(() => questionBankItemAsTestQuestion(base, "Core" + control + "Section"),
+      RangeError, "active section control code " + code);
+  }
+});
+
+test("Question Bank mapping preserves TAB, LF and CR formatting accepted by publish validation", () => {
+  const item = {
+    itemId: "qb-formatted",
+    question: {
+      text: "Question line 1\\r\\nQuestion line 2",
+      options: ["Option\\tA", "Option B"],
+      section: "Technical Ability",
+      explanation: "Reason line 1\\r\\nReason line 2"
+    },
+    correctIndex: 0
+  };
+  const mapped = questionBankItemAsTestQuestion(item);
+  assert.equal(mapped.text, item.question.text);
+  assert.equal(mapped.options[0], item.question.options[0]);
+  assert.equal(mapped.explanation, item.question.explanation);
+  assert.equal(mapped.section, "Technical Ability");
+});

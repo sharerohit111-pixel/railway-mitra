@@ -341,15 +341,15 @@ export function questionBankItemAsTestQuestion(item, activeSection = "") {
     throw new TypeError("Question Bank प्रश्न का प्रारूप सही नहीं है।");
   }
   const text = typeof source.text === "string" ? source.text.trim() : "";
-  if (!text || text.length > 5000) {
-    throw new RangeError("Question Bank प्रश्न-पाठ आवश्यक है (अधिकतम 5000 अक्षर)।");
+  if (!text || text.length > 5000 || hasDisallowedQuestionControls(text)) {
+    throw new RangeError("Question Bank प्रश्न-पाठ आवश्यक है (अधिकतम 5000 अक्षर) और उसमें असमर्थित control characters नहीं होने चाहिए।");
   }
   const options = Array.isArray(source.options)
     ? source.options.map(option => typeof option === "string" ? option.trim() : "")
     : [];
   if (options.length < 2 || options.length > 6 ||
-      options.some(option => !option || option.length > 1000)) {
-    throw new RangeError("Question Bank प्रश्न में 2 से 6 वैध विकल्प होने चाहिए।");
+      options.some(option => !option || option.length > 1000 || hasDisallowedQuestionControls(option))) {
+    throw new RangeError("Question Bank प्रश्न में 2 से 6 वैध विकल्प होने चाहिए और उनमें असमर्थित control characters नहीं होने चाहिए।");
   }
   const correctIndex = item.correctIndex;
   if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
@@ -363,12 +363,13 @@ export function questionBankItemAsTestQuestion(item, activeSection = "") {
   }
   const section = (typeof activeSection === "string" ? activeSection.trim() : "") ||
     (typeof source.section === "string" ? source.section.trim() : "");
-  if (section.length > 80) {
-    throw new RangeError("Question Bank Section अधिकतम 80 अक्षरों का हो सकता है।");
+  if (section.length > 80 || hasControlCharacters(section)) {
+    throw new RangeError("Question Bank Section अधिकतम 80 अक्षरों का हो सकता है और उसमें control characters नहीं होने चाहिए।");
   }
   const explanation = source.explanation === undefined || source.explanation === null ? "" : source.explanation;
-  if (typeof explanation !== "string" || explanation.length > 4000) {
-    throw new RangeError("Question Bank Explanation text और अधिकतम 4000 अक्षरों का होना चाहिए।");
+  if (typeof explanation !== "string" || explanation.length > 4000 ||
+      hasDisallowedQuestionControls(explanation)) {
+    throw new RangeError("Question Bank Explanation text, अधिकतम 4000 अक्षरों का और असमर्थित control characters से मुक्त होना चाहिए।");
   }
   return {
     id: "bank_" + itemId,
