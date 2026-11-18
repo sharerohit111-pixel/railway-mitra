@@ -77,15 +77,38 @@ test("surfaces provider errors without accepting an invalid order response", asy
   }), /invalid order record/);
 });
 
-test("classifies explicit provider HTTP rejection as definite, unlike network ambiguity", async () => {
+test("classifies definitive 4xx provider rejection separately from ambiguous HTTP failures", async () => {
   const { RazorpayOrderRejectedError } = require("../razorpay-order");
+  for (const status of [400, 401, 403, 429]) {
+    await assert.rejects(createRazorpayOrder({
+      ...input(),
+      fetchImpl: async () => ({
+        ok: false,
+        status,
+        json: async () => ({ error: { description: "Provider rejected request" } })
+      })
+    }), error => error instanceof RazorpayOrderRejectedError);
+  }
+
+  for (const status of [408, 409, 425, 500, 502, 503, 504]) {
+    await assert.rejects(createRazorpayOrder({
+      ...input(),
+      fetchImpl: async () => ({
+        ok: false,
+        status,
+        json: async () => ({ error: { description: "Provider outcome may be ambiguous" } })
+      })
+    }), error => !(error instanceof RazorpayOrderRejectedError) &&
+      error.message.includes("ambiguous") && error.message.includes("HTTP " + status));
+  }
+
   await assert.rejects(createRazorpayOrder({
     ...input(),
     fetchImpl: async () => ({
       ok: false,
-      json: async () => ({ error: { description: "Invalid API credentials" } })
+      json: async () => ({ error: { description: "Unknown response status" } })
     })
-  }), error => error instanceof RazorpayOrderRejectedError);
+  }), error => !(error instanceof RazorpayOrderRejectedError) && error.message.includes("ambiguous"));
 
   await assert.rejects(createRazorpayOrder({
     ...input(),
