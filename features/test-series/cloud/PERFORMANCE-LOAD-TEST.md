@@ -4,70 +4,47 @@
 
 All synthetic load tests and capacity/load benchmarking, including the 20, 100, 250 and 500 student scenarios, are deferred until the project owner separately asks to resume them. Do not dispatch either manual workflow during this hold. The default input values are examples only, not authorization. This hold applies even though the workflows have a separate manual confirmation gate.
 
+Do not run either synthetic harness locally or through GitHub Actions while this hold is active. Local emulator workloads are still synthetic load tests and are covered by the same deferral. No local harness command is provided while the hold is active.
+
 Normal pull-request and branch CI may continue to run focused unit tests, single-student callable/Firestore emulator regressions and security-rules checks. Those checks must not invoke either load harness.
 
 ## Purpose
 
-Prepare the isolated CBT backend for the design target of 1,000 registered students and 500 simultaneous examinees. The checked-in harness measures the current Firestore attempt-document answer-save pattern under a synthetic emulator workload. Each synthetic student now saves every question in the paper in each wave, with students running concurrently and each student's answers saved sequentially. It is a development diagnostic, not a production capacity certification.
+The isolated CBT backend has a design target of 1,000 registered students and 500 simultaneous examinees. The checked-in harnesses are development diagnostics for the current Firestore attempt-document answer-save pattern; they are not production capacity certification. No capacity or concurrency claim is made while the current hold remains active.
 
 ## Safety boundary
 
-- The harness refuses to run unless `FIRESTORE_EMULATOR_HOST` points to local port 8080.
-- It creates fixtures under a unique `testSeriesLoadTestRuns/{runId}` namespace and deletes them in a `finally` cleanup.
-- It must not be pointed at a staging or production Firestore instance.
-- Do not run billable cloud load tests, deploy functions, enable paid usage, or send real OTPs without explicit approval and a written cost estimate.
+- The harnesses are emulator-only diagnostics and must never be pointed at staging or production Firebase.
+- They create synthetic fixtures under dedicated test namespaces and are intended to clean them up in a `finally` path.
+- Do not run billable cloud load tests, deploy functions, enable paid usage, or send real OTPs without separate explicit approval and a written cost estimate.
 - Emulator results do not model production network latency, quotas, regional contention, Cloud Functions cold starts, billing, or real App Check/Auth overhead.
+- The current deferral covers local emulator load runs as well as GitHub Actions dispatches.
 
-## Current data-path being measured
+## Current data path (design context only)
 
-Each student has a separate `testSeriesAttempts/{attemptId}` document. `rmSaveAnswer` currently runs a Firestore transaction that reads the student's attempt and the shared question-set document, validates the question and deadline, then updates one nested field in the attempt's `answers` map. The harness approximates this transaction pattern with synthetic student IDs and separate attempt documents. It does not call the deployed callable endpoint.
+Each student has a separate `testSeriesAttempts/{attemptId}` document. `rmSaveAnswer` currently runs a Firestore transaction that reads the student's attempt and the shared question-set document, validates the question and deadline, then updates one nested field in the attempt's `answers` map. This describes the data path only; it is not an instruction to execute the synthetic harness.
 
-## Run locally
+## Deferred local harness
 
-From `features/test-series/cloud/functions` after installing dependencies and starting the local Firestore Emulator:
+No staged or local execution is authorized while the hold is active. In particular, do not invoke the Firestore emulator harness, the authenticated callable harness, their Node entry points, or equivalent scripts. A local emulator target does not make a synthetic workload exempt from the user's deferral.
 
-```bash
-FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 \
-GCLOUD_PROJECT=demo-railway-mitra-load \
-npm run load:emulator
-```
+## Deferred GitHub Actions harnesses
 
-Defaults: 500 synthetic students, 5 full-paper save waves per student (125,000 save transactions at 50 questions), 50 questions, and concurrency 500. The emulator must already be running. The script prints per-wave duration, total successful saves, failures, throughput and p50/p95/p99/max transaction latency.
+The workflows **Test Series Firestore load test (local emulator only)** and **Test Series authenticated callable load test (local emulator only)** remain manual-only and retain a required `confirm_load_test` boolean defaulting to `false`. Their manual confirmation control is a technical safeguard, not standing authorization.
 
-Optional bounded settings:
+Do not dispatch either workflow during the current hold, even if its confirmation input is available. Ordinary pull-request/push CBT CI may run unit, single-student callable-emulator and Firestore Rules tests only; it must never invoke either load harness.
 
-- `LOAD_STUDENTS`: 1–500 (default 500)
-- `LOAD_WAVES`: 1–20 (default 5)
-- `LOAD_QUESTIONS`: 1–500 (default 50)
-- `LOAD_CONCURRENCY`: 1–`LOAD_STUDENTS` (default equal to student count)
+## Acceptance and interpretation (future review only)
 
-Start with a small run, e.g. `LOAD_STUDENTS=25 LOAD_WAVES=1 LOAD_CONCURRENCY=10`, then increase to the full emulator scenario. Each wave now performs `students × questions` answer-save transactions. Do not treat a successful emulator run as permission to launch a real-user load test.
+If the owner separately asks to resume synthetic testing, first create a new written test plan that identifies the exact emulator-only target, approved scenarios, resource limits, cleanup checks, expected runtime and any cost implications. That future plan must be reviewed before any harness is run. Results would need to record configuration and cleanup status and investigate failed transactions, unexpected retries, rising p95/p99 latency or fixture-cleanup errors. A successful emulator result would remain a local diagnostic, not a production capacity claim.
 
-## Acceptance and interpretation
+No staged progression is authorized while this hold is active. The 20, 100, 250 and 500 student scenarios must not be run in sequence, individually or as a benchmark until the project owner separately asks to resume them.
 
-Record the run configuration and result JSON for each run. Investigate any failed transaction, unexpected retries, rising p95/p99 latency, or cleanup error. Compare smaller and larger concurrency levels rather than relying on one run. Because this harness uses emulator-only direct Firestore transactions, a separate approved staging exercise is required to measure callable latency and real Firebase limits.
+## Release gates not covered by synthetic testing
 
-If attempt-document growth, contention, or p95/p99 latency is unacceptable, evaluate moving answer writes to per-question documents or a dedicated answer-write service. Preserve server-side ownership checks, question membership validation, deadline enforcement, and atomic result scoring in any redesign.
-
-## Release gates not covered by this harness
-
-- End-to-end authenticated callable load test in an approved staging project.
-- App Check behavior on supported Android/PWA clients.
+- End-to-end authenticated callable behavior and App Check on supported Android/PWA clients in an approved non-production environment.
 - Real-device offline/reconnect and autosave recovery.
 - Firestore rules merged with current live rules and reviewed; the branch rules file is not approved for deployment.
 - Razorpay test-mode order creation, webhook delivery, reconciliation, refund/support workflow and entitlement verification.
-- Cost estimate and explicit approval before any billable deployment or load test.
-
-## Run through GitHub Actions
-
-The workflow **Actions → Test Series Firestore load test (local emulator only)** is manual-only. It has no `push`, `pull_request`, or marker-file trigger. The required `confirm_load_test` boolean defaults to `false`; the job is skipped unless a person deliberately checks that confirmation when dispatching the workflow.
-
-Default bounded inputs are 25 students, 2 full-paper waves and 10 workers. Inputs remain capped at 500 students, 20 waves and 500 workers, with concurrency no greater than the student count. The workflow uses only the GitHub-hosted local Firestore/Auth emulators; it does not connect to a Firebase project, deploy services, send SMS, or create billable cloud traffic.
-
-A load test is still a load test even when it targets a local emulator. Do not dispatch it unless the project owner has explicitly approved that run. Ordinary pull-request/push CBT CI runs unit, callable-emulator and Firestore Rules tests only; it must never invoke either load harness. The obsolete `LOAD-TEST-TRIGGER` marker has been removed.
-
-## Authenticated callable workflow
-
-The workflow **Actions → Test Series authenticated callable load test (local emulator only)** is also manual-only. Its `confirm_load_test` boolean defaults to `false`; the job runs only after an explicit opt-in. Inputs are bounded to 1–500 synthetic students, 1–500 concurrent student workers (never greater than the student count), and 1–100 questions. Workflow defaults are 20 students, 20 workers and 50 questions. The workflow starts Auth, Firestore and Functions emulators, runs the CBT unit and Firestore Rules tests, then invokes the callable harness. It does not deploy or connect to a live Firebase project.
-
-For a staged progression, dispatch separate approved emulator runs at 20, 50, 100, 250 and 500 students, matching concurrency to the intended simultaneous-start scenario. The callable harness provisions emulator Auth identities serially before the timed callable phase; its reported latency/throughput excludes identity provisioning. Its answer saves are sequential within each student, so 500 student workers do not mean 25,000 answer calls are in flight at once. Review emulator resource limits and run duration at each stage. A successful result remains a local diagnostic, not a production capacity claim.
+- Backup/restore, privacy/security, operational monitoring, retention and cost validation.
+- Separate written approval before any billable deployment or future synthetic load test.

@@ -56,3 +56,19 @@ test("load-test runbook records the current deferral and does not treat defaults
   assert.match(runbook, /Do not dispatch either manual workflow/i);
   assert.match(runbook, /default input values are examples only, not authorization/i);
 });
+
+test("current hold explicitly blocks local and GitHub Actions harness execution", () => {
+  const runbook = readRepositoryFile("features/test-series/cloud/PERFORMANCE-LOAD-TEST.md");
+
+  assert.match(runbook, /Do not run either synthetic harness locally or through GitHub Actions while this hold is active/i);
+  assert.match(runbook, /No local harness command is provided while the hold is active/i);
+  const shellBlocks = [...runbook.matchAll(/```(?:bash|sh)[^\n]*\n([\s\S]*?)```/gi)]
+    .map(match => match[1]);
+  assert.equal(
+    shellBlocks.some(block => /npm run load:|node\s+tests\/load\//.test(block)),
+    false,
+    "the deferred runbook must not expose an executable local load-test recipe"
+  );
+  assert.match(runbook, /No staged progression is authorized while this hold is active/i);
+  assert.doesNotMatch(runbook, /Start with a small run|dispatch separate approved emulator runs/i);
+});
