@@ -68,3 +68,19 @@ characters before trimming. This includes leading or trailing TAB, LF, CR,
 vertical-tab and form-feed characters; ordinary surrounding spaces continue
 to normalize normally. The same rule applies to fallback labels supplied by
 the import defaults.
+
+### Duplicate normalized import columns
+
+Question Bank spreadsheet/JSON rows now reject column names that collide after
+trimming and case normalization (for example, `text` plus ` TEXT `, or
+`topic` plus `Topic`). Previously the later property silently replaced the
+earlier one, making the imported value depend on column order. The importer now
+reports the row number and conflicting normalized column before it validates
+or maps any question fields. Blank/unknown columns remain ignored unless they
+collide with another non-empty normalized name.
+
+Focused regression coverage:
+
+```bash
+node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
+```

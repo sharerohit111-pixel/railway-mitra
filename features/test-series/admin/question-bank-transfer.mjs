@@ -80,9 +80,15 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
     questionImportRowError(rowNumber, "डिफ़ॉल्ट विषय/अध्याय/फ़ोल्डर का प्रारूप सही नहीं है।");
   }
 
-  const normalized = Object.fromEntries(
-    Object.entries(row).map(([key, value]) => [String(key).trim().toLowerCase(), value])
-  );
+  const normalized = Object.create(null);
+  for (const [rawKey, value] of Object.entries(row)) {
+    const key = String(rawKey).trim().toLowerCase();
+    if (!key) continue;
+    if (Object.prototype.hasOwnProperty.call(normalized, key)) {
+      questionImportRowError(rowNumber, "एक ही नाम का column दोहराया गया है: " + key + "।");
+    }
+    normalized[key] = value;
+  }
   const readLabel = (value, fallback, label, maxLength) => {
     const candidate = value === undefined || value === null || value === "" ? fallback : value;
     if (candidate === undefined || candidate === null || typeof candidate !== "string") {

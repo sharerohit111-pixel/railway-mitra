@@ -556,3 +556,28 @@ test("Question Bank and Test Builder preflight reject trailing controls before t
   }), RangeError);
   assert.throws(() => questionBankItemAsTestQuestion(bankItem, "Technical" + trailingTab), RangeError);
 });
+
+ 
+test("Question Bank import rejects duplicate columns after case and whitespace normalization", () => {
+  const base = {
+    topic: "Civil",
+    chapter: "Surveying",
+    folder: "Practice",
+    text: "Define BM",
+    options: ["A", "B"],
+    correctIndex: 0
+  };
+
+  assert.throws(
+    () => normalizeQuestionBankImportRow({ ...base, " TEXT ": "Conflicting question" }, 4),
+    /पंक्ति 4:.*column दोहराया गया है: text/
+  );
+  assert.throws(
+    () => normalizeQuestionBankImportRow({ ...base, " Topic ": "Geography" }, 5),
+    /पंक्ति 5:.*column दोहराया गया है: topic/
+  );
+  assert.throws(
+    () => normalizeQuestionBankImportRow({ ...base, optionA: "A1", " OPTIONA ": "A2" }, 6),
+    /पंक्ति 6:.*column दोहराया गया है: optiona/
+  );
+});
