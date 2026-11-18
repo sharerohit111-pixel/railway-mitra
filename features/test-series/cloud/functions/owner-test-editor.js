@@ -53,8 +53,16 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
   }
   const title = typeof test.title === "string" ? test.title.trim() : "";
   if (!title || title.length > 160) throw new Error("Test title is invalid");
-  if (typeof test.category !== "string" || !test.category.trim() || test.category.length > 60 ||
-      typeof test.folder !== "string" || !test.folder.trim() || test.folder.length > 120) {
+  const category = typeof test.category === "string" ? test.category.trim() : "";
+  const folder = typeof test.folder === "string" ? test.folder.trim() : "";
+  const safeMetadataLabel = /^[\\p{L}\\p{M}\\p{N} _-]+$/u;
+  const folderParts = folder.split("/");
+  if (!category || category.length > 60 || !safeMetadataLabel.test(category) ||
+      !folder || folder.length > 120 || folderParts.length > 4 ||
+      folderParts.some(part => {
+        const segment = part.trim();
+        return !segment || segment.length > 40 || !safeMetadataLabel.test(segment);
+      })) {
     throw new Error("Test category or folder is invalid");
   }
   if (!["mock", "scheduled"].includes(test.mode)) throw new Error("Test mode is invalid");

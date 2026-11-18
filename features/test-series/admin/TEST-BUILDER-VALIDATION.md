@@ -104,3 +104,29 @@ question-import parser, and valid sibling rows:
 ```bash
 node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
 ```
+
+
+### Server-side category and folder validation at publish
+
+The publish integrity boundary now independently revalidates test category and
+folder metadata instead of relying only on the save callable or browser form.
+This protects older drafts and documents changed outside the normal Test
+Builder flow.
+
+- Category: 1–60 Unicode letters, combining marks, numbers, spaces, underscore
+  or hyphen.
+- Folder: at most 4 slash-separated levels; each trimmed level is 1–40
+  characters using the same allowlist; the complete path is at most 120
+  characters.
+- Empty path levels, traversal-like punctuation, control characters and
+  unsupported symbols block publication.
+- Hindi and other Unicode letter/number labels remain supported.
+
+Focused server regression command:
+
+```bash
+node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
+```
+
+The browser validation and save callable remain separate early-validation
+layers; this server publish check is the final integrity gate for legacy drafts.

@@ -205,3 +205,41 @@ test("publish integrity preserves normal multiline formatting and bounds optiona
     { ...questions[0], explanation: { text: "not text" } }, questions[1]
   ], validAnswerMap), /explanation is invalid/);
 });
+
+
+test("publish integrity independently rejects unsafe category and folder metadata in legacy drafts", () => {
+  for (const category of [
+    "Civil/JE",
+    "Civil<script>",
+    "Civil" + String.fromCharCode(10) + "JE",
+    "x".repeat(61)
+  ]) {
+    assert.throws(
+      () => validateOwnerQuestionPaper({ ...validTestMetadata, category }, questions, validAnswerMap),
+      /category or folder is invalid/,
+      "unsafe category: " + JSON.stringify(category)
+    );
+  }
+
+  for (const folder of [
+    "../Admin",
+    "Civil//Surveying",
+    "Civil/Surveying/Practice/Extra/Fifth",
+    "x".repeat(41),
+    "Civil/Bad#Name",
+    "x".repeat(121)
+  ]) {
+    assert.throws(
+      () => validateOwnerQuestionPaper({ ...validTestMetadata, folder }, questions, validAnswerMap),
+      /category or folder is invalid/,
+      "unsafe folder: " + JSON.stringify(folder)
+    );
+  }
+
+  const localized = {
+    ...validTestMetadata,
+    category: "रेलवे JE",
+    folder: "सिविल / सर्वेक्षण"
+  };
+  assert.equal(validateOwnerQuestionPaper(localized, questions, validAnswerMap).length, 2);
+});
