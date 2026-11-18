@@ -88,12 +88,12 @@ node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
 
 ### Duplicate JSON object members before parsing
 
-JavaScript's \`JSON.parse\` silently keeps the last value when the same object
+JavaScript's `JSON.parse` silently keeps the last value when the same object
 property appears more than once. The Question Bank import now scans the raw,
 size-bounded JSON text before using the parsed result and rejects duplicate
 object keys after the same trim/lowercase normalization used by row mapping.
 This also catches keys written with JSON Unicode escapes (for example,
-\`text\` and \`te\\u0078t\`) and collisions inside nested objects. The check is
+`text` and `te\\u0078t`) and collisions inside nested objects. The check is
 scoped per object, so normal property reuse across separate question rows is
 still accepted.
 
@@ -101,6 +101,6 @@ Focused regression coverage includes exact duplicate keys, escaped-key
 collisions, case/whitespace collisions, nested duplicate keys, the generic
 question-import parser, and valid sibling rows:
 
-\`\`\`bash
+```bash
 node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
-\`\`\`
+```
