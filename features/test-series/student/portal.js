@@ -1,5 +1,6 @@
 import { app, auth } from "../cloud/firebase-app-check-init.js";
 import { RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import { clearStudentRecaptchaVerifier, getStudentRecaptchaVerifier } from "../cloud/student-recaptcha.mjs";
 import { initStudentTestCatalogue } from "./catalogue.js";
 import { initStudentCbtExam } from "./exam.js";
 import { initStudentDashboard } from "./dashboard.js";
@@ -23,7 +24,7 @@ const portalState = {
 const otpFlow = createStudentOtpFlowGuard();
 const logoutRecovery = createStudentLogoutRecovery(() => window.localStorage);
 const retrySignOutButton = el("rm-student-retry-signout");
-let confirmation = null, confirmationVersion = null, recaptcha = null;
+let confirmation = null, confirmationVersion = null;
 
 function setOtpControlsLocked(locked) {
   el("rm-student-send-otp").disabled = locked;
@@ -49,8 +50,11 @@ function setBusy(button, busy, label) {
   if (label) button.textContent = label;
 }
 function getRecaptcha() {
-  if (!recaptcha) recaptcha = new RecaptchaVerifier(auth, "rm-student-recaptcha", { size: "invisible" });
-  return recaptcha;
+  return getStudentRecaptchaVerifier(
+    auth,
+    "rm-student-recaptcha",
+    (instance, containerId) => new RecaptchaVerifier(instance, containerId, { size: "invisible" })
+  );
 }
 function isCurrentStudentSession(version, uid) {
   return version === portalState.authStateVersion && Boolean(uid) && auth.currentUser?.uid === uid && portalState.currentUser?.uid === uid;
@@ -184,7 +188,7 @@ async function sendOtp() {
   } catch (error) {
     if (!otpFlow.isCurrent(requestVersion)) return;
     authStatus.textContent = error.message || "OTP could not be sent. Please retry.";
-    if (recaptcha) { try { recaptcha.clear(); } catch (_) {} recaptcha = null; }
+    clearStudentRecaptchaVerifier(auth);
   } finally {
     // A stale request must never re-enable controls after logout or an auth change.
     if (otpFlow.isCurrent(requestVersion)) setBusy(button, false, "Send OTP");
@@ -231,10 +235,7 @@ logoutButton.addEventListener("click", async () => {
   confirmationVersion = null;
   el("rm-student-otp-panel").hidden = true;
   el("rm-student-otp").value = "";
-  if (recaptcha) {
-    try { recaptcha.clear(); } catch (_) {}
-    recaptcha = null;
-  }
+  clearStudentRecaptchaVerifier(auth);
 
   setOtpControlsLocked(true);
   authStatus.textContent = "Signing out…";
@@ -269,6 +270,7 @@ document.querySelectorAll("[data-view]").forEach(button => button.addEventListen
 
 onAuthStateChanged(auth, async user => {
   otpFlow.invalidate();
+  clearStudentRecaptchaVerifier(auth);
   confirmation = null;
   confirmationVersion = null;
   const version = ++portalState.authStateVersion;
