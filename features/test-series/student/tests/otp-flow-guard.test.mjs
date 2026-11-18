@@ -101,7 +101,7 @@ test("sendOtp ignores a late Firebase confirmation and guards its finally block"
   assert.ok(start >= 0 && awaitSend > start);
   assert.ok(staleCheck > awaitSend && staleCheck < assignConfirmation);
   assert.ok(finallyEnd > finallyStart, "sendOtp finally block has a bounded source range");
-  assert.match(finallyBody, /if \(otpFlow\.finishVerification\(requestVersion\) && otpFlow\.isCurrent\(requestVersion\)\)/);
+  assert.match(finallyBody, /if \(otpFlow\.isCurrent\(requestVersion\)\)/);
 });
 
 test("verifyOtp ignores stale confirmation results after an auth transition", () => {
@@ -116,7 +116,7 @@ test("verifyOtp ignores stale confirmation results after an auth transition", ()
   assert.ok(start >= 0 && awaitConfirm > start);
   assert.ok(staleCheck > awaitConfirm);
   assert.ok(finallyEnd > finallyStart, "verifyOtp finally block has a bounded source range");
-  assert.match(finallyBody, /if \(otpFlow\.isCurrent\(requestVersion\)\)/);
+  assert.match(finallyBody, /if \(otpFlow\.finishVerification\(requestVersion\) && otpFlow\.isCurrent\(requestVersion\)\)/);
 });
 
 test("logout and auth-state changes invalidate OTP work before asynchronous operations", () => {
