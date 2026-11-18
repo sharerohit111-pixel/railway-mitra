@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
-const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("../owner-test-editor");
+const { normalizeOwnerTestTitle, restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("../owner-test-editor");
 
 const questions = [
   { id: "q1", text: "Question 1", options: ["A", "B"] },
@@ -242,4 +242,51 @@ test("publish integrity independently rejects unsafe category and folder metadat
     folder: "सिविल / सर्वेक्षण"
   };
   assert.equal(validateOwnerQuestionPaper(localized, questions, validAnswerMap).length, 2);
+});
+
+test("Owner test titles are normalized only after raw C0, DEL and C1 controls are rejected", () => {
+  assert.equal(normalizeOwnerTestTitle("  GDCE JE – Civil Mock (2026)  "), "GDCE JE – Civil Mock (2026)");
+  assert.equal(normalizeOwnerTestTitle("Railway Mitra: Departmental Test"), "Railway Mitra: Departmental Test");
+  assert.equal(normalizeOwnerTestTitle("x".repeat(160)).length, 160);
+
+  const rejectedCodes = [
+    ...Array.from({ length: 32 }, (_, index) => index),
+    0x7f, 0x80, 0x85, 0x9f
+  ];
+  for (const code of rejectedCodes) {
+    const control = String.fromCharCode(code);
+    assert.throws(() => normalizeOwnerTestTitle("Title" + control), /Test title is invalid/,
+      "trailing control code " + code + " must be rejected before trim");
+    assert.throws(() => normalizeOwnerTestTitle(control + "Title"), /Test title is invalid/,
+      "leading control code " + code + " must be rejected before trim");
+  }
+
+  assert.throws(() => normalizeOwnerTestTitle("   "), /Test title is invalid/);
+  assert.throws(() => normalizeOwnerTestTitle("x".repeat(161)), /Test title is invalid/);
+});
+
+test("publish validation rejects legacy test titles containing control characters", () => {
+  for (const code of [9, 10, 13, 0x7f, 0x85, 0x9f]) {
+    const title = "Civil JE" + String.fromCharCode(code) + " Mock";
+    assert.throws(
+      () => validateOwnerQuestionPaper({ ...validTestMetadata, title }, questions, validAnswerMap),
+      /Test title is invalid/,
+      "legacy title control code " + code
+    );
+  }
+});
+
+test("Owner draft-save callable uses the same raw title validator as publish", () => {
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  assert.match(source, /normalizeOwnerTestTitle/);
+  const payloadStart = source.indexOf("function ownerTestPayload");
+  const payloadEnd = source.indexOf("\nexports.rmOwnerSaveTest", payloadStart);
+  const payload = source.slice(payloadStart, payloadEnd);
+  assert.ok(payloadStart >= 0 && payloadEnd > payloadStart, "Owner draft payload builder exists");
+  assert.match(payload, /normalizeOwnerTestTitle\(data\.title\)/);
+  assert.match(payload, /Test title must be 1–160 characters and contain no control characters/);
+  const publishStart = source.indexOf("exports.rmOwnerPublishTest");
+  const publishEnd = source.indexOf("\nexports.rmOwner", publishStart + 1);
+  const publish = source.slice(publishStart, publishEnd < 0 ? undefined : publishEnd);
+  assert.match(publish, /validateOwnerQuestionPaper\(test, questions, answerMap\)/);
 });
