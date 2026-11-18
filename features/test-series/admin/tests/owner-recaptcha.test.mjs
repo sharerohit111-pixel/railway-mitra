@@ -79,7 +79,7 @@ test("invalid inputs and failed factories do not leave cached Owner verifier sta
 test("both Owner MFA sign-in and enrollment clear the verifier after success or failure", () => {
   const source = readFileSync(new URL("../admin-auth.js", import.meta.url), "utf8");
   assert.match(source, /import \{\s*clearOwnerRecaptchaVerifier,\s*getOwnerRecaptchaVerifier\s*\} from "\.\/owner-recaptcha\.mjs"/);
-  assert.match(source, /getOwnerRecaptchaVerifier\(auth, "rm-admin-recaptcha", \(instance, containerId\) => new RecaptchaVerifier\(instance, containerId, \{ size: "invisible" \}\)\)/);
+  assert.match(source, /getOwnerRecaptchaVerifier\(\s*auth,\s*"rm-admin-recaptcha",\s*\(instance, containerId\) => new RecaptchaVerifier\(instance, containerId, \{ size: "invisible" \}\)\s*\)/);
   assert.doesNotMatch(source, /let recaptcha\s*=\s*null/);
 
   const finishStart = source.indexOf("async function finishMfa");
