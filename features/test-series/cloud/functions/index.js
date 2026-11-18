@@ -48,7 +48,7 @@ const { isActiveAttemptSession } = require("./active-attempt-session");
 const { paidEntitlementDocumentId, getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { getStudentTestAccessType } = require("./student-test-access");
 const { getTestLeaderboard } = require("./leaderboard-query");
-const { restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
+const { normalizeOwnerTestTitle, restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -1167,8 +1167,12 @@ exports.rmOwnerSetFreeTest = onCall(CALLABLE_OPTIONS, async req => {
 
 
 function ownerTestPayload(data) {
-  const title = typeof data.title === "string" ? data.title.trim() : "";
-  if (!title || title.length > 160) throw new HttpsError("invalid-argument", "Test title is required (max 160 characters)");
+  let title;
+  try {
+    title = normalizeOwnerTestTitle(data.title);
+  } catch (_) {
+    throw new HttpsError("invalid-argument", "Test title must be 1–160 characters and contain no control characters");
+  }
   const category = typeof data.category === "string" && data.category.trim() ? data.category.trim() : "General";
   const folderRaw = typeof data.folder === "string" && data.folder.trim() ? data.folder.trim() : "General";
   const folderParts = folderRaw.split("/").map(part => part.trim());
