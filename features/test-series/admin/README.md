@@ -11,6 +11,8 @@ The mobile-first dashboard shell and Firebase Authentication MFA client helpers 
 - Email + password
 - SMS OTP using Firebase Authentication Phone multi-factor authentication (MFA)
 
+Owner MFA's invisible reCAPTCHA verifier is isolated per Firebase Auth instance and DOM container. The portal clears the cached verifier in a `finally` block after both second-factor sign-in and phone-factor enrollment, whether the OTP flow succeeds, is cancelled, or fails. A retry therefore constructs a fresh challenge rather than reusing a consumed or detached widget. This is browser lifecycle protection only; Firebase's MFA challenge and the backend Owner UID/provider/second-factor/App Check checks remain authoritative. Node regression tests cover Auth-instance isolation, container changes, cleanup failures and both MFA call paths.
+
 Link both primary providers to the same verified Owner Firebase UID. Enroll Phone MFA on that account. Firebase sign-in will then require the enrolled second factor.
 
 ## Security requirements
