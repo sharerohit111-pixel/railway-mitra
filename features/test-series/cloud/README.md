@@ -434,3 +434,9 @@ The Owner test-save callable distinguishes an omitted `sections` field (which pe
 ## Server clock anchor for student exam timing
 
 `rmGetExamQuestions` returns a server-generated ISO `serverNow` timestamp with the attempt's overall expiry and persisted section deadlines. The Student exam controller uses this anchor with a monotonic browser clock so a device wall-clock change cannot prematurely trigger the local overall timeout or lock a section early. Missing/invalid anchors fail the client exam initialization rather than silently falling back to device time. This is display/reliability protection only: `rmSaveAnswer`, `rmEnterCbtSection` and `rmSubmitExam` continue to enforce deadlines using server time. A client timer is never an authorization boundary.
+
+### Razorpay order-creation request timeout
+
+The isolated Razorpay order client applies a 15-second AbortSignal timeout to the outbound provider order request. The timeout is bounded to a positive integer no greater than 60 seconds when overridden by a caller; the production callable uses the 15-second default. This prevents a stalled provider connection from occupying the callable indefinitely.
+
+A timeout is an **ambiguous provider outcome**, not a definite HTTP rejection: Razorpay may have created the order before the client stopped waiting. The callable therefore records the request as unknown and retains the student/test payment lock. It must not issue a fresh provider order or release that lock automatically. Owner/support must reconcile the saved receipt with the Razorpay Dashboard before a safe retry is allowed. This timeout does not verify a payment, alter webhook handling, or grant an entitlement. The focused unit tests cover signal propagation, invalid timeout bounds, and preservation of ambiguous timeout classification; no provider credentials or live request are used.

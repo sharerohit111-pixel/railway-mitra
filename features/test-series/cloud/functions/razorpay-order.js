@@ -1,5 +1,8 @@
 "use strict";
 
+const DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS = 15_000;
+const MAX_RAZORPAY_ORDER_TIMEOUT_MS = 60_000;
+
 function validateOrderInput({ keyId, keySecret, amount, currency = "INR", receipt, notes } = {}) {
   if (typeof keyId !== "string" || !keyId.trim() ||
       typeof keySecret !== "string" || !keySecret.trim()) {
@@ -17,6 +20,16 @@ function validateOrderInput({ keyId, keySecret, amount, currency = "INR", receip
   }
 }
 
+function createProviderTimeoutSignal(timeoutMs) {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > MAX_RAZORPAY_ORDER_TIMEOUT_MS) {
+    throw new Error("Razorpay order request timeout must be a positive integer no greater than 60000 ms");
+  }
+  if (typeof AbortSignal === "undefined" || typeof AbortSignal.timeout !== "function") {
+    throw new Error("The runtime does not support bounded Razorpay order requests");
+  }
+  return AbortSignal.timeout(timeoutMs);
+}
+
 class RazorpayOrderRejectedError extends Error {
   constructor(message) { super(message); this.name = "RazorpayOrderRejectedError"; }
 }
@@ -28,10 +41,12 @@ async function createRazorpayOrder({
   amount,
   currency = "INR",
   receipt,
-  notes
+  notes,
+  timeoutMs = DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS
 } = {}) {
   validateOrderInput({ keyId, keySecret, amount, currency, receipt, notes });
   if (typeof fetchImpl !== "function") throw new Error("A supported HTTP client is required");
+  const signal = createProviderTimeoutSignal(timeoutMs);
 
   const response = await fetchImpl("https://api.razorpay.com/v1/orders", {
     method: "POST",
@@ -39,7 +54,8 @@ async function createRazorpayOrder({
       Authorization: "Basic " + Buffer.from(keyId + ":" + keySecret).toString("base64"),
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ amount, currency, receipt, notes })
+    body: JSON.stringify({ amount, currency, receipt, notes }),
+    signal
   });
 
   let payload;
@@ -57,4 +73,9 @@ async function createRazorpayOrder({
   return { id: payload.id, amount: payload.amount, currency: payload.currency, status: payload.status };
 }
 
-module.exports = { createRazorpayOrder, RazorpayOrderRejectedError };
+module.exports = {
+  createRazorpayOrder,
+  RazorpayOrderRejectedError,
+  DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS,
+  MAX_RAZORPAY_ORDER_TIMEOUT_MS
+};
