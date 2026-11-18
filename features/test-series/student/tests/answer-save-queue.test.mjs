@@ -143,6 +143,51 @@ test("concurrent retry triggers share one retry pass", async () => {
   assert.equal(queue.pendingAnswers.size, 0);
 });
 
+
+test("retry drains a newer answer selected while the retry is in flight", async () => {
+  const initialGate = deferred();
+  const retryGate = deferred();
+  const latestGate = deferred();
+  const initialStarted = signal();
+  const retryStarted = signal();
+  const latestStarted = signal();
+  const calls = [];
+  const queue = createStudentAnswerSaveQueue({
+    saveAnswer(questionId, value) {
+      calls.push([questionId, value]);
+      if (calls.length === 1) {
+        initialStarted.resolve();
+        return initialGate.promise;
+      }
+      if (value === "0") {
+        retryStarted.resolve();
+        return retryGate.promise;
+      }
+      latestStarted.resolve();
+      return latestGate.promise;
+    }
+  });
+
+  const initial = queue.queueSave("q1", "0");
+  const initialRejected = assert.rejects(initial, /initial network failure/);
+  await initialStarted.promise;
+  initialGate.reject(new Error("initial network failure"));
+  await initialRejected;
+
+  const retry = queue.retryPending();
+  await retryStarted.promise;
+  const latest = queue.queueSave("q1", "1");
+
+  retryGate.resolve({ saved: true });
+  await latestStarted.promise;
+  assert.deepEqual(calls, [["q1", "0"], ["q1", "0"], ["q1", "1"]]);
+  assert.equal(queue.pendingAnswers.get("q1"), "1");
+
+  latestGate.resolve({ saved: true });
+  await Promise.all([retry, latest]);
+  assert.equal(queue.pendingAnswers.size, 0);
+});
+
 test("queued writes that have not started are skipped after the controller is destroyed", async () => {
   const firstGate = deferred();
   const firstStarted = signal();

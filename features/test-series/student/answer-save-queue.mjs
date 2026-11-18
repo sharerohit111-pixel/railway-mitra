@@ -80,15 +80,19 @@ export function createStudentAnswerSaveQueue({
   async function retryPending() {
     if (retrying) return retrying;
     retrying = (async () => {
-      const entries = [...pendingAnswers.entries()];
-      for (const [questionId, value] of entries) {
-        if (!isCurrent()) return;
-        // A newer selection supersedes this retry snapshot.
-        if (pendingAnswers.get(questionId) !== value) continue;
-        await queueSave(questionId, value);
+      // Drain until the latest pending snapshot is acknowledged. A student can
+      // change an answer while an earlier retry is in flight; that newer value
+      // is already queued behind the old write and must be awaited as well.
+      while (isCurrent()) {
+        const entries = [...pendingAnswers.entries()];
+        if (!entries.length) return;
+        for (const [questionId, value] of entries) {
+          if (!isCurrent()) return;
+          // A newer selection supersedes this snapshot; the next pass picks it up.
+          if (pendingAnswers.get(questionId) !== value) continue;
+          await queueSave(questionId, value);
+        }
       }
-      if (!isCurrent()) return;
-      if (pendingAnswers.size) throw new Error("Some student answers are still pending server confirmation.");
     })();
     try {
       return await retrying;

@@ -83,3 +83,10 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - Added `concurrent saves for different questions preserve both answers through resume and scoring` to `features/test-series/cloud/functions/tests/cbt-emulator.test.js`.
 - The test starts one synthetic paid-test attempt in the isolated Auth/Firestore/Functions Emulator, sends two `rmSaveAnswer` calls for different question IDs concurrently, verifies both values in the attempt document and resumed question payload, then checks the final server-side score and result.
 - This is a correctness regression using synthetic emulator fixtures, not a synthetic load test or capacity benchmark. The 20/100/250/500-student tests and all capacity benchmarking remain deferred until separately authorized.
+
+## Retry queue drains concurrent answer edits
+
+- The retry operation now drains pending answers until the queue has no unacknowledged values, rather than checking only the snapshot captured when Retry began.
+- If a student changes an answer while an older retry is in flight, the newer value remains pending, is picked up on the next drain pass, and must receive its own server acknowledgement before Retry resolves.
+- A failed latest write still rejects the retry and remains in the local pending draft for a later explicit retry; this change does not treat local queue completion as proof of server persistence.
+- Explicit exam submission locks answer controls before draining the queue, so the submission waits for the final selected values. Server-side attempt ownership, deadline checks, Firestore writes and scoring remain authoritative.
