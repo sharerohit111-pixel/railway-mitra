@@ -300,7 +300,7 @@ test("Question Bank metadata labels reject trim-removable controls before normal
     topic: "Civil", chapter: "Surveying", folder: "Practice",
     text: "Define BM", options: ["A", "B"], correctIndex: 0
   };
-  const trimRemovableControls = ["\\t", "\\n", "\\r", "\\v", "\\f"];
+  const trimRemovableControls = [9, 10, 13, 11, 12].map(code => String.fromCharCode(code));
 
   for (const field of ["topic", "chapter", "folder"]) {
     for (const control of trimRemovableControls) {
