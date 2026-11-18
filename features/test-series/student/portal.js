@@ -8,6 +8,7 @@ import { initStudentLeaderboard } from "./leaderboard.js";
 import { invalidateStudentPortalSession } from "./session-transition.mjs";
 import { shouldApplyStudentViewError } from "./view-error-fence.mjs";
 import { createStudentOtpFlowGuard } from "./otp-flow-guard.mjs";
+import { setStudentOtpControlsLocked } from "./otp-control-state.mjs";
 import { createStudentLogoutRecovery } from "./logout-recovery.mjs";
 
 const el = id => document.getElementById(id);
@@ -27,8 +28,10 @@ const retrySignOutButton = el("rm-student-retry-signout");
 let confirmation = null, confirmationVersion = null;
 
 function setOtpControlsLocked(locked) {
-  el("rm-student-send-otp").disabled = locked;
-  el("rm-student-verify-otp").disabled = locked;
+  setStudentOtpControlsLocked({
+    sendButton: el("rm-student-send-otp"),
+    verifyButton: el("rm-student-verify-otp")
+  }, locked);
 }
 async function retryPendingSignOut() {
   setBusy(retrySignOutButton, true, "Retrying sign out…");
