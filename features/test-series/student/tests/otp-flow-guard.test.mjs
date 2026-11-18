@@ -131,3 +131,50 @@ test("logout and auth-state changes invalidate OTP work before asynchronous oper
   assert.ok(logoutInvalidation > logoutStart && logoutInvalidation < signOutCall);
   assert.ok(authInvalidation > authStart && authInvalidation < tokenLookup);
 });
+
+test("only one phone-code verification may own the current OTP generation", () => {
+  const guard = createStudentOtpFlowGuard();
+  const token = guard.begin();
+
+  assert.equal(guard.beginVerification(token), true);
+  assert.equal(guard.isVerifying(), true);
+  assert.equal(guard.beginVerification(token), false, "a second confirmation must not overlap");
+  assert.equal(guard.begin(), null, "a new SMS request must not supersede an in-flight confirmation");
+  assert.equal(guard.finishVerification(token), true);
+  assert.equal(guard.isVerifying(), false);
+  assert.equal(guard.beginVerification(token), true, "a rejected OTP may be retried after the first attempt settles");
+  assert.equal(guard.finishVerification(token), true);
+});
+
+test("an auth transition cancels old verification ownership without unlocking a newer one", () => {
+  const guard = createStudentOtpFlowGuard();
+  const oldToken = guard.begin();
+  assert.equal(guard.beginVerification(oldToken), true);
+
+  guard.invalidate();
+  const newToken = guard.begin();
+  assert.equal(guard.beginVerification(newToken), true);
+  assert.equal(guard.finishVerification(oldToken), false);
+  assert.equal(guard.isVerifying(), true);
+  assert.equal(guard.finishVerification(newToken), true);
+  assert.equal(guard.isVerifying(), false);
+});
+
+test("Student Portal blocks another SMS request and locks both controls during OTP confirmation", () => {
+  const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
+  const sendStart = portal.indexOf("async function sendOtp()");
+  const sendEnd = portal.indexOf("async function verifyOtp()", sendStart);
+  const send = portal.slice(sendStart, sendEnd);
+  assert.ok(sendStart >= 0 && sendEnd > sendStart);
+  assert.ok(send.indexOf("otpFlow.isVerifying()") < send.indexOf("otpFlow.begin()"));
+  assert.match(send, /if \(!requestVersion\) return;/);
+
+  const verifyStart = portal.indexOf("async function verifyOtp()");
+  const verifyEnd = portal.indexOf('el("rm-student-send-otp")', verifyStart);
+  const verify = portal.slice(verifyStart, verifyEnd);
+  assert.ok(verifyStart >= 0 && verifyEnd > verifyStart);
+  assert.ok(verify.indexOf("otpFlow.beginVerification(requestVersion)") < verify.indexOf("await activeConfirmation.confirm(code)"));
+  assert.ok(verify.indexOf("setOtpControlsLocked(true)") < verify.indexOf("await activeConfirmation.confirm(code)"));
+  assert.match(verify, /otpFlow\.finishVerification\(requestVersion\) && otpFlow\.isCurrent\(requestVersion\)/);
+  assert.match(verify, /setOtpControlsLocked\(false\)/);
+});

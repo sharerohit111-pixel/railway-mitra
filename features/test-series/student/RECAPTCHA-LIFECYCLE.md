@@ -11,3 +11,8 @@ The Student Portal now uses the shared `student-recaptcha.mjs` helper instead of
 The existing Student Portal OTP flow guard still prevents stale asynchronous SMS requests from updating a newer session. Student callable authorization continues to require the server-verified Firebase phone sign-in provider. This browser lifecycle change does not relax App Check, alter Firebase Auth providers, send an OTP, or enable production enforcement.
 
 Regression coverage is in `tests/student-portal-recaptcha-integration.test.mjs`; the helper's instance/container and cleanup behavior remains covered by `tests/student-recaptcha.test.mjs`. Both run through the isolated Test Series Student test command.
+
+
+## Serialized OTP verification
+
+The Student Portal treats phone-code confirmation as a single-flight operation. While Firebase is verifying a code, both the Verify and Send OTP controls remain locked, and a second SMS challenge cannot supersede the in-flight confirmation. This avoids racing a new confirmation request against a Firebase operation that may already be establishing the signed-in session. If verification fails, the same current confirmation can be retried after the request settles. Logout or any Auth state transition invalidates the verification generation; a late completion cannot unlock controls or alter a newer session. The behavior is covered by `tests/otp-flow-guard.test.mjs` and remains client-side UX/race protection only; server-side phone-provider and App Check checks remain authoritative.

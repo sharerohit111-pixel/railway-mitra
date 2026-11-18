@@ -173,7 +173,12 @@ async function sendOtp() {
     authStatus.textContent = "Enter a valid phone number with country code, for example +91XXXXXXXXXX.";
     return;
   }
+  if (otpFlow.isVerifying()) {
+    authStatus.textContent = "OTP verification is in progress. Please wait.";
+    return;
+  }
   const requestVersion = otpFlow.begin();
+  if (!requestVersion) return;
   confirmation = null;
   confirmationVersion = null;
   el("rm-student-otp-panel").hidden = true;
@@ -202,6 +207,13 @@ async function verifyOtp() {
     authStatus.textContent = "Enter the 6-digit OTP sent to your phone.";
     return;
   }
+  if (!otpFlow.beginVerification(requestVersion)) {
+    authStatus.textContent = "OTP verification is already in progress. Please wait.";
+    return;
+  }
+  // Lock both controls while Firebase confirms the code. A second SMS request
+  // must not supersede a confirmation that may already be signing the user in.
+  setOtpControlsLocked(true);
   setBusy(button, true, "Verifying…");
   try {
     await activeConfirmation.confirm(code);
@@ -211,7 +223,10 @@ async function verifyOtp() {
     if (!otpFlow.isCurrent(requestVersion)) return;
     authStatus.textContent = error.message || "OTP verification failed.";
   } finally {
-    if (otpFlow.isCurrent(requestVersion)) setBusy(button, false, "Verify & Sign in");
+    if (otpFlow.finishVerification(requestVersion) && otpFlow.isCurrent(requestVersion)) {
+      setOtpControlsLocked(false);
+      setBusy(button, false, "Verify & Sign in");
+    }
   }
 }
 
