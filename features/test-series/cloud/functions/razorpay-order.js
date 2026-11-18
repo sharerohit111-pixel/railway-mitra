@@ -64,7 +64,16 @@ async function createRazorpayOrder({
 
   if (!response.ok) {
     const message = payload && payload.error && payload.error.description;
-    throw new RazorpayOrderRejectedError(typeof message === "string" ? message : "Razorpay order creation failed");
+    const description = typeof message === "string" ? message : "Razorpay order creation failed";
+    const status = response.status;
+    // A 5xx, timeout-like 4xx, conflict, or missing status may follow a
+    // provider-side create even when the response is unusable. Keep those
+    // outcomes ambiguous so the caller retains its reconciliation lock.
+    const definiteClientRejection = Number.isInteger(status) &&
+      status >= 400 && status < 500 && ![408, 409, 425].includes(status);
+    if (definiteClientRejection) throw new RazorpayOrderRejectedError(description);
+    const statusLabel = Number.isInteger(status) ? " (HTTP " + status + ")" : "";
+    throw new Error("Razorpay order creation outcome is ambiguous" + statusLabel + ": " + description);
   }
   if (!payload || typeof payload.id !== "string" || !/^order_[A-Za-z0-9]+$/.test(payload.id) ||
       payload.amount !== amount || payload.currency !== currency || payload.status !== "created") {
