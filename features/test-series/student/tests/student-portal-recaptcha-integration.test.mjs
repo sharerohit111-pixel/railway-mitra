@@ -26,7 +26,7 @@ test("failed SMS initiation invalidates the cached student verifier", () => {
 
 test("logout clears the verifier before asynchronous sign-out", () => {
   const start = source.indexOf('logoutButton.addEventListener("click"');
-  const end = source.indexOf('document.querySelectorAll("[data-view]")');
+  const end = source.indexOf("onAuthStateChanged(auth", start);
   assert.ok(start >= 0 && end > start);
   const logoutSource = source.slice(start, end);
   assert.ok(logoutSource.indexOf("clearStudentRecaptchaVerifier(auth)") < logoutSource.indexOf("await signOut(auth)"));
