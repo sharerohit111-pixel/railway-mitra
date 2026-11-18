@@ -183,7 +183,7 @@ test("exam controller uses the isolated answer-save queue for retry, submit and 
   assert.match(source, /import \{ createStudentAnswerSaveQueue \} from "\.\/answer-save-queue\.mjs"/);
   assert.match(source, /const answerSaveQueue = createStudentAnswerSaveQueue\(/);
   assert.match(source, /const pendingAnswers = answerSaveQueue\.pendingAnswers/);
-  assert.match(source, /answerSaveQueue\.waitForSaves\(\)\.catch\(\(\) => \{\}\)/);
+  assert.match(source, /answerSaveQueue\.waitForSaves\(\)\.catch\(\(\)\s*=>\s*\{\}\)/);
   assert.match(source, /answerSaveQueue\.hasInFlightSaves\(\)/);
   assert.match(source, /const retryPending = answerSaveQueue\.retryPending/);
 });

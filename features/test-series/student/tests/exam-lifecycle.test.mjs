@@ -15,6 +15,7 @@ test("exam controller wires its lifecycle fence into teardown and shared status 
   const source = readFileSync(new URL("../exam.js", import.meta.url), "utf8");
   assert.match(source, /import \{ createCbtExamLifecycle \} from "\.\/exam-lifecycle\.mjs"/);
   assert.match(source, /const lifecycle = createCbtExamLifecycle\(\)/);
+  assert.match(source, /const answerSaveQueue = createStudentAnswerSaveQueue\(/);
   assert.match(source, /const status = message => \{ if \(isActive\(\)\)/);
   assert.match(source, /destroy\(\)\{lifecycle\.destroy\(\)/);
 });
@@ -24,7 +25,7 @@ test("late exam start, section, answer-save and submit continuations check contr
   const requiredGuards = [
     /await getStudentActiveCbtAttempt\(app,testId\);\s*if \(!isActive\(\)\) return;/,
     /await enterCbtSection\(app, attemptId, question\.section\);[\s\S]{0,180}if\(!isActive\(\) \|\| finished \|\| request !== navigationRequest\) return;/,
-    /if \(!isActive\(\)\) return;[\s\S]{0,500}return saveCbtAnswer\(app,attemptId,qid,value\);[\s\S]{0,500}if \(!isActive\(\)\) return;/,
+    /saveAnswer: \(qid,value\) => saveCbtAnswer\(app,attemptId,qid,value\)/,
     /await submitCbtExam\(app,attemptId\);\s*if \(!isActive\(\)\) return;/,
     /const onOnline=\(\)=>\{if \(!isActive\(\)\) return;/
   ];
