@@ -173,6 +173,10 @@ async function sendOtp() {
     authStatus.textContent = "Enter a valid phone number with country code, for example +91XXXXXXXXXX.";
     return;
   }
+  if (otpFlow.isSending()) {
+    authStatus.textContent = "An OTP request is already in progress. Please wait.";
+    return;
+  }
   if (otpFlow.isVerifying()) {
     authStatus.textContent = "OTP verification is in progress. Please wait.";
     return;
@@ -195,7 +199,8 @@ async function sendOtp() {
     authStatus.textContent = error.message || "OTP could not be sent. Please retry.";
     clearStudentRecaptchaVerifier(auth);
   } finally {
-    // A stale request must never re-enable controls after logout or an auth change.
+    // Release only this request's lock; a stale completion cannot unlock a newer request.
+    otpFlow.finishSend(requestVersion);
     if (otpFlow.isCurrent(requestVersion)) setBusy(button, false, "Send OTP");
   }
 }
