@@ -62,3 +62,9 @@ JavaScript `trim()` from silently removing a disallowed control character at
 the beginning or end of a question, option, or section label. The policy still
 permits ordinary TAB, LF and CR in question text, options and explanations,
 while section labels reject every control character.
+
+Topic, chapter and folder metadata labels also reject raw C0/DEL control
+characters before trimming. This includes leading or trailing TAB, LF, CR,
+vertical-tab and form-feed characters; ordinary surrounding spaces continue
+to normalize normally. The same rule applies to fallback labels supplied by
+the import defaults.

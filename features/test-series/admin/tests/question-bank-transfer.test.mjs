@@ -295,6 +295,41 @@ test("import normalizer rejects disallowed control characters but preserves ordi
   }
 });
 
+test("Question Bank metadata labels reject trim-removable controls before normalization", () => {
+  const base = {
+    topic: "Civil", chapter: "Surveying", folder: "Practice",
+    text: "Define BM", options: ["A", "B"], correctIndex: 0
+  };
+  const trimRemovableControls = ["\\t", "\\n", "\\r", "\\v", "\\f"];
+
+  for (const field of ["topic", "chapter", "folder"]) {
+    for (const control of trimRemovableControls) {
+      for (const value of ["Civil" + control, control + "Civil"]) {
+        assert.throws(
+          () => normalizeQuestionBankImportRow({ ...base, [field]: value }, 5),
+          /पंक्ति 5:/,
+          field + " raw control must be rejected before trim"
+        );
+      }
+      const defaults = { topic: "Civil", chapter: "Surveying", folder: "Practice" };
+      defaults[field] = "Valid" + control;
+      assert.throws(
+        () => normalizeQuestionBankImportRow({ ...base, [field]: "" }, 5, defaults),
+        /पंक्ति 5:/,
+        field + " fallback control must be rejected before trim"
+      );
+    }
+  }
+
+  const normalized = normalizeQuestionBankImportRow({
+    ...base, topic: " Civil ", chapter: " Surveying ", folder: " Practice "
+  }, 5);
+  assert.deepEqual(
+    [normalized.topic, normalized.chapter, normalized.folder],
+    ["Civil", "Surveying", "Practice"]
+  );
+});
+
 test("spreadsheet option cells are trimmed and numeric answers remain supported", () => {
   const row = normalizeQuestionBankImportRow({
     topic: " Civil ", chapter: " Surveying ", folder: " Practice ",

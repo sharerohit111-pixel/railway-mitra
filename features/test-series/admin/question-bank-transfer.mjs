@@ -88,8 +88,11 @@ export function normalizeQuestionBankImportRow(row, rowNumber, defaults = {}) {
     if (candidate === undefined || candidate === null || typeof candidate !== "string") {
       questionImportRowError(rowNumber, label + " text होना चाहिए।");
     }
+    if (hasControlCharacters(candidate)) {
+      questionImportRowError(rowNumber, label + " में control characters स्वीकार नहीं हैं।");
+    }
     const normalizedValue = candidate.trim();
-    if (!normalizedValue || normalizedValue.length > maxLength || hasControlCharacters(normalizedValue)) {
+    if (!normalizedValue || normalizedValue.length > maxLength) {
       questionImportRowError(rowNumber, label + " आवश्यक है और अधिकतम " + maxLength + " अक्षरों का होना चाहिए।");
     }
     return normalizedValue;
