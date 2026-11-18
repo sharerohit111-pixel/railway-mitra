@@ -184,14 +184,14 @@ test("publish integrity rejects all control characters in section labels", () =>
 test("publish integrity preserves normal multiline formatting and bounds optional explanations", () => {
   const formatted = {
     ...questions[0],
-    text: "Question line 1\\nQuestion line 2",
-    options: ["Option\\tA", "Option B"],
+    text: "Question line 1\nQuestion line 2",
+    options: ["Option\tA", "Option B"],
     section: "Technical Ability",
-    explanation: "Reason line 1\\r\\nReason line 2"
+    explanation: "Reason line 1\r\nReason line 2"
   };
   const result = validateOwnerQuestionPaper(validTestMetadata, [formatted, questions[1]], validAnswerMap);
   assert.equal(result[0].text, formatted.text);
-  assert.equal(result[0].options[0], "Option\\tA");
+  assert.equal(result[0].options[0], "Option\tA");
   assert.equal(result[0].explanation, formatted.explanation);
 
   const exactExplanation = "x".repeat(4000);
