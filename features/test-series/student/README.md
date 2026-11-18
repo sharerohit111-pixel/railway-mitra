@@ -110,3 +110,9 @@ Every asynchronous portal navigation now captures the expected view-request gene
 ## Server-anchored exam clock
 
 The question-delivery callable includes a server-generated `serverNow` timestamp alongside the overall and section deadlines. The exam controller anchors its display clock to that timestamp and advances it with the browser's monotonic `performance.now()` clock, not the device wall clock. Changing the device date/time while an exam is open therefore cannot prematurely expire the overall exam or a timed section in the UI. A missing or invalid server clock anchor prevents the exam controller from opening. The server remains authoritative for every answer save, section entry and submission deadline; a delayed network response may make the display slightly conservative, but it cannot extend server-side answer acceptance.
+
+## Razorpay checkout script loading
+
+The Student checkout loads the provider's hosted script through an isolated loader scoped to the current Document. Concurrent checkout requests in the same document share one in-flight script load. A network failure, synchronous DOM insertion error, or load event without the expected `Razorpay` constructor removes the failed script element and clears the pending promise so a later user retry can load a fresh element. A successful load clears its event handlers and is reused while the provider constructor remains available.
+
+This protects the browser from a stale rejected loader promise and duplicate in-flight script elements. It does not verify a payment or grant access: the checkout callback is only a submission acknowledgement, and the server-verified captured-payment webhook plus payment/order/entitlement ledger remains authoritative. The loader's isolated Node tests cover concurrent calls, failed-load cleanup, retry, missing provider initialization, already-loaded reuse and synchronous insertion failure.
