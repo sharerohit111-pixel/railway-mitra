@@ -67,6 +67,8 @@ jobs:
           node --check --input-type=module < features/test-series/admin/owner-portal.js
           node --check --input-type=module < features/test-series/admin/owner-test-access-panel.mjs
           node --check --input-type=module < features/test-series/admin/owner-session.mjs
+          node --check --input-type=module < features/test-series/admin/admin-auth.js
+          node --check --input-type=module < features/test-series/admin/owner-recaptcha.mjs
           node --check --input-type=module < features/test-series/admin/admin-test-validation.mjs
           node --check --input-type=module < features/test-series/admin/owner-question-media-upload.mjs
           node --check --input-type=module < features/test-series/admin/payment-inspection-guidance.mjs
