@@ -1,4 +1,5 @@
 import { createPaymentRequestId, createStudentPaymentOrder } from "../cloud/student-client.js";
+import { createCheckoutScriptLoader } from "./checkout-script-loader.mjs";
 import {
   clearPaymentRequestId,
   getOrCreatePaymentRequestId,
@@ -6,32 +7,28 @@ import {
   requirePaymentSessionStorage
 } from "./payment-request-session.mjs";
 
-const CHECKOUT_SCRIPT = "https://checkout.razorpay.com/v1/checkout.js";
-let checkoutScriptPromise = null;
+const checkoutLoaders = new WeakMap();
 
 function loadCheckoutScript(root = document) {
-  if (typeof globalThis.Razorpay === "function") return Promise.resolve();
-  if (!checkoutScriptPromise) {
-    checkoutScriptPromise = new Promise((resolve, reject) => {
-      const script = root.createElement("script");
-      script.src = CHECKOUT_SCRIPT;
-      script.async = true;
-      script.onload = () => typeof globalThis.Razorpay === "function"
-        ? resolve()
-        : reject(new Error("Razorpay Checkout could not be initialized."));
-      script.onerror = () => {
-        checkoutScriptPromise = null;
-        reject(new Error("Payment service could not be loaded. Please try again."));
-      };
-      root.head.append(script);
-    }).catch(error => {
-      // Do not cache a rejected promise: a transient script/CSP/load failure
-      // must not permanently disable checkout for the rest of this tab.
-      checkoutScriptPromise = null;
-      throw error;
-    });
+  if (!root || typeof root !== "object") {
+    return Promise.reject(new Error("Payment checkout document is unavailable."));
   }
-  return checkoutScriptPromise;
+  let loader = checkoutLoaders.get(root);
+  if (!loader) {
+    loader = createCheckoutScriptLoader({
+      getCheckout: () => globalThis.Razorpay,
+      createScript: () => root.createElement("script"),
+      appendScript: script => root.head.append(script),
+      removeScript: script => {
+        if (script && typeof script.remove === "function") script.remove();
+        else if (script && script.parentNode && typeof script.parentNode.removeChild === "function") {
+          script.parentNode.removeChild(script);
+        }
+      }
+    });
+    checkoutLoaders.set(root, loader);
+  }
+  return loader();
 }
 
 // A checkout success callback is only a user-facing acknowledgement. Access is
