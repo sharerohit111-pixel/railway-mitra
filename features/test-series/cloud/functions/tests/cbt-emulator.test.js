@@ -4229,6 +4229,43 @@ test("question media URL refuses a stale attempt when another exam session is ac
   }
 });
 
+test("a still-live superseded attempt cannot be submitted outside the active exam session", async () => {
+  const oldAttemptId = "emulator-live-superseded-attempt";
+  const activeAttemptId = "emulator-live-current-attempt";
+  const oldRef = db.doc("testSeriesAttempts/" + oldAttemptId);
+  const activeAttemptRef = db.doc("testSeriesAttempts/" + activeAttemptId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  const now = Date.now();
+  try {
+    await Promise.all([
+      oldRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: new Date(now - 60_000), expiresAt: new Date(now + 20 * 60_000), answers: {}
+      }),
+      activeAttemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: new Date(now), expiresAt: new Date(now + 30 * 60_000), answers: {}
+      }),
+      activeRef.set({
+        uid, testId, attemptId: activeAttemptId, status: "in_progress",
+        startedAt: new Date(now), expiresAt: new Date(now + 30 * 60_000)
+      })
+    ]);
+    await assert.rejects(
+      callable("rmSubmitExam", { attemptId: oldAttemptId }),
+      error => error.code === "functions/failed-precondition" &&
+        error.message.includes("Exam is not the active session")
+    );
+    assert.equal((await oldRef.get()).data().status, "in_progress");
+    assert.equal((await activeRef.get()).data().attemptId, activeAttemptId);
+  } finally {
+    await Promise.all([oldRef.delete().catch(() => {}), activeAttemptRef.delete().catch(() => {})]);
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
+  }
+});
+
 test("late submission of an expired attempt does not replace a newer active exam session", async () => {
   const oldAttemptId = "emulator-late-submit-old-attempt";
   const newAttemptId = "emulator-late-submit-new-attempt";
