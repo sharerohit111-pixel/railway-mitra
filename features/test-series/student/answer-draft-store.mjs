@@ -57,9 +57,25 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
     return { answers, discarded: 1, unavailable: false };
   }
 
+  // A draft answer can only be mapped safely when the delivered paper has one
+  // unambiguous, non-empty question ID. Do not let Map's last-write-wins
+  // behavior select one of two duplicate question definitions.
+  const questionList = Array.isArray(questions) ? questions : [];
+  const questionIdCounts = new Map();
+  for (const question of questionList) {
+    const questionId = question && typeof question.id === "string" ? question.id : "";
+    if (!questionId.trim()) continue;
+    questionIdCounts.set(questionId, (questionIdCounts.get(questionId) || 0) + 1);
+  }
   const validQuestions = new Map(
-    (Array.isArray(questions) ? questions : [])
-      .filter(question => question && typeof question.id === "string" && Array.isArray(question.options))
+    questionList
+      .filter(question =>
+        question &&
+        typeof question.id === "string" &&
+        question.id.trim() &&
+        questionIdCounts.get(question.id) === 1 &&
+        Array.isArray(question.options)
+      )
       .map(question => [question.id, question])
   );
 
