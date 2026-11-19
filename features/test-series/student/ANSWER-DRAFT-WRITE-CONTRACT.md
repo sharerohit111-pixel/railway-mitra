@@ -18,12 +18,13 @@ A rejected write returns `false` and leaves the previously stored draft unchange
 
 ## Restore-time validation
 
-On restore, the helper independently checks every question ID against the currently delivered paper and verifies that the option index is within that question's option range. Ambiguous duplicate IDs and invalid values are discarded. A local draft never changes the server's saved-answer state and is cleared only as best-effort cleanup after server confirmation.
+On restore, the helper independently checks every question ID against the currently delivered paper and verifies that the option index is within that question's option range. Duplicate IDs in the delivered paper are treated as ambiguous even when only one duplicate has a valid options array; empty and whitespace-only IDs are never eligible for restoration. Draft entries for those IDs, malformed entries and out-of-range values are discarded rather than mapped to an arbitrary question definition. A local draft never changes the server's saved-answer state and is cleared only as best-effort cleanup after server confirmation.
 
-## Focused regression command
+## Focused regression commands
 
 ```sh
-node --test features/test-series/student/tests/*.test.mjs
+node --test features/test-series/student/tests/answer-draft-store.test.mjs
+node --test features/test-series/student/tests/answer-draft-ambiguous-paper.test.mjs
 ```
 
-The write-validation regressions cover malformed/sparse pairs, duplicate IDs, canonical option-index formatting, safe-integer bounds, storage-key validation, successful round-trip restoration and preservation of the previous draft on rejected writes.
+The write-validation and restore regressions cover malformed/sparse pairs, duplicate draft IDs, duplicate or blank delivered-paper IDs, canonical option-index formatting, safe-integer bounds, storage-key validation, successful round-trip restoration and preservation of the previous draft on rejected writes.
