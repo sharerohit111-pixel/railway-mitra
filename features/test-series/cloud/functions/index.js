@@ -2060,7 +2060,8 @@ exports.rmCreatePaymentOrder = onCall({
         throw new HttpsError("failed-precondition", "Payment reservation changed; provider order requires reconciliation.");
       }
       let latestAmount = null;
-      if (latestTest.exists && latestTest.data().status === "published") {
+      if (latestTest.exists && latestTest.data().status === "published" &&
+          typeof latestTest.data().price === "number" && Number.isFinite(latestTest.data().price)) {
         try { latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }); } catch {}
       }
       if (latestAmount !== amount) throw new HttpsError("failed-precondition", "Test price or availability changed after order creation.");
