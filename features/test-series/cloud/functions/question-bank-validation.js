@@ -1,3 +1,5 @@
+"use strict";
+
 function fail(message, rowNumber) {
   const prefix = Number.isInteger(rowNumber) && rowNumber > 0 ? "Invalid question at row " + rowNumber + ": " : "";
   throw new Error(prefix + message);
@@ -6,17 +8,18 @@ function fail(message, rowNumber) {
 function hasControlCharacters(value) {
   return Array.from(value).some(character => {
     const code = character.charCodeAt(0);
-    return code <= 31 || code === 127;
+    return code <= 31 || (code >= 127 && code <= 159);
   });
 }
 
 function hasDisallowedQuestionControls(value) {
   // Preserve ordinary multiline question formatting (LF, CR and TAB), but
-  // reject NUL and other non-printing controls from imported question text.
+  // reject the remaining C0 controls, DEL and the full C1 control range.
   return Array.from(value).some(character => {
     const code = character.charCodeAt(0);
     return code === 0 || (code >= 1 && code <= 8) ||
-      code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127;
+      code === 11 || code === 12 || (code >= 14 && code <= 31) ||
+      (code >= 127 && code <= 159);
   });
 }
 
