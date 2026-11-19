@@ -156,8 +156,8 @@ test("Owner paper validation accepts safe image descriptors and rejects unsafe m
 });
 
 
-test("publish integrity rejects non-printing controls in legacy question text, options and explanations", () => {
-  const rejectedCodes = [0, 1, 8, 11, 12, 14, 31, 127];
+test("publish integrity rejects C0, DEL and C1 controls in legacy question text, options and explanations", () => {
+  const rejectedCodes = [0, 1, 8, 11, 12, 14, 31, 127, 0x80, 0x85, 0x9f];
   for (const code of rejectedCodes) {
     const control = String.fromCharCode(code);
     assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
