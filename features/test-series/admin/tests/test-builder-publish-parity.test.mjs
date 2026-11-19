@@ -23,7 +23,7 @@ function validDraft(questionOverrides = {}) {
 }
 
 test("Owner Test Builder rejects non-printing controls in question text and options before save", () => {
-  const rejectedCodes = [0, 1, 8, 11, 12, 14, 31, 127];
+  const rejectedCodes = [0, 1, 8, 11, 12, 14, 31, 127, 0x80, 0x85, 0x9f];
   for (const code of rejectedCodes) {
     const control = String.fromCharCode(code);
     assert.throws(

@@ -4,7 +4,7 @@ The browser-side Owner Test Builder now applies the same question-text and optio
 control-character policy as the server-side publish integrity check before it
 sends a draft to Firebase.
 
-- Question text and options reject C0 non-printing controls and DEL.
+- Question text and options reject C0 non-printing controls, DEL and C1 controls (U+0080–U+009F).
 - Ordinary TAB, LF and CR remain accepted so multiline question content and
   tab-separated option text are not damaged.
 - Section labels remain stricter: all control characters are rejected, matching

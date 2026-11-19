@@ -6,8 +6,8 @@ function hasControlCharacters(value) {
 
 function hasDisallowedQuestionControls(value) {
   // Match the server publish boundary: preserve ordinary TAB, LF and CR
-  // formatting while rejecting non-printing controls and DEL.
-  return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/u.test(value);
+  // formatting while rejecting non-printing controls, DEL and C1.
+  return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(value);
 }
 
 export function validateOwnerTestDraft(draft) {
