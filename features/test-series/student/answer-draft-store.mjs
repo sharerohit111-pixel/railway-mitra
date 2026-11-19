@@ -88,7 +88,7 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
       : null;
     // Only accept the exact string format written by this module. Number(null),
     // Number(false), and Number([]) all become zero and must not restore option A.
-    if (!question || typeof value !== "string" || !/^(0|[1-9]\d*)$/.test(value)) {
+    if (!question || typeof value !== "string" || !/^(0|[1-9]\\d*)$/.test(value)) {
       discarded++;
       continue;
     }
@@ -106,11 +106,29 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
   return { answers, discarded, unavailable: false };
 }
 
+function isCanonicalOptionIndex(value) {
+  return typeof value === "string" &&
+    /^(0|[1-9]\\d*)$/.test(value) &&
+    Number.isSafeInteger(Number(value));
+}
+
 export function writePendingAnswerDraft({ storage, key, entries }) {
-  if (!storage || typeof storage.setItem !== "function" || typeof storage.removeItem !== "function" || !Array.isArray(entries)) return false;
+  if (!storage || typeof storage.setItem !== "function" ||
+      typeof storage.removeItem !== "function" || !Array.isArray(entries)) return false;
+  if (typeof key !== "string" || !key.trim() || entries.length > MAX_PENDING_ANSWERS) return false;
+
+  const seenQuestionIds = new Set();
+  for (const pair of entries) {
+    // Reject sparse/malformed pairs before JSON.stringify can turn holes into null.
+    if (!Array.isArray(pair) || pair.length !== 2) return false;
+    const [questionId, value] = pair;
+    if (typeof questionId !== "string" || !questionId.trim() ||
+        seenQuestionIds.has(questionId) || !isCanonicalOptionIndex(value)) return false;
+    seenQuestionIds.add(questionId);
+  }
+
   try {
     if (entries.length) {
-      if (entries.length > MAX_PENDING_ANSWERS) return false;
       const serialized = JSON.stringify(entries);
       if (typeof serialized !== "string") return false;
       const serializedBytes = utf8ByteLength(serialized);
