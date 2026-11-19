@@ -869,6 +869,34 @@ test("paid access lookup keeps one Firestore snapshot while a refund commits con
   }
 });
 
+test("exam start fails closed for malformed or negative persisted test prices", async () => {
+  const invalidIds = [
+    "emulator-invalid-price-nan",
+    "emulator-invalid-price-negative",
+    "emulator-invalid-price-infinite"
+  ];
+  const values = ["not-a-price", -1, Infinity];
+  const refs = invalidIds.map(testId => db.doc("testSeriesTests/" + testId));
+  try {
+    await Promise.all(refs.map((ref, index) => ref.set({
+      title: "Invalid Price " + index,
+      status: "published",
+      price: values[index],
+      mode: "mock",
+      durationMinutes: 10
+    })));
+    for (const testId of invalidIds) {
+      await assert.rejects(
+        callable("rmStartExam", { testId }),
+        error => error.code === "functions/failed-precondition" &&
+          error.message.includes("price configuration is invalid")
+      );
+    }
+  } finally {
+    await Promise.all(refs.map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("an unconfigured zero-price test is not advertised as the free trial or startable", async () => {
   const zeroPriceTestId = "emulator-unconfigured-zero-price";
   const testRef = db.doc("testSeriesTests/" + zeroPriceTestId);
