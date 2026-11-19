@@ -290,3 +290,32 @@ test("Owner draft-save callable uses the same raw title validator as publish", (
   const publish = source.slice(publishStart, publishEnd < 0 ? undefined : publishEnd);
   assert.match(publish, /validateOwnerQuestionPaper\(test, questions, answerMap\)/);
 });
+
+
+test("publish integrity rejects raw C0, DEL and C1 controls in category and folder before trimming", () => {
+  const rejectedCodes = [
+    ...Array.from({ length: 32 }, (_, index) => index),
+    0x7f, 0x80, 0x85, 0x9f
+  ];
+  for (const code of rejectedCodes) {
+    const control = String.fromCharCode(code);
+    for (const category of [control + "Civil", "Civil" + control]) {
+      assert.throws(
+        () => validateOwnerQuestionPaper({ ...validTestMetadata, category }, questions, validAnswerMap),
+        /category or folder is invalid/,
+        "raw category control code " + code
+      );
+    }
+    for (const folder of [
+      control + "Civil / Mock",
+      "Civil / Mock" + control,
+      "Civil / " + control + "Mock"
+    ]) {
+      assert.throws(
+        () => validateOwnerQuestionPaper({ ...validTestMetadata, folder }, questions, validAnswerMap),
+        /category or folder is invalid/,
+        "raw folder control code " + code
+      );
+    }
+  }
+});

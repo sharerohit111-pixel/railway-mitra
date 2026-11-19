@@ -64,8 +64,15 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
     throw new Error("Test metadata is invalid");
   }
   const title = normalizeOwnerTestTitle(test.title);
-  const category = typeof test.category === "string" ? test.category.trim() : "";
-  const folder = typeof test.folder === "string" ? test.folder.trim() : "";
+  const rawCategory = typeof test.category === "string" ? test.category : "";
+  const rawFolder = typeof test.folder === "string" ? test.folder : "";
+  // Check the original metadata before trim: TAB/LF/CR and other C0/C1
+  // controls must not disappear at the edges of a category or folder segment.
+  if (hasControlCharacters(rawCategory) || hasControlCharacters(rawFolder)) {
+    throw new Error("Test category or folder is invalid");
+  }
+  const category = rawCategory.trim();
+  const folder = rawFolder.trim();
   const safeMetadataLabel = /^[\p{L}\p{M}\p{N} _-]+$/u;
   const folderParts = folder.split("/");
   if (!category || category.length > 60 || !safeMetadataLabel.test(category) ||

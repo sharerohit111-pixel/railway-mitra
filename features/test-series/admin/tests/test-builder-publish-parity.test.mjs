@@ -98,3 +98,42 @@ test("Owner Test Builder still normalizes safe surrounding spaces in Unicode tit
   assert.equal(payload.questions[0].section, "Technical");
   assert.equal(payload.sections[0].name, "Technical");
 });
+
+
+test("Owner Test Builder rejects raw C0, DEL and C1 controls in category and folder before trimming", () => {
+  const rejectedCodes = [
+    ...Array.from({ length: 32 }, (_, index) => index),
+    0x7f, 0x80, 0x85, 0x9f
+  ];
+  for (const code of rejectedCodes) {
+    const control = String.fromCharCode(code);
+    for (const category of [control + "GDCE JE", "GDCE JE" + control]) {
+      assert.throws(
+        () => validateOwnerTestDraft({ ...validDraft(), category }),
+        /Category में control characters/,
+        "raw category control code " + code
+      );
+    }
+    for (const folder of [
+      control + "Civil / Mock Tests",
+      "Civil / Mock Tests" + control,
+      "Civil / " + control + "Mock Tests"
+    ]) {
+      assert.throws(
+        () => validateOwnerTestDraft({ ...validDraft(), folder }),
+        /Folder में control characters/,
+        "raw folder control code " + code
+      );
+    }
+  }
+});
+
+test("Owner Test Builder normalizes ordinary surrounding spaces in Unicode category and folder metadata", () => {
+  const payload = validateOwnerTestDraft({
+    ...validDraft(),
+    category: "  विभागीय JE  ",
+    folder: "  सिविल / सर्वेक्षण  "
+  });
+  assert.equal(payload.category, "विभागीय JE");
+  assert.equal(payload.folder, "सिविल / सर्वेक्षण");
+});

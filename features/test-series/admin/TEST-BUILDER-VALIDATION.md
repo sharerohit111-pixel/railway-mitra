@@ -173,3 +173,30 @@ node --test features/test-series/admin/tests/test-builder-publish-parity.test.mj
 
 This is client-side feedback only. The callable save/publish handlers and
 server-side validation remain authoritative.
+
+
+### Raw category and folder control validation before trimming
+
+Both the browser draft validator and the final server publish validator now
+inspect the original category and folder strings before calling \`trim()\`.
+This closes the edge-whitespace gap where TAB, LF, CR, vertical-tab, form-feed,
+other C0 controls, DEL or C1 controls could otherwise be silently removed from
+a legacy category or folder path before the allowlist check.
+
+- Category and folder metadata reject all C0, DEL and C1 controls anywhere in
+  the original value, including the beginning/end of the value and folder
+  segment boundaries.
+- Ordinary surrounding spaces continue to normalize.
+- Hindi and other Unicode letters/marks/numbers remain supported.
+- Empty or whitespace-only values retain the existing \`General\` browser
+  fallback; a value containing a control character is rejected rather than
+  silently converted to that fallback.
+- The server repeats this check at final publish, so older or directly edited
+  drafts cannot rely on browser-side validation.
+
+Focused regression commands:
+
+\`\`\`bash
+node --test features/test-series/admin/tests/test-builder-publish-parity.test.mjs
+node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
+\`\`\`
