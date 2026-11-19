@@ -756,6 +756,16 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
       tx.get(db.doc("testSeriesQuestionSets/" + a.testId)),
       tx.get(activeRef)
     ]);
+    const submitNow = new Date();
+    const activeSession = activeSnap.exists ? activeSnap.data() : null;
+    const isCurrentSession = isActiveAttemptSession({
+      uid, attemptId, attempt: a, activeSession, now: submitNow
+    });
+    // A superseded attempt may be finalized after its original deadline, but a
+    // still-live attempt must remain the student's active exam until submission.
+    if (!isCurrentSession && expiresAt > submitNow) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
     if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
     const test = testSnap.data();
