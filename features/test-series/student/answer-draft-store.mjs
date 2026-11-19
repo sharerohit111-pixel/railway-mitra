@@ -88,7 +88,7 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
       : null;
     // Only accept the exact string format written by this module. Number(null),
     // Number(false), and Number([]) all become zero and must not restore option A.
-    if (!question || typeof value !== "string" || !/^(0|[1-9]\\d*)$/.test(value)) {
+    if (!question || typeof value !== "string" || !/^(0|[1-9]\d*)$/.test(value)) {
       discarded++;
       continue;
     }
@@ -108,7 +108,7 @@ export function readPendingAnswerDraft({ storage, key, questions }) {
 
 function isCanonicalOptionIndex(value) {
   return typeof value === "string" &&
-    /^(0|[1-9]\\d*)$/.test(value) &&
+    /^(0|[1-9]\d*)$/.test(value) &&
     Number.isSafeInteger(Number(value));
 }
 
