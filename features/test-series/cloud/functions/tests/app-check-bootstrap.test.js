@@ -150,3 +150,32 @@ test("Owner and Student portals consume the dedicated App Check bootstrap", () =
     assert.doesNotMatch(source, /from ["'][^"']*assets\/js\/firebase\.js["']/);
   }
 });
+
+test("Razorpay webhook is the only HTTP endpoint and verifies signed raw bytes before ledger processing", () => {
+  const source = readRepositoryFile("features/test-series/cloud/functions/index.js");
+  const httpDeclarations = [...source.matchAll(/\\bonRequest\\s*\\(/g)];
+  assert.equal(
+    httpDeclarations.length,
+    1,
+    "new HTTP endpoints must receive an explicit authentication and App Check boundary review"
+  );
+  assert.match(
+    source,
+    /exports\\.rmRazorpayWebhook\\s*=\\s*onRequest\\(\\s*\\{\\s*region:\\s*REGION,\\s*secrets:\\s*\\[RAZORPAY_WEBHOOK_SECRET\\]\\s*\\}/
+  );
+
+  const handler = readRepositoryFile("features/test-series/cloud/functions/razorpay-webhook-handler.js");
+  const methodGuard = handler.indexOf('if (req.method !== "POST")');
+  const sizeGuard = handler.indexOf("rawBody.length > MAX_WEBHOOK_BODY_BYTES");
+  const signatureGuard = handler.indexOf("if (!verifyRazorpayWebhookSignature({ rawBody, signature, secret }))");
+  const signedPayloadParse = handler.indexOf('event = JSON.parse(rawBody.toString("utf8"))');
+  const eventIdValidation = handler.indexOf('const eventId = req.get("x-razorpay-event-id")');
+  const ledgerDispatch = handler.indexOf("await processor({ db, event, eventId })");
+
+  assert.ok(methodGuard >= 0, "webhook must reject non-POST requests");
+  assert.ok(sizeGuard > methodGuard, "webhook body size must be bounded before signature work");
+  assert.ok(signatureGuard > sizeGuard, "HMAC verification must follow the body-size guard");
+  assert.ok(signedPayloadParse > signatureGuard, "only the verified raw body may be parsed");
+  assert.ok(eventIdValidation > signedPayloadParse, "event identity must be validated before ledger dispatch");
+  assert.ok(ledgerDispatch > eventIdValidation, "payment/refund ledger writes must occur after all request guards");
+});

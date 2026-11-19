@@ -131,3 +131,11 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - The Razorpay webhook is checked separately as an HTTP endpoint using the dedicated webhook secret; it is not treated as a Student or Owner callable.
 - This is a source-level authorization-surface regression, not proof of deployed Auth, App Check or MFA configuration. Existing Auth + Firestore + Functions Emulator scenarios remain the runtime evidence for Student phone claims and Owner UID/provider/phone-MFA enforcement.
 - The Test Series Functions workflow already runs npm test for functions/tests/*.test.js, so the new guardrail is included without changing workflow scope. No live Firebase settings, Auth providers, App Check enforcement or credentials were changed.
+
+## HTTP endpoint and App Check boundary
+
+The isolated Functions module currently exports exactly one HTTP (onRequest) endpoint: the Razorpay provider webhook. Student and Owner application operations remain callable (onCall) functions using the shared fail-closed App Check policy.
+
+The webhook is a provider-to-server integration, not a browser callable. Its separate request boundary requires POST, caps the raw body at 1 MiB, verifies the HMAC signature over the exact raw bytes before parsing JSON, validates the provider event ID, and only then dispatches a captured-payment or processed-refund event to the ledger. The webhook secret is bound through Firebase Functions Secrets. The App Check policy regression test now pins this one-endpoint exception and the guard ordering; adding another HTTP endpoint requires an explicit authentication/App Check threat review and corresponding regression coverage.
+
+This is source-level and emulator-test coverage only. It does not verify a configured Razorpay webhook URL, secret value, live provider delivery, or staging payment transaction.
