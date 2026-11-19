@@ -37,11 +37,11 @@ test("rmGetExamQuestions revalidates persisted duration instead of coercing a fa
   assert.ok(start >= 0 && end > start, "rmGetExamQuestions handler must exist");
   const handler = source.slice(start, end);
 
-  assert.match(handler, /getExamDurationMinutes\\(test\\)/,
+  assert.match(handler, /getExamDurationMinutes\(test\)/,
     "question delivery must enforce the persisted duration contract");
-  assert.match(handler, /durationMinutes:\\s*durationMinutes/,
+  assert.match(handler, /durationMinutes:\s*durationMinutes/,
     "the response must use the validated duration");
-  assert.doesNotMatch(handler, /Number\\(test\\.durationMinutes\\s*\\|\\|\\s*30\\)/,
+  assert.doesNotMatch(handler, /Number\(test\.durationMinutes\s*\|\|\s*30\)/,
     "question delivery must not coerce or default malformed duration metadata");
 });
 
