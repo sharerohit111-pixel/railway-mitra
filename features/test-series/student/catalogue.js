@@ -165,6 +165,15 @@ export async function initStudentTestCatalogue({ app, studentUid, root = documen
         list.append(card);
       }
 
+      // The server cursor follows document ID, while each response page is
+      // title-sorted independently. Re-sort all loaded cards so pagination
+      // still presents one globally alphabetical catalogue.
+      const sortedCards = Array.from(list.querySelectorAll(".rm-catalogue-card"));
+      sortedCards.sort((a, b) =>
+        a.querySelector("h2").textContent.localeCompare(b.querySelector("h2").textContent)
+      );
+      sortedCards.forEach(card => list.append(card));
+
       status.textContent = seen.size + " tests loaded" + (hasMore ? " · more available" : "");
       if (loadButton) loadButton.remove();
       loadButton = null;
