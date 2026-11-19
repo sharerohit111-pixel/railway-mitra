@@ -140,6 +140,20 @@ test("Question Bank append shares IDs across existing and selected rows and neve
   assert.deepEqual(result.questions.map(question => question.id), ["bank_qb-1", "bank_qb-2"]);
 });
 
+test("Question Bank append does not alias malformed whitespace IDs to canonical bank IDs", () => {
+  const malformedExisting = [{ id: " bank_qb-1 " }];
+  const source = {
+    itemId: "qb-1",
+    question: { text: "Question qb-1", options: ["A", "B"] },
+    correctIndex: 0
+  };
+  const result = appendQuestionBankItemsToTest(malformedExisting, [source]);
+  assert.equal(result.addedCount, 1);
+  assert.equal(result.skippedCount, 0);
+  assert.deepEqual(result.questions.map(question => question.id), [" bank_qb-1 ", "bank_qb-1"]);
+  assert.deepEqual(malformedExisting, [{ id: " bank_qb-1 " }]);
+});
+
 test("Question Bank append rejects a draft overflow atomically at the 500-question ceiling", () => {
   const current = Array.from({ length: 499 }, (_, index) => ({ id: "q" + index }));
   const source = id => ({
