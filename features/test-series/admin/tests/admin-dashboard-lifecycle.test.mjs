@@ -125,6 +125,10 @@ test("Owner free-test assignment preserves the server-derived permanent lock and
   assert.ok(successGuard > request && successGuard < successStatus, "ignore a late success after an Owner session change");
   assert.ok(successStatus < refresh, "refresh the server-owned lock state only for the current session");
   assert.match(handler, /catch \(e\) \{\s*if \(generation !== testManagementGeneration\) return;/);
-  assert.match(handler, /finally \{\s*if \(generation === testManagementGeneration && !freeTestSelect\.disabled\) \{\s*button\.disabled = false;/);
+  const finallyStart = handler.indexOf("finally {");
+  const retryGuard = handler.indexOf("if (generation === testManagementGeneration && !freeTestSelect.disabled)", finallyStart);
+  const enableButton = handler.indexOf("button.disabled = false;", finallyStart);
+  assert.ok(finallyStart >= 0 && retryGuard > finallyStart && enableButton > retryGuard,
+    "only an unlocked current session may re-enable the control");
   assert.doesNotMatch(handler, /finally \{\s*button\.disabled = false/);
 });
