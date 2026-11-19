@@ -153,7 +153,7 @@ test("Owner and Student portals consume the dedicated App Check bootstrap", () =
 
 test("Razorpay webhook is the only HTTP endpoint and verifies signed raw bytes before ledger processing", () => {
   const source = readRepositoryFile("features/test-series/cloud/functions/index.js");
-  const httpDeclarations = [...source.matchAll(/\\bonRequest\\s*\\(/g)];
+  const httpDeclarations = [...source.matchAll(/\bonRequest\s*\(/g)];
   assert.equal(
     httpDeclarations.length,
     1,
@@ -161,7 +161,7 @@ test("Razorpay webhook is the only HTTP endpoint and verifies signed raw bytes b
   );
   assert.match(
     source,
-    /exports\\.rmRazorpayWebhook\\s*=\\s*onRequest\\(\\s*\\{\\s*region:\\s*REGION,\\s*secrets:\\s*\\[RAZORPAY_WEBHOOK_SECRET\\]\\s*\\}/
+    /exports\.rmRazorpayWebhook\s*=\s*onRequest\(\s*\{\s*region:\s*REGION,\s*secrets:\s*\[RAZORPAY_WEBHOOK_SECRET\]\s*\}/
   );
 
   const handler = readRepositoryFile("features/test-series/cloud/functions/razorpay-webhook-handler.js");
