@@ -219,3 +219,44 @@ test("still derives an unconfigured section from question metadata when no expli
   }));
   assert.deepEqual(payload.sections, [{ name: "Technical Ability", timeLimitMinutes: 0, questionCount: 1 }]);
 });
+
+test("preserves safe question media descriptors through the Owner Test Builder payload", () => {
+  const payload = validateOwnerTestDraft(validDraft({
+    media: [{
+      id: "diagram_01",
+      altText: "  Railway turnout layout  ",
+      mimeType: "image/png",
+      storagePath: "private/untrusted/path.png",
+      downloadURL: "https://example.invalid/private?token=must-not-persist"
+    }]
+  }));
+  assert.deepEqual(payload.questions[0].media, [{
+    id: "diagram_01",
+    altText: "Railway turnout layout",
+    mimeType: "image/png"
+  }]);
+  assert.equal("storagePath" in payload.questions[0].media[0], false);
+  assert.equal("downloadURL" in payload.questions[0].media[0], false);
+});
+
+test("rejects malformed Owner Test Builder media descriptors before draft save", () => {
+  const valid = { id: "diagram_01", altText: "Turnout layout", mimeType: "image/png" };
+  const invalidMedia = [
+    [],
+    new Array(1),
+    [valid, { ...valid, id: "diagram_01" }],
+    [{ ...valid, id: "../private" }],
+    [{ ...valid, altText: " " }],
+    [{ ...valid, altText: "x".repeat(201) }],
+    [{ ...valid, mimeType: "image/svg+xml" }],
+    [valid, valid, valid, { ...valid, id: "diagram_04" }],
+    "https://example.invalid/image.png"
+  ];
+  for (const media of invalidMedia) {
+    assert.throws(
+      () => validateOwnerTestDraft(validDraft({ media })),
+      /चित्र विवरण/,
+      "invalid media descriptor input must be rejected"
+    );
+  }
+});

@@ -10,6 +10,34 @@ function hasDisallowedQuestionControls(value) {
   return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(value);
 }
 
+const QUESTION_MEDIA_ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
+const QUESTION_MEDIA_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function projectQuestionMediaDescriptors(media, questionNumber) {
+  if (media === undefined || media === null) return undefined;
+  const invalid = () => new Error("प्रश्न " + questionNumber + " के चित्र विवरण मान्य नहीं हैं।");
+  if (!Array.isArray(media) || media.length < 1 || media.length > 3) throw invalid();
+
+  const seenIds = new Set();
+  const projected = [];
+  for (let index = 0; index < media.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(media, index)) throw invalid();
+    const item = media[index];
+    if (!item || typeof item !== "object" || Array.isArray(item)) throw invalid();
+    const { id, altText, mimeType } = item;
+    if (typeof id !== "string" || !QUESTION_MEDIA_ID_PATTERN.test(id) || seenIds.has(id) ||
+        typeof altText !== "string" || !altText.trim() || altText.length > 200 ||
+        typeof mimeType !== "string" || !QUESTION_MEDIA_TYPES.has(mimeType)) {
+      throw invalid();
+    }
+    seenIds.add(id);
+    // Keep only the same public descriptor fields accepted by the server.
+    // Upload URLs, storage paths and arbitrary caller metadata never enter a draft.
+    projected.push({ id, altText: altText.trim(), mimeType });
+  }
+  return projected;
+}
+
 export function validateOwnerTestDraft(draft) {
   if (!draft || typeof draft !== "object" || Array.isArray(draft)) {
     throw new Error("Test विवरण का प्रारूप सही नहीं है।");
@@ -102,8 +130,9 @@ export function validateOwnerTestDraft(draft) {
     if (hasControlCharacters(rawSection)) throw new Error("प्रश्न " + number + " के सेक्शन नाम में control characters स्वीकार नहीं हैं।");
     const section = rawSection.trim();
     if (section.length > 80) throw new Error("प्रश्न " + number + " का सेक्शन नाम अधिकतम 80 अक्षरों का हो सकता है।");
+    const media = projectQuestionMediaDescriptors(question.media, number);
     return { id, text: question.text.trim(), options: [...question.options], correctIndex: question.correctIndex,
-      ...(section ? { section } : {}) };
+      ...(section ? { section } : {}), ...(media ? { media } : {}) };
   });
 
   const sectionNames = [...new Set(questions.map(question => question.section).filter(Boolean))];

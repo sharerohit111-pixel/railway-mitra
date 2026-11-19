@@ -2754,6 +2754,55 @@ test("Owner manual access callables require real emulator password plus phone MF
     }
 
     {
+      const mediaDraftTestId = "emulator-owner-media-draft-roundtrip";
+      const mediaQuestionId = "media_roundtrip_q1";
+      const mediaDescriptor = {
+        id: "diagram_roundtrip_1",
+        altText: "Turnout layout",
+        mimeType: "image/png"
+      };
+      const mediaDraftRef = db.doc("testSeriesTests/" + mediaDraftTestId);
+      const mediaPaperRef = db.doc("testSeriesQuestionSets/" + mediaDraftTestId);
+      const mediaAnswerRef = db.doc("testSeriesAnswerKeys/" + mediaDraftTestId);
+      try {
+        const saved = await callableWithIdToken("rmOwnerSaveTest", {
+          testId: mediaDraftTestId,
+          title: "Owner media draft round-trip",
+          category: "Civil Engineering",
+          folder: "Emulator media",
+          mode: "mock",
+          durationMinutes: 30,
+          price: 0,
+          marksPerQuestion: 1,
+          negativeMarks: 0.25,
+          questions: [{
+            id: mediaQuestionId,
+            text: "Identify the turnout component",
+            options: ["A", "B"],
+            correctIndex: 1,
+            media: [mediaDescriptor]
+          }]
+        }, signedIn.idToken);
+        assert.equal(saved.saved, true);
+        assert.deepEqual((await mediaPaperRef.get()).data().questions[0].media, [mediaDescriptor],
+          "draft save must retain the descriptor required by the private upload flow");
+
+        const loaded = await callableWithIdToken("rmOwnerGetTest", { testId: mediaDraftTestId }, signedIn.idToken);
+        assert.deepEqual(loaded.questions[0].media, [mediaDescriptor],
+          "Owner draft reload must return the same safe media descriptor");
+
+        await assert.rejects(
+          callableWithIdToken("rmOwnerPublishTest", { testId: mediaDraftTestId }, signedIn.idToken),
+          error => error.code === "functions/failed-precondition"
+        );
+        assert.equal((await mediaDraftRef.get()).data().status, "draft",
+          "a descriptor without a verified ready mapping must not publish");
+      } finally {
+        await Promise.all([mediaDraftRef, mediaPaperRef, mediaAnswerRef].map(ref => ref.delete().catch(() => {})));
+      }
+    }
+
+    {
       const { mediaMappingId, mediaObjectPath } = require("../question-media-upload");
       const mediaTestId = "emulator-owner-media-publish-gate";
       const mediaQuestionId = "media_q1";

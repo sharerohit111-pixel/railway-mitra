@@ -235,3 +235,31 @@ Focused regression command:
 ```bash
 node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
 ```
+
+### Question image descriptors survive the Test Builder draft round-trip
+
+The image editor adds a non-secret descriptor (id, altText, mimeType) to
+the question JSON before the Owner saves a draft. The browser validator now
+validates and retains that descriptor instead of silently dropping it.
+
+- Only JPEG, PNG and WebP descriptors are accepted, with a canonical 1–100
+  character media ID, non-empty alt text up to 200 characters, and at most
+  three images per question.
+- Sparse arrays, duplicate IDs, unsupported MIME types and malformed
+  descriptors are rejected before the draft request.
+- Extra fields such as storage paths and download URLs are stripped. The
+  browser payload never stores upload credentials or private object locations.
+- The cloud draft-save and Owner reload callables preserve the safe descriptor.
+  Publishing remains blocked until the separate private upload/finalization
+  flow creates a verified ready mapping for every referenced image.
+
+Focused regression commands:
+
+```bash
+node --test features/test-series/admin/tests/admin-test-validation.test.mjs
+npm --prefix features/test-series/cloud/functions test -- --test-name-pattern="Owner media draft round-trip"
+```
+
+The emulator case uses a synthetic Owner token and Firestore records. It does
+not upload an image to a live bucket, change Firebase configuration, or certify
+real Storage CORS/credentials.
