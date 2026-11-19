@@ -22,12 +22,13 @@ function normalizeOwnerTestTitle(value) {
 }
 
 function hasDisallowedQuestionControls(value) {
-  // Keep ordinary multiline formatting (LF, CR and TAB), but reject non-printing
-  // controls that can corrupt imported, rendered or exported question content.
+  // Preserve ordinary multiline formatting (LF, CR and TAB), but reject the
+  // remaining C0 controls, DEL and the full C1 control range at final publish.
   return Array.from(value).some(character => {
     const code = character.charCodeAt(0);
     return code === 0 || (code >= 1 && code <= 8) ||
-      code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127;
+      code === 11 || code === 12 || (code >= 14 && code <= 31) ||
+      (code >= 127 && code <= 159);
   });
 }
 
