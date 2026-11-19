@@ -220,3 +220,18 @@ Focused regression command:
 ```bash
 node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
 ```
+
+### Canonical IDs in direct Test Builder imports
+
+Direct JSON/spreadsheet imports treat a supplied question ID as a stable
+question reference. The importer now validates the original string without
+trimming it first. Leading/trailing spaces, TAB, CR and LF are rejected rather
+than silently converted into another question ID. Safe integer IDs continue
+to be converted to their decimal string representation, and rows without an
+ID continue to receive the deterministic row-based fallback.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
+```
