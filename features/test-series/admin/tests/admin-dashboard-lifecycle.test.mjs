@@ -113,7 +113,7 @@ test("Question Bank bulk-import controls reset on Owner session change without s
 
 test("Owner free-test assignment preserves the server-derived permanent lock and ignores stale session completions", () => {
   const start = source.indexOf('el("rm-free-test-save").addEventListener("click"');
-  const end = source.indexOf("\\n  });", start);
+  const end = source.indexOf("\n  });", start);
   assert.ok(start >= 0 && end > start, "free-test assignment handler exists");
   const handler = source.slice(start, end);
   const generation = handler.indexOf("const generation = testManagementGeneration;");
