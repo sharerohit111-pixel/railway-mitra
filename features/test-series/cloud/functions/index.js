@@ -117,13 +117,17 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     const testSnap = await tx.get(testRef);
     if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
     const test = testSnap.data(), now = new Date();
+    const testPrice = Number(test.price ?? 0);
+    if (!Number.isFinite(testPrice) || testPrice < 0 || testPrice > 100000) {
+      throw new HttpsError("failed-precondition", "Test price configuration is invalid");
+    }
     if (test.status !== "published") throw new HttpsError("failed-precondition", "Test is not available");
     if (test.mode === "scheduled") {
       const start = date(test.scheduleStartAt), end = date(test.scheduleEndAt);
       if (!start || !end || now < start || now > end) throw new HttpsError("failed-precondition", "Exam is outside its scheduled window");
     }
     let freeClaimSnap = null;
-    if (Number(test.price || 0) > 0) {
+    if (testPrice > 0) {
       const entitlementSnap = await tx.get(db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId)));
       const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
       // The entitlement document is only one part of the grant. Re-read its
