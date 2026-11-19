@@ -130,3 +130,8 @@ The exam controller uses an isolated answer-save queue so rapid changes to the s
 ## Same-value answer re-selection while earlier saves are pending
 
 Each queued answer selection carries an internal monotonically increasing write version. The queue removes a question from its local pending draft only when both the answer value and the version match the latest selection. This matters for an A → B → A sequence: the acknowledgement for the first A must not clear the second A while B and the newer A are still queued. Retry snapshots also compare the write version, so a later selection is not mistaken for an unchanged older retry entry. The server remains authoritative; this version is only a client-side acknowledgement/recovery fence. A focused regression test holds all three writes, confirms the first A cannot clear the latest pending A, rejects the intermediate B, and verifies the final A is retained until its own server acknowledgement.
+
+
+## Explicit server acknowledgement for saved answers
+
+The Student answer-save queue clears a pending answer only when the callable response explicitly contains `saved: true`. A resolved request with a missing, malformed or negative acknowledgement is treated as unconfirmed: the answer remains in the local pending draft, the error callback is notified, and the same value can be retried. The isolated regression suite covers absent, null, empty-object, `saved: false` and non-boolean acknowledgements, followed by a successful retry. The production callable wrapper returns the server's `{ saved: true }` payload; this client-side check does not replace server authorization, Firestore transactions or server-side scoring.
