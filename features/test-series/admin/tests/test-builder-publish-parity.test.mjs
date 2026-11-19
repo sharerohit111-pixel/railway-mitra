@@ -46,3 +46,55 @@ test("Owner Test Builder preserves ordinary TAB, LF and CR formatting accepted b
   assert.equal(payload.questions[0].text, text);
   assert.equal(payload.questions[0].options[0], option);
 });
+
+
+test("Owner Test Builder rejects raw title C0, DEL and C1 controls before trimming", () => {
+  const rejectedCodes = [
+    ...Array.from({ length: 32 }, (_, index) => index),
+    0x7f, 0x80, 0x85, 0x9f
+  ];
+  for (const code of rejectedCodes) {
+    const control = String.fromCharCode(code);
+    assert.throws(
+      () => validateOwnerTestDraft({ ...validDraft(), title: "Title" + control }),
+      /control characters/,
+      "trailing title control code " + code
+    );
+    assert.throws(
+      () => validateOwnerTestDraft({ ...validDraft(), title: control + "Title" }),
+      /control characters/,
+      "leading title control code " + code
+    );
+  }
+});
+
+test("Owner Test Builder keeps section-label validation aligned with the server C1 policy", () => {
+  for (const code of [0x80, 0x85, 0x9f]) {
+    const control = String.fromCharCode(code);
+    assert.throws(
+      () => validateOwnerTestDraft(validDraft({ section: "Technical" + control })),
+      /control characters/,
+      "question section control code " + code
+    );
+
+    const draft = validDraft({ section: "Technical" });
+    draft.sections = [{ name: "Technical" + control, timeLimitMinutes: 0 }];
+    assert.throws(
+      () => validateOwnerTestDraft(draft),
+      /control characters/,
+      "configured section control code " + code
+    );
+  }
+});
+
+test("Owner Test Builder still normalizes safe surrounding spaces in Unicode titles and section labels", () => {
+  const draft = {
+    ...validDraft({ section: " Technical " }),
+    title: "  विभागीय CBT – Civil  ",
+    sections: [{ name: " Technical ", timeLimitMinutes: 0 }]
+  };
+  const payload = validateOwnerTestDraft(draft);
+  assert.equal(payload.title, "विभागीय CBT – Civil");
+  assert.equal(payload.questions[0].section, "Technical");
+  assert.equal(payload.sections[0].name, "Technical");
+});

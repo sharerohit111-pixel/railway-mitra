@@ -154,3 +154,22 @@ node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
 This is isolated Test Series validation logic. It does not change Firebase
 project configuration, live Auth providers, App Check enforcement, payments,
 or deployment behavior.
+
+
+### Browser-side title and section control-character parity
+
+The Owner Test Builder now rejects the same C0, DEL and C1 control ranges as
+the server-side title and section validators. It checks the raw title before
+trimming, so a leading or trailing TAB, newline, form-feed or other control
+cannot be silently removed by `String.prototype.trim()`. Question-level and
+configured section labels use the same C1-aware helper. Ordinary surrounding
+spaces and Unicode title/section text remain supported.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/admin/tests/test-builder-publish-parity.test.mjs
+```
+
+This is client-side feedback only. The callable save/publish handlers and
+server-side validation remain authoritative.

@@ -1,5 +1,7 @@
 function hasControlCharacters(value) {
-  return /[\u0000-\u001F\u007F]/u.test(value);
+  // Match the server-side owner-test-editor policy: C0, DEL and C1 controls
+  // are rejected in titles and section labels before any trimming occurs.
+  return /[\u0000-\u001F\u007F-\u009F]/u.test(value);
 }
 
 function hasDisallowedQuestionControls(value) {
@@ -13,7 +15,11 @@ export function validateOwnerTestDraft(draft) {
     throw new Error("Test विवरण का प्रारूप सही नहीं है।");
   }
 
-  const title = typeof draft.title === "string" ? draft.title.trim() : "";
+  const rawTitle = typeof draft.title === "string" ? draft.title : "";
+  if (hasControlCharacters(rawTitle)) {
+    throw new Error("टेस्ट के नाम में control characters स्वीकार नहीं हैं।");
+  }
+  const title = rawTitle.trim();
   if (!title || title.length > 160) {
     throw new Error("टेस्ट का नाम आवश्यक है और अधिकतम 160 अक्षरों का होना चाहिए।");
   }
