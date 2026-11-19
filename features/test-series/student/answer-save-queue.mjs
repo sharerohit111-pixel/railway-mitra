@@ -61,7 +61,14 @@ export function createStudentAnswerSaveQueue({
 
     const operation = saving.catch(() => {}).then(() => {
       if (!isCurrent()) return { skipped: true };
-      return Promise.resolve(saveAnswer(questionId, value)).then(result => ({ skipped: false, result }));
+      return Promise.resolve(saveAnswer(questionId, value)).then(result => {
+        if (!result || typeof result !== "object" || result.saved !== true) {
+          const error = new Error("Server did not confirm that the answer was saved");
+          error.code = "answer_save_unconfirmed";
+          throw error;
+        }
+        return { skipped: false, result };
+      });
     });
 
     entry.promise = operation.then(outcome => {
