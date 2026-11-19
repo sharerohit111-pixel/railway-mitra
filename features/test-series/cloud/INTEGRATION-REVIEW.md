@@ -122,3 +122,12 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - Moved the Test Mode Key ID check after published-test and finite-price validation, while keeping it before payment request/lock creation and provider HTTP. Invalid persisted prices now fail deterministically without credentials; valid-priced checkout still fails closed when Test Mode credentials are missing or invalid.
 - Updated the focused source-order unit test to assert price validation precedes Test Mode validation and that Test Mode validation still precedes reservation. The existing Auth + Firestore + Functions Emulator test covers nonnumeric persisted prices and verifies no payment request or lock is created.
 - No Razorpay request, production secret access, Firebase deployment, live configuration change, or load test was performed. Re-run both branch CI workflows against the next commit before treating this regression as resolved.
+
+## Callable authorization inventory regression (2026-11-19)
+
+- Added functions/tests/callable-auth-boundary.test.js to pin the complete exported CBT callable surface to explicit Student and Owner allowlists.
+- Every Student callable must invoke the phone-provider student(req) guard, and every Owner callable must invoke the configured UID + approved primary-provider + phone-MFA owner(req) guard before reading caller-supplied request data or accessing Firestore.
+- The test fails when a callable is added, renamed, omitted from the inventory, or assigned to the wrong role. New callable endpoints must be explicitly reviewed and classified before they can pass CI.
+- The Razorpay webhook is checked separately as an HTTP endpoint using the dedicated webhook secret; it is not treated as a Student or Owner callable.
+- This is a source-level authorization-surface regression, not proof of deployed Auth, App Check or MFA configuration. Existing Auth + Firestore + Functions Emulator scenarios remain the runtime evidence for Student phone claims and Owner UID/provider/phone-MFA enforcement.
+- The Test Series Functions workflow already runs npm test for functions/tests/*.test.js, so the new guardrail is included without changing workflow scope. No live Firebase settings, Auth providers, App Check enforcement or credentials were changed.
