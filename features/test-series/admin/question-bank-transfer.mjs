@@ -129,16 +129,17 @@ function questionImportRowError(rowNumber, message) {
 function hasControlCharacters(value) {
   return Array.from(value).some(character => {
     const code = character.charCodeAt(0);
-    return code <= 31 || code === 127;
+    return code <= 31 || (code >= 127 && code <= 159);
   });
 }
 
 function hasDisallowedQuestionControls(value) {
-  // Preserve ordinary multiline question formatting (LF, CR and TAB).
+  // Preserve ordinary TAB, LF and CR formatting; reject other C0, DEL and C1 controls.
   return Array.from(value).some(character => {
     const code = character.charCodeAt(0);
     return code === 0 || (code >= 1 && code <= 8) ||
-      code === 11 || code === 12 || (code >= 14 && code <= 31) || code === 127;
+      code === 11 || code === 12 || (code >= 14 && code <= 31) ||
+      (code >= 127 && code <= 159);
   });
 }
 
