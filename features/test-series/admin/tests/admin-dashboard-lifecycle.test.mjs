@@ -109,3 +109,22 @@ test("Question Bank bulk-import controls reset on Owner session change without s
   assert.match(handler, /const sessionGeneration = questionBankSessionGeneration/);
   assert.match(handler, /finally \{\s*if \(sessionGeneration === questionBankSessionGeneration\) button\.disabled = false;\s*\}/);
 });
+
+
+test("Owner free-test assignment preserves the server-derived permanent lock and ignores stale session completions", () => {
+  const start = source.indexOf('el("rm-free-test-save").addEventListener("click"');
+  const end = source.indexOf("\\n  });", start);
+  assert.ok(start >= 0 && end > start, "free-test assignment handler exists");
+  const handler = source.slice(start, end);
+  const generation = handler.indexOf("const generation = testManagementGeneration;");
+  const request = handler.indexOf('await httpsCallable(functions, "rmOwnerSetFreeTest")');
+  const successGuard = handler.indexOf("if (generation !== testManagementGeneration) return;", request);
+  const successStatus = handler.indexOf('status("पहला निःशुल्क टेस्ट निर्धारित हुआ:', request);
+  const refresh = handler.indexOf("await refreshTests();", successStatus);
+  assert.ok(generation >= 0 && generation < request, "capture the current Owner generation before the request");
+  assert.ok(successGuard > request && successGuard < successStatus, "ignore a late success after an Owner session change");
+  assert.ok(successStatus < refresh, "refresh the server-owned lock state only for the current session");
+  assert.match(handler, /catch \(e\) \{\s*if \(generation !== testManagementGeneration\) return;/);
+  assert.match(handler, /finally \{\s*if \(generation === testManagementGeneration && !freeTestSelect\.disabled\) \{\s*button\.disabled = false;/);
+  assert.doesNotMatch(handler, /finally \{\s*button\.disabled = false/);
+});

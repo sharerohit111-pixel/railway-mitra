@@ -177,3 +177,8 @@ The Test Management JSON/XLSX/XLS/CSV import path uses the same `normalizeTestBu
 ## Owner-session-bound Question Bank import controls
 
 The bulk Question Bank import button is released when the Owner session generation changes, so a pending request from a signed-out or replaced session cannot leave the next Owner session's control disabled. Its asynchronous completion is generation-fenced: an older request's finally handler cannot re-enable the button while a newer session's import is running. This is a UI lifecycle safeguard only; every bulk write continues to require the server-side Owner UID, phone-MFA and App Check checks.
+
+
+## Free-test assignment lock and Owner session lifecycle
+
+The Owner free-test assignment control treats the backend's first-claim lock as authoritative. After a successful assignment, the dashboard refreshes the test list and leaves the save button disabled when the server reports that a student has already claimed the free attempt. The request's UI continuation is bound to the current Test Management generation: an account switch or logout suppresses late success/error messages and cannot re-enable controls in the next session. A failed request may be retried only while the current free-test selector remains unlocked. This is client lifecycle protection only; the callable's transaction and persisted claim marker remain the security boundary.

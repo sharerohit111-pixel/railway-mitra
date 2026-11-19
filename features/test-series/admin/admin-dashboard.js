@@ -729,15 +729,27 @@ export function initOwnerAdminDashboard(auth, functions) {
   reconciliationMore.addEventListener("click", () => refreshPaymentReconciliation({ append: true }));
   const freeTestSelect = el("rm-free-test-select");
   el("rm-free-test-save").addEventListener("click", async () => {
+    const generation = testManagementGeneration;
     const testId = freeTestSelect.value;
     if (!testId) { status("पहले प्रकाशित और ₹0 मूल्य वाला टेस्ट चुनें।"); return; }
     const button = el("rm-free-test-save"); button.disabled = true;
     try {
       const result = await httpsCallable(functions, "rmOwnerSetFreeTest")({ testId });
+      if (generation !== testManagementGeneration) return;
       status("पहला निःशुल्क टेस्ट निर्धारित हुआ: " + result.data.testId);
+      // refreshTests owns the next generation and restores the server's
+      // permanent free-test lock state; do not unconditionally re-enable here.
       await refreshTests();
-    } catch (e) { status(e.message || "निःशुल्क टेस्ट निर्धारित नहीं हुआ।"); }
-    finally { button.disabled = false; }
+    } catch (e) {
+      if (generation !== testManagementGeneration) return;
+      status(e.message || "निःशुल्क टेस्ट निर्धारित नहीं हुआ।");
+    } finally {
+      // A session change keeps the controls locked. On a failed callable,
+      // allow retry only when the current server-derived selector is unlocked.
+      if (generation === testManagementGeneration && !freeTestSelect.disabled) {
+        button.disabled = false;
+      }
+    }
   });
   const testForm = el("rm-admin-test-form");
   el("rm-question-import").addEventListener("click", async () => {
