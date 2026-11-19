@@ -153,3 +153,11 @@ The private answer-key validator independently requires every option index to be
 - The server uses only the validated integer to calculate `expiresAt` and to describe the delivered paper; it no longer silently defaults missing values or coerces malformed legacy metadata to a 30-minute display value.
 - Focused unit tests cover the accepted range, malformed values, and the question-delivery boundary. CBT Auth/Firestore/Functions Emulator regressions verify that malformed duration blocks exam start without creating an attempt, and that duration corruption after a valid start blocks question delivery without mutating the in-progress attempt or active-session pointer.
 - This protects legacy or manually corrupted persisted records; it does not replace the required non-production Firebase staging verification.
+
+## CI follow-up — exam duration response contract (2026-11-20)
+
+- On branch head `e2bad9aba7402a24efe63b2d8204d113e7af222a`, both Test Series workflows completed with failure: Functions Validation run [44625030180](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44625030180) and CBT Emulator run [44625030078](https://github.com/sharerohit111-pixel/railway-mitra/actions/runs/44625030078).
+- Each run executed the Functions Node test suite and reported 337/338 passing. The sole failure was a source-contract assertion in `exam-duration.test.js` that expected the explicit spelling `durationMinutes: durationMinutes`, while the response correctly uses JavaScript object shorthand `durationMinutes` after assigning the value from `getExamDurationMinutes(test)`.
+- Updated the regression to verify ordering (validated assignment before response construction), the validated local variable's presence in the response's test projection (including object shorthand), and the absence of direct persisted-duration projection or fallback coercion. This is a test assertion correction; no production handler logic was changed.
+- Because the `npm test` command failed, the subsequent Firestore Rules, Storage and emulator backup/restore steps were not reached in those runs. They must be verified on a later successful workflow run; no CI pass is inferred from the 337 passing unit tests.
+- No live Firebase configuration, Auth provider, App Check enforcement, Razorpay credential, deployment or load-test setting was changed.
