@@ -18,6 +18,17 @@ function isRecord(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+function hasDenseAnswerOptions(options) {
+  if (!Array.isArray(options) || options.length < 2 || options.length > 6) return false;
+  // Array helpers such as some() skip holes; every option slot must be an own,
+  // non-empty string property before the private answer key can be used.
+  for (let index = 0; index < options.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(options, index)) return false;
+    if (typeof options[index] !== "string" || !options[index].trim()) return false;
+  }
+  return true;
+}
+
 /**
  * Validate the persisted private answer key against the exact published paper
  * before scoring. A missing, extra, duplicated, or out-of-range key must never
@@ -33,8 +44,7 @@ function getExamAnswerKey(questions, answerQuestions) {
   for (const question of questions) {
     if (!isRecord(question) || typeof question.id !== "string" ||
         !/^[A-Za-z0-9_-]{1,100}$/.test(question.id) || seen.has(question.id) ||
-        !Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
-        question.options.some(option => typeof option !== "string" || !option.trim())) {
+        !hasDenseAnswerOptions(question.options)) {
       throw invalidAnswerKey();
     }
     seen.add(question.id);

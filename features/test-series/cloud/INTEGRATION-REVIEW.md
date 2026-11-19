@@ -139,3 +139,8 @@ The isolated Functions module currently exports exactly one HTTP (onRequest) end
 The webhook is a provider-to-server integration, not a browser callable. Its separate request boundary requires POST, caps the raw body at 1 MiB, verifies the HMAC signature over the exact raw bytes before parsing JSON, validates the provider event ID, and only then dispatches a captured-payment or processed-refund event to the ledger. The webhook secret is bound through Firebase Functions Secrets. The App Check policy regression test now pins this one-endpoint exception and the guard ordering; adding another HTTP endpoint requires an explicit authentication/App Check threat review and corresponding regression coverage.
 
 This is source-level and emulator-test coverage only. It does not verify a configured Razorpay webhook URL, secret value, live provider delivery, or staging payment transaction.
+
+
+## Answer-key option-density validation
+
+The private answer-key validator independently requires every option index to be an own, non-empty string property. It does not rely on `Array.prototype.some`, because sparse-array holes are skipped by array iteration helpers. A sparse or inherited option slot fails closed before a result can be scored. The focused regression is included in `functions/tests/exam-answer-key.test.js` and runs in the isolated Test Series Functions validation workflow.

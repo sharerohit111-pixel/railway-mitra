@@ -53,6 +53,14 @@ test("answer-key integrity rejects malformed option lists and answer indices", (
   }
 });
 
+test("answer-key integrity rejects sparse option arrays instead of skipping holes", () => {
+  const sparseOptions = ["A", , "C"];
+  assert.equal(Object.hasOwn(sparseOptions, 1), false);
+  assert.throws(() => getExamAnswerKey([{ id: "q_sparse", options: sparseOptions }], {
+    q_sparse: { correctAnswer: "0" }
+  }), error => error.code === "invalid_exam_answer_key");
+});
+
 test("answer-key integrity rejects missing, array, or oversized paper data", () => {
   for (const questions of [null, [], Array.from({ length: 501 }, (_, index) => ({ id: `q${index}`, options: ["A", "B"] }))]) {
     assert.throws(() => getExamAnswerKey(questions, {}), error => error.code === "invalid_exam_answer_key");
