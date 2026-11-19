@@ -37,10 +37,20 @@ test("rmGetExamQuestions revalidates persisted duration instead of coercing a fa
   assert.ok(start >= 0 && end > start, "rmGetExamQuestions handler must exist");
   const handler = source.slice(start, end);
 
-  assert.match(handler, /getExamDurationMinutes\(test\)/,
-    "question delivery must enforce the persisted duration contract");
-  assert.match(handler, /durationMinutes:\s*durationMinutes/,
-    "the response must use the validated duration");
+  const durationValidation = handler.indexOf("durationMinutes = getExamDurationMinutes(test)");
+  const responseStart = handler.indexOf("return {", durationValidation);
+  const testProjectionStart = handler.indexOf("test: {", responseStart);
+  const questionsProjectionStart = handler.indexOf("questions: studentQuestions", testProjectionStart);
+
+  assert.ok(durationValidation >= 0 && responseStart > durationValidation,
+    "question delivery must validate persisted duration before building the response");
+  assert.ok(testProjectionStart > responseStart && questionsProjectionStart > testProjectionStart,
+    "the response must include a test projection before the student questions");
+  const testProjection = handler.slice(testProjectionStart, questionsProjectionStart);
+  assert.match(testProjection, /\bdurationMinutes\s*,/,
+    "the response must expose the validated local duration (including object shorthand)");
+  assert.doesNotMatch(testProjection, /durationMinutes\s*:\s*test\.durationMinutes/,
+    "the response must not expose unvalidated persisted duration directly");
   assert.doesNotMatch(handler, /Number\(test\.durationMinutes\s*\|\|\s*30\)/,
     "question delivery must not coerce or default malformed duration metadata");
 });
