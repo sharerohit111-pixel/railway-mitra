@@ -1935,14 +1935,6 @@ exports.rmCreatePaymentOrder = onCall({
   try { requestId = validatePaymentRequestId(req.data && req.data.requestId); }
   catch (error) { throw new HttpsError("invalid-argument", error.message); }
 
-  // This branch is Test Mode only. Reject live/missing keys before creating
-  // a payment reservation or contacting the provider.
-  let keyId = "";
-  try { keyId = RAZORPAY_KEY_ID.value(); } catch (_) {}
-  if (!isRazorpayTestModeKeyId(keyId)) {
-    throw new HttpsError("failed-precondition", "Razorpay Test Mode is not configured; paid checkout is disabled.");
-  }
-
   const testRef = db.doc("testSeriesTests/" + testId);
   const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId));
   const testSnap = await testRef.get();
@@ -1956,6 +1948,15 @@ exports.rmCreatePaymentOrder = onCall({
     amount = rupeesToPaise(storedPrice, { maxRupees: 100000 });
   } catch {
     throw new HttpsError("failed-precondition", "This test does not have a valid paid price");
+  }
+
+  // Validate provider configuration only after the published test and its
+  // persisted price are known to be valid. Keep this before any reservation,
+  // student/test lock, or outbound provider request.
+  let keyId = "";
+  try { keyId = RAZORPAY_KEY_ID.value(); } catch (_) {}
+  if (!isRazorpayTestModeKeyId(keyId)) {
+    throw new HttpsError("failed-precondition", "Razorpay Test Mode is not configured; paid checkout is disabled.");
   }
 
   const requestDocId = paymentRequestDocumentId({ uid, testId, requestId });

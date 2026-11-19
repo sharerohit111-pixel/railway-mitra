@@ -147,15 +147,18 @@ test("rejects live and malformed key IDs before making a provider request", asyn
   assert.equal(calls, 0);
 });
 
-test("payment callable validates Test Mode before creating any payment reservation", () => {
+test("payment callable validates persisted price before Test Mode and Test Mode before reservation", () => {
   const source = fs.readFileSync(path.join(__dirname, "../index.js"), "utf8");
   const start = source.indexOf("exports.rmCreatePaymentOrder = onCall(");
   const end = source.indexOf("exports.rmRazorpayWebhook = onRequest(", start);
   assert.ok(start >= 0 && end > start, "payment callable source must be present");
   const callable = source.slice(start, end);
+  const priceValidation = callable.indexOf("const storedPrice =");
   const modeGuard = callable.indexOf("isRazorpayTestModeKeyId(keyId)");
   const requestDocument = callable.indexOf("const requestDocId =");
   const reservation = callable.indexOf("db.runTransaction");
+  assert.ok(priceValidation >= 0 && priceValidation < modeGuard,
+    "persisted test price must be validated before provider configuration");
   assert.ok(modeGuard >= 0, "Test Mode key validation must be present");
   assert.ok(requestDocument > modeGuard, "payment request document must be derived only after mode validation");
   assert.ok(reservation > requestDocument, "payment reservation must occur only after mode validation");

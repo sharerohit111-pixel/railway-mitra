@@ -114,3 +114,11 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - `createRazorpayOrder` repeats the same check before its HTTP client is invoked, protecting direct/helper callers as well as the callable path.
 - Focused unit regressions cover accepted Test Mode IDs, rejection of live/malformed IDs without provider calls, and source-level ordering of the callable's guard before reservation. These checks do not contact Razorpay or inspect Secret Manager values.
 - Staging remains blocked until the intended non-production Firebase project, Test Mode API credentials and matching Test Mode webhook secret are independently verified and a controlled provider walkthrough is approved. No secrets, live Firebase configuration or deployment were changed.
+
+
+## Payment validation order regression (2026-11-19)
+
+- Latest CI on commit 0ba0b8678950b4fd42da7c32038c9bdd0404e568 exposed one emulator regression: the Test Mode secret guard ran before persisted test-price validation, so the malformed-price scenario received the missing-secret error instead of the intended invalid-price error. Both Functions validation and CBT emulator workflows failed on that same single CBT test (324/325 tests passed in each run).
+- Moved the Test Mode Key ID check after published-test and finite-price validation, while keeping it before payment request/lock creation and provider HTTP. Invalid persisted prices now fail deterministically without credentials; valid-priced checkout still fails closed when Test Mode credentials are missing or invalid.
+- Updated the focused source-order unit test to assert price validation precedes Test Mode validation and that Test Mode validation still precedes reservation. The existing Auth + Firestore + Functions Emulator test covers nonnumeric persisted prices and verifies no payment request or lock is created.
+- No Razorpay request, production secret access, Firebase deployment, live configuration change, or load test was performed. Re-run both branch CI workflows against the next commit before treating this regression as resolved.
