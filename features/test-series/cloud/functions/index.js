@@ -36,6 +36,7 @@ const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require(
 const { selectQuestionBankPage } = require("./question-bank-pagination");
 const { getExamSectionConfig, normalizeSectionLabel } = require("./section-integrity");
 const { getExamScoringConfig } = require("./exam-scoring");
+const { getExamDurationMinutes } = require("./exam-duration");
 const { getExamAnswerKey, addExamAnswerKeyEntry } = require("./exam-answer-key");
 const {
   projectStudentQuestions,
@@ -122,6 +123,15 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
       throw new HttpsError("failed-precondition", "Test price configuration is invalid");
     }
     if (test.status !== "published") throw new HttpsError("failed-precondition", "Test is not available");
+    let durationMinutes;
+    try {
+      durationMinutes = getExamDurationMinutes(test);
+    } catch (error) {
+      if (error && error.code === "invalid_exam_duration") {
+        throw new HttpsError("failed-precondition", "Exam duration configuration is invalid");
+      }
+      throw error;
+    }
     if (test.mode === "scheduled") {
       const start = date(test.scheduleStartAt), end = date(test.scheduleEndAt);
       if (!start || !end || now < start || now > end) throw new HttpsError("failed-precondition", "Exam is outside its scheduled window");
@@ -258,8 +268,8 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     const attemptRef = freeClaimSnap
       ? db.doc("testSeriesAttempts/" + freeClaimAttemptId)
       : db.collection("testSeriesAttempts").doc();
-    const duration = Math.max(1, Math.min(240, Number(test.durationMinutes || 30)));
-    const startedAt = Timestamp.now(), expiresAt = Timestamp.fromDate(new Date(now.getTime() + duration * 60000));
+
+    const startedAt = Timestamp.now(), expiresAt = Timestamp.fromDate(new Date(now.getTime() + durationMinutes * 60000));
     if (freeClaimSnap) {
       const claimedAttempt = await tx.get(attemptRef);
       if (!claimedAttempt.exists || claimedAttempt.data().uid !== uid || claimedAttempt.data().testId !== testId) {

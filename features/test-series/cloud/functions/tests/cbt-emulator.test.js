@@ -185,6 +185,64 @@ after(async () => {
 });
 
 
+test("rmStartExam rejects a coercible legacy duration before creating an attempt", async () => {
+  const originalUid = uid;
+  const temporaryUid = "cbt-duration-" + Date.now();
+  const malformedTestId = "emulator-invalid-duration";
+  const paymentId = "pay-duration-" + Date.now();
+  const orderId = "order-duration-" + Date.now();
+  const testRef = db.doc("testSeriesTests/" + malformedTestId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + temporaryUid);
+
+  await getAuth(app).createUser({ uid: temporaryUid });
+  uid = temporaryUid;
+  try {
+    await signInAsTestStudent(temporaryUid);
+    await testRef.set({
+      title: "Malformed Duration",
+      status: "published",
+      price: 499,
+      mode: "mock",
+      durationMinutes: "30",
+      marksPerQuestion: 1,
+      negativeMarks: 0
+    });
+    await seedPaidAccess({ testId: malformedTestId, paymentId, orderId, amount: 49900 });
+
+    await assert.rejects(
+      callable("rmStartExam", { testId: malformedTestId }),
+      error => error.code === "functions/failed-precondition" && /duration configuration is invalid/i.test(error.message)
+    );
+
+    const attempts = await db.collection("testSeriesAttempts")
+      .where("uid", "==", temporaryUid)
+      .where("testId", "==", malformedTestId)
+      .get();
+    assert.equal(attempts.empty, true, "invalid duration must not create an attempt");
+    assert.equal((await activeRef.get()).exists, false, "invalid duration must not create an active-session pointer");
+  } finally {
+    const attempts = await db.collection("testSeriesAttempts")
+      .where("uid", "==", temporaryUid)
+      .where("testId", "==", malformedTestId)
+      .get();
+    if (!attempts.empty) {
+      const cleanup = db.batch();
+      attempts.docs.forEach(doc => cleanup.delete(doc.ref));
+      await cleanup.commit();
+    }
+    await Promise.all([
+      testRef.delete().catch(() => {}),
+      activeRef.delete().catch(() => {}),
+      db.doc("testSeriesPayments/" + paymentId).delete().catch(() => {}),
+      db.doc("testSeriesPaymentOrders/" + orderId).delete().catch(() => {}),
+      db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(temporaryUid, malformedTestId)).delete().catch(() => {})
+    ]);
+    await getAuth(app).deleteUser(temporaryUid).catch(() => {});
+    uid = originalUid;
+    await signInAsTestStudent(originalUid);
+  }
+});
+
 test("student dashboard returns the latest 100 submitted results first", async () => {
   const refs = [
     db.doc("testSeriesResults/emulator-dashboard-old"),

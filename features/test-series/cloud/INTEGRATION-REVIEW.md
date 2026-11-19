@@ -144,3 +144,12 @@ This is source-level and emulator-test coverage only. It does not verify a confi
 ## Answer-key option-density validation
 
 The private answer-key validator independently requires every option index to be an own, non-empty string property. It does not rely on `Array.prototype.some`, because sparse-array holes are skipped by array iteration helpers. A sparse or inherited option slot fails closed before a result can be scored. The focused regression is included in `functions/tests/exam-answer-key.test.js` and runs in the isolated Test Series Functions validation workflow.
+
+
+## Server-side exam duration validation
+
+- The Owner publish boundary requires an integer duration from 1 through 240 minutes; `rmStartExam` now independently enforces the same contract against persisted published test metadata.
+- Missing, string-coercible, fractional, non-finite, zero, negative and over-limit durations fail with `failed-precondition` before payment/free-access checks or attempt/session writes.
+- The server uses only the validated integer to calculate `expiresAt`; it no longer silently defaults missing values or clamps malformed legacy data.
+- Focused unit tests cover the accepted range and malformed values. The CBT Auth/Firestore/Functions Emulator regression signs in a separate synthetic student, seeds a paid test with a string duration, and verifies that no attempt or active-session pointer is created.
+- This protects legacy or manually corrupted persisted records; it does not replace the required non-production Firebase staging verification.
