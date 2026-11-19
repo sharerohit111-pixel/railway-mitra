@@ -307,7 +307,8 @@ export function normalizeTestBuilderImportRow(row, rowNumber) {
 
   let id = "q" + rowNumber;
   if (normalized.id !== undefined && normalized.id !== null && normalized.id !== "") {
-    if (typeof normalized.id === "string") id = normalized.id.trim();
+    // Question IDs are stable references; trimming could alias a different ID.
+    if (typeof normalized.id === "string") id = normalized.id;
     else if (typeof normalized.id === "number" && Number.isSafeInteger(normalized.id)) id = String(normalized.id);
     else questionImportRowError(rowNumber, "प्रश्न ID सुरक्षित text या integer होना चाहिए।");
   }
