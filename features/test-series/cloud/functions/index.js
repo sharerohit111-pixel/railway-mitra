@@ -750,11 +750,13 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const expiresAt = date(a.expiresAt);
     if (!expiresAt || !Number.isFinite(expiresAt.getTime())) throw new HttpsError("failed-precondition", "Attempt deadline is missing or invalid");
     const activeRef = db.doc("testSeriesActiveSessions/" + uid);
-    const [testSnap, keySnap, paperSnap, activeSnap] = await Promise.all([
+    const resultRef = db.doc("testSeriesResults/" + attemptId);
+    const [testSnap, keySnap, paperSnap, activeSnap, resultSnap] = await Promise.all([
       tx.get(db.doc("testSeriesTests/" + a.testId)),
       tx.get(db.doc("testSeriesAnswerKeys/" + a.testId)),
       tx.get(db.doc("testSeriesQuestionSets/" + a.testId)),
-      tx.get(activeRef)
+      tx.get(activeRef),
+      tx.get(resultRef)
     ]);
     const submitNow = new Date();
     const activeSession = activeSnap.exists ? activeSnap.data() : null;
@@ -765,6 +767,11 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     // still-live attempt must remain the student's active exam until submission.
     if (!isCurrentSession && expiresAt > submitNow) {
       throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+    // An in-progress attempt must never overwrite an existing result record.
+    // Treat this orphan/conflicting state as a support-reconciliation blocker.
+    if (resultSnap.exists) {
+      throw new HttpsError("failed-precondition", "A result already exists for this attempt; contact support before resubmitting");
     }
     if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
     if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
@@ -804,7 +811,7 @@ exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
     const totalQuestions = answerKey.length;
     const score = correct * scoring.marksPerQuestion - wrong * scoring.negativeMarks;
     tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions });
-    tx.set(db.doc("testSeriesResults/" + attemptId), { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions, submittedAt: FieldValue.serverTimestamp() });
+    tx.create(resultRef, { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions, submittedAt: FieldValue.serverTimestamp() });
     // An expired older attempt may be submitted after the student has already
     // started another exam. Never let that late submission overwrite the newer
     // active-session pointer.

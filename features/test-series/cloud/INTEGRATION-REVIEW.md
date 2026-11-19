@@ -22,7 +22,7 @@ This is a source-level review with local Firebase Emulator CI evidence. It is no
 3. **Question media:** Uploads enter private quarantine; finalization verifies bytes/checksum, decodes and re-encodes supported image formats without metadata, publishes with create-only generation preconditions and creates a ready mapping. Student delivery checks attempt ownership, active status/deadline, mapping and exact object generation before issuing a short-lived URL.
 4. **Question bank and test builder:** Client and server validation cover question shape, options, section labels, bulk import and test configuration. Server-side persisted-paper, section mapping, answer-key and scoring configuration are independently revalidated before delivery, answer save or submission.
 5. **Payment safety:** Checkout callbacks do not grant access. Paid access is based on server-validated payment/order/entitlement records; Owner payment inspection and reconciliation remain read-only support workflows. Emulator fixtures use synthetic ledger records and do not prove a live Razorpay transaction.
-6. **Exam recovery and lifecycle:** Server-issued deadlines, active-attempt ownership, answer persistence, reconnect recovery, automatic timeout submission recovery and stale-session/view fencing have unit and Emulator regression coverage. A dedicated Emulator case also saves different question IDs concurrently, then verifies both answers survive resume and server-side scoring.
+6. **Exam recovery and lifecycle:** Server-issued deadlines, active-attempt ownership, answer persistence, reconnect recovery, automatic timeout submission recovery and stale-session/view fencing have unit and Emulator regression coverage. A dedicated Emulator case also saves different question IDs concurrently, then verifies both answers survive resume and server-side scoring. Submission reads the result document in the same transaction and creates new results with create-only semantics; a pre-existing result paired with an in-progress attempt fails closed rather than being overwritten.
 
 These are local CI/emulator results only. They do not certify production OTP, production MFA, live payment processing, real-device behavior or concurrent-user capacity.
 
@@ -98,3 +98,11 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - Question text, options and explanations retain ordinary line breaks and tabs where applicable; section labels reject all control characters.
 - Optional explanations are type-checked and bounded to 4,000 characters, matching the question-bank input contract.
 - This is a publish-time integrity check. Owner authorization, private answer-key separation and student allowlist projection remain unchanged.
+
+
+## Result-record immutability regression follow-up
+
+- `rmSubmitExam` now reads the attempt's result document in the same Firestore transaction as the active-session and scoring inputs.
+- An existing result paired with an `in_progress` attempt is treated as an inconsistent record requiring support reconciliation; it is never overwritten. New result documents use Firestore transaction `create` semantics.
+- The focused Auth + Firestore + Functions Emulator regression seeds a conflicting result and verifies the callable rejects without changing the attempt, existing result or active-session pointer.
+- This is a single-attempt data-integrity regression. It is not a synthetic load test or capacity benchmark.

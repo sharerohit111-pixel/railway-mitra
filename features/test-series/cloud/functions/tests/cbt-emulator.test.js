@@ -4316,6 +4316,60 @@ test("late submission of an expired attempt does not replace a newer active exam
   }
 });
 
+test("submission never overwrites an existing result for an in-progress attempt", async () => {
+  const attemptId = "emulator-submit-existing-result-guard";
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  const resultRef = db.doc("testSeriesResults/" + attemptId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+  const previousActive = await activeRef.get();
+  const now = Date.now();
+  const expiresAt = new Date(now + 10 * 60_000);
+  const originalResult = {
+    uid, testId, attemptId, correct: 99, wrong: 0, unattempted: 0,
+    timedOut: false, score: 999, totalQuestions: 99,
+    submittedAt: new Date(now - 60_000),
+    integrityMarker: "preserve-existing-result"
+  };
+
+  try {
+    await Promise.all([
+      attemptRef.set({
+        uid, testId, mode: "mock", status: "in_progress",
+        startedAt: new Date(now - 60_000), expiresAt, answers: { q1: "0" }
+      }),
+      resultRef.set(originalResult),
+      activeRef.set({
+        uid, testId, attemptId, status: "in_progress",
+        startedAt: new Date(now - 60_000), expiresAt
+      })
+    ]);
+
+    await assert.rejects(
+      callable("rmSubmitExam", { attemptId }),
+      error => error.code === "functions/failed-precondition" &&
+        error.message.includes("A result already exists for this attempt")
+    );
+
+    const attemptAfter = (await attemptRef.get()).data();
+    assert.equal(attemptAfter.status, "in_progress");
+    assert.equal(attemptAfter.submittedAt, undefined);
+    const resultAfter = (await resultRef.get()).data();
+    assert.equal(resultAfter.score, originalResult.score);
+    assert.equal(resultAfter.totalQuestions, originalResult.totalQuestions);
+    assert.equal(resultAfter.integrityMarker, originalResult.integrityMarker);
+    const activeAfter = (await activeRef.get()).data();
+    assert.equal(activeAfter.status, "in_progress");
+    assert.equal(activeAfter.attemptId, attemptId);
+  } finally {
+    await Promise.all([
+      attemptRef.delete().catch(() => {}),
+      resultRef.delete().catch(() => {})
+    ]);
+    if (previousActive.exists) await activeRef.set(previousActive.data()).catch(() => {});
+    else await activeRef.delete().catch(() => {});
+  }
+});
+
 
 test("GDCE JE Civil 150-question paid exam preserves a 120-minute server deadline across start, save, resume and scoring", async () => {
   const scenarioTestId = "emulator-gdce-je-civil-150x120";
