@@ -1810,7 +1810,7 @@ exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
   const nextCursor = hasMore && pageDocs.length ? pageDocs[pageDocs.length - 1].id : null;
   const freeTestId = freeConfig.exists && freeConfig.data().enabled ? freeConfig.data().testId : null;
   const tests = await Promise.all(pageDocs.map(async d => {
-    const t = d.data(), price = Number(t.price || 0);
+    const t = d.data(), price = typeof t.price === "number" && Number.isFinite(t.price) ? t.price : null;
     const accessType = await getStudentTestAccessType({
       db, uid, testId: d.id, test: t, freeTestId
     });
