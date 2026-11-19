@@ -25,9 +25,14 @@ async function getStudentTestAccessType({
     throw new TypeError("Database, authenticated student, test ID and test data are required");
   }
 
-  if (testId === freeTestId) return "free_trial";
-  const price = Number(test.price || 0);
-  if (!(price > 0)) return "unavailable";
+  // Persisted catalogue prices are trusted only when they are finite INR
+  // numbers. Do not coerce strings, empty values or malformed data into free access.
+  const price = test.price;
+  if (typeof price !== "number" || !Number.isFinite(price) || price < 0 || price > 100000) {
+    return "unavailable";
+  }
+  if (testId === freeTestId) return price === 0 ? "free_trial" : "unavailable";
+  if (price === 0) return "unavailable";
 
   const readLedger = async tx => {
     const entitlementSnap = await tx.get(db.doc(
