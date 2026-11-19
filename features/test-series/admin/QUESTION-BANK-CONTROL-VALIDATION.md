@@ -19,6 +19,18 @@ The browser checks provide early feedback only. The Cloud Functions
 `normalizeQuestionBankItem` and `normalizeQuestionBankListRequest` checks are
 the authoritative import/list validation boundary.
 
+The final server-side Owner Test Publish validator also applies the same C1
+control policy to legacy question papers, including drafts created before the
+Question Bank import checks were added. Question text, options and explanations
+continue to allow ordinary TAB, LF and CR formatting, but reject C1 controls
+(U+0080–U+009F) before publication.
+
+Focused final-publish regression command:
+
+```bash
+node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
+```
+
 Focused regression commands:
 
 ```bash
