@@ -96,7 +96,7 @@ exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
     if (claim.exists) throw new HttpsError("already-exists", "Free attempt already claimed");
     if (!config.exists || !config.data().enabled || !config.data().testId) throw new HttpsError("failed-precondition", "Free test unavailable");
     const testId = id(config.data().testId), testRef = db.doc("testSeriesTests/" + testId), test = await tx.get(testRef);
-    if (!test.exists || test.data().status !== "published" || Number(test.data().price) !== 0) throw new HttpsError("failed-precondition", "Free test is not published");
+    if (!test.exists || test.data().status !== "published" || typeof test.data().price !== "number" || !Number.isFinite(test.data().price) || test.data().price !== 0) throw new HttpsError("failed-precondition", "Free test is not published with a valid zero price");
     const attemptRef = db.collection("testSeriesAttempts").doc();
     tx.create(claimRef, { uid, testId, attemptId: attemptRef.id, claimedAt: FieldValue.serverTimestamp() });
     tx.create(attemptRef, { uid, testId, mode: test.data().mode || "mock", status: "created", createdAt: FieldValue.serverTimestamp() });
