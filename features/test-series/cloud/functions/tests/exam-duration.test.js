@@ -30,6 +30,21 @@ test("rejects missing, coercible, fractional and out-of-range persisted duration
   }
 });
 
+test("rmGetExamQuestions revalidates persisted duration instead of coercing a fallback", () => {
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  const start = source.indexOf("exports.rmGetExamQuestions =");
+  const end = source.indexOf("// Issue a short-lived read URL", start);
+  assert.ok(start >= 0 && end > start, "rmGetExamQuestions handler must exist");
+  const handler = source.slice(start, end);
+
+  assert.match(handler, /getExamDurationMinutes\\(test\\)/,
+    "question delivery must enforce the persisted duration contract");
+  assert.match(handler, /durationMinutes:\\s*durationMinutes/,
+    "the response must use the validated duration");
+  assert.doesNotMatch(handler, /Number\\(test\\.durationMinutes\\s*\\|\\|\\s*30\\)/,
+    "question delivery must not coerce or default malformed duration metadata");
+});
+
 test("rmStartExam validates duration before access/session writes and uses it without coercion", () => {
   const source = readFileSync(require.resolve("../index"), "utf8");
   const start = source.indexOf("exports.rmStartExam =");

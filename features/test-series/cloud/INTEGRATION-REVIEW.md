@@ -148,8 +148,8 @@ The private answer-key validator independently requires every option index to be
 
 ## Server-side exam duration validation
 
-- The Owner publish boundary requires an integer duration from 1 through 240 minutes; `rmStartExam` now independently enforces the same contract against persisted published test metadata.
-- Missing, string-coercible, fractional, non-finite, zero, negative and over-limit durations fail with `failed-precondition` before payment/free-access checks or attempt/session writes.
-- The server uses only the validated integer to calculate `expiresAt`; it no longer silently defaults missing values or clamps malformed legacy data.
-- Focused unit tests cover the accepted range and malformed values. The CBT Auth/Firestore/Functions Emulator regression signs in a separate synthetic student, seeds a paid test with a string duration, and verifies that no attempt or active-session pointer is created.
+- The Owner publish boundary requires an integer duration from 1 through 240 minutes; both `rmStartExam` and `rmGetExamQuestions` independently enforce that contract against persisted published-test metadata.
+- Missing, string-coercible, fractional, non-finite, zero, negative and over-limit durations fail with `failed-precondition` before payment/free-access or attempt/session writes at exam start, and before question content is returned during question delivery.
+- The server uses only the validated integer to calculate `expiresAt` and to describe the delivered paper; it no longer silently defaults missing values or coerces malformed legacy metadata to a 30-minute display value.
+- Focused unit tests cover the accepted range, malformed values, and the question-delivery boundary. CBT Auth/Firestore/Functions Emulator regressions verify that malformed duration blocks exam start without creating an attempt, and that duration corruption after a valid start blocks question delivery without mutating the in-progress attempt or active-session pointer.
 - This protects legacy or manually corrupted persisted records; it does not replace the required non-production Firebase staging verification.

@@ -357,6 +357,15 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
   });
 
   if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
+  let durationMinutes;
+  try {
+    durationMinutes = getExamDurationMinutes(test);
+  } catch (error) {
+    if (error && error.code === "invalid_exam_duration") {
+      throw new HttpsError("failed-precondition", "Exam duration configuration is invalid");
+    }
+    throw error;
+  }
   const sections = validatedExamSections(test, questions);
   let studentQuestions, savedAnswers;
   try {
@@ -367,7 +376,7 @@ exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
     throw new HttpsError("failed-precondition", "Question paper or saved answers contain invalid student data");
   }
   return {
-    test: { testId: attempt.testId, title: test.title || "", durationMinutes: Number(test.durationMinutes || 30),
+    test: { testId: attempt.testId, title: test.title || "", durationMinutes,
       marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0),
       sections },
     questions: studentQuestions,

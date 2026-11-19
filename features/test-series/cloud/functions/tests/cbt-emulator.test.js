@@ -243,6 +243,73 @@ test("rmStartExam rejects a coercible legacy duration before creating an attempt
   }
 });
 
+test("rmGetExamQuestions rejects duration metadata corrupted after a valid attempt starts", async () => {
+  const originalUid = uid;
+  const temporaryUid = "cbt-duration-read-" + Date.now();
+  const malformedTestId = "emulator-duration-read-" + Date.now();
+  const paymentId = "pay-duration-read-" + Date.now();
+  const orderId = "order-duration-read-" + Date.now();
+  const testRef = db.doc("testSeriesTests/" + malformedTestId);
+  const paperRef = db.doc("testSeriesQuestionSets/" + malformedTestId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + temporaryUid);
+
+  await getAuth(app).createUser({ uid: temporaryUid });
+  uid = temporaryUid;
+  try {
+    await signInAsTestStudent(temporaryUid);
+    await testRef.set({
+      title: "Duration Read Guard",
+      status: "published",
+      price: 499,
+      mode: "mock",
+      durationMinutes: 30,
+      marksPerQuestion: 1,
+      negativeMarks: 0,
+      sections: []
+    });
+    await paperRef.set({
+      questions: [{ id: "q-duration", text: "Duration guard?", options: ["A", "B"] }]
+    });
+    await seedPaidAccess({ testId: malformedTestId, paymentId, orderId, amount: 49900 });
+
+    const started = await callable("rmStartExam", { testId: malformedTestId });
+    assert.ok(started.attemptId);
+    await testRef.update({ durationMinutes: "30" });
+
+    await assert.rejects(
+      callable("rmGetExamQuestions", { attemptId: started.attemptId }),
+      error => error.code === "functions/failed-precondition" &&
+        /duration configuration is invalid/i.test(error.message)
+    );
+
+    const attempt = await db.doc("testSeriesAttempts/" + started.attemptId).get();
+    assert.equal(attempt.data().status, "in_progress", "question delivery rejection must not mutate the attempt");
+    assert.equal((await activeRef.get()).data().attemptId, started.attemptId,
+      "question delivery rejection must not replace the active-session pointer");
+  } finally {
+    const attempts = await db.collection("testSeriesAttempts")
+      .where("uid", "==", temporaryUid)
+      .where("testId", "==", malformedTestId)
+      .get();
+    if (!attempts.empty) {
+      const cleanup = db.batch();
+      attempts.docs.forEach(doc => cleanup.delete(doc.ref));
+      await cleanup.commit();
+    }
+    await Promise.all([
+      testRef.delete().catch(() => {}),
+      paperRef.delete().catch(() => {}),
+      activeRef.delete().catch(() => {}),
+      db.doc("testSeriesPayments/" + paymentId).delete().catch(() => {}),
+      db.doc("testSeriesPaymentOrders/" + orderId).delete().catch(() => {}),
+      db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(temporaryUid, malformedTestId)).delete().catch(() => {})
+    ]);
+    await getAuth(app).deleteUser(temporaryUid).catch(() => {});
+    uid = originalUid;
+    await signInAsTestStudent(originalUid);
+  }
+});
+
 test("student dashboard returns the latest 100 submitted results first", async () => {
   const refs = [
     db.doc("testSeriesResults/emulator-dashboard-old"),
