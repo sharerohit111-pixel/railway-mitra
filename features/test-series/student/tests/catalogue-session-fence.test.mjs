@@ -41,3 +41,8 @@ test("catalogue restores a load-more control only while its original view is act
 test("catalogue treats session-guard exceptions as inactive rather than allowing UI updates", () => {
   assert.match(catalogue, /const sessionIsActive = \(\) => \{\s*try \{\s*return typeof isSessionActive === "function" && isSessionActive\(\);\s*\} catch \{\s*return false;\s*\}\s*\};/);
 });
+
+
+test("catalogue globally re-sorts cards after appending a document-ID cursor page", () => {
+  assert.match(catalogue, /const sortedCards = Array\.from\(list\.querySelectorAll\("\.rm-catalogue-card"\)\);[\s\S]*?sortedCards\.sort\(\(a, b\) =>[\s\S]*?a\.querySelector\("h2"\)\.textContent\.localeCompare\(b\.querySelector\("h2"\)\.textContent\)[\s\S]*?sortedCards\.forEach\(card => list\.append\(card\)\);/);
+});
