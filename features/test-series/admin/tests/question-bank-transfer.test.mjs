@@ -81,7 +81,14 @@ test("Test Builder mapping rejects non-canonical Question Bank document IDs with
     correctIndex: 1
   };
   assert.equal(questionBankItemAsTestQuestion(base).id, "bank_qb-1");
-  for (const itemId of [" qb-1", "qb-1 ", "\\tqb-1", "qb-1\\n", "\\rqb-1"]) {
+  const invalidIds = [
+    " qb-1",
+    "qb-1 ",
+    String.fromCharCode(9) + "qb-1",
+    "qb-1" + String.fromCharCode(10),
+    String.fromCharCode(13) + "qb-1"
+  ];
+  for (const itemId of invalidIds) {
     assert.throws(
       () => questionBankItemAsTestQuestion({ ...base, itemId }),
       RangeError,
