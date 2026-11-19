@@ -10,6 +10,14 @@ function hasDisallowedQuestionControls(value) {
   return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(value);
 }
 
+function hasDenseArray(value) {
+  if (!Array.isArray(value)) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(value, index)) return false;
+  }
+  return true;
+}
+
 const QUESTION_MEDIA_ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
 const QUESTION_MEDIA_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -82,7 +90,7 @@ export function validateOwnerTestDraft(draft) {
     throw new Error("नकारात्मक अंक 0 से 100 के बीच होने चाहिए।");
   }
 
-  if (!Array.isArray(draft.questions) || draft.questions.length < 1 || draft.questions.length > 500) {
+  if (!hasDenseArray(draft.questions) || draft.questions.length < 1 || draft.questions.length > 500) {
     throw new Error("Questions JSON में 1 से 500 प्रश्नों की Array होनी चाहिए।");
   }
 
@@ -112,7 +120,7 @@ export function validateOwnerTestDraft(draft) {
       throw new Error("प्रश्न " + number + " का प्रश्न-पाठ आवश्यक है (अधिकतम 5000 अक्षर)।");
     }
 
-    if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
+    if (!hasDenseArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
         question.options.some(option => typeof option !== "string" || !option.trim() || option.length > 1000 ||
           hasDisallowedQuestionControls(option))) {
       throw new Error("प्रश्न " + number + " में 2 से 6 वैध विकल्प होने चाहिए (प्रत्येक अधिकतम 1000 अक्षर)।");
@@ -136,7 +144,7 @@ export function validateOwnerTestDraft(draft) {
   });
 
   const sectionNames = [...new Set(questions.map(question => question.section).filter(Boolean))];
-  if (draft.sections !== undefined && !Array.isArray(draft.sections)) {
+  if (draft.sections !== undefined && !hasDenseArray(draft.sections)) {
     throw new Error("सेक्शन सूची का प्रारूप Array होना चाहिए।");
   }
   const suppliedSections = draft.sections === undefined ? [] : draft.sections;

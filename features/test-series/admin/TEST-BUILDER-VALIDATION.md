@@ -263,3 +263,33 @@ npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt
 The emulator case uses a synthetic Owner token and Firestore records. It does
 not upload an image to a live bucket, change Firebase configuration, or certify
 real Storage CORS/credentials.
+
+
+### Dense question and option arrays across import, draft and publish
+
+Question and option collections must now be dense arrays at every Test Series
+validation boundary. A sparse array (one with a missing numeric slot) is
+rejected instead of allowing JavaScript array methods such as `map()` or
+`some()` to skip the missing entry.
+
+- The Owner Test Builder rejects sparse question, option and configured-section
+  arrays before constructing a draft payload.
+- The Question Bank server normalizer rejects sparse option arrays before
+  trimming or persisting imported question content.
+- The final Owner publish validator and answer-key restore helper independently
+  reject sparse question and option arrays, including legacy or directly edited
+  records.
+- Existing option-count, question-count, answer-index and private answer-key
+  checks remain unchanged.
+
+Focused regression commands:
+
+```bash
+node --test features/test-series/admin/tests/admin-test-validation.test.mjs
+node --test features/test-series/cloud/functions/tests/question-bank-validation.test.js
+node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
+```
+
+This is validation hardening for the isolated Test Series module. It does not
+change Firebase project configuration, live Auth/App Check settings, payments,
+deployment behavior or unrelated Railway features.

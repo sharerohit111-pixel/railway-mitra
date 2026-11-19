@@ -5,6 +5,14 @@ function fail(message, rowNumber) {
   throw new Error(prefix + message);
 }
 
+function hasDenseArray(value) {
+  if (!Array.isArray(value)) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(value, index)) return false;
+  }
+  return true;
+}
+
 function hasControlCharacters(value) {
   return Array.from(value).some(character => {
     const code = character.charCodeAt(0);
@@ -55,7 +63,7 @@ function normalizeQuestionBankItem(item, rowNumber) {
   const rawOptions = Array.isArray(question.options) ? question.options : [];
   const correctIndex = question.correctIndex;
   if (!rawText.trim() || rawText.length > 4000 || hasDisallowedQuestionControls(rawText) ||
-      rawOptions.length < 2 || rawOptions.length > 6 ||
+      !hasDenseArray(rawOptions) || rawOptions.length < 2 || rawOptions.length > 6 ||
       rawOptions.some(option => typeof option !== "string" || !option.trim() ||
         option.length > 1000 || hasDisallowedQuestionControls(option)) ||
       !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= rawOptions.length) {

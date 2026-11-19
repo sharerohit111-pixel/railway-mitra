@@ -43,6 +43,20 @@ test("accepts one and 500 questions but rejects zero and 501", () => {
   assert.throws(() => validateOwnerTestDraft(validDraft({ questions })), /1 से 500/);
 });
 
+test("rejects sparse question, option and configured-section arrays", () => {
+  const sparseQuestions = new Array(1);
+  assert.throws(() => validateOwnerTestDraft(validDraft({ questions: sparseQuestions })), /1 से 500/);
+
+  const sparseOptions = new Array(2);
+  sparseOptions[1] = "B";
+  assert.throws(() => validateOwnerTestDraft(validDraft({
+    questions: [{ id: "q1", text: "Question?", options: sparseOptions, correctIndex: 0 }]
+  })), /विकल्प/);
+
+  const sparseSections = new Array(1);
+  assert.throws(() => validateOwnerTestDraft(validDraft({ sections: sparseSections })), /सेक्शन सूची/);
+});
+
 test("rejects malformed questions, unsafe or duplicate IDs, and blank text", () => {
   assert.throws(() => validateOwnerTestDraft(validDraft({ questions: [null] })), /प्रारूप/);
   assert.throws(() => validateOwnerTestDraft(validDraft({ questions: [

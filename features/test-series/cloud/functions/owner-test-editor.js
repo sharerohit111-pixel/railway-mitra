@@ -32,8 +32,16 @@ function hasDisallowedQuestionControls(value) {
   });
 }
 
+function hasDenseArray(value) {
+  if (!Array.isArray(value)) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(value, index)) return false;
+  }
+  return true;
+}
+
 function restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap) {
-  if (!Array.isArray(publicQuestions)) {
+  if (!hasDenseArray(publicQuestions)) {
     throw new Error("Public question set is invalid");
   }
   if (!answerMap || typeof answerMap !== "object" || Array.isArray(answerMap)) {
@@ -52,7 +60,7 @@ function restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap) {
       ? Number(rawIndex)
       : NaN;
     if (!Number.isSafeInteger(correctIndex) || correctIndex < 0
-      || !Array.isArray(question.options) || correctIndex >= question.options.length) {
+      || !hasDenseArray(question.options) || correctIndex >= question.options.length) {
       throw new Error("A question answer key is missing or inconsistent");
     }
     return { ...question, correctIndex };
@@ -101,7 +109,7 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
       !Number.isFinite(test.negativeMarks) || test.negativeMarks < 0 || test.negativeMarks > 100) {
     throw new Error("Test marking configuration is invalid");
   }
-  if (!Array.isArray(publicQuestions) || publicQuestions.length < 1 || publicQuestions.length > 500 ||
+  if (!hasDenseArray(publicQuestions) || publicQuestions.length < 1 || publicQuestions.length > 500 ||
       !Number.isInteger(test.questionCount) || publicQuestions.length !== test.questionCount) {
     throw new Error("Question count does not match test metadata");
   }
@@ -127,7 +135,7 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
     if (typeof question.text !== "string" || !question.text.trim() || question.text.length > 5000 || hasDisallowedQuestionControls(question.text)) {
       throw new Error("Question " + (index + 1) + " text is invalid");
     }
-    if (!Array.isArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
+    if (!hasDenseArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
         question.options.some(option => typeof option !== "string" || !option.trim() || option.length > 1000 || hasDisallowedQuestionControls(option))) {
       throw new Error("Question " + (index + 1) + " options are invalid");
     }

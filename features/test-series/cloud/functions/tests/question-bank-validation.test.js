@@ -69,6 +69,15 @@ test("retains the existing question, option and correct-answer boundaries", () =
   })), /valid correctIndex/);
 });
 
+test("rejects sparse option arrays before Question Bank normalization", () => {
+  const sparseOptions = new Array(2);
+  sparseOptions[1] = "Unsafe";
+  assert.throws(
+    () => normalizeQuestionBankItem(validItem({ question: { options: sparseOptions } })),
+    /text options/
+  );
+});
+
 test("includes the source row in bulk-import validation errors", () => {
   assert.throws(
     () => normalizeQuestionBankItem(validItem({ question: { section: "x".repeat(81) } }), 7),

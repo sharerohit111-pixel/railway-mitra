@@ -44,6 +44,31 @@ test("rejects malformed question collections and records", () => {
 });
 
 
+test("rejects sparse question and option arrays at publish and answer-key restore boundaries", () => {
+  const sparseQuestions = new Array(2);
+  sparseQuestions[0] = questions[0];
+  assert.throws(
+    () => validateOwnerQuestionPaper(validTestMetadata, sparseQuestions, validAnswerMap),
+    /Question count/
+  );
+  assert.throws(
+    () => restoreOwnerQuestionAnswerKeys(sparseQuestions, validAnswerMap),
+    /Public question set/
+  );
+
+  const sparseOptions = new Array(2);
+  sparseOptions[1] = "B";
+  const paper = [{ ...questions[0], options: sparseOptions }, questions[1]];
+  assert.throws(
+    () => validateOwnerQuestionPaper(validTestMetadata, paper, validAnswerMap),
+    /options are invalid/
+  );
+  assert.throws(
+    () => restoreOwnerQuestionAnswerKeys(paper, validAnswerMap),
+    /answer key is missing or inconsistent/
+  );
+});
+
 const validTestMetadata = {
   title: "Civil JE Mock", category: "GDCE JE", folder: "Civil / Mock", mode: "mock", durationMinutes: 30, price: 0,
   marksPerQuestion: 1, negativeMarks: 0.25, questionCount: 2
