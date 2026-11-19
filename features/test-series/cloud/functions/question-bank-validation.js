@@ -25,8 +25,11 @@ function hasDisallowedQuestionControls(value) {
 
 function requiredLabel(value, field, maxLength, rowNumber) {
   if (typeof value !== "string") fail(field + " must be text", rowNumber);
+  if (hasControlCharacters(value)) {
+    fail(field + " is required and must be within " + maxLength + " characters", rowNumber);
+  }
   const normalized = value.trim();
-  if (!normalized || normalized.length > maxLength || hasControlCharacters(normalized)) {
+  if (!normalized || normalized.length > maxLength) {
     fail(field + " is required and must be within " + maxLength + " characters", rowNumber);
   }
   return normalized;
@@ -48,25 +51,28 @@ function normalizeQuestionBankItem(item, rowNumber) {
     fail("question must be an object", rowNumber);
   }
 
-  const text = typeof question.text === "string" ? question.text.trim() : "";
-  const options = Array.isArray(question.options)
-    ? question.options.map(value => typeof value === "string" ? value.trim() : "")
-    : [];
+  const rawText = typeof question.text === "string" ? question.text : "";
+  const rawOptions = Array.isArray(question.options) ? question.options : [];
   const correctIndex = question.correctIndex;
-  if (!text || text.length > 4000 || hasDisallowedQuestionControls(text) ||
-      options.length < 2 || options.length > 6 ||
-      options.some(option => !option || option.length > 1000 || hasDisallowedQuestionControls(option)) ||
-      !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) {
+  if (!rawText.trim() || rawText.length > 4000 || hasDisallowedQuestionControls(rawText) ||
+      rawOptions.length < 2 || rawOptions.length > 6 ||
+      rawOptions.some(option => typeof option !== "string" || !option.trim() ||
+        option.length > 1000 || hasDisallowedQuestionControls(option)) ||
+      !Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= rawOptions.length) {
     fail("question text, 2–6 text options and a valid correctIndex are required", rowNumber);
   }
+  const text = rawText.trim();
+  const options = rawOptions.map(option => option.trim());
 
   if (question.section !== undefined && question.section !== null && typeof question.section !== "string") {
     fail("section must be text", rowNumber);
   }
-  const section = typeof question.section === "string" ? question.section.trim() : "";
-  if (section.length > 80 || hasControlCharacters(section)) {
+  const rawSection = typeof question.section === "string" ? question.section : "";
+  if (rawSection.length > 80 || hasControlCharacters(rawSection)) {
     fail("section must be within 80 characters and contain no control characters", rowNumber);
   }
+  const section = rawSection.trim();
+
   if (question.explanation !== undefined && question.explanation !== null && typeof question.explanation !== "string") {
     fail("explanation must be text", rowNumber);
   }
@@ -105,8 +111,11 @@ function normalizeQuestionBankListRequest(data = {}) {
   let search = "";
   if (data.search !== undefined && data.search !== null) {
     if (typeof data.search !== "string") fail("Search must be text");
+    if (hasControlCharacters(data.search)) {
+      fail("Search must be within 120 characters and contain no control characters");
+    }
     search = data.search.trim();
-    if (search.length > 120 || hasControlCharacters(search)) {
+    if (search.length > 120) {
       fail("Search must be within 120 characters and contain no control characters");
     }
   }
@@ -114,12 +123,11 @@ function normalizeQuestionBankListRequest(data = {}) {
   for (const field of ["topic", "chapter", "folder"]) {
     if (data[field] === undefined || data[field] === null) continue;
     if (typeof data[field] !== "string") fail(field + " filter must be text");
+    if (hasControlCharacters(data[field])) fail("Invalid " + field + " filter");
     const value = data[field].trim();
     if (!value) continue;
     const max = field === "topic" ? 80 : field === "chapter" ? 100 : 120;
-    if (value.length > max || hasControlCharacters(value)) {
-      fail("Invalid " + field + " filter");
-    }
+    if (value.length > max) fail("Invalid " + field + " filter");
     filters[field] = value;
   }
   return { pageSize, searchText: search.toLocaleLowerCase(), filters };
