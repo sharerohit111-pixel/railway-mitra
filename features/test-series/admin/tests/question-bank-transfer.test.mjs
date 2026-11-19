@@ -632,3 +632,29 @@ test("JSON import permits the same property names in separate row objects", () =
   ];
   assert.deepEqual(parseQuestionBankImportJson(JSON.stringify(rows)), rows);
 });
+
+test("direct Test Builder import rejects non-canonical question IDs without trimming", () => {
+  const row = {
+    id: "q-1",
+    text: "Define benchmark",
+    options: ["Reduced Level", "Benchmark"],
+    correctIndex: 1
+  };
+  assert.equal(normalizeTestBuilderImportRows([row])[0].id, "q-1");
+  assert.equal(normalizeTestBuilderImportRows([{ ...row, id: 12 }])[0].id, "12");
+
+  const invalidIds = [
+    " q-1",
+    "q-1 ",
+    String.fromCharCode(9) + "q-1",
+    "q-1" + String.fromCharCode(10),
+    String.fromCharCode(13) + "q-1"
+  ];
+  for (const id of invalidIds) {
+    assert.throws(
+      () => normalizeTestBuilderImportRows([{ ...row, id }]),
+      /प्रश्न ID/,
+      "non-canonical imported question ID " + JSON.stringify(id)
+    );
+  }
+});
