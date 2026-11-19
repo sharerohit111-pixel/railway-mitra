@@ -106,3 +106,11 @@ PR #136 remains open and draft. This review does not authorize merging it.
 - An existing result paired with an `in_progress` attempt is treated as an inconsistent record requiring support reconciliation; it is never overwritten. New result documents use Firestore transaction `create` semantics.
 - The focused Auth + Firestore + Functions Emulator regression seeds a conflicting result and verifies the callable rejects without changing the attempt, existing result or active-session pointer.
 - This is a single-attempt data-integrity regression. It is not a synthetic load test or capacity benchmark.
+
+
+## Razorpay Test Mode-only guard (2026-11-19)
+
+- The `rmCreatePaymentOrder` callable validates the configured Key ID as `rzp_test_` plus a non-empty alphanumeric suffix before creating a payment-request document or student/test lock. A missing, malformed or `rzp_live_` Key ID fails closed with `failed-precondition` and no provider request.
+- `createRazorpayOrder` repeats the same check before its HTTP client is invoked, protecting direct/helper callers as well as the callable path.
+- Focused unit regressions cover accepted Test Mode IDs, rejection of live/malformed IDs without provider calls, and source-level ordering of the callable's guard before reservation. These checks do not contact Razorpay or inspect Secret Manager values.
+- Staging remains blocked until the intended non-production Firebase project, Test Mode API credentials and matching Test Mode webhook secret are independently verified and a controlled provider walkthrough is approved. No secrets, live Firebase configuration or deployment were changed.

@@ -7,7 +7,7 @@ const { sanitizeImageBuffer } = require("./image-sanitization");
 const { isAuthorizedOwner } = require("./owner-auth");
 const { hasStudentAccess } = require("./student-auth");
 const { defineSecret } = require("firebase-functions/params");
-const { createRazorpayOrder } = require("./razorpay-order");
+const { createRazorpayOrder, isRazorpayTestModeKeyId } = require("./razorpay-order");
 const { inspectRazorpayOrder } = require("./razorpay-order-inspect");
 const { recordPaymentInspectionAudit } = require("./payment-reconciliation-audit");
 const { listOwnerPaymentAudit } = require("./owner-payment-audit-history");
@@ -1935,6 +1935,14 @@ exports.rmCreatePaymentOrder = onCall({
   try { requestId = validatePaymentRequestId(req.data && req.data.requestId); }
   catch (error) { throw new HttpsError("invalid-argument", error.message); }
 
+  // This branch is Test Mode only. Reject live/missing keys before creating
+  // a payment reservation or contacting the provider.
+  let keyId = "";
+  try { keyId = RAZORPAY_KEY_ID.value(); } catch (_) {}
+  if (!isRazorpayTestModeKeyId(keyId)) {
+    throw new HttpsError("failed-precondition", "Razorpay Test Mode is not configured; paid checkout is disabled.");
+  }
+
   const testRef = db.doc("testSeriesTests/" + testId);
   const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId));
   const testSnap = await testRef.get();
@@ -2027,14 +2035,14 @@ exports.rmCreatePaymentOrder = onCall({
     if (order.uid !== uid || order.testId !== testId || order.amount !== amount || order.currency !== "INR" || order.status !== "created" || order.razorpayOrderId !== reservation.orderId || order.paymentRequestId !== requestDocId) {
       throw new HttpsError("failed-precondition", "The saved payment order is inconsistent and needs support reconciliation.");
     }
-    return { orderId: reservation.orderId, amount: order.amount, currency: order.currency, keyId: RAZORPAY_KEY_ID.value(), testId };
+    return { orderId: reservation.orderId, amount: order.amount, currency: order.currency, keyId: keyId, testId };
   }
 
   const requestSnap = await requestRef.get();
   let providerOrder;
   try {
     providerOrder = await createRazorpayOrder({
-      keyId: RAZORPAY_KEY_ID.value(), keySecret: RAZORPAY_KEY_SECRET.value(),
+      keyId: keyId, keySecret: RAZORPAY_KEY_SECRET.value(),
       amount, currency: "INR", receipt: requestSnap.data().receipt, notes: { uid, testId }
     });
   } catch (error) {
@@ -2116,7 +2124,7 @@ exports.rmCreatePaymentOrder = onCall({
     throw new HttpsError("failed-precondition", "Provider order was created but its ledger needs support reconciliation. Do not retry with a new request.");
   }
 
-  return { orderId: providerOrder.id, amount: providerOrder.amount, currency: providerOrder.currency, keyId: RAZORPAY_KEY_ID.value(), testId };
+  return { orderId: providerOrder.id, amount: providerOrder.amount, currency: providerOrder.currency, keyId: keyId, testId };
 });
 
 // Public provider callback: verify the HMAC against exact raw bytes before parsing

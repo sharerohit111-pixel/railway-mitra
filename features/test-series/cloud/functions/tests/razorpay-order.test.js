@@ -2,7 +2,9 @@
 
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { createRazorpayOrder } = require("../razorpay-order");
+const fs = require("node:fs");
+const path = require("node:path");
+const { createRazorpayOrder, isRazorpayTestModeKeyId } = require("../razorpay-order");
 
 function input(overrides = {}) {
   return {
@@ -114,4 +116,48 @@ test("classifies definitive 4xx provider rejection separately from ambiguous HTT
     ...input(),
     fetchImpl: async () => { throw new Error("socket timeout"); }
   }), error => !(error instanceof RazorpayOrderRejectedError) && /socket timeout/.test(error.message));
+});
+
+
+test("accepts only well-formed Razorpay Test Mode key IDs", () => {
+  assert.equal(isRazorpayTestModeKeyId("rzp_test_1DP5mmOlF5G5ag"), true);
+  for (const keyId of [
+    "",
+    "rzp_test_",
+    "rzp_live_1DP5mmOlF5G5ag",
+    "rzp_test_bad-key",
+    " rzp_test_key",
+    "rzp_test_key "
+  ]) {
+    assert.equal(isRazorpayTestModeKeyId(keyId), false, String(keyId));
+  }
+});
+
+test("rejects live and malformed key IDs before making a provider request", async () => {
+  let calls = 0;
+  for (const keyId of ["rzp_live_liveKey123", "rzp_test_", "not-a-razorpay-key"]) {
+    await assert.rejects(
+      createRazorpayOrder({
+        ...input({ keyId }),
+        fetchImpl: async () => { calls += 1; throw new Error("provider must not be called"); }
+      }),
+      /Razorpay Test Mode Key ID/
+    );
+  }
+  assert.equal(calls, 0);
+});
+
+test("payment callable validates Test Mode before creating any payment reservation", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../index.js"), "utf8");
+  const start = source.indexOf("exports.rmCreatePaymentOrder = onCall(");
+  const end = source.indexOf("exports.rmRazorpayWebhook = onRequest(", start);
+  assert.ok(start >= 0 && end > start, "payment callable source must be present");
+  const callable = source.slice(start, end);
+  const modeGuard = callable.indexOf("isRazorpayTestModeKeyId(keyId)");
+  const requestDocument = callable.indexOf("const requestDocId =");
+  const reservation = callable.indexOf("db.runTransaction");
+  assert.ok(modeGuard >= 0, "Test Mode key validation must be present");
+  assert.ok(requestDocument > modeGuard, "payment request document must be derived only after mode validation");
+  assert.ok(reservation > requestDocument, "payment reservation must occur only after mode validation");
+  assert.match(callable, /keyId,\s*testId/);
 });

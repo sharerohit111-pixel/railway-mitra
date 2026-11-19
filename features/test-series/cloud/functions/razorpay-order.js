@@ -3,9 +3,15 @@
 const DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS = 15_000;
 const MAX_RAZORPAY_ORDER_TIMEOUT_MS = 60_000;
 
+function isRazorpayTestModeKeyId(keyId) {
+  return typeof keyId === "string" && /^rzp_test_[A-Za-z0-9]+$/.test(keyId);
+}
+
 function validateOrderInput({ keyId, keySecret, amount, currency = "INR", receipt, notes } = {}) {
-  if (typeof keyId !== "string" || !keyId.trim() ||
-      typeof keySecret !== "string" || !keySecret.trim()) {
+  if (!isRazorpayTestModeKeyId(keyId)) {
+    throw new Error("A valid Razorpay Test Mode Key ID is required; live-mode keys are disabled");
+  }
+  if (typeof keySecret !== "string" || !keySecret.trim()) {
     throw new Error("Razorpay API credentials are not configured");
   }
   if (!Number.isSafeInteger(amount) || amount <= 0) {
@@ -84,6 +90,7 @@ async function createRazorpayOrder({
 
 module.exports = {
   createRazorpayOrder,
+  isRazorpayTestModeKeyId,
   RazorpayOrderRejectedError,
   DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS,
   MAX_RAZORPAY_ORDER_TIMEOUT_MS

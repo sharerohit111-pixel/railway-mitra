@@ -77,7 +77,7 @@ Every student callable uses a server-side guard that requires the Firebase ID to
 The Owner may change the configured free test only before the first student claim. The first successful `rmClaimFreeAttempt` writes `hasClaims: true` and `firstClaimAt` to `testSeriesConfig/freeTest` in the same transaction that creates the student's claim and attempt. The Owner selection transaction reads and writes the same config document, so a concurrent first claim and selection change serialize instead of leaving a student with a claim for an obsolete test. Re-selecting the already configured test is idempotent. When the lock marker is absent (older data), the Owner callable checks for an existing legacy claim before allowing a change. The dashboard shows the current selection after each refresh.
 
 ## Razorpay payment integration — staging code only, not deployed
-- `functions/razorpay-order.js` creates Razorpay Orders through the provider API. It validates credentials, integer paise amount, INR currency, server-generated receipt and the provider response.
+- `functions/razorpay-order.js` creates Razorpay Orders through the provider API. This branch is Test Mode only: the Key ID must match `rzp_test_` followed by an alphanumeric suffix. The callable checks this before creating a payment request/lock, and the provider helper repeats the check before any HTTP request; `rzp_live_` and malformed IDs are rejected. It also validates the secret, integer paise amount, INR currency, server-generated receipt and provider response.
 - `rmCreatePaymentOrder` derives UID from Firebase Authentication and price/test metadata from a published Firestore test. The client cannot supply amount, currency, UID or provider credentials. It writes the trusted order record under `testSeriesPaymentOrders/{razorpayOrderId}` and returns only the public Key ID plus order details.
 - `functions/razorpay-webhook-signature.js` verifies HMAC-SHA256 against the exact raw HTTP body using constant-time comparison.
 - `functions/razorpay-webhook-handler.js` handles POST requests, verifies the signature against `req.rawBody`, then parses the event only from those exact signed bytes (never from `req.body`). It requires the provider event ID, routes verified `payment.captured` and `refund.processed` events to their separate ledger processors, acknowledges unsupported event types without grants, and distinguishes permanent conflicts from retryable failures. A regression test supplies a valid signed body alongside a conflicting parsed `req.body` and confirms only the signed payload reaches the ledger.
@@ -100,9 +100,9 @@ The client clears that stored ID only when the callable returns the explicit `de
 
 ### Required Secret Manager names
 Set secrets only in the intended Firebase staging project, using the Firebase CLI's interactive secret prompt (do not paste secret values into source code, GitHub, chat, or command-line arguments):
-- `RAZORPAY_KEY_ID` — Razorpay API Key ID for the selected test/live mode.
-- `RAZORPAY_KEY_SECRET` — matching Razorpay API Key Secret.
-- `RAZORPAY_WEBHOOK_SECRET` — independently configured webhook signing secret from the Razorpay Dashboard.
+- `RAZORPAY_KEY_ID` — Razorpay **Test Mode** API Key ID; it must begin with `rzp_test_` and contain a non-empty alphanumeric suffix. Live-mode (`rzp_live_`) keys are rejected by the code.
+- `RAZORPAY_KEY_SECRET` — matching **Test Mode** API Key Secret.
+- `RAZORPAY_WEBHOOK_SECRET` — webhook signing secret created for the matching Razorpay **Test Mode** webhook endpoint in the Dashboard.
 
 Example interactive commands (run locally only after confirming the staging project ID and explicit approval):
 ```bash
@@ -111,7 +111,7 @@ firebase functions:secrets:set RAZORPAY_KEY_ID
 firebase functions:secrets:set RAZORPAY_KEY_SECRET
 firebase functions:secrets:set RAZORPAY_WEBHOOK_SECRET
 ```
-Do not configure live-mode secrets or deploy these functions without explicit approval. Do not print or commit secret values. The public Key ID returned to the browser is not a private secret.
+Do not configure live-mode secrets or deploy these functions without explicit approval. This branch intentionally rejects live-mode Key IDs even if supplied. Do not print or commit secret values. The public Test Mode Key ID returned to the browser is not a private secret.
 
 ## Firestore rules — review required
 `firestore.rules` is a draft, NOT approved for deployment. It includes example employee paths and a default-deny rule that could block existing Railway Mitra collections if deployed as-is. Before any deployment, retrieve the current live Firestore Rules, merge the CBT deny-by-default paths without removing existing permissions, review the complete result, and obtain explicit approval. Do not overwrite production rules with this draft.
