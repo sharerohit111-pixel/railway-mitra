@@ -2545,6 +2545,13 @@ test("Owner manual access callables require real emulator password plus phone MF
     assert.equal(tokenClaims.firebase?.sign_in_provider, "password");
     assert.equal(tokenClaims.firebase?.sign_in_second_factor, "phone");
 
+    // A fully MFA-authenticated Owner remains an Owner identity, not a Student.
+    // The Student role requires phone as the primary provider, not as an MFA factor.
+    await assert.rejects(
+      callableWithIdToken("rmListAvailableTests", {}, signedIn.idToken),
+      error => error.code === "functions/permission-denied"
+    );
+
     // Exercise the Owner question-bank callable through the Auth + Functions
     // Emulators: the exact explanation limit is accepted, while one extra
     // character is rejected before Firestore can overwrite the existing item.
