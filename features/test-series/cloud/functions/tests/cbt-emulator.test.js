@@ -899,6 +899,49 @@ test("exam start fails closed for malformed or negative persisted test prices", 
   }
 });
 
+test("payment order rejects nonnumeric persisted prices before reserving checkout", async () => {
+  const { paymentRequestDocumentId, paymentStudentTestLockDocumentId } =
+    require("../payment-order-request");
+  const testIds = [
+    "emulator-payment-price-string",
+    "emulator-payment-price-empty",
+    "emulator-payment-price-text"
+  ];
+  const values = ["250", "", "not-a-price"];
+  const requestId = "emulator-invalid-price-checkout-0001";
+  const testRefs = testIds.map(testId => db.doc("testSeriesTests/" + testId));
+  const requestRefs = testIds.map(testId => db.doc(
+    "testSeriesPaymentRequests/" + paymentRequestDocumentId({ uid, testId, requestId })
+  ));
+  const lockRefs = testIds.map(testId => db.doc(
+    "testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({ uid, testId })
+  ));
+  try {
+    await Promise.all(testRefs.map((ref, index) => ref.set({
+      title: "Malformed Payment Price " + index,
+      status: "published",
+      price: values[index],
+      mode: "mock",
+      durationMinutes: 10
+    })));
+    for (const testId of testIds) {
+      await assert.rejects(
+        callable("rmCreatePaymentOrder", { testId, requestId }),
+        error => error.code === "functions/failed-precondition" &&
+          error.message.includes("valid paid price")
+      );
+    }
+    const [requests, locks] = await Promise.all([
+      Promise.all(requestRefs.map(ref => ref.get())),
+      Promise.all(lockRefs.map(ref => ref.get()))
+    ]);
+    assert.ok(requests.every(snap => !snap.exists), "invalid price must not reserve checkout");
+    assert.ok(locks.every(snap => !snap.exists), "invalid price must not create payment locks");
+  } finally {
+    await Promise.all([...testRefs, ...requestRefs, ...lockRefs].map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("catalogue fails closed and serializes malformed persisted prices safely", async () => {
   const testIds = [
     "emulator-catalogue-price-empty",
