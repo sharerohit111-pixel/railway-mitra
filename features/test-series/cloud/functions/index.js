@@ -1923,8 +1923,15 @@ exports.rmCreatePaymentOrder = onCall({
   const testSnap = await testRef.get();
   if (!testSnap.exists || testSnap.data().status !== "published") throw new HttpsError("not-found", "Published test not found");
   let amount;
-  try { amount = rupeesToPaise(testSnap.data().price, { maxRupees: 100000 }); }
-  catch { throw new HttpsError("failed-precondition", "This test does not have a valid paid price"); }
+  try {
+    const storedPrice = testSnap.data().price;
+    if (typeof storedPrice !== "number" || !Number.isFinite(storedPrice)) {
+      throw new TypeError("Persisted test price must be a finite number");
+    }
+    amount = rupeesToPaise(storedPrice, { maxRupees: 100000 });
+  } catch {
+    throw new HttpsError("failed-precondition", "This test does not have a valid paid price");
+  }
 
   const requestDocId = paymentRequestDocumentId({ uid, testId, requestId });
   const fingerprint = paymentRequestFingerprint({ uid, testId, amount, currency: "INR" });
@@ -1936,7 +1943,8 @@ exports.rmCreatePaymentOrder = onCall({
       tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef), tx.get(lockRef)
     ]);
     let latestAmount = null;
-    if (latestTest.exists && latestTest.data().status === "published") {
+    if (latestTest.exists && latestTest.data().status === "published" &&
+        typeof latestTest.data().price === "number" && Number.isFinite(latestTest.data().price)) {
       try { latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }); } catch {}
     }
     if (latestAmount !== amount) throw new HttpsError("failed-precondition", "Test price or availability changed. Refresh and try again.");
