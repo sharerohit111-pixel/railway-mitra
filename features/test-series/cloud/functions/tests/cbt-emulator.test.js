@@ -2594,6 +2594,64 @@ test("Owner manual access callables require real emulator password plus phone MF
       "rejected oversized updates must leave the previously saved question unchanged"
     );
 
+    // Exercise real Firestore cursor pagination after a sparse search has to
+    // cross the callable's first 100-document scan batch. The three matches
+    // must be returned exactly once across two Owner-authenticated pages.
+    {
+      const prefix = "emulator-owner-qb-pagination-";
+      const refs = Array.from({ length: 103 }, (_, index) =>
+        db.doc("testSeriesQuestionBank/" + prefix + String(index).padStart(3, "0"))
+      );
+      const ordinaryUpdatedAt = new Date("2026-11-19T00:00:00.000Z");
+      const matchingUpdatedAt = new Date("2026-11-18T00:00:00.000Z");
+      const batch = db.batch();
+      refs.forEach((ref, index) => batch.set(ref, {
+        topic: "Civil Engineering",
+        chapter: "Pagination",
+        folder: "Emulator",
+        question: {
+          text: index >= 100 ? "needle question " + index : "ordinary question " + index,
+          options: ["A", "B"],
+          correctIndex: 0
+        },
+        correctIndex: 0,
+        createdAt: ordinaryUpdatedAt,
+        updatedAt: index >= 100 ? matchingUpdatedAt : ordinaryUpdatedAt
+      }));
+      await batch.commit();
+
+      try {
+        const firstPage = await callableWithIdToken("rmOwnerListQuestionBank", {
+          pageSize: 2,
+          search: "needle"
+        }, signedIn.idToken);
+        assert.equal(firstPage.items.length, 2);
+        assert.equal(firstPage.hasMore, true);
+        assert.equal(firstPage.nextCursor, firstPage.items[1].itemId);
+
+        const secondPage = await callableWithIdToken("rmOwnerListQuestionBank", {
+          pageSize: 2,
+          search: "needle",
+          cursor: firstPage.nextCursor
+        }, signedIn.idToken);
+        assert.equal(secondPage.items.length, 1);
+        assert.equal(secondPage.hasMore, false);
+        assert.equal(secondPage.nextCursor, null);
+
+        const returnedIds = [...firstPage.items, ...secondPage.items].map(item => item.itemId);
+        assert.equal(new Set(returnedIds).size, 3, "pagination must not duplicate a matching question");
+        assert.deepEqual(
+          returnedIds.slice().sort(),
+          refs.slice(100).map(ref => ref.id).sort(),
+          "pagination must not skip matches beyond the first 100 scanned records"
+        );
+      } finally {
+        const cleanup = db.batch();
+        refs.forEach(ref => cleanup.delete(ref));
+        await cleanup.commit().catch(() => {});
+      }
+    }
+
     {
       const sectionTestId = "emulator-owner-section-integrity";
       const sectionTestRef = db.doc("testSeriesTests/" + sectionTestId);
