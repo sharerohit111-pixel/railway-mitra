@@ -222,12 +222,18 @@ test("still derives an unconfigured section from question metadata when no expli
 
 test("preserves safe question media descriptors through the Owner Test Builder payload", () => {
   const payload = validateOwnerTestDraft(validDraft({
-    media: [{
-      id: "diagram_01",
-      altText: "  Railway turnout layout  ",
-      mimeType: "image/png",
-      storagePath: "private/untrusted/path.png",
-      downloadURL: "https://example.invalid/private?token=must-not-persist"
+    questions: [{
+      id: "q1",
+      text: "Question one?",
+      options: ["A", "B"],
+      correctIndex: 0,
+      media: [{
+        id: "diagram_01",
+        altText: "  Railway turnout layout  ",
+        mimeType: "image/png",
+        storagePath: "private/untrusted/path.png",
+        downloadURL: "https://example.invalid/private?token=must-not-persist"
+      }]
     }]
   }));
   assert.deepEqual(payload.questions[0].media, [{
@@ -254,7 +260,9 @@ test("rejects malformed Owner Test Builder media descriptors before draft save",
   ];
   for (const media of invalidMedia) {
     assert.throws(
-      () => validateOwnerTestDraft(validDraft({ media })),
+      () => validateOwnerTestDraft(validDraft({
+        questions: [{ id: "q1", text: "Question one?", options: ["A", "B"], correctIndex: 0, media }]
+      })),
       /चित्र विवरण/,
       "invalid media descriptor input must be rejected"
     );

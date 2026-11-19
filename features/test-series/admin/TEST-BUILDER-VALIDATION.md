@@ -257,7 +257,7 @@ Focused regression commands:
 
 ```bash
 node --test features/test-series/admin/tests/admin-test-validation.test.mjs
-npm --prefix features/test-series/cloud/functions test -- --test-name-pattern="Owner media draft round-trip"
+npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore,functions,storage "npm --prefix features/test-series/cloud/functions test"
 ```
 
 The emulator case uses a synthetic Owner token and Firestore records. It does
