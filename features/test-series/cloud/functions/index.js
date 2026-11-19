@@ -117,8 +117,8 @@ exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
     const testSnap = await tx.get(testRef);
     if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
     const test = testSnap.data(), now = new Date();
-    const testPrice = Number(test.price ?? 0);
-    if (!Number.isFinite(testPrice) || testPrice < 0 || testPrice > 100000) {
+    const testPrice = test.price;
+    if (typeof testPrice !== "number" || !Number.isFinite(testPrice) || testPrice < 0 || testPrice > 100000) {
       throw new HttpsError("failed-precondition", "Test price configuration is invalid");
     }
     if (test.status !== "published") throw new HttpsError("failed-precondition", "Test is not available");
