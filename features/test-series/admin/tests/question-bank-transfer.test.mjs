@@ -73,6 +73,22 @@ test("bounds admin question imports to 10 MiB and rejects invalid file sizes", (
 });
 
 
+
+test("Test Builder mapping rejects non-canonical Question Bank document IDs without trimming", () => {
+  const base = {
+    itemId: "qb-1",
+    question: { text: "Question?", options: ["A", "B"] },
+    correctIndex: 1
+  };
+  assert.equal(questionBankItemAsTestQuestion(base).id, "bank_qb-1");
+  for (const itemId of [" qb-1", "qb-1 ", "\\tqb-1", "qb-1\\n", "\\rqb-1"]) {
+    assert.throws(
+      () => questionBankItemAsTestQuestion({ ...base, itemId }),
+      RangeError,
+      "non-canonical document ID " + JSON.stringify(itemId)
+    );
+  }
+});
 test("Test Builder mapping keeps bank-prefixed question IDs within the 100-character validator limit", () => {
   const item = {
     itemId: "x".repeat(95),

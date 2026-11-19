@@ -200,3 +200,23 @@ Focused regression commands:
 node --test features/test-series/admin/tests/test-builder-publish-parity.test.mjs
 node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
 \`\`\`
+
+### Canonical Question Bank document IDs during Test Builder mapping
+
+A Question Bank `itemId` is the Firestore document identity, not a display
+label. The Test Builder mapper now validates the original ID without trimming
+or otherwise normalizing it before adding the `bank_` prefix.
+
+- IDs must already match the canonical 1–95 character `[A-Za-z0-9_-]` form.
+- Leading/trailing spaces, tabs and line breaks are rejected rather than
+  silently converted into another record ID.
+- This prevents malformed legacy or externally supplied records from aliasing
+  a different canonical Question Bank item during duplicate detection.
+- Display labels and question text continue to use their separate, documented
+  normalization rules.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/admin/tests/question-bank-transfer.test.mjs
+```

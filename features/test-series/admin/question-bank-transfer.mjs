@@ -436,7 +436,9 @@ export function questionBankItemAsTestQuestion(item, activeSection = "") {
   if (!item || typeof item !== "object" || Array.isArray(item)) {
     throw new TypeError("Question Bank record का प्रारूप सही नहीं है।");
   }
-  const itemId = typeof item.itemId === "string" ? item.itemId.trim() : "";
+  // itemId is the Firestore document identity, not a display label. Do not
+  // trim it: normalization could silently alias a malformed ID to another record.
+  const itemId = typeof item.itemId === "string" ? item.itemId : "";
   // The Test Builder prefixes bank IDs with "bank_"; keep the final ID
   // within the same 100-character limit enforced by the draft/server validators.
   if (!/^[A-Za-z0-9_-]{1,95}$/.test(itemId)) {
