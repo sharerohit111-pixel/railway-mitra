@@ -873,9 +873,11 @@ test("exam start fails closed for malformed or negative persisted test prices", 
   const invalidIds = [
     "emulator-invalid-price-nan",
     "emulator-invalid-price-negative",
-    "emulator-invalid-price-infinite"
+    "emulator-invalid-price-infinite",
+    "emulator-invalid-price-empty",
+    "emulator-invalid-price-string-zero"
   ];
-  const values = ["not-a-price", -1, Infinity];
+  const values = ["not-a-price", -1, Infinity, "", "0"];
   const refs = invalidIds.map(testId => db.doc("testSeriesTests/" + testId));
   try {
     await Promise.all(refs.map((ref, index) => ref.set({
