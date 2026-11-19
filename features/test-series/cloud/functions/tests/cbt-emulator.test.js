@@ -1082,6 +1082,30 @@ test("email/password sessions cannot access student CBT callables", async () => 
   }
 });
 
+test("free-test claim rejects malformed persisted zero-price values", async () => {
+  const phone = "+1555" + String(Date.now() + 35791).slice(-7);
+  const invalidPriceStudent = await getAuth(app).createUser({ phoneNumber: phone });
+  const testRef = db.doc("testSeriesTests/" + testId);
+  const originalTest = (await testRef.get()).data();
+  try {
+    await testRef.update({ price: "" });
+    await signOut(clientAuth);
+    await signInAsTestStudent(invalidPriceStudent.uid);
+    await assert.rejects(
+      callable("rmClaimFreeAttempt"),
+      error => error.code === "functions/failed-precondition" &&
+        /valid zero price/i.test(error.message)
+    );
+    assert.equal((await db.doc("testSeriesFreeAttempts/" + invalidPriceStudent.uid).get()).exists, false);
+  } finally {
+    await testRef.update({ price: originalTest.price });
+    await db.doc("testSeriesFreeAttempts/" + invalidPriceStudent.uid).delete().catch(() => {});
+    await signOut(clientAuth);
+    await signInAsTestStudent(uid);
+    await getAuth(app).deleteUser(invalidPriceStudent.uid).catch(() => {});
+  }
+});
+
 test("student can claim one free test attempt only once", async () => {
   const claim = await callable("rmClaimFreeAttempt");
   assert.equal(claim.testId, testId);
