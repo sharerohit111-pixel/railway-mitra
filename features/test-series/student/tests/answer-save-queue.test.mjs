@@ -294,6 +294,8 @@ test("an older same-value acknowledgement cannot clear a newer A-B-A selection",
   const middle = queue.queueSave("q1", "1");
   const middleRejected = assert.rejects(middle, /intermediate save failed/);
   const latest = queue.queueSave("q1", "0");
+  assert.notEqual(latest, first,
+    "reselecting A after B must create a new write instead of reusing the older in-flight A");
   assert.equal(queue.pendingAnswers.get("q1"), "0");
 
   firstGate.resolve({ saved: true });

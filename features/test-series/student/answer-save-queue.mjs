@@ -52,7 +52,12 @@ export function createStudentAnswerSaveQueue({
     if (!isCurrent()) return Promise.resolve();
 
     const active = inFlightSaves.get(questionId);
-    if (active && active.value === value) return active.promise;
+    // Coalesce only when the in-flight write is still the latest selection.
+    // For A -> B -> A, the final A is a new write even while the first A
+    // remains in flight; otherwise the queued B could overwrite the latest A.
+    if (active && active.value === value &&
+        pendingAnswers.get(questionId) === value &&
+        pendingVersions.get(questionId) === active.version) return active.promise;
 
     const entry = { value, version: ++nextWriteVersion, promise: null };
     pendingAnswers.set(questionId, value);
