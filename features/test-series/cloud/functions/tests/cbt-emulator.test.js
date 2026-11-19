@@ -899,6 +899,39 @@ test("exam start fails closed for malformed or negative persisted test prices", 
   }
 });
 
+test("catalogue fails closed and serializes malformed persisted prices safely", async () => {
+  const testIds = [
+    "emulator-catalogue-price-empty",
+    "emulator-catalogue-price-string-zero",
+    "emulator-catalogue-price-text",
+    "emulator-catalogue-price-infinite"
+  ];
+  const values = ["", "0", "not-a-price", Infinity];
+  const refs = testIds.map(testId => db.doc("testSeriesTests/" + testId));
+  try {
+    await Promise.all(refs.map((ref, index) => ref.set({
+      title: "Malformed Catalogue Price " + index,
+      status: "published",
+      price: values[index],
+      mode: "mock",
+      durationMinutes: 10
+    })));
+    const catalogue = await callable("rmListAvailableTests");
+    for (const testId of testIds) {
+      const listed = catalogue.tests.find(item => item.testId === testId);
+      assert.ok(listed, "published test remains visible for Owner correction");
+      assert.equal(listed.price, null);
+      assert.equal(listed.accessType, "unavailable");
+      assert.equal(
+        (await callable("rmGetStudentTestAccess", { testId })).accessType,
+        "unavailable"
+      );
+    }
+  } finally {
+    await Promise.all(refs.map(ref => ref.delete().catch(() => {})));
+  }
+});
+
 test("an unconfigured zero-price test is not advertised as the free trial or startable", async () => {
   const zeroPriceTestId = "emulator-unconfigured-zero-price";
   const testRef = db.doc("testSeriesTests/" + zeroPriceTestId);
