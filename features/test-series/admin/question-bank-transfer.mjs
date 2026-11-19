@@ -508,9 +508,11 @@ export function appendQuestionBankItemsToTest(currentQuestions, items, activeSec
   // This keeps a mixed valid/invalid selection atomic: no partial append occurs.
   const mapped = items.map(item => questionBankItemAsTestQuestion(item, activeSection));
   const questions = [...currentQuestions];
+  // IDs are stable references. Do not trim existing draft IDs when checking
+  // duplicates: a malformed " bank_x " must not alias the canonical "bank_x".
   const knownIds = new Set(currentQuestions
     .filter(question => question && typeof question.id === "string")
-    .map(question => question.id.trim()));
+    .map(question => question.id));
   let addedCount = 0;
   let skippedCount = 0;
   for (const question of mapped) {
