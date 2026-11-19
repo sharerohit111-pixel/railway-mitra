@@ -232,3 +232,61 @@ test("exam controller uses the isolated answer-save queue for retry, submit and 
   assert.match(source, /answerSaveQueue\.hasInFlightSaves\(\)/);
   assert.match(source, /const retryPending = answerSaveQueue\.retryPending/);
 });
+
+test("an older same-value acknowledgement cannot clear a newer A-B-A selection", async () => {
+  const firstGate = deferred();
+  const middleGate = deferred();
+  const latestGate = deferred();
+  const firstStarted = signal();
+  const middleStarted = signal();
+  const latestStarted = signal();
+  const calls = [];
+  const savedSnapshots = [];
+  const queue = createStudentAnswerSaveQueue({
+    saveAnswer(questionId, value) {
+      calls.push([questionId, value]);
+      if (calls.length === 1) {
+        firstStarted.resolve();
+        return firstGate.promise;
+      }
+      if (calls.length === 2) {
+        middleStarted.resolve();
+        return middleGate.promise;
+      }
+      latestStarted.resolve();
+      return latestGate.promise;
+    },
+    onSaved(pending) {
+      savedSnapshots.push([...pending.entries()]);
+    }
+  });
+
+  const first = queue.queueSave("q1", "0");
+  await firstStarted.promise;
+  const middle = queue.queueSave("q1", "1");
+  const middleRejected = assert.rejects(middle, /intermediate save failed/);
+  const latest = queue.queueSave("q1", "0");
+  assert.equal(queue.pendingAnswers.get("q1"), "0");
+
+  firstGate.resolve({ saved: true });
+  await first;
+  await middleStarted.promise;
+  assert.equal(
+    queue.pendingAnswers.get("q1"),
+    "0",
+    "the first A acknowledgement must not clear the later A queued behind B"
+  );
+  assert.deepEqual(savedSnapshots, [[["q1", "0"]]]);
+
+  middleGate.reject(new Error("intermediate save failed"));
+  await middleRejected;
+  await latestStarted.promise;
+  assert.equal(queue.pendingAnswers.get("q1"), "0",
+    "a failed intermediate write must leave the latest selection recoverable");
+
+  latestGate.resolve({ saved: true });
+  await latest;
+  assert.equal(queue.pendingAnswers.size, 0);
+  assert.deepEqual(savedSnapshots, [[["q1", "0"]], []]);
+  assert.deepEqual(calls, [["q1", "0"], ["q1", "1"], ["q1", "0"]]);
+});

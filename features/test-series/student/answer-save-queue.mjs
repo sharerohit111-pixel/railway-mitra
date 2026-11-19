@@ -20,7 +20,12 @@ export function createStudentAnswerSaveQueue({
   }
 
   const pendingAnswers = new Map();
+  // Track each distinct queued selection, not just its value. A student can
+  // select A -> B -> A while the first A is still in flight; that old A
+  // acknowledgement must not clear the newer A that is still waiting to save.
+  const pendingVersions = new Map();
   const inFlightSaves = new Map();
+  let nextWriteVersion = 0;
   let saving = Promise.resolve();
   let retrying = null;
 
@@ -49,10 +54,11 @@ export function createStudentAnswerSaveQueue({
     const active = inFlightSaves.get(questionId);
     if (active && active.value === value) return active.promise;
 
+    const entry = { value, version: ++nextWriteVersion, promise: null };
     pendingAnswers.set(questionId, value);
+    pendingVersions.set(questionId, entry.version);
     notify(onPending, new Map(pendingAnswers), questionId, value);
 
-    const entry = { value, promise: null };
     const operation = saving.catch(() => {}).then(() => {
       if (!isCurrent()) return { skipped: true };
       return Promise.resolve(saveAnswer(questionId, value)).then(result => ({ skipped: false, result }));
@@ -62,7 +68,11 @@ export function createStudentAnswerSaveQueue({
       // A controller destroyed before this queued write starts must not be
       // mistaken for a successful server acknowledgement.
       if (outcome.skipped) return;
-      if (pendingAnswers.get(questionId) === value) pendingAnswers.delete(questionId);
+      if (pendingAnswers.get(questionId) === value &&
+          pendingVersions.get(questionId) === entry.version) {
+        pendingAnswers.delete(questionId);
+        pendingVersions.delete(questionId);
+      }
       if (!isCurrent()) return;
       notify(onSaved, new Map(pendingAnswers), questionId, value);
     }).catch(error => {
@@ -84,12 +94,15 @@ export function createStudentAnswerSaveQueue({
       // change an answer while an earlier retry is in flight; that newer value
       // is already queued behind the old write and must be awaited as well.
       while (isCurrent()) {
-        const entries = [...pendingAnswers.entries()];
+        const entries = [...pendingAnswers.entries()].map(([questionId, value]) =>
+          [questionId, value, pendingVersions.get(questionId)]);
         if (!entries.length) return;
-        for (const [questionId, value] of entries) {
+        for (const [questionId, value, version] of entries) {
           if (!isCurrent()) return;
-          // A newer selection supersedes this snapshot; the next pass picks it up.
-          if (pendingAnswers.get(questionId) !== value) continue;
+          // A newer selection supersedes this snapshot, even if it happens to
+          // have the same answer value as the older write.
+          if (pendingAnswers.get(questionId) !== value ||
+              pendingVersions.get(questionId) !== version) continue;
           await queueSave(questionId, value);
         }
       }
