@@ -66,13 +66,13 @@ test("serializes rapid changes and retains the newest answer until it is confirm
   assert.equal(queue.pendingAnswers.get("q1"), "1");
   assert.deepEqual(calls, [["q1", "0"]]);
 
-  firstGate.resolve();
+  firstGate.resolve({ saved: true });
   await older;
   await secondStarted.promise;
   assert.equal(queue.pendingAnswers.get("q1"), "1");
   assert.deepEqual(calls, [["q1", "0"], ["q1", "1"]]);
 
-  secondGate.resolve();
+  secondGate.resolve({ saved: true });
   await latest;
   assert.equal(queue.pendingAnswers.size, 0);
 });
@@ -104,7 +104,7 @@ test("a failed older save does not block a newer answer for the same question", 
   await secondStarted.promise;
   assert.equal(queue.pendingAnswers.get("q1"), "1");
 
-  secondGate.resolve();
+  secondGate.resolve({ saved: true });
   await latest;
   assert.deepEqual(calls, [["q1", "0"], ["q1", "1"]]);
   assert.equal(queue.pendingAnswers.size, 0);
@@ -138,7 +138,7 @@ test("concurrent retry triggers share one retry pass", async () => {
   const retryTwo = queue.retryPending();
   await retryStarted.promise;
   assert.equal(calls, 2);
-  retryGate.resolve();
+  retryGate.resolve({ saved: true });
   await Promise.all([retryOne, retryTwo]);
   assert.equal(queue.pendingAnswers.size, 0);
 });
@@ -208,7 +208,7 @@ test("queued writes that have not started are skipped after the controller is de
   await firstStarted.promise;
   const queued = queue.queueSave("q2", "1");
   active = false;
-  firstGate.resolve();
+  firstGate.resolve({ saved: true });
   await Promise.all([first, queued]);
 
   assert.deepEqual(calls, [["q1", "0"]]);
@@ -221,6 +221,34 @@ test("rejects invalid question IDs, answer values and queue configuration", asyn
   const queue = createStudentAnswerSaveQueue({ saveAnswer() {} });
   await assert.rejects(queue.queueSave("", "0"), /question ID/);
   await assert.rejects(queue.queueSave("q1", 0), /question ID/);
+});
+
+
+test("only an explicit saved:true response clears a pending answer", async () => {
+  for (const acknowledgement of [undefined, null, {}, { saved: false }, { saved: "true" }]) {
+    let calls = 0;
+    const errors = [];
+    const queue = createStudentAnswerSaveQueue({
+      saveAnswer() {
+        calls += 1;
+        return calls === 1 ? acknowledgement : { saved: true };
+      },
+      onError(error) { errors.push(error); }
+    });
+
+    await assert.rejects(
+      queue.queueSave("q1", "1"),
+      error => error.code === "answer_save_unconfirmed"
+    );
+    assert.equal(queue.pendingAnswers.get("q1"), "1",
+      "an absent or negative server acknowledgement must preserve the local answer");
+    assert.equal(errors.length, 1);
+
+    await queue.retryPending();
+    assert.equal(calls, 2);
+    assert.equal(queue.pendingAnswers.size, 0,
+      "a later explicit saved:true acknowledgement may clear the pending answer");
+  }
 });
 
 test("exam controller uses the isolated answer-save queue for retry, submit and unload", () => {
