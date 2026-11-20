@@ -137,3 +137,30 @@ test("Owner Test Builder normalizes ordinary surrounding spaces in Unicode categ
   assert.equal(payload.category, "विभागीय JE");
   assert.equal(payload.folder, "सिविल / सर्वेक्षण");
 });
+
+
+test("Test Builder preserves optional explanations and validates them before draft save", () => {
+  const explanation = "Reason line 1\\r\\nReason line 2\\twith detail";
+  const payload = validateOwnerTestDraft(validDraft({ explanation }));
+  assert.equal(payload.questions[0].explanation, explanation);
+
+  const withoutExplanation = validateOwnerTestDraft(validDraft());
+  assert.equal(Object.hasOwn(withoutExplanation.questions[0], "explanation"), false);
+
+  const exactLimit = "x".repeat(4000);
+  assert.equal(validateOwnerTestDraft(validDraft({ explanation: exactLimit })).questions[0].explanation, exactLimit);
+
+  for (const invalid of [
+    42,
+    {},
+    [],
+    "x".repeat(4001),
+    "Reason\\u0000text",
+    "Reason\\u0085text"
+  ]) {
+    assert.throws(
+      () => validateOwnerTestDraft(validDraft({ explanation: invalid })),
+      /Explanation/
+    );
+  }
+});
