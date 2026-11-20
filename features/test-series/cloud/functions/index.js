@@ -49,7 +49,12 @@ const { isActiveAttemptSession } = require("./active-attempt-session");
 const { paidEntitlementDocumentId, getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
 const { getStudentTestAccessType } = require("./student-test-access");
 const { getTestLeaderboard } = require("./leaderboard-query");
-const { normalizeOwnerTestTitle, restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("./owner-test-editor");
+const {
+  normalizeOwnerTestTitle,
+  normalizeOwnerQuestionExplanation,
+  restoreOwnerQuestionAnswerKeys,
+  validateOwnerQuestionPaper
+} = require("./owner-test-editor");
 const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
 const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
 const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
@@ -1263,10 +1268,22 @@ function ownerTestPayload(data) {
         throw new HttpsError("invalid-argument", "Question section name is invalid");
       }
     }
+    let explanation;
+    try { explanation = normalizeOwnerQuestionExplanation(q.explanation); }
+    catch (_) {
+      throw new HttpsError("invalid-argument", "Question explanation must be text, at most 4000 characters, and contain no unsupported control characters");
+    }
     let media;
     try { media = require("./question-media-contract").projectStudentQuestionMedia(q.media); }
     catch (_) { throw new HttpsError("invalid-argument", "Question image metadata is invalid"); }
-    publicQuestions.push({ id: qid, text: q.text.trim(), options: q.options, ...(section ? { section } : {}), ...(media ? { media } : {}) });
+    publicQuestions.push({
+      id: qid,
+      text: q.text.trim(),
+      options: q.options,
+      ...(section ? { section } : {}),
+      ...(explanation ? { explanation } : {}),
+      ...(media ? { media } : {})
+    });
     addExamAnswerKeyEntry(answerQuestions, qid, q.correctIndex);
   }
   const sectionNames = [...new Set(publicQuestions.map(question => question.section).filter(Boolean))];
