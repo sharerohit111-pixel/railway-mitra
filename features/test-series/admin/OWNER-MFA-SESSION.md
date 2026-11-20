@@ -47,3 +47,17 @@ node --test features/test-series/admin/tests/owner-provider-linking.test.mjs
 ```
 
 This is client-side session-race protection only. Backend Owner UID, approved primary-provider, verified phone-MFA and App Check checks remain authoritative. No Firebase configuration, OTP delivery, deployment or production authorization setting is changed.
+
+## Asynchronous Owner dashboard initialization failure handling
+
+The Owner session observer treats the onAuthorized callback as part of the authorization-to-workspace transition. If a dashboard initializer returns a Promise, the observer now waits for it and routes a rejection through the same fail-closed cleanup used for a rejected server authorization: report the error on a best-effort basis and sign out only the UID belonging to the still-current session.
+
+If the Owner signs out, switches accounts, or the observer is disposed while dashboard initialization is pending, a later rejection from that retired callback is ignored. It cannot sign out the replacement account or overwrite its status. The existing generation fence remains authoritative for stale completions.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/admin/tests/owner-session.test.mjs
+```
+
+This is client-side lifecycle hardening only. It does not change the server-side Owner UID/provider/phone-MFA/App Check checks, Firebase configuration, OTP delivery, deployment, or privileged backend access.
