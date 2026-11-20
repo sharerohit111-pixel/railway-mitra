@@ -472,3 +472,10 @@ bootstrap, or diagnostic-page-only edit from silently skipping the focused
 validation. These workflows use the isolated demo Firebase project and
 emulators; this CI wiring does not enable App Check enforcement or modify a
 live Firebase project.
+
+
+### Razorpay order-inspection mode and timeout boundary
+
+The Owner-only order inspector now applies the same Test Mode boundary as order creation: its Key ID must match `rzp_test_...`; live-mode and malformed keys are rejected before any provider lookup. This is a read-only support path, but it must not silently inspect a live Razorpay account when staging secrets are misconfigured.
+
+The order lookup and all paginated payment lookups share one `AbortSignal.timeout` deadline. The default overall budget is 15 seconds and the maximum override is 60 seconds. A timeout or provider network failure is recorded through the existing Owner inspection-failure audit path; the callable reports an unavailable result and does not alter payment requests, locks, payment/order ledgers or entitlements. Unit regressions verify Test Mode rejection before network access, one shared signal across all pages, invalid timeout bounds and abort of a stalled provider request. These tests use synthetic responses and do not contact Razorpay or require provider credentials.

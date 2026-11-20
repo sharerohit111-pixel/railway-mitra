@@ -75,11 +75,11 @@ test("reads and allow-lists order plus payment status from Razorpay", async () =
 
 test("rejects malformed provider responses and cross-order payment rows", async () => {
   await assert.rejects(inspectRazorpayOrder({
-    keyId: "key", keySecret: "secret", orderId: "order_123456",
+    keyId: "rzp_test_key", keySecret: "secret", orderId: "order_123456",
     fetchImpl: async () => response({ id: "order_654321", status: "paid", amount: 1, currency: "INR" })
   }), /invalid order record/);
   await assert.rejects(inspectRazorpayOrder({
-    keyId: "key", keySecret: "secret", orderId: "order_123456",
+    keyId: "rzp_test_key", keySecret: "secret", orderId: "order_123456",
     fetchImpl: async url => url.includes("/payments?")
       ? response({ items: [{ id: "pay_123456", status: "captured", amount: 100, currency: "INR", order_id: "order_654321", captured: true }] })
       : response({ id: "order_123456", status: "paid", amount: 100, currency: "INR" })
@@ -90,7 +90,7 @@ test("rejects missing credentials and invalid order IDs before network access", 
   let called = false;
   await assert.rejects(inspectRazorpayOrder({ orderId: "order_123456", fetchImpl: async () => { called = true; } }), /credentials/);
   await assert.rejects(inspectRazorpayOrder({
-    keyId: "key", keySecret: "secret", orderId: "../orders",
+    keyId: "rzp_test_key", keySecret: "secret", orderId: "../orders",
     fetchImpl: async () => { called = true; }
   }), /valid Razorpay order ID/);
   assert.equal(called, false);
@@ -152,7 +152,7 @@ test("paginates beyond Razorpay's default page and inspects every payment attemp
     currency: "INR", order_id: "order_123456", captured: true
   }];
   const result = await inspectRazorpayOrder({
-    keyId: "key", keySecret: "secret", orderId: "order_123456",
+    keyId: "rzp_test_key", keySecret: "secret", orderId: "order_123456",
     expectedReceipt: "rm_receipt_123", expectedAmountPaise: 49900,
     expectedUid: "student_uid", expectedTestId: "gdce_test",
     fetchImpl: async url => {
@@ -176,7 +176,7 @@ test("paginates beyond Razorpay's default page and inspects every payment attemp
 test("fails closed when the inspection safety ceiling cannot prove all payment attempts were read", async () => {
   let paymentPage = 0;
   await assert.rejects(inspectRazorpayOrder({
-    keyId: "key", keySecret: "secret", orderId: "order_123456",
+    keyId: "rzp_test_key", keySecret: "secret", orderId: "order_123456",
     fetchImpl: async url => {
       if (url.includes("/payments?")) {
         paymentPage += 1;
@@ -194,4 +194,79 @@ test("fails closed when the inspection safety ceiling cannot prove all payment a
     }
   }), /safe inspection limit/);
   assert.equal(paymentPage, 5);
+});
+
+
+test("rejects live and malformed Razorpay keys before provider access", async () => {
+  let calls = 0;
+  for (const keyId of ["rzp_live_liveKey123", "rzp_test_", "not-a-razorpay-key"]) {
+    await assert.rejects(inspectRazorpayOrder({
+      keyId,
+      keySecret: "secret",
+      orderId: "order_123456",
+      fetchImpl: async () => { calls += 1; return response({}); }
+    }), /Razorpay Test Mode Key ID/);
+  }
+  assert.equal(calls, 0);
+});
+
+test("uses one bounded AbortSignal for the order and every payment page", async () => {
+  const signals = [];
+  await inspectRazorpayOrder({
+    keyId: "rzp_test_key",
+    keySecret: "secret",
+    orderId: "order_123456",
+    expectedReceipt: "rm_receipt_123",
+    expectedAmountPaise: 49900,
+    expectedUid: "student_uid",
+    expectedTestId: "gdce_test",
+    fetchImpl: async (url, options) => {
+      signals.push(options.signal);
+      return url.includes("/payments?")
+        ? response({ items: [] })
+        : response({
+          id: "order_123456",
+          status: "paid",
+          amount: 49900,
+          currency: "INR",
+          receipt: "rm_receipt_123",
+          notes: { uid: "student_uid", testId: "gdce_test" }
+        });
+    }
+  });
+
+  assert.equal(signals.length, 2);
+  assert.ok(signals[0] instanceof AbortSignal);
+  assert.equal(signals[0], signals[1], "all pages must share the same overall inspection deadline");
+  assert.equal(signals[0].aborted, false);
+});
+
+test("rejects invalid inspection timeout bounds before provider access", async () => {
+  let calls = 0;
+  for (const timeoutMs of [0, -1, 1.5, 60001]) {
+    await assert.rejects(inspectRazorpayOrder({
+      keyId: "rzp_test_key",
+      keySecret: "secret",
+      orderId: "order_123456",
+      timeoutMs,
+      fetchImpl: async () => { calls += 1; return response({}); }
+    }), /inspection timeout/);
+  }
+  assert.equal(calls, 0);
+});
+
+test("aborts a stalled provider inspection at the configured deadline", async () => {
+  await assert.rejects(inspectRazorpayOrder({
+    keyId: "rzp_test_key",
+    keySecret: "secret",
+    orderId: "order_123456",
+    timeoutMs: 5,
+    fetchImpl: async (_url, options) => new Promise((_resolve, reject) => {
+      if (options.signal.aborted) {
+        reject(options.signal.reason);
+        return;
+      }
+      options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true });
+    })
+  }), error => error && error.name === "TimeoutError");
 });

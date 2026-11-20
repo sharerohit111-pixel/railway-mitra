@@ -1,5 +1,11 @@
 "use strict";
 
+const {
+  isRazorpayTestModeKeyId,
+  DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS,
+  MAX_RAZORPAY_ORDER_TIMEOUT_MS
+} = require("./razorpay-order");
+
 function validOrderId(value) {
   return typeof value === "string" && /^order_[A-Za-z0-9]{6,40}$/.test(value);
 }
@@ -8,6 +14,18 @@ const PAYMENT_STATUSES = new Set(["created", "authorized", "captured", "refunded
 const CAPTURED_PAYMENT_STATUSES = new Set(["captured", "refunded"]);
 const PAYMENT_PAGE_SIZE = 100;
 const MAX_INSPECTED_PAYMENTS = 500;
+const DEFAULT_RAZORPAY_INSPECTION_TIMEOUT_MS = DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS;
+const MAX_RAZORPAY_INSPECTION_TIMEOUT_MS = MAX_RAZORPAY_ORDER_TIMEOUT_MS;
+
+function createInspectionTimeoutSignal(timeoutMs) {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > MAX_RAZORPAY_INSPECTION_TIMEOUT_MS) {
+    throw new Error("Razorpay order inspection timeout must be a positive integer no greater than 60000 ms");
+  }
+  if (typeof AbortSignal === "undefined" || typeof AbortSignal.timeout !== "function") {
+    throw new Error("The runtime does not support bounded Razorpay order inspection requests");
+  }
+  return AbortSignal.timeout(timeoutMs);
+}
 
 function safePayment(row) {
   const capturedStatus = Boolean(row && CAPTURED_PAYMENT_STATUSES.has(row.status));
@@ -37,21 +55,28 @@ async function inspectRazorpayOrder({
   expectedReceipt,
   expectedAmountPaise,
   expectedUid,
-  expectedTestId
+  expectedTestId,
+  timeoutMs = DEFAULT_RAZORPAY_INSPECTION_TIMEOUT_MS
 } = {}) {
-  if (typeof keyId !== "string" || !keyId.trim() ||
-      typeof keySecret !== "string" || !keySecret.trim()) {
+  if (!isRazorpayTestModeKeyId(keyId)) {
+    throw new Error("A valid Razorpay Test Mode Key ID is required; live-mode keys are disabled");
+  }
+  if (typeof keySecret !== "string" || !keySecret.trim()) {
     throw new Error("Razorpay API credentials are not configured");
   }
   if (!validOrderId(orderId)) throw new Error("A valid Razorpay order ID is required");
   if (typeof fetchImpl !== "function") throw new Error("A supported HTTP client is required");
 
+  // One deadline covers the order lookup and every paginated payment lookup.
+  // This bounds the complete Owner inspection rather than resetting the clock
+  // for each provider page.
+  const signal = createInspectionTimeoutSignal(timeoutMs);
   const headers = {
     Authorization: "Basic " + Buffer.from(keyId + ":" + keySecret).toString("base64"),
     Accept: "application/json"
   };
   async function getJson(url, label) {
-    const response = await fetchImpl(url, { method: "GET", headers });
+    const response = await fetchImpl(url, { method: "GET", headers, signal });
     let payload;
     try { payload = await response.json(); }
     catch { throw new Error("Razorpay returned an unreadable " + label + " response"); }
@@ -121,4 +146,9 @@ async function inspectRazorpayOrder({
   };
 }
 
-module.exports = { inspectRazorpayOrder, validOrderId };
+module.exports = {
+  inspectRazorpayOrder,
+  validOrderId,
+  DEFAULT_RAZORPAY_INSPECTION_TIMEOUT_MS,
+  MAX_RAZORPAY_INSPECTION_TIMEOUT_MS
+};
