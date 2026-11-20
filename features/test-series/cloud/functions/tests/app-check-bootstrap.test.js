@@ -52,8 +52,24 @@ test("deployed callable policy requires App Check and emulator bypass needs a de
       K_REVISION: "1"
     }).enforceAppCheck,
     false,
-    "the Functions Emulator's synthetic function/revision markers must not disable emulator tests"
+    "the Functions Emulator's region-scoped synthetic function/revision markers must allow isolated emulator tests"
   );
+  for (const serviceName of [
+    "untrusted-service",
+    "us-central1-rmStartExam",
+    "asia-south1-"
+  ]) {
+    assert.equal(
+      getCallableOptions({
+        FUNCTIONS_EMULATOR: "true",
+        GCLOUD_PROJECT: "demo-railway-mitra-cbt",
+        K_SERVICE: serviceName,
+        K_REVISION: "1"
+      }).enforceAppCheck,
+      true,
+      serviceName + " must not mimic this codebase's asia-south1 emulator runtime"
+    );
+  }
   assert.equal(
     getCallableOptions({
       FUNCTIONS_EMULATOR: "true",
