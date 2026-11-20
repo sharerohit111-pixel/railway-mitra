@@ -138,9 +138,17 @@ export function validateOwnerTestDraft(draft) {
     if (hasControlCharacters(rawSection)) throw new Error("प्रश्न " + number + " के सेक्शन नाम में control characters स्वीकार नहीं हैं।");
     const section = rawSection.trim();
     if (section.length > 80) throw new Error("प्रश्न " + number + " का सेक्शन नाम अधिकतम 80 अक्षरों का हो सकता है।");
+    const rawExplanation = question.explanation;
+    if (rawExplanation !== undefined && rawExplanation !== null && typeof rawExplanation !== "string") {
+      throw new Error("प्रश्न " + number + " की Explanation text होनी चाहिए।");
+    }
+    const explanation = typeof rawExplanation === "string" ? rawExplanation : "";
+    if (explanation.length > 4000 || hasDisallowedQuestionControls(explanation)) {
+      throw new Error("प्रश्न " + number + " की Explanation अधिकतम 4000 अक्षरों की हो और उसमें असमर्थित control characters न हों।");
+    }
     const media = projectQuestionMediaDescriptors(question.media, number);
     return { id, text: question.text.trim(), options: [...question.options], correctIndex: question.correctIndex,
-      ...(section ? { section } : {}), ...(media ? { media } : {}) };
+      ...(section ? { section } : {}), ...(explanation ? { explanation } : {}), ...(media ? { media } : {}) };
   });
 
   const sectionNames = [...new Set(questions.map(question => question.section).filter(Boolean))];
