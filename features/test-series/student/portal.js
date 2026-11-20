@@ -319,18 +319,23 @@ onAuthStateChanged(auth, async user => {
     return;
   }
   retrySignOutButton.hidden = true;
-  setOtpControlsLocked(false);
+  // Keep OTP controls locked until this incoming Firebase identity has been
+  // checked. An auth-state event fires as soon as confirm() signs in, before
+  // getIdTokenResult() has resolved its provider claim.
+  setOtpControlsLocked(true);
 
   try {
     const token = await user.getIdTokenResult();
     if (version !== portalState.authStateVersion || auth.currentUser?.uid !== user.uid) return;
     if (token.claims?.firebase?.sign_in_provider !== "phone") {
       authStatus.textContent = "Student access requires mobile OTP sign-in. Enter your phone number to continue.";
+      setOtpControlsLocked(false);
       return;
     }
     await openWorkspace(user);
   } catch (error) {
-    if (version !== portalState.authStateVersion) return;
+    if (version !== portalState.authStateVersion || auth.currentUser?.uid !== user.uid) return;
     authStatus.textContent = error.message || "Student session could not be verified.";
+    setOtpControlsLocked(false);
   }
 });
