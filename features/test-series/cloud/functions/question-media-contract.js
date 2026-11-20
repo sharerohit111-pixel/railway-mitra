@@ -4,6 +4,7 @@ const MEDIA_ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_MEDIA_PER_QUESTION = 3;
 const MAX_ALT_TEXT_LENGTH = 200;
+const CONTROL_CHARACTERS_PATTERN = /[\u0000-\u001F\u007F-\u009F]/u;
 
 /**
  * Validate and project only the non-secret media descriptor fields.
@@ -29,6 +30,7 @@ function projectStudentQuestionMedia(media) {
     const { id, altText, mimeType } = item;
     if (typeof id !== "string" || !MEDIA_ID_PATTERN.test(id) || seenIds.has(id) ||
         typeof altText !== "string" || !altText.trim() || altText.length > MAX_ALT_TEXT_LENGTH ||
+        CONTROL_CHARACTERS_PATTERN.test(altText) ||
         typeof mimeType !== "string" || !ALLOWED_IMAGE_TYPES.has(mimeType)) {
       throw new Error("Question paper contains invalid student question media");
     }
