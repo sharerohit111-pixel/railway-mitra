@@ -351,3 +351,85 @@ test("an in-flight confirmed save after controller teardown does not notify stal
   assert.deepEqual(errors, [],
     "a successful late acknowledgement must not report a stale UI error");
 });
+
+test("a confirmed answer save settles without updating the exam UI after submission starts", async () => {
+  const gate = deferred();
+  const started = signal();
+  let uiActive = true;
+  const pendingNotifications = [];
+  const savedNotifications = [];
+  const errors = [];
+  const queue = createStudentAnswerSaveQueue({
+    isUiActive: () => uiActive,
+    saveAnswer() {
+      started.resolve();
+      return gate.promise;
+    },
+    onPending(pending) { pendingNotifications.push([...pending.entries()]); },
+    onSaved(pending) { savedNotifications.push([...pending.entries()]); },
+    onError(error) { errors.push(error); }
+  });
+
+  const pending = queue.queueSave("q1", "1");
+  await started.promise;
+  assert.equal(pendingNotifications.length, 1,
+    "the active exam UI receives its initial pending state");
+
+  uiActive = false;
+  gate.resolve({ saved: true });
+  await pending;
+
+  assert.equal(queue.pendingAnswers.size, 0,
+    "the server-confirmed answer still settles while the UI is locked");
+  assert.deepEqual(savedNotifications, [],
+    "a late acknowledgement must not update a submitting or result screen");
+  assert.deepEqual(errors, []);
+});
+
+test("a failed save during submission keeps the answer retryable without a stale UI error", async () => {
+  let uiActive = false;
+  let calls = 0;
+  const errors = [];
+  const queue = createStudentAnswerSaveQueue({
+    isUiActive: () => uiActive,
+    saveAnswer() {
+      calls += 1;
+      if (calls === 1) throw new Error("temporary network failure");
+      return { saved: true };
+    },
+    onError(error) { errors.push(error); }
+  });
+
+  await assert.rejects(queue.queueSave("q2", "0"), /temporary network failure/);
+  assert.equal(queue.pendingAnswers.get("q2"), "0",
+    "the failed answer remains available to the submit retry pass");
+  assert.deepEqual(errors, [],
+    "a failed request during submission must not update the locked exam UI");
+
+  uiActive = true;
+  await queue.retryPending();
+  assert.equal(queue.pendingAnswers.size, 0);
+  assert.equal(calls, 2);
+});
+
+test("a throwing UI activity check suppresses notifications but does not block server writes", async () => {
+  let saved = false;
+  const queue = createStudentAnswerSaveQueue({
+    isUiActive() { throw new Error("retired view"); },
+    saveAnswer() { saved = true; return { saved: true }; },
+    onPending() { assert.fail("UI callback must be suppressed"); },
+    onSaved() { assert.fail("UI callback must be suppressed"); }
+  });
+
+  await queue.queueSave("q3", "1");
+  assert.equal(saved, true);
+  assert.equal(queue.pendingAnswers.size, 0);
+});
+
+test("rejects an invalid UI activity callback", () => {
+  assert.throws(() => createStudentAnswerSaveQueue({
+    saveAnswer() {},
+    isUiActive: null
+  }), /UI activity check/);
+});
+

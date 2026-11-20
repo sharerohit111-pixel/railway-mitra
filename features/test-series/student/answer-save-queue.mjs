@@ -9,12 +9,14 @@ const noop = () => {};
 export function createStudentAnswerSaveQueue({
   saveAnswer,
   isActive = () => true,
+  isUiActive = () => true,
   onPending = noop,
   onSaved = noop,
   onError = noop
 } = {}) {
   if (typeof saveAnswer !== "function") throw new TypeError("An answer-save function is required");
   if (typeof isActive !== "function") throw new TypeError("An activity check is required");
+  if (typeof isUiActive !== "function") throw new TypeError("A UI activity check is required");
   for (const callback of [onPending, onSaved, onError]) {
     if (typeof callback !== "function") throw new TypeError("Answer-save callbacks must be functions");
   }
@@ -38,6 +40,13 @@ export function createStudentAnswerSaveQueue({
   }
 
   function notify(callback, ...args) {
+    let uiActive = false;
+    try {
+      uiActive = isUiActive() === true;
+    } catch {
+      uiActive = false;
+    }
+    if (!uiActive) return;
     try {
       callback(...args);
     } catch {

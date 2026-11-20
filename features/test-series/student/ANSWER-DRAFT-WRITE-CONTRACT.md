@@ -28,3 +28,20 @@ node --test features/test-series/student/tests/answer-draft-ambiguous-paper.test
 ```
 
 The write-validation and restore regressions cover malformed/sparse pairs, duplicate draft IDs, duplicate or blank delivered-paper IDs, canonical option-index formatting, safe-integer bounds, storage-key validation, successful round-trip restoration and preservation of the previous draft on rejected writes.
+
+## Answer-save UI notifications during submission
+
+The answer-save queue separates controller lifetime from UI-notification lifetime:
+
+- `isActive` controls whether queued server writes may start. Destroying the exam controller still prevents not-yet-started writes and stale controller callbacks.
+- `isUiActive` controls only `onPending`, `onSaved` and `onError` notifications. It does not cancel a server write or discard a pending answer.
+- The exam sets `isUiActive` to false as soon as submission starts. Pending writes can still settle and the explicit submit retry can still drain them, but late acknowledgements or errors cannot overwrite the locked exam or result screen.
+- If a manual submit retry fails, the submit path reports the failure and re-enables the exam. Pending answers remain available for another retry.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/student/tests/answer-save-queue.test.mjs
+```
+
+This is a Student UI lifecycle safeguard. Server-side answer validation, attempt ownership, deadlines and submission remain authoritative; no Firebase configuration, payment, App Check or deployment setting changes.

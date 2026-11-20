@@ -49,6 +49,8 @@ export function initStudentCbtExam({ app, testId, studentUid, root = document })
   const answerSaveQueue = createStudentAnswerSaveQueue({
     saveAnswer: (qid,value) => saveCbtAnswer(app,attemptId,qid,value),
     isActive,
+    // Keep queue draining during submit, but suppress callbacks into a locked/result UI.
+    isUiActive: () => isActive() && !finished,
     onPending: () => {
       persistPending();
       el("rm-cbt-saved").textContent="Saving…";
