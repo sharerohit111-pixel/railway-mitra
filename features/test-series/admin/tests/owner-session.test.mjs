@@ -241,3 +241,49 @@ test("Owner session adapter signs out only the UID rejected by the current autho
   assert.match(dashboard, /if \(expectedUser && auth\.currentUser\?\.uid !== expectedUser\.uid\) return Promise\.resolve\(\)/);
   assert.match(dashboard, /return signOut\(auth\)/);
 });
+
+
+test("fails closed when asynchronous Owner dashboard initialization rejects", async () => {
+  const user = { uid: "owner-dashboard-init-failed" };
+  const failure = new Error("Owner dashboard initialization failed");
+  const h = createHarness({
+    onAuthorized: async () => { throw failure; }
+  });
+
+  h.emit(user);
+  await flush();
+
+  assert.equal(h.calls.authorized.length, 0);
+  assert.equal(h.calls.signOut, 1);
+  assert.deepEqual(h.calls.signOutUsers, [user]);
+  assert.deepEqual(h.calls.errors, [failure]);
+});
+
+test("ignores a stale asynchronous dashboard initialization failure after an account switch", async () => {
+  let rejectFirstInitialization;
+  const firstUser = { uid: "owner-one" };
+  const secondUser = { uid: "owner-two" };
+  const authorizedUsers = [];
+  const h = createHarness({
+    onAuthorized: user => {
+      if (user.uid === firstUser.uid) {
+        return new Promise((resolve, reject) => { rejectFirstInitialization = reject; });
+      }
+      authorizedUsers.push(user);
+    }
+  });
+
+  h.emit(firstUser);
+  await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(typeof rejectFirstInitialization, "function");
+
+  h.emit(secondUser);
+  await flush();
+  rejectFirstInitialization(new Error("retired dashboard initialization failed"));
+  await flush();
+
+  assert.deepEqual(authorizedUsers, [secondUser]);
+  assert.equal(h.calls.signOut, 0);
+  assert.equal(h.calls.errors.length, 0);
+});
