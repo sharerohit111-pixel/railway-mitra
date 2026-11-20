@@ -47,7 +47,7 @@ test("clears the prior Owner workspace immediately while a new account is being 
   h.emit(user);
   assert.deepEqual(h.calls.checking, [user], "the old dashboard is cleared synchronously on the auth transition");
   assert.equal(h.calls.authorized.length, 0);
-  await Promise.resolve();
+  await flush();
   assert.equal(typeof resolveVerification, "function");
   resolveVerification({ authorized: true });
   await flush();
@@ -124,7 +124,7 @@ test("does not reveal the dashboard when a pending authorization finishes after 
     verifyOwner: () => new Promise(resolve => { resolveVerification = resolve; })
   });
   h.emit({ uid: "owner-uid" });
-  await Promise.resolve();
+  await flush();
   h.emit(null);
   resolveVerification({ authorized: true, email: "owner@example.test" });
   await flush();
@@ -140,7 +140,7 @@ test("disposing the portal watcher cancels pending UI authorization and unsubscr
     verifyOwner: () => new Promise(resolve => { resolveVerification = resolve; })
   });
   h.emit({ uid: "owner-uid" });
-  await Promise.resolve();
+  await flush();
   h.stop();
   resolveVerification({ authorized: true });
   await flush();
@@ -164,7 +164,7 @@ test("ignores an earlier account authorization when the signed-in Owner account 
   });
 
   h.emit(firstUser);
-  await Promise.resolve();
+  await flush();
   h.emit(secondUser);
   await flush();
   resolveFirst({ authorized: true, email: "first@example.test" });
@@ -188,7 +188,7 @@ test("a stale authorization failure cannot sign out a newer Owner account", asyn
   });
 
   h.emit(firstUser);
-  await Promise.resolve();
+  await flush();
   h.emit(secondUser);
   await flush();
   rejectFirst(new Error("old account verification failed"));
@@ -205,7 +205,7 @@ test("disposing the watcher makes late failures inert and unsubscribes", async (
     verifyOwner: () => new Promise((resolve, reject) => { rejectVerification = reject; })
   });
   h.emit({ uid: "owner-uid" });
-  await Promise.resolve();
+  await flush();
   h.stop();
   rejectVerification(new Error("late failure"));
   await flush();
