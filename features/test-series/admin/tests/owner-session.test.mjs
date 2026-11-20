@@ -286,3 +286,90 @@ test("ignores a stale asynchronous dashboard initialization failure after an acc
   assert.equal(h.calls.signOut, 0);
   assert.equal(h.calls.errors.length, 0);
 });
+
+test("waits for asynchronous Owner workspace cleanup before checking MFA or server authorization", async () => {
+  let resolveCleanup;
+  let mfaChecks = 0;
+  const user = { uid: "owner-async-cleanup" };
+  const h = createHarness({
+    onChecking: () => new Promise(resolve => { resolveCleanup = resolve; }),
+    hasPhoneMfa: () => { mfaChecks += 1; return true; }
+  });
+
+  h.emit(user);
+  assert.equal(h.calls.verify, 0);
+  assert.equal(mfaChecks, 0);
+  resolveCleanup();
+  await flush();
+
+  assert.equal(mfaChecks, 1);
+  assert.equal(h.calls.verify, 1);
+  assert.equal(h.calls.authorized.length, 1);
+});
+
+test("fails closed when asynchronous Owner workspace cleanup rejects", async () => {
+  const user = { uid: "owner-async-cleanup-failed" };
+  const failure = new Error("async workspace cleanup failed");
+  const h = createHarness({ onChecking: async () => { throw failure; } });
+
+  h.emit(user);
+  await flush();
+
+  assert.equal(h.calls.verify, 0);
+  assert.equal(h.calls.authorized.length, 0);
+  assert.equal(h.calls.signOut, 1);
+  assert.deepEqual(h.calls.signOutUsers, [user]);
+  assert.deepEqual(h.calls.errors, [failure]);
+});
+
+test("an asynchronous cleanup from a retired Owner session cannot authorize after an account switch", async () => {
+  let resolveFirstCleanup;
+  const firstUser = { uid: "owner-cleanup-one" };
+  const secondUser = { uid: "owner-cleanup-two" };
+  const h = createHarness({
+    onChecking: user => user.uid === firstUser.uid
+      ? new Promise(resolve => { resolveFirstCleanup = resolve; })
+      : undefined
+  });
+
+  h.emit(firstUser);
+  h.emit(secondUser);
+  await flush();
+  resolveFirstCleanup();
+  await flush();
+
+  assert.equal(h.calls.verify, 1);
+  assert.equal(h.calls.authorized.length, 1);
+  assert.equal(h.calls.authorized[0].user, secondUser);
+  assert.equal(h.calls.signOut, 0);
+});
+
+test("fails closed when asynchronous Owner MFA-required UI initialization rejects", async () => {
+  const user = { uid: "owner-mfa-ui-failed" };
+  const failure = new Error("MFA setup UI failed");
+  const h = createHarness({
+    hasPhoneMfa: () => false,
+    onMfaRequired: async () => { throw failure; }
+  });
+
+  h.emit(user);
+  await flush();
+
+  assert.equal(h.calls.verify, 0);
+  assert.equal(h.calls.authorized.length, 0);
+  assert.equal(h.calls.signOut, 1);
+  assert.deepEqual(h.calls.signOutUsers, [user]);
+  assert.deepEqual(h.calls.errors, [failure]);
+});
+
+test("reports asynchronous signed-out cleanup failures without leaving an unhandled rejection", async () => {
+  const failure = new Error("signed-out cleanup failed");
+  const h = createHarness({ onSignedOut: async () => { throw failure; } });
+
+  h.emit(null);
+  await flush();
+
+  assert.equal(h.calls.verify, 0);
+  assert.equal(h.calls.signOut, 0);
+  assert.deepEqual(h.calls.errors, [failure]);
+});
