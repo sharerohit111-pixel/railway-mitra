@@ -21,7 +21,7 @@ function listJavaScriptFiles(rootDirectory) {
       if (entry.isDirectory()) {
         if (entry.name === "node_modules" || entry.name === ".git") continue;
         visit(fullPath);
-      } else if (entry.isFile() && /\\.(?:c|m)?js$/i.test(entry.name)) {
+      } else if (entry.isFile() && /\.(?:c|m)?js$/i.test(entry.name)) {
         files.push(fullPath);
       }
     }
@@ -34,7 +34,7 @@ function listJavaScriptFiles(rootDirectory) {
 function checkJavaScriptFile(filePath) {
   const result = spawnSync(process.execPath, ["--check", filePath], { stdio: "inherit" });
   if (result.error) {
-    process.stderr.write("Unable to check " + filePath + ": " + result.error.message + "\\n");
+    process.stderr.write("Unable to check " + filePath + ": " + result.error.message + "\n");
     return false;
   }
   return result.status === 0;
@@ -43,7 +43,7 @@ function checkJavaScriptFile(filePath) {
 function checkSyntax(rootDirectory = __dirname, checkFile = checkJavaScriptFile) {
   const files = listJavaScriptFiles(rootDirectory);
   if (!files.length) {
-    process.stderr.write("No JavaScript source files found for syntax validation.\\n");
+    process.stderr.write("No JavaScript source files found for syntax validation.\n");
     return 1;
   }
 
@@ -51,7 +51,7 @@ function checkSyntax(rootDirectory = __dirname, checkFile = checkJavaScriptFile)
     if (checkFile(file) !== true) return 1;
   }
 
-  process.stdout.write("Syntax checked " + files.length + " JavaScript files.\\n");
+  process.stdout.write("Syntax checked " + files.length + " JavaScript files.\n");
   return 0;
 }
 
