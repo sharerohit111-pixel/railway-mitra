@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#071326">
+<title>Financial Freedom Dashboard | Railway Mitra</title>
+<link rel="stylesheet" href="financial.css?v=1">
+</head>
+<body>
+<main class="shell">
+<a class="back" href="../../app.html">← Back to Railway Mitra</a>
+<header class="hero">
+<span class="eyebrow">PERSONAL FINANCE · PRIVATE ON THIS DEVICE</span>
+<h1>Financial Freedom <em>Dashboard</em></h1>
+<p>Enter your monthly income and add each loan separately. Railway Mitra will organise your EMIs, estimate your loan timelines and show how much income remains after EMIs.</p>
+</header>
+<section class="summary-grid" aria-live="polite">
+<article class="summary"><span>Monthly income</span><strong id="sumIncome">₹0</strong></article>
+<article class="summary"><span>Monthly EMIs</span><strong id="sumEmi">₹0</strong></article>
+<article class="summary"><span>Income after EMIs</span><strong id="sumBalance">₹0</strong></article>
+<article class="summary"><span>Remaining instalments</span><strong id="sumCount">0</strong></article>
+</section>
+<section class="panel">
+<div class="section-title"><div><span class="eyebrow">YOUR MONTHLY INCOME</span><h2>Income</h2></div></div>
+<label class="income-field">Total monthly income (₹)<input id="monthlyIncome" type="number" min="0" step="1" placeholder="e.g. 45000"></label>
+<p class="hint">Enter your take-home monthly income. No Basic Pay, DA or allowance breakup is needed.</p>
+</section>
+<section class="panel">
+<div class="section-title"><div><span class="eyebrow">LOAN MANAGER</span><h2>My Loans &amp; EMIs</h2></div><button class="primary" id="addLoan" type="button">＋ Add Loan</button></div>
+<div id="loanList" class="loan-list"><div class="empty">No loans added yet. Select “Add Loan” to enter your first loan.</div></div>
+</section>
+<section class="panel">
+<div class="section-title"><div><span class="eyebrow">YOUR PROGRESS</span><h2>Debt overview</h2></div><button class="secondary" id="exportPdf" type="button">Print / Save PDF</button></div>
+<div class="bar-wrap"><div class="bar-label"><span>Monthly income used by EMIs</span><strong id="emiRatio">0%</strong></div><div class="bar"><span id="emiBar"></span></div></div>
+<div id="overallNote" class="hint">Add your income and loans to see your financial summary.</div>
+<div id="loanTimeline" class="timeline"></div>
+</section>
+<footer>Railway Mitra · Owned &amp; Developed by Rohit Kumar<br><small>Estimates are based on the information you enter. Outstanding principal and interest are not inferred from EMI totals alone. Your entries are saved only in this browser on this device; they are not synced to your Railway Mitra account.</small></footer>
+</main>
+<dialog id="loanDialog">
+<form id="loanForm" method="dialog" class="dialog-form">
+<div class="section-title"><div><span class="eyebrow">LOAN DETAILS</span><h2 id="dialogTitle">Add a loan</h2></div><button class="close" type="button" id="closeDialog" aria-label="Close">×</button></div>
+<div class="form-grid">
+<label>Bank / lender name *<input name="bank" required maxlength="60" placeholder="e.g. SBI"></label>
+<label>Loan name / type *<input name="type" required maxlength="60" placeholder="e.g. Personal Loan"></label>
+<label>Total loan amount (₹) *<input name="principal" type="number" min="1" step="1" required placeholder="1000000"></label>
+<label>Monthly EMI (₹) *<input name="emi" type="number" min="1" step="1" required placeholder="14859"></label>
+<label>Total number of EMIs *<input name="totalEmis" type="number" min="1" step="1" required placeholder="60"></label>
+<label>EMIs already paid *<input name="paidEmis" type="number" min="0" step="1" required placeholder="20"></label>
+<label>EMI deduction date (day of month) *<input name="dueDay" type="number" min="1" max="31" required placeholder="10"></label>
+<label>First EMI date<input name="startDate" type="date"></label>
+<label>Interest rate (% per year, optional)<input name="rate" type="number" min="0" max="100" step="0.01" placeholder="e.g. 10.5"></label>
+<label>Current outstanding principal (₹, optional)<input name="outstanding" type="number" min="0" step="1" placeholder="If shown by your bank"></label>
+<label class="wide">Amount paid so far (₹, optional)<input name="amountPaid" type="number" min="0" step="1" placeholder="Leave blank to calculate EMI × paid instalments"></label>
+</div>
+<p class="hint">For an accurate remaining-EMI count, enter the total number of instalments and how many have been paid. The interest rate and current outstanding principal are optional.</p>
+<div class="dialog-actions"><button class="secondary" type="button" id="cancelLoan">Cancel</button><button class="primary" type="submit">Save Loan</button></div>
+</form>
+</dialog>
+<script src="financial.js?v=1"></script>
+</body></html>
