@@ -2,6 +2,21 @@
 
 const SUPPORTED_PROVIDER_IDS = new Set(["google.com", "password"]);
 
+export function assertOwnerLinkSession(auth, expectedUid) {
+  if (!auth || (typeof auth !== "object" && typeof auth !== "function")) {
+    throw new TypeError("A Firebase Auth instance is required");
+  }
+  if (typeof expectedUid !== "string" || !expectedUid.trim()) {
+    throw new TypeError("The original Owner UID is required");
+  }
+
+  const currentUser = auth.currentUser;
+  if (!currentUser || currentUser.uid !== expectedUid) {
+    throw new Error("Owner account changed during provider linking. Sign in again and restart linking.");
+  }
+  return currentUser;
+}
+
 export async function linkOwnerProvider({
   currentUser,
   providerId,
