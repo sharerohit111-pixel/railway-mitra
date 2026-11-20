@@ -1,7 +1,12 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
-const { normalizeOwnerTestTitle, restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper } = require("../owner-test-editor");
+const {
+  normalizeOwnerTestTitle,
+  normalizeOwnerQuestionExplanation,
+  restoreOwnerQuestionAnswerKeys,
+  validateOwnerQuestionPaper
+} = require("../owner-test-editor");
 
 const questions = [
   { id: "q1", text: "Question 1", options: ["A", "B"] },
@@ -350,4 +355,23 @@ test("publish integrity rejects raw C0, DEL and C1 controls in category and fold
       );
     }
   }
+});
+
+
+test("normalizes optional Owner question explanations with the shared publish policy", () => {
+  assert.equal(normalizeOwnerQuestionExplanation(undefined), "");
+  assert.equal(normalizeOwnerQuestionExplanation(null), "");
+  const formatted = "Reason line 1\\r\\nReason line 2\\twith detail";
+  assert.equal(normalizeOwnerQuestionExplanation(formatted), formatted);
+  assert.equal(normalizeOwnerQuestionExplanation("x".repeat(4000)).length, 4000);
+
+  for (const invalid of [42, {}, [], "x".repeat(4001), "Reason\\u0000text", "Reason\\u009ftext"]) {
+    assert.throws(() => normalizeOwnerQuestionExplanation(invalid), /explanation is invalid/);
+  }
+});
+
+test("Owner draft-save callable validates and persists the optional explanation field", () => {
+  const source = readFileSync(require.resolve("../index"), "utf8");
+  assert.match(source, /normalizeOwnerQuestionExplanation\\(q\\.explanation\\)/);
+  assert.match(source, /\\.\\.\\.\\(explanation \\? \\{ explanation \\} : \\{\\}\\)/);
 });
