@@ -46,11 +46,13 @@ export function watchOwnerSession({
 
     if (!user) {
       try {
-        // Signed-out cleanup is best-effort, but async failures must not leak as
-        // unhandled rejections into the page.
-        Promise.resolve(onSignedOut()).catch(reportError);
+        // Signed-out cleanup is best-effort. Its error belongs only to this
+        // auth generation; a late rejection must not overwrite a new session.
+        Promise.resolve(onSignedOut()).catch(error => {
+          if (isCurrent(currentGeneration)) reportError(error);
+        });
       } catch (error) {
-        reportError(error);
+        if (isCurrent(currentGeneration)) reportError(error);
       }
       return;
     }
