@@ -35,6 +35,16 @@ test("rejects malformed, sparse, oversized and duplicate media arrays", () => {
   assert.throws(() => projectStudentQuestionMedia([{ ...valid, altText: "x".repeat(201) }]), /invalid student question media/);
 });
 
+test("rejects C0, DEL and C1 control characters in media alt text", () => {
+  const valid = { id: "diagram", altText: "Diagram", mimeType: "image/png" };
+  const rejectedCodes = [...Array(32).keys(), ...Array.from({ length: 33 }, (_, index) => index + 127)];
+  for (const code of rejectedCodes) {
+    const altText = "Diagram" + String.fromCharCode(code) + "label";
+    assert.throws(() => projectStudentQuestionMedia([{ ...valid, altText }]),
+      /invalid student question media/, "alt-text control code " + code);
+  }
+});
+
 test("does not coerce object-valued descriptors and strips arbitrary media URLs", () => {
   assert.throws(() => projectStudentQuestionMedia(["https://example.invalid/image.png"]), /invalid student question media/);
   const [descriptor] = projectStudentQuestionMedia([
