@@ -10,13 +10,22 @@ const owner = () => ({
   providerData: [{ providerId: "password" }]
 });
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+  return { promise, resolve, reject };
+}
+
 test("links Google only when Firebase keeps the same UID and confirms the provider", async () => {
   const currentUser = owner();
+  const auth = { currentUser };
   const linkedUser = {
     uid: currentUser.uid,
     providerData: [...currentUser.providerData, { providerId: "google.com" }]
   };
   const result = await linkOwnerProvider({
+    auth,
     currentUser,
     providerId: "google.com",
     link: async user => {
@@ -34,6 +43,7 @@ test("does not attempt to link a provider already present on the account", async
     providerData: [{ providerId: "google.com" }]
   };
   const result = await linkOwnerProvider({
+    auth: { currentUser },
     currentUser,
     providerId: "google.com",
     link: async () => assert.fail("link must not be called")
@@ -43,9 +53,11 @@ test("does not attempt to link a provider already present on the account", async
 });
 
 test("rejects a provider link that resolves to a different Firebase UID", async () => {
+  const currentUser = owner();
   await assert.rejects(
     linkOwnerProvider({
-      currentUser: owner(),
+      auth: { currentUser },
+      currentUser,
       providerId: "google.com",
       link: async () => ({
         uid: "different-uid",
@@ -57,9 +69,11 @@ test("rejects a provider link that resolves to a different Firebase UID", async 
 });
 
 test("rejects a result that does not confirm the linked provider", async () => {
+  const currentUser = owner();
   await assert.rejects(
     linkOwnerProvider({
-      currentUser: owner(),
+      auth: { currentUser },
+      currentUser,
       providerId: "google.com",
       link: async user => ({ uid: user.uid, providerData: user.providerData })
     }),
@@ -68,16 +82,26 @@ test("rejects a result that does not confirm the linked provider", async () => {
 });
 
 test("rejects unsupported providers and unauthenticated callers", async () => {
+  const currentUser = owner();
   await assert.rejects(
-    linkOwnerProvider({ currentUser: owner(), providerId: "phone", link: async () => owner() }),
+    linkOwnerProvider({
+      auth: { currentUser },
+      currentUser,
+      providerId: "phone",
+      link: async () => owner()
+    }),
     /Only Google and Email/
   );
   await assert.rejects(
-    linkOwnerProvider({ currentUser: null, providerId: "google.com", link: async () => owner() }),
+    linkOwnerProvider({
+      auth: { currentUser: null },
+      currentUser: null,
+      providerId: "google.com",
+      link: async () => owner()
+    }),
     /authenticated Owner/
   );
 });
-
 
 test("provider-link completion is accepted only while the initiating Owner UID remains active", () => {
   const ownerUser = { uid: "configured-owner-uid" };
@@ -95,7 +119,53 @@ test("provider-link completion fails closed after sign-out or account switch", (
   );
 });
 
-test("both Firebase provider adapters verify the initiating UID after the async link resolves", () => {
+test("a provider popup that completes after an account switch cannot report success", async () => {
+  const currentUser = owner();
+  const replacementUser = { uid: "replacement-user", providerData: [] };
+  const auth = { currentUser };
+  const popup = deferred();
+  let linkedAgainst = null;
+
+  const operation = linkOwnerProvider({
+    auth,
+    currentUser,
+    providerId: "google.com",
+    link(user) {
+      linkedAgainst = user;
+      return popup.promise;
+    }
+  });
+
+  auth.currentUser = replacementUser;
+  popup.resolve({
+    uid: currentUser.uid,
+    providerData: [...currentUser.providerData, { providerId: "google.com" }]
+  });
+
+  await assert.rejects(operation, /account changed during provider linking/);
+  assert.equal(linkedAgainst, currentUser,
+    "the Firebase operation remains bound to the original user object");
+  assert.equal(auth.currentUser, replacementUser,
+    "the replacement account must not be changed by the stale completion");
+});
+
+test("a provider link cannot start after the original Owner session has signed out", async () => {
+  const currentUser = owner();
+  const auth = { currentUser: null };
+  let linkCalls = 0;
+  await assert.rejects(
+    linkOwnerProvider({
+      auth,
+      currentUser,
+      providerId: "google.com",
+      link: async () => { linkCalls += 1; return currentUser; }
+    }),
+    /account changed during provider linking/
+  );
+  assert.equal(linkCalls, 0);
+});
+
+test("both Firebase provider adapters pass the live Auth instance to the UID-bound helper", () => {
   const auth = readFileSync(new URL("../admin-auth.js", import.meta.url), "utf8");
   for (const [name, nextName] of [
     ["export async function linkOwnerGoogleProvider", "export async function linkOwnerEmailProvider"],
@@ -106,10 +176,7 @@ test("both Firebase provider adapters verify the initiating UID after the async 
     const body = auth.slice(start, end < 0 ? undefined : end);
     assert.ok(start >= 0, name + " exists");
     assert.match(body, /const currentUser = auth\.currentUser/);
-    assert.match(body, /const result = await linkOwnerProvider\(/);
-    assert.match(body, /assertOwnerLinkSession\(auth, currentUser\.uid\)/);
-    assert.ok(body.indexOf("assertOwnerLinkSession(auth, currentUser.uid)") > body.indexOf("await linkOwnerProvider("),
-      name + " must re-check the session after Firebase linking completes");
+    assert.match(body, /const result = await linkOwnerProvider\(\s*\{\s*auth,/);
   }
 });
 
