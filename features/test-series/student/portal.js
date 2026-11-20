@@ -8,7 +8,7 @@ import { initStudentLeaderboard } from "./leaderboard.js";
 import { invalidateStudentPortalSession } from "./session-transition.mjs";
 import { shouldApplyStudentViewError } from "./view-error-fence.mjs";
 import { createStudentOtpFlowGuard } from "./otp-flow-guard.mjs";
-import { setStudentOtpControlsLocked } from "./otp-control-state.mjs";
+import { setStudentOtpControlsLocked, shouldUnlockStudentOtpControls } from "./otp-control-state.mjs";
 import { createStudentLogoutRecovery } from "./logout-recovery.mjs";
 
 const el = id => document.getElementById(id);
@@ -33,18 +33,57 @@ function setOtpControlsLocked(locked) {
     verifyButton: el("rm-student-verify-otp")
   }, locked);
 }
+function unlockOtpControlsIfSignedOut() {
+  const signedOut = shouldUnlockStudentOtpControls(auth.currentUser);
+  // An authenticated replacement session is owned by onAuthStateChanged.
+  // Do not unlock it while its phone-provider claim may still be pending.
+  if (signedOut) setOtpControlsLocked(false);
+  return signedOut;
+}
+function setPostSignOutStatus() {
+  const signedOut = unlockOtpControlsIfSignedOut();
+  authStatus.textContent = signedOut
+    ? "You have signed out."
+    : "A different authenticated session is active or being verified. Its access check remains in control.";
+}
 async function retryPendingSignOut() {
+  const retryingUid = auth.currentUser?.uid || null;
+  // A stale retry button must never sign out a replacement account. The marker
+  // is bound to the UID whose earlier sign-out could not be confirmed.
+  if (!retryingUid || !logoutRecovery.shouldBlock(retryingUid)) {
+    if (!retryingUid) {
+      logoutRecovery.clear();
+      setPostSignOutStatus();
+    } else {
+      retrySignOutButton.hidden = true;
+      authStatus.textContent = "The pending sign-out belongs to a different session. The current account will be checked independently.";
+    }
+    retrySignOutButton.hidden = true;
+    return;
+  }
+
   setBusy(retrySignOutButton, true, "Retrying sign out…");
   try {
     await signOut(auth);
+    if (auth.currentUser?.uid === retryingUid) {
+      retrySignOutButton.disabled = false;
+      retrySignOutButton.textContent = "Retry sign out";
+      authStatus.textContent = "Sign-out is still unconfirmed. Keep this page open and retry.";
+      return;
+    }
     logoutRecovery.clear();
     retrySignOutButton.hidden = true;
-    authStatus.textContent = "You have signed out.";
-    setOtpControlsLocked(false);
+    setPostSignOutStatus();
   } catch (error) {
-    retrySignOutButton.disabled = false;
-    retrySignOutButton.textContent = "Retry sign out";
-    authStatus.textContent = error.message || "Sign-out is still unconfirmed. Keep this page open and retry.";
+    if (auth.currentUser?.uid === retryingUid) {
+      retrySignOutButton.disabled = false;
+      retrySignOutButton.textContent = "Retry sign out";
+      authStatus.textContent = error.message || "Sign-out is still unconfirmed. Keep this page open and retry.";
+      return;
+    }
+    logoutRecovery.clear();
+    retrySignOutButton.hidden = true;
+    setPostSignOutStatus();
   }
 }
 
@@ -266,8 +305,7 @@ logoutButton.addEventListener("click", async () => {
     await signOut(auth);
     logoutRecovery.clear();
     retrySignOutButton.hidden = true;
-    authStatus.textContent = "You have signed out.";
-    setOtpControlsLocked(false);
+    setPostSignOutStatus();
   } catch (error) {
     // Do not allow a new OTP flow to race an unconfirmed logout. Persist a
     // same-UID lock so a restored Firebase session cannot reopen the workspace.
@@ -282,8 +320,7 @@ logoutButton.addEventListener("click", async () => {
     } else {
       logoutRecovery.clear();
       retrySignOutButton.hidden = true;
-      authStatus.textContent = "You have signed out.";
-      setOtpControlsLocked(false);
+      setPostSignOutStatus();
     }
   }
 });
