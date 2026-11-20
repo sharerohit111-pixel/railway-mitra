@@ -32,6 +32,14 @@ function hasDisallowedQuestionControls(value) {
   });
 }
 
+function normalizeOwnerQuestionExplanation(value) {
+  if (value === undefined || value === null) return "";
+  if (typeof value !== "string" || value.length > 4000 || hasDisallowedQuestionControls(value)) {
+    throw new Error("Question explanation is invalid");
+  }
+  return value;
+}
+
 function hasDenseArray(value) {
   if (!Array.isArray(value)) return false;
   for (let index = 0; index < value.length; index += 1) {
@@ -143,9 +151,9 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
         (typeof question.section !== "string" || !question.section.trim() || question.section.length > 80 || hasControlCharacters(question.section))) {
       throw new Error("Question " + (index + 1) + " section is invalid");
     }
-    if (question.explanation !== undefined && question.explanation !== null &&
-        (typeof question.explanation !== "string" || question.explanation.length > 4000 ||
-         hasDisallowedQuestionControls(question.explanation))) {
+    try {
+      normalizeOwnerQuestionExplanation(question.explanation);
+    } catch (_) {
       throw new Error("Question " + (index + 1) + " explanation is invalid");
     }
     try {
@@ -163,4 +171,9 @@ function validateOwnerQuestionPaper(test, publicQuestions, answerMap) {
   return restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap);
 }
 
-module.exports = { normalizeOwnerTestTitle, restoreOwnerQuestionAnswerKeys, validateOwnerQuestionPaper };
+module.exports = {
+  normalizeOwnerTestTitle,
+  normalizeOwnerQuestionExplanation,
+  restoreOwnerQuestionAnswerKeys,
+  validateOwnerQuestionPaper
+};
