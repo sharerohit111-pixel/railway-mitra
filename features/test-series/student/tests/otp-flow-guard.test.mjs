@@ -268,7 +268,7 @@ test("invalid OTP control configuration fails closed", () => {
 
 test("Student Portal uses the tested control helper and resets labels on auth transitions", () => {
   const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
-  assert.ok(portal.includes('import { setStudentOtpControlsLocked } from "./otp-control-state.mjs";'));
+  assert.ok(portal.includes('import { setStudentOtpControlsLocked, shouldUnlockStudentOtpControls } from "./otp-control-state.mjs";'));
   const lockStart = portal.indexOf("function setOtpControlsLocked(locked)");
   const lockEnd = portal.indexOf("async function retryPendingSignOut()", lockStart);
   const lockBody = portal.slice(lockStart, lockEnd);
