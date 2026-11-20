@@ -43,6 +43,12 @@ test("custom-token fixtures require the explicit flag and isolated demo-project 
     K_REVISION: "1",
     TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR: "true"
   }), true);
+  assert.equal(hasStudentAccess(customToken, {
+    ...isolatedEmulator,
+    K_SERVICE: "rmStartExam",
+    K_REVISION: "1",
+    TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR: "true"
+  }), true);
 
   for (const runtime of [
     { K_SERVICE: "railway-mitra-test-series" },

@@ -5,13 +5,14 @@
 // project ID. A stray/misconfigured marker in a real project must fail closed.
 const REGION = "asia-south1";
 const DEMO_PROJECT_ID = /^demo-[a-z0-9][a-z0-9-]*$/;
-const EMULATOR_SERVICE_NAME = new RegExp("^" + REGION + "-[A-Za-z][A-Za-z0-9_-]*$");
+const EMULATOR_SERVICE_NAME = new RegExp("^(?:" + REGION + "-)?rm[A-Z][A-Za-z0-9]*$");
 
 function isIsolatedFunctionsEmulator(env) {
-  // The Functions Emulator can invoke its local runtime with synthetic
-  // Cloud Run markers (K_SERVICE=<region>-<function>, K_REVISION=1).
-  // Restrict the service name to this codebase's region as well as the
-  // synthetic revision, so an unrelated service marker cannot mimic it.
+  // Firebase Functions Emulator runtimes expose the function name in K_SERVICE;
+  // some CLI/runtime combinations prefix it with the configured region.
+  // Accept only this codebase's rm-prefixed function names, revision "1", and
+  // the absence of K_CONFIGURATION. Deployed Cloud Run revisions keep their
+  // K_CONFIGURATION and non-synthetic revision identifiers, so App Check stays on.
   const emulatorSyntheticRevision =
     typeof env.K_SERVICE === "string" &&
     EMULATOR_SERVICE_NAME.test(env.K_SERVICE) &&
