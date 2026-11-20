@@ -377,6 +377,6 @@ test("normalizes optional Owner question explanations with the shared publish po
 
 test("Owner draft-save callable validates and persists the optional explanation field", () => {
   const source = readFileSync(require.resolve("../index"), "utf8");
-  assert.match(source, /normalizeOwnerQuestionExplanation\\(q\\.explanation\\)/);
-  assert.match(source, /\\.\\.\\.\\(explanation \\? \\{ explanation \\} : \\{\\}\\)/);
+  assert.ok(source.includes("normalizeOwnerQuestionExplanation(q.explanation)"));
+  assert.ok(source.includes("...(explanation ? { explanation } : {})"));
 });
