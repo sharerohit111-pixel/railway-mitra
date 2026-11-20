@@ -274,8 +274,7 @@ test("ignores a stale asynchronous dashboard initialization failure after an acc
   });
 
   h.emit(firstUser);
-  await Promise.resolve();
-  await Promise.resolve();
+  await flush();
   assert.equal(typeof rejectFirstInitialization, "function");
 
   h.emit(secondUser);
