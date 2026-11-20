@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createStudentLogoutRecovery } from "../logout-recovery.mjs";
 
+const LOGOUT_MARKER_KEY = "railway-mitra.student.pending-signout.uid.v1";
+
 function memoryStorage() {
   const values = new Map();
   return {
@@ -51,4 +53,32 @@ test("invalid UIDs cannot create a logout marker", () => {
     assert.equal(recovery.block(uid), false);
   }
   assert.equal(recovery.shouldBlock("student-a"), false);
+});
+
+test("clears a persisted marker with an empty tombstone when removeItem is blocked", () => {
+  const storage = memoryStorage();
+  const normalRemoveItem = storage.removeItem.bind(storage);
+  const recovery = createStudentLogoutRecovery(() => storage);
+  assert.equal(recovery.block("student-a"), true);
+
+  storage.removeItem = () => { throw new Error("removeItem blocked"); };
+  assert.equal(recovery.clear(), true);
+  assert.equal(storage.getItem(LOGOUT_MARKER_KEY), "");
+  assert.equal(recovery.shouldBlock("student-a"), false);
+  assert.equal(createStudentLogoutRecovery(() => storage).shouldBlock("student-a"), false);
+
+  // Keep the original method reachable for clarity if this fixture is extended.
+  assert.equal(typeof normalRemoveItem, "function");
+});
+
+test("reports an uncleared marker when both remove and tombstone writes fail", () => {
+  const storage = memoryStorage();
+  storage.setItem(LOGOUT_MARKER_KEY, "student-a");
+  storage.removeItem = () => { throw new Error("removeItem blocked"); };
+  storage.setItem = () => { throw new Error("setItem blocked"); };
+
+  const recovery = createStudentLogoutRecovery(() => storage);
+  assert.equal(recovery.clear(), false);
+  assert.equal(recovery.shouldBlock("student-a"), true,
+    "the persisted same-UID marker remains fail-closed when storage cannot clear it");
 });
