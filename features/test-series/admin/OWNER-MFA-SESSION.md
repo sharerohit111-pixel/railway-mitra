@@ -73,3 +73,15 @@ node --test features/test-series/admin/tests/owner-session.test.mjs
 ```
 
 This protects the browser-side session lifecycle only. The backend's exact Owner UID, approved primary provider, verified phone-MFA claim and App Check checks remain authoritative. No Firebase configuration, OTP delivery, deployment or privileged backend access is changed.
+
+## Signed-out cleanup error generation fencing
+
+A rejected asynchronous signed-out cleanup is reported only while the authentication generation that started it remains current. If a replacement Owner signs in or the session observer is disposed before the cleanup rejects, the retired error is ignored rather than overwriting the replacement session's status. Synchronous cleanup errors use the same generation check.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/admin/tests/owner-session-signed-out-generation.test.mjs
+```
+
+This fences stale error reporting; it does not change Firebase sign-out behavior, backend Owner authorization, phone-MFA/App Check enforcement, or any Firebase configuration.
