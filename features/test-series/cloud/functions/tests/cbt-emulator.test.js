@@ -2901,6 +2901,39 @@ test("Owner manual access callables require real emulator password plus phone MF
       const mediaPaperRef = db.doc("testSeriesQuestionSets/" + mediaDraftTestId);
       const mediaAnswerRef = db.doc("testSeriesAnswerKeys/" + mediaDraftTestId);
       try {
+        const invalidExplanationTestId = "emulator-owner-invalid-explanation";
+        const invalidExplanationRefs = ["testSeriesTests", "testSeriesQuestionSets", "testSeriesAnswerKeys"]
+          .map(collection => db.doc(collection + "/" + invalidExplanationTestId));
+        try {
+          await assert.rejects(
+            callableWithIdToken("rmOwnerSaveTest", {
+              testId: invalidExplanationTestId,
+              title: "Invalid explanation draft",
+              category: "Civil Engineering",
+              folder: "Emulator media",
+              mode: "mock",
+              durationMinutes: 30,
+              price: 0,
+              marksPerQuestion: 1,
+              negativeMarks: 0,
+              questions: [{
+                id: "invalid_explanation_q1",
+                text: "Question?",
+                options: ["A", "B"],
+                correctIndex: 0,
+                explanation: "x".repeat(4001)
+              }]
+            }, signedIn.idToken),
+            error => error.code === "functions/invalid-argument"
+          );
+          for (const ref of invalidExplanationRefs) {
+            assert.equal((await ref.get()).exists, false,
+              "invalid explanation must be rejected before any draft documents are written");
+          }
+        } finally {
+          await Promise.all(invalidExplanationRefs.map(ref => ref.delete().catch(() => {})));
+        }
+
         const saved = await callableWithIdToken("rmOwnerSaveTest", {
           testId: mediaDraftTestId,
           title: "Owner media draft round-trip",
