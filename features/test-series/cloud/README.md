@@ -453,3 +453,22 @@ A result record is create-only for an in-progress attempt. The submit transactio
 ### Payment configuration validation order
 
 The payment-order callable first verifies that the requested test exists, is published, and has a finite, supported persisted INR price. It then validates the configured Razorpay Key ID as Test Mode-only, before deriving or writing any payment request/lock and before contacting Razorpay. This keeps invalid test-price configuration errors deterministic in an emulator with no Secret Manager credentials, while missing, malformed or live-mode keys still fail closed before checkout reservation. The focused source-order unit regression and the Auth + Firestore + Functions Emulator malformed-price scenario cover both sides of this ordering; neither test calls Razorpay.
+
+
+## App Check diagnostic CI coverage
+
+The isolated Functions validation and CBT emulator workflows both trigger on
+pushes to `feature/test-series-cloud-access` and on pull requests when any of
+the App Check bootstrap or diagnostic assets change:
+
+- `app-check.js`
+- `firebase-app-check-init.js`
+- `app-check-diagnostic.mjs`
+- `app-check-test.html`
+
+The App Check diagnostic unit suite also asserts that each asset appears in
+both event path filters in both workflows. This prevents a future helper,
+bootstrap, or diagnostic-page-only edit from silently skipping the focused
+validation. These workflows use the isolated demo Firebase project and
+emulators; this CI wiring does not enable App Check enforcement or modify a
+live Firebase project.
