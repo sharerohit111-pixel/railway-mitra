@@ -1,4 +1,7 @@
 const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+const GITHUB_PAGES_HOSTNAME = "sharerohit111-pixel.github.io";
+const GITHUB_PAGES_REPOSITORY_PATH = "/railway-mitra";
+const APPROVED_CUSTOM_PRODUCTION_HOSTNAME = "railway-mitra.com";
 
 const EMULATOR_FIREBASE_CONFIG = Object.freeze({
   apiKey: "demo-api-key",
@@ -15,9 +18,26 @@ const EMULATOR_ENDPOINTS = Object.freeze({
   functions: Object.freeze({ host: "127.0.0.1", port: 5001 })
 });
 
+function isApprovedProductionOrigin(locationLike, hostname) {
+  if (hostname === APPROVED_CUSTOM_PRODUCTION_HOSTNAME) return true;
+  if (hostname !== GITHUB_PAGES_HOSTNAME) return false;
+
+  const pathname = typeof locationLike.pathname === "string"
+    ? locationLike.pathname
+    : "";
+
+  return pathname === GITHUB_PAGES_REPOSITORY_PATH ||
+    pathname.startsWith(GITHUB_PAGES_REPOSITORY_PATH + "/");
+}
+
 /**
  * Select the local demo project only when the exact opt-in flag is present
  * on a loopback HTTP(S) origin. Invalid or remote opt-ins fail closed.
+ *
+ * Without emulator opt-in, production Firebase is available only on the
+ * explicitly approved Railway Mitra custom domain or this repository's
+ * GitHub Pages path. Preview and unrelated hosted origins must not silently
+ * send OTPs or requests to the live project.
  */
 export function resolveTestSeriesFirebaseMode(locationLike) {
   const protocol = String(locationLike && locationLike.protocol || "").toLowerCase();
@@ -42,6 +62,9 @@ export function resolveTestSeriesFirebaseMode(locationLike) {
     }
     if (protocol !== "https:") {
       throw new Error("Hosted Test Series Firebase requires HTTPS; use an HTTPS origin or local emulator mode.");
+    }
+    if (!isApprovedProductionOrigin(locationLike, hostname)) {
+      throw new Error("Unapproved Test Series hosted origin; production Firebase is restricted to approved Railway Mitra origins.");
     }
     return Object.freeze({ mode: "production" });
   }
