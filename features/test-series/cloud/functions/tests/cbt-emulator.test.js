@@ -2916,16 +2916,23 @@ test("Owner manual access callables require real emulator password plus phone MF
             text: "Identify the turnout component",
             options: ["A", "B"],
             correctIndex: 1,
+            explanation: "Owner-only explanation survives draft round-trip",
             media: [mediaDescriptor]
           }]
         }, signedIn.idToken);
         assert.equal(saved.saved, true);
         assert.deepEqual((await mediaPaperRef.get()).data().questions[0].media, [mediaDescriptor],
           "draft save must retain the descriptor required by the private upload flow");
+        assert.equal((await mediaPaperRef.get()).data().questions[0].explanation,
+          "Owner-only explanation survives draft round-trip",
+          "draft save must preserve the optional explanation imported from the Question Bank");
 
         const loaded = await callableWithIdToken("rmOwnerGetTest", { testId: mediaDraftTestId }, signedIn.idToken);
         assert.deepEqual(loaded.questions[0].media, [mediaDescriptor],
           "Owner draft reload must return the same safe media descriptor");
+        assert.equal(loaded.questions[0].explanation,
+          "Owner-only explanation survives draft round-trip",
+          "Owner draft reload must preserve the optional explanation");
 
         await assert.rejects(
           callableWithIdToken("rmOwnerPublishTest", { testId: mediaDraftTestId }, signedIn.idToken),
