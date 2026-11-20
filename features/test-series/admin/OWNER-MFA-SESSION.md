@@ -32,3 +32,18 @@ node --test features/test-series/admin/tests/owner-auth-operation-gate.test.mjs
 ```
 
 This only serializes browser authentication flows. Firebase MFA challenges, the server-side Owner UID/provider/second-factor checks and App Check remain authoritative; it does not send an OTP or change Firebase configuration.
+
+
+## Provider-link session binding
+
+Google and Email/Password provider linking is now bound to the Firebase UID that started the operation. The adapters re-check \`auth.currentUser\` after the asynchronous Firebase link call; a sign-out or account switch causes the completion to fail closed. The dashboard also suppresses both stale success and stale error status updates so they cannot appear in a replacement Owner session.
+
+Provider linking now shares the same in-memory operation gate as Google/Email sign-in and phone-MFA enrollment. The link buttons are disabled while any Owner authentication operation is pending, preventing competing provider-link and OTP flows from racing over one Auth session.
+
+Focused regression command:
+
+\`\`\`bash
+node --test features/test-series/admin/tests/owner-provider-linking.test.mjs
+\`\`\`
+
+This is client-side session-race protection only. Backend Owner UID, approved primary-provider, verified phone-MFA and App Check checks remain authoritative. No Firebase configuration, OTP delivery, deployment or production authorization setting is changed.
