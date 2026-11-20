@@ -61,3 +61,15 @@ node --test features/test-series/admin/tests/owner-session.test.mjs
 ```
 
 This is client-side lifecycle hardening only. It does not change the server-side Owner UID/provider/phone-MFA/App Check checks, Firebase configuration, OTP delivery, deployment, or privileged backend access.
+
+## Async Owner session-transition callback handling
+
+The Owner session observer now treats asynchronous workspace cleanup and MFA-setup callbacks as part of the current authorization transition. It invokes `onChecking` synchronously first so the existing dashboard can hide privileged content immediately, then waits for any returned Promise before inspecting MFA or calling the server authorization endpoint. If that cleanup rejects, the current UID is reported and signed out; a retired account's late cleanup result cannot authorize or sign out a replacement account. An asynchronous `onMfaRequired` failure also fails closed. Signed-out cleanup remains best-effort, but rejected Promises are consumed and reported instead of becoming unhandled page errors.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/admin/tests/owner-session.test.mjs
+```
+
+This protects the browser-side session lifecycle only. The backend's exact Owner UID, approved primary provider, verified phone-MFA claim and App Check checks remain authoritative. No Firebase configuration, OTP delivery, deployment or privileged backend access is changed.
