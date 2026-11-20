@@ -320,3 +320,34 @@ test("an older same-value acknowledgement cannot clear a newer A-B-A selection",
   assert.deepEqual(savedSnapshots, [[["q1", "0"]], []]);
   assert.deepEqual(calls, [["q1", "0"], ["q1", "1"], ["q1", "0"]]);
 });
+
+
+test("an in-flight confirmed save after controller teardown does not notify stale UI callbacks", async () => {
+  const gate = deferred();
+  const started = signal();
+  const savedSnapshots = [];
+  const errors = [];
+  let active = true;
+  const queue = createStudentAnswerSaveQueue({
+    isActive: () => active,
+    saveAnswer() {
+      started.resolve();
+      return gate.promise;
+    },
+    onSaved(pending) { savedSnapshots.push([...pending.entries()]); },
+    onError(error) { errors.push(error); }
+  });
+
+  const pending = queue.queueSave("q1", "1");
+  await started.promise;
+  active = false;
+  gate.resolve({ saved: true });
+  await pending;
+
+  assert.equal(queue.pendingAnswers.size, 0,
+    "a server-confirmed write should settle the retired queue's internal pending entry");
+  assert.deepEqual(savedSnapshots, [],
+    "a late acknowledgement must not update a destroyed controller's UI");
+  assert.deepEqual(errors, [],
+    "a successful late acknowledgement must not report a stale UI error");
+});
