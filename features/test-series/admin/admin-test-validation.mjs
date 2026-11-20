@@ -34,7 +34,7 @@ function projectQuestionMediaDescriptors(media, questionNumber) {
     if (!item || typeof item !== "object" || Array.isArray(item)) throw invalid();
     const { id, altText, mimeType } = item;
     if (typeof id !== "string" || !QUESTION_MEDIA_ID_PATTERN.test(id) || seenIds.has(id) ||
-        typeof altText !== "string" || !altText.trim() || altText.length > 200 ||
+        typeof altText !== "string" || !altText.trim() || altText.length > 200 || hasControlCharacters(altText) ||
         typeof mimeType !== "string" || !QUESTION_MEDIA_TYPES.has(mimeType)) {
       throw invalid();
     }
