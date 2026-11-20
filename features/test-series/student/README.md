@@ -135,3 +135,8 @@ Each queued answer selection carries an internal monotonically increasing write 
 ## Explicit server acknowledgement for saved answers
 
 The Student answer-save queue clears a pending answer only when the callable response explicitly contains `saved: true`. A resolved request with a missing, malformed or negative acknowledgement is treated as unconfirmed: the answer remains in the local pending draft, the error callback is notified, and the same value can be retried. The isolated regression suite covers absent, null, empty-object, `saved: false` and non-boolean acknowledgements, followed by a successful retry. The production callable wrapper returns the server's `{ saved: true }` payload; this client-side check does not replace server authorization, Firestore transactions or server-side scoring.
+
+
+## In-flight answer save during session teardown
+
+If a server-confirmed answer write is already in flight when the exam controller is destroyed (for example, during logout or an account switch), the queue may settle its internal pending entry but must not invoke UI callbacks for the retired controller. This prevents a late save completion from changing the next student's status indicator or retry controls. The server write remains authoritative; the account-scoped local draft may be retried harmlessly if browser cleanup did not run. A focused regression test holds the save response, retires the controller, then confirms that the server acknowledgement does not invoke stale `onSaved` or `onError` callbacks.
