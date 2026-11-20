@@ -48,3 +48,9 @@ No staged progression is authorized while this hold is active. The 20, 100, 250 
 - Razorpay test-mode order creation, webhook delivery, reconciliation, refund/support workflow and entitlement verification.
 - Backup/restore, privacy/security, operational monitoring, retention and cost validation.
 - Separate written approval before any billable deployment or future synthetic load test.
+
+## CI coverage for manual workflow changes
+
+The normal Test Series Functions validation workflow includes both manual load-workflow YAML files in its push and pull-request path filters. Editing either guarded workflow therefore runs the ordinary validation suite, including `load-test-workflow-guard.test.js`. That regression verifies the workflows remain `workflow_dispatch`-only, require the explicit confirmation input with a false default, and keep the job conditional on that confirmation.
+
+This is configuration validation only. It does not dispatch either workflow, invoke a synthetic harness, or authorize load testing. The current project hold remains unchanged.
