@@ -140,7 +140,8 @@ test("Owner Test Builder normalizes ordinary surrounding spaces in Unicode categ
 
 
 test("Test Builder preserves optional explanations and validates them before draft save", () => {
-  const explanation = "Reason line 1\\r\\nReason line 2\\twith detail";
+  const explanation = "Reason line 1" + String.fromCharCode(13, 10) +
+    "Reason line 2" + String.fromCharCode(9) + "with detail";
   const payload = validateOwnerTestDraft(validDraft({ explanation }));
   assert.equal(payload.questions[0].explanation, explanation);
 
@@ -155,8 +156,8 @@ test("Test Builder preserves optional explanations and validates them before dra
     {},
     [],
     "x".repeat(4001),
-    "Reason\\u0000text",
-    "Reason\\u0085text"
+    "Reason" + String.fromCharCode(0) + "text",
+    "Reason" + String.fromCharCode(0x85) + "text"
   ]) {
     assert.throws(
       () => validateOwnerTestDraft(validDraft({ explanation: invalid })),
