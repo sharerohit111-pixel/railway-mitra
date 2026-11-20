@@ -1,0 +1,95 @@
+{
+  "batch": "086-087",
+  "testId": "gdce-je-civil-previous-2026",
+  "sectionId": "je-civil-and-allied-engineering",
+  "questions": [
+    {
+      "questionId": "je-civil-q86",
+      "questionNumber": 86,
+      "questionText": {
+        "en": "Identify the INCORRECT statement about standard measurement books.",
+        "hi": "मानक माप पुस्तिकाओं (Standard Measurement Books) के बारे में गलत (INCORRECT) कथन की पहचान करें।"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "All standard measurement books are reviewed in a year.",
+            "hi": "सभी मानक माप पुस्तिकाओं की एक वर्ष में समीक्षा की जाती है।"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "It is helpful in preparing repair estimates.",
+            "hi": "यह मरम्मत प्राक्कलन (repair estimates) तैयार करने में सहायक होती है।"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "It is preserved for 10 years only.",
+            "hi": "इसे केवल 10 वर्षों के लिए सुरक्षित रखा जाता है।"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "It is numbered alphabetically.",
+            "hi": "इसे वर्णानुक्रम (alphabetically) में क्रमांकित किया जाता है।"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Standard Measurement Books (SMBs) contain detailed measurements of permanent buildings and structures to facilitate the preparation of annual repair estimates. They are numbered alphabetically (A, B, C, etc.) and reviewed annually, but they are permanent records (preserved as long as the building exists), not just for 10 years. Therefore, statement 3 is incorrect.",
+        "hi": "मानक माप पुस्तिकाओं (SMB) में स्थायी भवनों और संरचनाओं की माप दर्ज होती है, जिससे वार्षिक मरम्मत का प्राक्कलन (estimate) तैयार करने में मदद मिलती है। इन्हें वर्णानुक्रम (A, B, C आदि) में क्रमांकित किया जाता है और हर वर्ष इनकी समीक्षा की जाती है। ये स्थायी रिकॉर्ड के रूप में (जब तक भवन अस्तित्व में है) सुरक्षित रखी जाती हैं, न कि केवल 10 वर्षों के लिए। इसलिए कथन 3 गलत है।"
+      },
+      "verificationStatus": "pending"
+    },
+    {
+      "questionId": "je-civil-q87",
+      "questionNumber": 87,
+      "questionText": {
+        "en": "For cohesive clayey soils in subgrade, the most effective method of stabilization is:",
+        "hi": "सबग्रेड (subgrade) में संसंजक चिकनी मिट्टी (cohesive clayey soils) के लिए स्थिरीकरण (stabilization) की सबसे प्रभावी विधि कौन-सी है?"
+      },
+      "options": [
+        {
+          "key": "A",
+          "text": {
+            "en": "Cement stabilization",
+            "hi": "सीमेंट स्थिरीकरण (Cement stabilization)"
+          }
+        },
+        {
+          "key": "B",
+          "text": {
+            "en": "Mechanical stabilization",
+            "hi": "यांत्रिक स्थिरीकरण (Mechanical stabilization)"
+          }
+        },
+        {
+          "key": "C",
+          "text": {
+            "en": "Lime stabilization",
+            "hi": "चूना स्थिरीकरण (Lime stabilization)"
+          }
+        },
+        {
+          "key": "D",
+          "text": {
+            "en": "Bituminous stabilization",
+            "hi": "बिटुमिनस स्थिरीकरण (Bituminous stabilization)"
+          }
+        }
+      ],
+      "correctOption": "C",
+      "solution": {
+        "en": "Lime stabilization is the most effective method for cohesive clayey soils. When lime is added to clay, cation exchange and pozzolanic reactions occur, which significantly reduce the soil's plasticity index, swelling, and shrinkage properties while improving its workability and bearing strength.",
+        "hi": "संसंजक चिकनी मिट्टी (cohesive clayey soils) के लिए चूना स्थिरीकरण (Lime stabilization) सबसे प्रभावी विधि है। मिट्टी में चूना मिलाने पर धनायन विनिमय (cation exchange) और पॉज़ोलैनिक अभिक्रियाएँ होती हैं, जिससे मिट्टी की सुघट्यता (plasticity), फूलने और सिकुड़ने की प्रवृत्ति कम हो जाती है तथा उसकी भार-वहन क्षमता और कार्यक्षमता बढ़ जाती है।"
+      },
+      "verificationStatus": "pending"
+    }
+  ]
+}
