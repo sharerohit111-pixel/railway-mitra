@@ -178,6 +178,13 @@ test("Owner paper validation accepts safe image descriptors and rejects unsafe m
     { ...questions[0], media: [{ id: "diagram1", altText: "Diagram", mimeType: "image/svg+xml" }] },
     questions[1]
   ], validAnswerMap), /media descriptors are invalid/);
+  for (const code of [...Array(32).keys(), ...Array.from({ length: 33 }, (_, index) => index + 127)]) {
+    const altText = "Diagram" + String.fromCharCode(code) + "label";
+    assert.throws(() => validateOwnerQuestionPaper(validTestMetadata, [
+      { ...questions[0], media: [{ id: "diagram1", altText, mimeType: "image/png" }] },
+      questions[1]
+    ], validAnswerMap), /media descriptors are invalid/, "alt-text control code " + code);
+  }
 });
 
 
