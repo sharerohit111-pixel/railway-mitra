@@ -263,17 +263,24 @@ test("rejects invalid inspection timeout bounds before provider access", async (
 });
 
 test("aborts a stalled provider inspection at the configured deadline", async () => {
-  await assert.rejects(inspectRazorpayOrder({
-    keyId: "rzp_test_key",
-    keySecret: "secret",
-    orderId: "order_123456",
-    timeoutMs: 5,
-    fetchImpl: async (_url, options) => new Promise((_resolve, reject) => {
-      if (options.signal.aborted) {
-        reject(options.signal.reason);
-        return;
-      }
-      options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true });
-    })
-  }), error => error && error.name === "TimeoutError");
+  // AbortSignal.timeout uses an unref'ed timer in Node. Keep this test process
+  // alive until the timeout fires so the assertion observes the abort result.
+  const keepAlive = setTimeout(() => {}, 50);
+  try {
+    await assert.rejects(inspectRazorpayOrder({
+      keyId: "rzp_test_key",
+      keySecret: "secret",
+      orderId: "order_123456",
+      timeoutMs: 5,
+      fetchImpl: async (_url, options) => new Promise((_resolve, reject) => {
+        if (options.signal.aborted) {
+          reject(options.signal.reason);
+          return;
+        }
+        options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true });
+      })
+    }), error => error && error.name === "TimeoutError");
+  } finally {
+    clearTimeout(keepAlive);
+  }
 });
