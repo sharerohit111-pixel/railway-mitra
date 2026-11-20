@@ -5,14 +5,16 @@
 // project ID. A stray/misconfigured marker in a real project must fail closed.
 const REGION = "asia-south1";
 const DEMO_PROJECT_ID = /^demo-[a-z0-9][a-z0-9-]*$/;
+const EMULATOR_SERVICE_NAME = new RegExp("^" + REGION + "-[A-Za-z][A-Za-z0-9_-]*$");
 
 function isIsolatedFunctionsEmulator(env) {
   // The Functions Emulator can invoke its local runtime with synthetic
-  // Cloud Run markers (K_SERVICE=<function>, K_REVISION=1). Treat only that
-  // exact signature as emulator-owned; real Cloud Run revisions use a
-  // service-revision identifier and include K_CONFIGURATION.
+  // Cloud Run markers (K_SERVICE=<region>-<function>, K_REVISION=1).
+  // Restrict the service name to this codebase's region as well as the
+  // synthetic revision, so an unrelated service marker cannot mimic it.
   const emulatorSyntheticRevision =
-    Boolean(env.K_SERVICE) &&
+    typeof env.K_SERVICE === "string" &&
+    EMULATOR_SERVICE_NAME.test(env.K_SERVICE) &&
     env.K_REVISION === "1" &&
     !env.K_CONFIGURATION;
   const hasCloudRunRuntimeMarker =
