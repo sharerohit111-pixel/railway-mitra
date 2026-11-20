@@ -243,8 +243,11 @@ the question JSON before the Owner saves a draft. The browser validator now
 validates and retains that descriptor instead of silently dropping it.
 
 - Only JPEG, PNG and WebP descriptors are accepted, with a canonical 1–100
-  character media ID, non-empty alt text up to 200 characters, and at most
-  three images per question.
+  character media ID, non-empty single-line alt text up to 200 characters,
+  and at most three images per question.
+- Alt text rejects C0, DEL and C1 control characters in both browser draft
+  validation and the server publish/student-delivery contract; ordinary
+  Unicode text and surrounding spaces remain supported.
 - Sparse arrays, duplicate IDs, unsupported MIME types and malformed
   descriptors are rejected before the draft request.
 - Extra fields such as storage paths and download URLs are stripped. The
