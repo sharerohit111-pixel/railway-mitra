@@ -86,9 +86,16 @@ test("rejects malformed provider responses and cross-order payment rows", async 
   }), /different order/);
 });
 
-test("rejects missing credentials and invalid order IDs before network access", async () => {
+test("rejects missing Test Mode credentials and invalid order IDs before network access", async () => {
   let called = false;
-  await assert.rejects(inspectRazorpayOrder({ orderId: "order_123456", fetchImpl: async () => { called = true; } }), /credentials/);
+  await assert.rejects(inspectRazorpayOrder({
+    orderId: "order_123456",
+    fetchImpl: async () => { called = true; }
+  }), /Razorpay Test Mode Key ID/);
+  await assert.rejects(inspectRazorpayOrder({
+    keyId: "rzp_test_key", keySecret: "", orderId: "order_123456",
+    fetchImpl: async () => { called = true; }
+  }), /credentials/);
   await assert.rejects(inspectRazorpayOrder({
     keyId: "rzp_test_key", keySecret: "secret", orderId: "../orders",
     fetchImpl: async () => { called = true; }
