@@ -50,3 +50,29 @@ test("App Check diagnostic page skips emulator token requests and never renders 
   assert.doesNotMatch(source, /error\.message/);
   assert.doesNotMatch(source, /console\.error\([^)]*error/);
 });
+
+
+test("App Check diagnostic changes trigger both push and pull-request validation workflows", () => {
+  const requiredPaths = [
+    "features/test-series/cloud/app-check.js",
+    "features/test-series/cloud/firebase-app-check-init.js",
+    "features/test-series/cloud/app-check-diagnostic.mjs",
+    "features/test-series/cloud/app-check-test.html"
+  ];
+  const workflows = [
+    ".github/workflows/test-series-functions.yml",
+    ".github/workflows/test-series-cbt-emulator.yml"
+  ];
+
+  for (const workflowPath of workflows) {
+    const workflow = fs.readFileSync(path.join(repositoryRoot, workflowPath), "utf8");
+    for (const requiredPath of requiredPaths) {
+      const entry = `      - "${requiredPath}"`;
+      assert.equal(
+        workflow.split(entry).length - 1,
+        2,
+        workflowPath + " must trigger on both push and pull_request for " + requiredPath
+      );
+    }
+  }
+});
