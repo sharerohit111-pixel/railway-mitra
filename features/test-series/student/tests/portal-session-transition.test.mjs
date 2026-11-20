@@ -134,3 +134,26 @@ test("phone and OTP input validation retain their required regular-expression es
   assert.ok(portal.includes("/^" + backslash + "+[1-9]" + backslash + "d{7,14}$/"), "phone input requires a country-coded E.164-like value");
   assert.ok(portal.includes("/^" + backslash + "d{6}$/"), "OTP input requires exactly six digits");
 });
+
+
+test("auth listener keeps OTP controls locked until the current identity's provider claim is checked", () => {
+  const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
+  const listener = portal.indexOf("onAuthStateChanged(auth, async user => {");
+  const tokenLookup = portal.indexOf("await user.getIdTokenResult()", listener);
+  const providerCheck = portal.indexOf('token.claims?.firebase?.sign_in_provider !== "phone"', listener);
+  const lockComment = portal.indexOf("// Keep OTP controls locked until this incoming Firebase identity has been", listener);
+  const lock = portal.indexOf("setOtpControlsLocked(true)", lockComment);
+  const unsupportedUnlock = portal.indexOf("setOtpControlsLocked(false)", providerCheck);
+  const catchStart = portal.indexOf("} catch (error) {", tokenLookup);
+  const catchGuard = portal.indexOf("auth.currentUser?.uid !== user.uid", catchStart);
+  const catchUnlock = portal.indexOf("setOtpControlsLocked(false)", catchStart);
+
+  assert.ok(lockComment > listener && lock > lockComment && lock < tokenLookup,
+    "incoming user controls lock before asynchronous token verification");
+  assert.equal(portal.slice(lock, tokenLookup).includes("setOtpControlsLocked(false)"), false,
+    "controls must not unlock while provider claims are unresolved");
+  assert.ok(providerCheck > tokenLookup, "provider claim is checked after token verification");
+  assert.ok(unsupportedUnlock > providerCheck, "unsupported providers unlock only after the claim is rejected");
+  assert.ok(catchStart > providerCheck && catchGuard > catchStart && catchUnlock > catchGuard,
+    "a current token-verification failure unlocks only after checking the auth generation and UID");
+});
