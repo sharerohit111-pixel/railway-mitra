@@ -4,7 +4,7 @@ import {
   getMultiFactorResolver, PhoneAuthProvider, PhoneMultiFactorGenerator,
   RecaptchaVerifier, multiFactor, signOut
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-import { assertOwnerLinkSession, linkOwnerProvider } from "./owner-provider-linking.mjs";
+import { linkOwnerProvider } from "./owner-provider-linking.mjs";
 import { clearOwnerRecaptchaVerifier, getOwnerRecaptchaVerifier } from "./owner-recaptcha.mjs";
 import { runOwnerPhoneMfaEnrollment } from "./owner-mfa-session.mjs";
 
@@ -62,11 +62,11 @@ export async function linkOwnerGoogleProvider(auth) {
   if (!currentUser) throw new Error("पहले Owner अकाउंट से लॉगिन करें।");
   const provider = new GoogleAuthProvider();
   const result = await linkOwnerProvider({
+    auth,
     currentUser,
     providerId: "google.com",
     link: user => linkWithPopup(user, provider)
   });
-  assertOwnerLinkSession(auth, currentUser.uid);
   return result;
 }
 export async function linkOwnerEmailProvider(auth, email, password) {
@@ -78,11 +78,11 @@ export async function linkOwnerEmailProvider(auth, email, password) {
   }
   const credential = EmailAuthProvider.credential(normalizedEmail, password);
   const result = await linkOwnerProvider({
+    auth,
     currentUser,
     providerId: "password",
     link: user => linkWithCredential(user, credential)
   });
-  assertOwnerLinkSession(auth, currentUser.uid);
   return result;
 }
 
