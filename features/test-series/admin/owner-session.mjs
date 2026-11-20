@@ -73,18 +73,26 @@ export function watchOwnerSession({
     Promise.resolve(checkingResult)
       .then(() => {
         if (!isCurrent(currentGeneration)) return;
-        const phoneMfaReady = hasPhoneMfa(user);
-        if (!phoneMfaReady) return onMfaRequired(user);
+        // Firebase currently exposes enrolled factors synchronously, but keep
+        // the boundary Promise-aware so an adapter can refresh/read MFA state
+        // asynchronously without accidentally treating a pending Promise as
+        // a successful MFA check.
         return Promise.resolve()
-          .then(() => verifyOwner(user))
-          .then(authorization => {
+          .then(() => hasPhoneMfa(user))
+          .then(phoneMfaReady => {
             if (!isCurrent(currentGeneration)) return;
-            if (!authorization || authorization.authorized !== true) {
-              throw new Error("Owner authorization was not confirmed by the server.");
-            }
-            // Return the callback result so async dashboard initialization failures
-            // enter the same fail-closed path as server authorization failures.
-            return onAuthorized(user, authorization);
+            if (!phoneMfaReady) return onMfaRequired(user);
+            return Promise.resolve()
+              .then(() => verifyOwner(user))
+              .then(authorization => {
+                if (!isCurrent(currentGeneration)) return;
+                if (!authorization || authorization.authorized !== true) {
+                  throw new Error("Owner authorization was not confirmed by the server.");
+                }
+                // Return the callback result so async dashboard initialization failures
+                // enter the same fail-closed path as server authorization failures.
+                return onAuthorized(user, authorization);
+              });
           });
       })
       .catch(error => rejectCurrentSession(user, currentGeneration, error));
