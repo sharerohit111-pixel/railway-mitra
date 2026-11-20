@@ -18,9 +18,21 @@ export function createStudentLogoutRecovery(storageProvider) {
     memoryBlockedUid = null;
     const target = storage();
     if (!target) return false;
+
+    // Prefer removing the key, but verify the result: some restricted storage
+    // implementations can throw or silently refuse removeItem(). An empty
+    // tombstone is safe because block() never accepts an empty UID and readUid()
+    // treats an empty stored value as no pending marker.
     try {
       target.removeItem(key);
-      return true;
+      if (target.getItem(key) == null) return true;
+    } catch (_) {
+      // Try the verified tombstone fallback below.
+    }
+
+    try {
+      target.setItem(key, "");
+      return target.getItem(key) === "";
     } catch (_) {
       return false;
     }
