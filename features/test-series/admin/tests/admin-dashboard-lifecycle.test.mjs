@@ -149,3 +149,23 @@ test("Question Bank save control resets on Owner session change without stale un
   const handler = source.slice(saveStart, saveEnd);
   assert.match(handler, /finally \{\s*if \(sessionGeneration === questionBankSessionGeneration\) submit\.disabled = false;\s*\}/);
 });
+
+test("Test Management save control resets on Owner session change without stale unlocks", () => {
+  const clearStart = source.indexOf("function clearTestManagement() {");
+  const clearEnd = source.indexOf("\n  }", clearStart);
+  assert.ok(clearStart >= 0 && clearEnd > clearStart, "Test Management cleanup must exist");
+  const cleanup = source.slice(clearStart, clearEnd);
+  assert.ok(cleanup.includes("testManagementGeneration += 1;"));
+  assert.ok(cleanup.includes("testForm.reset();\n    const submitButton = testForm.querySelector('button[type="submit"]');\n    if (submitButton) submitButton.disabled = false;"));
+
+  const saveStart = source.indexOf('testForm.addEventListener("submit"');
+  const saveEnd = source.indexOf("\n  });", saveStart);
+  assert.ok(saveStart >= 0 && saveEnd > saveStart, "Test Management save handler must exist");
+  const handler = source.slice(saveStart, saveEnd);
+  const generationIndex = handler.indexOf("const generation = testManagementGeneration;");
+  const disableIndex = handler.indexOf("button.disabled = true;");
+  assert.ok(generationIndex >= 0 && generationIndex < disableIndex,
+    "capture the Owner generation before locking the submit button");
+  assert.ok(handler.includes("if (generation === testManagementGeneration) button.disabled = false;"),
+    "a retired request must not unlock a newer Owner session's save");
+});

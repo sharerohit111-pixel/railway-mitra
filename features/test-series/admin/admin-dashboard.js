@@ -487,6 +487,8 @@ export function initOwnerAdminDashboard(auth, functions) {
     freeTestSelect.disabled = true;
     el("rm-free-test-save").disabled = true;
     testForm.reset();
+    const submitButton = testForm.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = false;
     el("rm-test-id").value = "";
     el("rm-test-questions").value = "";
   }
@@ -855,9 +857,9 @@ export function initOwnerAdminDashboard(auth, functions) {
   });
   testForm.addEventListener("submit", async event => {
     event.preventDefault();
+    const generation = testManagementGeneration;
     const button = event.currentTarget.querySelector('button[type="submit"]');
     button.disabled = true;
-    const generation = testManagementGeneration;
     try {
       const questions = JSON.parse(el("rm-test-questions").value);
       const payload = validateOwnerTestDraft({
@@ -889,7 +891,9 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (e) {
       if (generation !== testManagementGeneration) return;
       status(e.message || "Test सेव नहीं हुआ।");
-    } finally { button.disabled = false; }
+    } finally {
+      if (generation === testManagementGeneration) button.disabled = false;
+    }
   });
   const studentsPanel = el("rm-admin-students-panel");
   const studentsList = el("rm-admin-students-list");

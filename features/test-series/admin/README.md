@@ -182,3 +182,8 @@ When the Owner session generation changes, the Question Bank save and bulk-impor
 ## Free-test assignment lock and Owner session lifecycle
 
 The Owner free-test assignment control treats the backend's first-claim lock as authoritative. After a successful assignment, the dashboard refreshes the test list and leaves the save button disabled when the server reports that a student has already claimed the free attempt. The request's UI continuation is bound to the current Test Management generation: an account switch or logout suppresses late success/error messages and cannot re-enable controls in the next session. A failed request may be retried only while the current free-test selector remains unlocked. This is client lifecycle protection only; the callable's transaction and persisted claim marker remain the security boundary.
+
+
+## Owner-session-bound Test Management save control
+
+When the Owner session changes, `clearTestManagement()` increments the Test Management generation and immediately releases the form's Save Test button for the next authorized session. A save request already accepted by Firebase may still finish server-side, but its late success/error UI continuation is ignored and its `finally` block can unlock the button only when the captured generation is still current. This prevents a new Owner session from inheriting a disabled form and prevents a retired request from unlocking a newer session's save. Server-side Owner UID, phone-MFA and App Check checks remain the authorization boundary.
