@@ -19,6 +19,8 @@ on:
       - "features/test-series/index.html"
       - "firebase.json"
       - "firebase.test-series-cbt-emulator.json"
+      - ".github/workflows/test-series-firestore-load-emulator.yml"
+      - ".github/workflows/test-series-callable-load-emulator.yml"
       - ".github/workflows/test-series-functions.yml"
   push:
     branches:
@@ -40,6 +42,8 @@ on:
       - "features/test-series/index.html"
       - "firebase.json"
       - "firebase.test-series-cbt-emulator.json"
+      - ".github/workflows/test-series-firestore-load-emulator.yml"
+      - ".github/workflows/test-series-callable-load-emulator.yml"
       - ".github/workflows/test-series-functions.yml"
 
 permissions:
