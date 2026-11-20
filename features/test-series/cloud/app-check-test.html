@@ -11,6 +11,7 @@
 main{width:min(100%,520px);background:#10233d;border:1px solid #25496c;border-radius:20px;padding:24px;box-shadow:0 18px 50px #0005}
 h1{font-size:22px;margin:0 0 8px}.muted{color:#a9bfd6;line-height:1.55}.status{margin:20px 0;padding:16px;border-radius:12px;background:#0a1728;border:1px solid #29425c;overflow-wrap:anywhere}
 button{width:100%;border:0;border-radius:12px;padding:14px;background:#16b8e8;color:#041322;font-weight:700;font-size:16px}
+button:disabled{opacity:.55;cursor:not-allowed}
 .small{font-size:13px;color:#a9bfd6;margin-top:16px}.good{color:#7af0b0}.bad{color:#ff9a9a}
 </style>
 </head>
@@ -23,23 +24,38 @@ button{width:100%;border:0;border-radius:12px;padding:14px;background:#16b8e8;co
 <p class="small">यह केवल परीक्षण है। इससे Enforcement चालू नहीं होती और कोई billing upgrade नहीं होता।</p>
 </main>
 <script type="module">
-import { testSeriesAppCheck } from "./firebase-app-check-init.js";
+import { firebaseBootstrapMode, testSeriesAppCheck } from "./firebase-app-check-init.js";
+import { canRunAppCheckDiagnostic, safeAppCheckDiagnosticErrorCode } from "./app-check-diagnostic.mjs";
 import { getToken } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app-check.js";
-const statusEl=document.getElementById("status");
-const button=document.getElementById("run");
-button.addEventListener("click",async()=>{
-  button.disabled=true;statusEl.className="status";statusEl.textContent="App Check token जाँचा जा रहा है…";
-  try{
-    const result=await getToken(testSeriesAppCheck,false);
-    if(!result || !result.token) throw new Error("Firebase ने App Check token नहीं लौटाया।");
-    statusEl.className="status good";
-    statusEl.textContent="सफल: App Check token प्राप्त हुआ। Token सुरक्षित है; इसे यहाँ प्रदर्शित नहीं किया गया।";
-  }catch(error){
-    console.error("Railway Mitra App Check diagnostic:",error);
-    statusEl.className="status bad";
-    statusEl.textContent="जाँच असफल: "+(error.code||"unknown-error")+" — "+(error.message||"कृपया console logs देखें।");
-  }finally{button.disabled=false;}
-});
+
+const statusEl = document.getElementById("status");
+const button = document.getElementById("run");
+
+if (!canRunAppCheckDiagnostic(firebaseBootstrapMode, testSeriesAppCheck)) {
+  button.disabled = true;
+  statusEl.textContent = firebaseBootstrapMode === "emulator"
+    ? "स्थानीय Emulator mode में web App Check जानबूझकर बंद है। Token diagnostic केवल HTTPS staging पर चलाएँ।"
+    : "App Check diagnostic उपलब्ध नहीं है। Staging Firebase bootstrap की जाँच करें।";
+} else {
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    statusEl.className = "status";
+    statusEl.textContent = "App Check token जाँचा जा रहा है…";
+    try {
+      const result = await getToken(testSeriesAppCheck, false);
+      if (!result || !result.token) throw new Error("App Check token unavailable");
+      statusEl.className = "status good";
+      statusEl.textContent = "सफल: App Check token प्राप्त हुआ। Token सुरक्षित है; इसे यहाँ प्रदर्शित नहीं किया गया।";
+    } catch (error) {
+      const errorCode = safeAppCheckDiagnosticErrorCode(error);
+      console.warn("Railway Mitra App Check diagnostic failed:", errorCode);
+      statusEl.className = "status bad";
+      statusEl.textContent = "जाँच असफल: " + errorCode + " — Firebase Console में App Check registration और authorized domain जाँचें।";
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
 </script>
 </body>
 </html>
