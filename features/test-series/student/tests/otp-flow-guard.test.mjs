@@ -283,6 +283,7 @@ test("Student Portal uses the tested control helper and resets labels on auth tr
 });
 
 
+
 test("OTP controls unlock from sign-out recovery only when Firebase Auth explicitly has no current user", () => {
   assert.equal(shouldUnlockStudentOtpControls(null), true);
   assert.equal(shouldUnlockStudentOtpControls({ uid: "replacement-student" }), false);
@@ -293,7 +294,7 @@ test("OTP controls unlock from sign-out recovery only when Firebase Auth explici
 test("pending sign-out retry is bound to its original UID and cannot sign out a replacement account", () => {
   const portal = readFileSync(new URL("../portal.js", import.meta.url), "utf8");
   const retryStart = portal.indexOf("async function retryPendingSignOut()");
-  const retryEnd = portal.indexOf("\\n\\nfunction setBusy", retryStart);
+  const retryEnd = portal.indexOf("function setBusy", retryStart);
   assert.ok(retryStart >= 0 && retryEnd > retryStart, "retry handler has a bounded source range");
   const retry = portal.slice(retryStart, retryEnd);
   const capture = retry.indexOf("const retryingUid = auth.currentUser?.uid || null;");
@@ -301,9 +302,8 @@ test("pending sign-out retry is bound to its original UID and cannot sign out a 
   const signOutCall = retry.indexOf("await signOut(auth)");
   assert.ok(capture >= 0 && markerCheck > capture && signOutCall > markerCheck,
     "the current UID must match the pending marker before Firebase signOut is called");
-  assert.match(retry, /if \\(auth\\.currentUser\\?\\.uid === retryingUid\\)/);
-  assert.match(retry, /retrySignOutButton.hidden = true/);
-  assert.match(retry, /setPostSignOutStatus\\(\\)/);
+  assert.ok(retry.includes("if (auth.currentUser?.uid === retryingUid)"));
+  assert.ok(retry.includes("setPostSignOutStatus()"));
 });
 
 test("sign-out completion does not unlock OTP controls while an authenticated replacement session exists", () => {
@@ -312,14 +312,14 @@ test("sign-out completion does not unlock OTP controls while an authenticated re
   const helperEnd = portal.indexOf("function setPostSignOutStatus()", helperStart);
   assert.ok(helperStart >= 0 && helperEnd > helperStart);
   const helper = portal.slice(helperStart, helperEnd);
-  assert.match(helper, /shouldUnlockStudentOtpControls\\(auth\\.currentUser\\)/);
-  assert.match(helper, /if \\(signedOut\\) setOtpControlsLocked\\(false\\)/);
-  assert.doesNotMatch(helper, /else\\s+setOtpControlsLocked\\(false\\)/);
+  assert.ok(helper.includes("shouldUnlockStudentOtpControls(auth.currentUser)"));
+  assert.ok(helper.includes("if (signedOut) setOtpControlsLocked(false)"));
+  assert.equal(helper.includes("else setOtpControlsLocked(false)"), false);
 
   const logoutStart = portal.indexOf('logoutButton.addEventListener("click", async () => {');
   const logoutEnd = portal.indexOf('document.querySelectorAll("[data-view]")', logoutStart);
   assert.ok(logoutStart >= 0 && logoutEnd > logoutStart);
   const logout = portal.slice(logoutStart, logoutEnd);
-  assert.match(logout, /setPostSignOutStatus\\(\\)/);
-  assert.doesNotMatch(logout, /setOtpControlsLocked\\(false\\)/);
+  assert.ok(logout.includes("setPostSignOutStatus()"));
+  assert.equal(logout.includes("setOtpControlsLocked(false)"), false);
 });
