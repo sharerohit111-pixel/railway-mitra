@@ -22,6 +22,17 @@ const { addExamAnswerKeyEntry } = require("../exam-answer-key");
 
 const PROJECT = process.env.GCLOUD_PROJECT || "railway-mitra";
 const REGION = "asia-south1";
+function normalizeEmulatorPhoneNumber(value) {
+  return typeof value === "string" ? value.replace(/\D/g, "") : "";
+}
+
+test("Auth Emulator phone matching ignores punctuation but preserves digits", () => {
+  assert.equal(normalizeEmulatorPhoneNumber("+1 (650) 555-0101"), "16505550101");
+  assert.equal(normalizeEmulatorPhoneNumber("+1-650-555-0101"), "16505550101");
+  assert.equal(normalizeEmulatorPhoneNumber(null), "");
+  assert.equal(normalizeEmulatorPhoneNumber(6505550101), "");
+});
+
 let app, db, uid, studentPhoneNumber, clientApp, clientAuth, functions, claimedAttemptId;
 const testId = "emulator-cbt-test";
 
@@ -37,7 +48,7 @@ async function callable(name, data = {}) {
 
 async function getEmulatorMfaSmsCode(phoneNumber) {
   const endpoint = `http://127.0.0.1:9099/emulator/v1/projects/${PROJECT}/verificationCodes`;
-  const normalizePhone = value => String(value || "").replace(/\\D/g, "");
+
   let lastObserved = [];
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const response = await fetch(endpoint);
@@ -49,10 +60,10 @@ async function getEmulatorMfaSmsCode(phoneNumber) {
       fields: Object.keys(item),
       hasSessionCode: typeof item.sessionCode === "string" && Boolean(item.sessionCode)
     }));
-    const match = codes.find(item =>
-      item.phoneNumber === phoneNumber ||
-      normalizePhone(item.phoneNumber) === normalizePhone(phoneNumber)
-    );
+    const wantedPhone = normalizeEmulatorPhoneNumber(phoneNumber);
+    const match = wantedPhone
+      ? codes.find(item => normalizeEmulatorPhoneNumber(item.phoneNumber) === wantedPhone)
+      : null;
     const code = match && (match.sessionCode || match.code);
     if (typeof code === "string" && code) return code;
     await new Promise(resolve => setTimeout(resolve, 50));
