@@ -14,3 +14,16 @@ Focused regression command:
     node --test features/test-series/student/tests/otp-flow-guard.test.mjs
 
 This is a browser UI-state recovery safeguard only. Firebase phone sign-in claims, callable authorization, App Check, server-side attempt ownership and deadlines remain authoritative. It does not send OTPs, change Firebase configuration, or enable enforcement.
+
+
+## Pending sign-out retry is bound to the same Student UID
+
+A retry button may remain visible briefly while Firebase Auth is delivering an account-change event. The retry handler now checks that the currently authenticated UID still matches the persisted pending-sign-out marker before calling Firebase `signOut`. If another account is current, the stale retry is hidden and must not sign out that replacement account.
+
+After a sign-out operation settles, OTP controls are unlocked only when `auth.currentUser === null`. If an authenticated account exists, the auth-state observer retains control of the OTP lock until that identity's phone-provider claim has been checked. This prevents a late sign-out continuation from unlocking OTP controls during a replacement session's verification.
+
+Focused regression command:
+
+```sh
+node --test features/test-series/student/tests/otp-flow-guard.test.mjs
+```
