@@ -361,11 +361,16 @@ test("publish integrity rejects raw C0, DEL and C1 controls in category and fold
 test("normalizes optional Owner question explanations with the shared publish policy", () => {
   assert.equal(normalizeOwnerQuestionExplanation(undefined), "");
   assert.equal(normalizeOwnerQuestionExplanation(null), "");
-  const formatted = "Reason line 1\\r\\nReason line 2\\twith detail";
+  const formatted = "Reason line 1" + String.fromCharCode(13, 10) +
+    "Reason line 2" + String.fromCharCode(9) + "with detail";
   assert.equal(normalizeOwnerQuestionExplanation(formatted), formatted);
   assert.equal(normalizeOwnerQuestionExplanation("x".repeat(4000)).length, 4000);
 
-  for (const invalid of [42, {}, [], "x".repeat(4001), "Reason\\u0000text", "Reason\\u009ftext"]) {
+  for (const invalid of [
+    42, {}, [], "x".repeat(4001),
+    "Reason" + String.fromCharCode(0) + "text",
+    "Reason" + String.fromCharCode(0x9f) + "text"
+  ]) {
     assert.throws(() => normalizeOwnerQuestionExplanation(invalid), /explanation is invalid/);
   }
 });
