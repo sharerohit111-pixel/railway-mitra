@@ -15,7 +15,6 @@ Focused regression command:
 
 This is a browser UI-state recovery safeguard only. Firebase phone sign-in claims, callable authorization, App Check, server-side attempt ownership and deadlines remain authoritative. It does not send OTPs, change Firebase configuration, or enable enforcement.
 
-
 ## Pending sign-out retry is bound to the same Student UID
 
 A retry button may remain visible briefly while Firebase Auth is delivering an account-change event. The retry handler now checks that the currently authenticated UID still matches the persisted pending-sign-out marker before calling Firebase `signOut`. If another account is current, the stale retry is hidden and must not sign out that replacement account.
@@ -26,4 +25,14 @@ Focused regression command:
 
 ```sh
 node --test features/test-series/student/tests/otp-flow-guard.test.mjs
+```
+
+## Persistent marker cleanup when storage removal is restricted
+
+The logout recovery helper verifies that `removeItem` actually removed the pending UID marker. If removal throws or silently leaves the key behind, it attempts a verified empty-string tombstone instead. Empty strings cannot be created by the marker's UID validator and are read as no pending marker. If both removal and tombstone writing fail, cleanup reports failure and any still-persisted UID continues to block that same restored session; it does not silently treat an uncleared marker as removed.
+
+Focused regression command:
+
+```sh
+node --test features/test-series/student/tests/logout-recovery.test.mjs
 ```
