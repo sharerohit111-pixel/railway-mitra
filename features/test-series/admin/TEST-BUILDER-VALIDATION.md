@@ -296,3 +296,23 @@ node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
 This is validation hardening for the isolated Test Series module. It does not
 change Firebase project configuration, live Auth/App Check settings, payments,
 deployment behavior or unrelated Railway features.
+
+
+### Optional Question Bank explanation round-trip
+
+Optional question explanations now survive the complete Owner draft path:
+
+1. Question Bank selection maps the explanation into the Test Builder question.
+2. Browser-side draft validation accepts only text up to 4,000 characters and rejects unsupported control characters while preserving TAB, LF and CR.
+3. The Owner save callable repeats that validation and persists a non-empty explanation in the server-side question paper.
+4. Owner draft reload returns the explanation for continued editing.
+5. Student question delivery continues to use an explicit allow-list projection and omits explanations, answer indexes and other Owner-only fields.
+
+Focused regressions:
+
+```bash
+node --test features/test-series/admin/tests/test-builder-publish-parity.test.mjs
+node --test features/test-series/cloud/functions/tests/owner-test-editor.test.js
+```
+
+The isolated CBT Auth/Firestore/Functions Emulator suite additionally verifies that a valid explanation survives Owner save/reload and that an over-limit explanation is rejected before any draft documents are written. This does not expose explanations to students or change the scoring/answer-key boundary.
