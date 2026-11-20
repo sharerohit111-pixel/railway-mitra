@@ -46,7 +46,9 @@ export function watchOwnerSession({
 
     if (!user) {
       try {
-        onSignedOut();
+        // Signed-out cleanup is best-effort, but async failures must not leak as
+        // unhandled rejections into the page.
+        Promise.resolve(onSignedOut()).catch(reportError);
       } catch (error) {
         reportError(error);
       }
@@ -54,41 +56,34 @@ export function watchOwnerSession({
     }
 
     // Hide and clear the previous Owner workspace immediately on every
-    // authenticated account transition, before MFA checks or server calls.
+    // authenticated account transition, before awaiting optional async cleanup.
+    let checkingResult;
     try {
-      onChecking(user);
+      checkingResult = onChecking(user);
     } catch (error) {
       void rejectCurrentSession(user, currentGeneration, error);
       return;
     }
 
-    let phoneMfaReady;
-    try {
-      phoneMfaReady = hasPhoneMfa(user);
-    } catch (error) {
-      void rejectCurrentSession(user, currentGeneration, error);
-      return;
-    }
-
-    if (!phoneMfaReady) {
-      try {
-        onMfaRequired(user);
-      } catch (error) {
-        void rejectCurrentSession(user, currentGeneration, error);
-      }
-      return;
-    }
-
-    Promise.resolve()
-      .then(() => verifyOwner(user))
-      .then(authorization => {
+    // Treat lifecycle callbacks as part of the authorization transition. An
+    // async cleanup failure must prevent MFA/server checks and sign out only
+    // the still-current rejected UID.
+    Promise.resolve(checkingResult)
+      .then(() => {
         if (!isCurrent(currentGeneration)) return;
-        if (!authorization || authorization.authorized !== true) {
-          throw new Error("Owner authorization was not confirmed by the server.");
-        }
-        // Return the callback result so async dashboard initialization failures
-        // enter the same fail-closed path as server authorization failures.
-        return onAuthorized(user, authorization);
+        const phoneMfaReady = hasPhoneMfa(user);
+        if (!phoneMfaReady) return onMfaRequired(user);
+        return Promise.resolve()
+          .then(() => verifyOwner(user))
+          .then(authorization => {
+            if (!isCurrent(currentGeneration)) return;
+            if (!authorization || authorization.authorized !== true) {
+              throw new Error("Owner authorization was not confirmed by the server.");
+            }
+            // Return the callback result so async dashboard initialization failures
+            // enter the same fail-closed path as server authorization failures.
+            return onAuthorized(user, authorization);
+          });
       })
       .catch(error => rejectCurrentSession(user, currentGeneration, error));
   });
