@@ -1111,8 +1111,9 @@ export function initOwnerAdminDashboard(auth, functions) {
   }
   function clearQuestionBank() {
     questionBankSessionGeneration += 1;
-    // Release a pending import control for the new auth generation. The older
-    // request's finally block is generation-fenced and cannot unlock a newer run.
+    // Release pending controls for the new auth generation. Older requests'
+    // finally blocks are generation-fenced and cannot unlock a newer run.
+    el("rm-qb-save").disabled = false;
     el("rm-qb-bulk-import").disabled = false;
     questionBankGeneration += 1;
     questionBankCursor = null;
@@ -1257,7 +1258,9 @@ export function initOwnerAdminDashboard(auth, functions) {
     } catch (error) {
       if (sessionGeneration !== questionBankSessionGeneration) return;
       questionBankStatus.textContent = error.message || "प्रश्न सुरक्षित नहीं हुआ।";
-    } finally { submit.disabled = false; }
+    } finally {
+      if (sessionGeneration === questionBankSessionGeneration) submit.disabled = false;
+    }
   });
   el("rm-qb-cancel-edit").addEventListener("click", resetQuestionBankForm);
   el("rm-qb-add-scope").addEventListener("click", () => {

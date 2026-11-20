@@ -72,6 +72,7 @@ test("Question Bank save, delete and bulk-import continuations are fenced by Own
   assert.match(saveHandler, /const sessionGeneration = questionBankSessionGeneration/);
   assert.match(saveHandler, /await httpsCallable\(functions, "rmOwnerSaveQuestionBankItem"\)[\s\S]*?if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
   assert.match(saveHandler, /catch \(error\) \{\s*if \(sessionGeneration !== questionBankSessionGeneration\) return;/);
+  assert.match(saveHandler, /finally \{\s*if \(sessionGeneration === questionBankSessionGeneration\) submit\.disabled = false;\s*\}/);
 
   const bulkStart = source.indexOf('el("rm-qb-bulk-import").addEventListener("click"');
   const bulkEnd = source.indexOf('\n  });', bulkStart);
@@ -131,4 +132,20 @@ test("Owner free-test assignment preserves the server-derived permanent lock and
   assert.ok(finallyStart >= 0 && retryGuard > finallyStart && enableButton > retryGuard,
     "only an unlocked current session may re-enable the control");
   assert.doesNotMatch(handler, /finally \{\s*button\.disabled = false/);
+});
+
+
+test("Question Bank save control resets on Owner session change without stale unlocks", () => {
+  const clearStart = source.indexOf("function clearQuestionBank() {");
+  const clearEnd = source.indexOf("\n  }", clearStart);
+  assert.ok(clearStart >= 0 && clearEnd > clearStart, "Question Bank cleanup must exist");
+  const cleanup = source.slice(clearStart, clearEnd);
+  assert.match(cleanup, /questionBankSessionGeneration \+= 1/);
+  assert.match(cleanup, /el\("rm-qb-save"\)\.disabled = false/);
+
+  const saveStart = source.indexOf('questionBankForm.addEventListener("submit"');
+  const saveEnd = source.indexOf('\n  });', saveStart);
+  assert.ok(saveStart >= 0 && saveEnd > saveStart, "Question Bank save handler must exist");
+  const handler = source.slice(saveStart, saveEnd);
+  assert.match(handler, /finally \{\s*if \(sessionGeneration === questionBankSessionGeneration\) submit\.disabled = false;\s*\}/);
 });
