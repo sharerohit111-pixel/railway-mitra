@@ -161,3 +161,37 @@ The private answer-key validator independently requires every option index to be
 - Updated the regression to verify ordering (validated assignment before response construction), the validated local variable's presence in the response's test projection (including object shorthand), and the absence of direct persisted-duration projection or fallback coercion. This is a test assertion correction; no production handler logic was changed.
 - Because the `npm test` command failed, the subsequent Firestore Rules, Storage and emulator backup/restore steps were not reached in those runs. They must be verified on a later successful workflow run; no CI pass is inferred from the 337 passing unit tests.
 - No live Firebase configuration, Auth provider, App Check enforcement, Razorpay credential, deployment or load-test setting was changed.
+
+## Razorpay inspection pagination identity guard — 2026-11-21
+
+The Owner-only, read-only Razorpay order inspector pages payment attempts in
+batches of 100. It keeps a single payment-ID set across the complete inspection
+and fails closed if a provider payment ID appears more than once, including
+when a duplicate is returned on a later page. It must not silently count the
+same provider payment twice or present an ambiguous multi-page response as a
+complete reconciliation view.
+
+The focused regression uses a full first page and repeats one payment ID on
+the second page. It asserts that inspection rejects the provider response at
+the duplicate instead of returning a partial or apparently complete payment
+list. This uses synthetic fetch responses only; it does not call Razorpay or
+write payment, order, refund, or entitlement records.
+
+### Branch/CI checkpoint before this follow-up
+
+- On 2026-11-21, PR #136 and
+  `feature/test-series-cloud-access` were inspected at head
+  `f7b1794bfaf0ee444beb378a9ef96ef13059b962`.
+- The PR-triggered workflow lookup for that exact SHA returned no runs, and
+  its combined commit-status response contained no status entries. This is
+  **not** evidence of CI success; the current change must be checked against
+  its own resulting commit.
+- The GitHub compare endpoint reported the branch as diverged from `main`,
+  1,603 commits ahead and 158 behind. The paginated PR file listing contained
+  249 changed files, including pre-existing P-Way, Home Live Updates, root
+  authentication and repository configuration paths. Those unrelated diffs
+  remain outside this Test Series follow-up and require separate review.
+- PR #136 remains a draft development change; no merge or deployment is
+  authorized by this checkpoint.
+- Synthetic load tests for 20/100/250/500 students and capacity benchmarking
+  remain deferred until the user separately authorizes them.
