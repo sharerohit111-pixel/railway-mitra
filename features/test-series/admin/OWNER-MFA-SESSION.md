@@ -19,6 +19,7 @@ node --test features/test-series/admin/tests/owner-mfa-session.test.mjs
 This is client-side race protection only. Backend Owner authorization remains based on the exact configured Owner UID, approved primary provider, verified phone-MFA claim and App Check. This change does not configure Auth providers, send OTPs, enable App Check enforcement, change Firebase projects, or deploy anything.
 
 
+
 ## Serialized Owner authentication and cancellable OTP prompt
 
 Google sign-in, Email + Password sign-in, and first-time Phone MFA enrollment share one in-memory authentication-operation gate. While any of these flows is waiting on Firebase or the Owner OTP prompt, the other authentication entry buttons remain disabled; a second provider attempt cannot replace the pending OTP resolver or compete for the same reCAPTCHA container.
@@ -32,6 +33,7 @@ node --test features/test-series/admin/tests/owner-auth-operation-gate.test.mjs
 ```
 
 This only serializes browser authentication flows. Firebase MFA challenges, the server-side Owner UID/provider/second-factor checks and App Check remain authoritative; it does not send an OTP or change Firebase configuration.
+
 
 
 ## Provider-link session binding
@@ -85,3 +87,15 @@ node --test features/test-series/admin/tests/owner-session-signed-out-generation
 ```
 
 This fences stale error reporting; it does not change Firebase sign-out behavior, backend Owner authorization, phone-MFA/App Check enforcement, or any Firebase configuration.
+
+## Asynchronous phone-MFA inspection
+
+The Owner session observer accepts either a synchronous boolean or a Promise from `hasPhoneMfa`. It waits for the inspection result before calling the Owner authorization callable; a pending Promise is never treated as proof that phone MFA is enrolled. A resolved `false` value opens the MFA setup flow without calling the backend. A rejected inspection fails closed, reports the error, and signs out only the still-current Owner UID. If the account changes or the observer is disposed while inspection is pending, the retired result is ignored.
+
+Focused regression command:
+
+```bash
+node --test features/test-series/admin/tests/owner-session-async-mfa.test.mjs
+```
+
+This is client-side lifecycle hardening. The backend's exact Owner UID, approved primary provider, verified phone-MFA claim and App Check checks remain authoritative; no Auth provider, OTP, Firebase configuration, deployment or enforcement setting is changed.
