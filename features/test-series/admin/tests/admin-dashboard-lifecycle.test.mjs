@@ -156,7 +156,9 @@ test("Test Management save control resets on Owner session change without stale 
   assert.ok(clearStart >= 0 && clearEnd > clearStart, "Test Management cleanup must exist");
   const cleanup = source.slice(clearStart, clearEnd);
   assert.ok(cleanup.includes("testManagementGeneration += 1;"));
-  assert.ok(cleanup.includes("testForm.reset();\n    const submitButton = testForm.querySelector('button[type="submit"]');\n    if (submitButton) submitButton.disabled = false;"));
+  assert.ok(cleanup.includes(`testForm.reset();
+    const submitButton = testForm.querySelector('button[type="submit"]');
+    if (submitButton) submitButton.disabled = false;`));
 
   const saveStart = source.indexOf('testForm.addEventListener("submit"');
   const saveEnd = source.indexOf("\n  });", saveStart);
