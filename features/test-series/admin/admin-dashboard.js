@@ -22,7 +22,9 @@ export function initOwnerAdminDashboard(auth, functions) {
   const ownerAuthButtons = [
     el("rm-owner-google"),
     el("rm-owner-email-login"),
-    el("rm-owner-enroll-otp")
+    el("rm-owner-enroll-otp"),
+    el("rm-owner-link-google"),
+    el("rm-owner-link-email")
   ];
   const paymentsPanel = el("rm-admin-payments-panel");
   const paymentsList = el("rm-admin-payments-list");
@@ -193,28 +195,52 @@ export function initOwnerAdminDashboard(auth, functions) {
   });
 
   const providerStatus = message => { el("rm-owner-provider-status").textContent = message; };
-  el("rm-owner-link-google").addEventListener("click", async () => {
-    try {
-      providerStatus("Google provider को इसी Owner खाते से जोड़ा जा रहा है…");
-      const result = await linkOwnerGoogleProvider(auth);
-      providerStatus(result.linked ? "Google provider इसी Owner UID से जुड़ गया।" : "Google provider पहले से इसी Owner खाते से जुड़ा है।");
-    } catch (error) {
-      providerStatus(error.code === "auth/credential-already-in-use"
-        ? "यह Google खाता किसी दूसरे Firebase UID से जुड़ा है। खातों को अपने-आप merge नहीं किया गया; पहले Firebase में UID की जाँच करें।"
-        : error.message || "Google provider link नहीं हो पाया।");
+  async function runOwnerProviderLink(label, operation, onSuccess, fallbackMessage) {
+    const ownerUid = auth.currentUser?.uid;
+    if (!ownerUid) {
+      providerStatus("पहले Owner खाते से Login करें।");
+      return;
     }
+    if (ownerAuthGate.isPending()) {
+      providerStatus("An Owner authentication step is already in progress. Complete or cancel it before linking a provider.");
+      return;
+    }
+
+    ownerAuthButtons.forEach(button => { button.disabled = true; });
+    try {
+      providerStatus(label);
+      const result = await ownerAuthGate.run(operation);
+      if (auth.currentUser?.uid !== ownerUid) return;
+      onSuccess(result);
+    } catch (error) {
+      // A popup that completes after sign-out/account switch must not write
+      // its result or error into the replacement Owner session's status UI.
+      if (auth.currentUser?.uid !== ownerUid) return;
+      providerStatus(error.code === "auth/credential-already-in-use"
+        ? "यह credential किसी दूसरे Firebase UID से जुड़ा है। खातों को अपने-आप merge नहीं किया गया; पहले Firebase में UID की जाँच करें।"
+        : error.message || fallbackMessage);
+    } finally {
+      ownerAuthButtons.forEach(button => { button.disabled = false; });
+    }
+  }
+  el("rm-owner-link-google").addEventListener("click", () => {
+    void runOwnerProviderLink(
+      "Google provider को इसी Owner खाते से जोड़ा जा रहा है…",
+      () => linkOwnerGoogleProvider(auth),
+      result => providerStatus(result.linked ? "Google provider इसी Owner UID से जुड़ गया।" : "Google provider पहले से इसी Owner खाते से जुड़ा है।"),
+      "Google provider link नहीं हो पाया।"
+    );
   });
-  el("rm-owner-link-email").addEventListener("click", async () => {
-    try {
-      providerStatus("Email provider को इसी Owner खाते से जोड़ा जा रहा है…");
-      const result = await linkOwnerEmailProvider(auth, el("rm-owner-link-email-address").value, el("rm-owner-link-password").value);
-      providerStatus(result.linked ? "Email/Password provider इसी Owner UID से जुड़ गया।" : "Email/Password provider पहले से इसी Owner खाते से जुड़ा है।");
-      el("rm-owner-link-password").value = "";
-    } catch (error) {
-      providerStatus(error.code === "auth/credential-already-in-use"
-        ? "यह Email/Password credential किसी दूसरे Firebase UID से जुड़ा है। खातों को अपने-आप merge नहीं किया गया; पहले Firebase में UID की जाँच करें।"
-        : error.message || "Email provider link नहीं हो पाया।");
-    }
+  el("rm-owner-link-email").addEventListener("click", () => {
+    void runOwnerProviderLink(
+      "Email provider को इसी Owner खाते से जोड़ा जा रहा है…",
+      () => linkOwnerEmailProvider(auth, el("rm-owner-link-email-address").value, el("rm-owner-link-password").value),
+      result => {
+        providerStatus(result.linked ? "Email/Password provider इसी Owner UID से जुड़ गया।" : "Email/Password provider पहले से इसी Owner खाते से जुड़ा है।");
+        el("rm-owner-link-password").value = "";
+      },
+      "Email provider link नहीं हो पाया।"
+    );
   });
 
   el("rm-owner-logout").addEventListener("click", async () => {
