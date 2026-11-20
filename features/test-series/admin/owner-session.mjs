@@ -86,7 +86,9 @@ export function watchOwnerSession({
         if (!authorization || authorization.authorized !== true) {
           throw new Error("Owner authorization was not confirmed by the server.");
         }
-        onAuthorized(user, authorization);
+        // Return the callback result so async dashboard initialization failures
+        // enter the same fail-closed path as server authorization failures.
+        return onAuthorized(user, authorization);
       })
       .catch(error => rejectCurrentSession(user, currentGeneration, error));
   });
