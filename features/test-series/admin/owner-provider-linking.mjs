@@ -18,6 +18,7 @@ export function assertOwnerLinkSession(auth, expectedUid) {
 }
 
 export async function linkOwnerProvider({
+  auth,
   currentUser,
   providerId,
   link
@@ -31,6 +32,7 @@ export async function linkOwnerProvider({
   if (typeof link !== "function") throw new TypeError("link must be a function");
 
   const originalUid = currentUser.uid;
+  assertOwnerLinkSession(auth, originalUid);
   const alreadyLinked = Array.isArray(currentUser.providerData)
     && currentUser.providerData.some(provider => provider && provider.providerId === providerId);
   if (alreadyLinked) {
@@ -42,6 +44,9 @@ export async function linkOwnerProvider({
   if (!linkedUser || linkedUser.uid !== originalUid) {
     throw new Error("Provider linking did not preserve the original Owner UID.");
   }
+  // The Firebase popup may finish after the user signs out or changes accounts.
+  // Never report the old account's completion in a replacement session.
+  assertOwnerLinkSession(auth, originalUid);
   const verified = Array.isArray(linkedUser.providerData)
     && linkedUser.providerData.some(provider => provider && provider.providerId === providerId);
   if (!verified) {
