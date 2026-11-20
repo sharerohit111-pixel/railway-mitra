@@ -23,3 +23,12 @@ export function setStudentOtpControlsLocked({ sendButton, verifyButton } = {}, l
   }
   return locked;
 }
+
+/**
+ * OTP controls may be unlocked by sign-out recovery only after Firebase Auth
+ * explicitly reports no current user. An incoming identity stays under the
+ * auth-state observer's provider-claim verification.
+ */
+export function shouldUnlockStudentOtpControls(currentUser) {
+  return currentUser === null;
+}
