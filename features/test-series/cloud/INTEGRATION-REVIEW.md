@@ -229,3 +229,12 @@ write payment, order, refund, or entitlement records.
 - The existing valid-ledger collision test still requires `refund_id_conflict`; the existing missing-order and revoked-entitlement cases remain covered separately.
 - These are synthetic Firestore transaction fixtures only. No provider request, payment, refund, entitlement grant/revocation, live Firebase configuration or deployment is performed.
 
+
+## Nested Test Series Firestore descendants remain client-denied — 2026-11-21
+
+- Extended the isolated Firestore Rules Emulator probe to test one nested document below each of the 20 protected Test Series root collections.
+- Both unauthenticated requests and authenticated student-like Auth Emulator users must receive HTTP 403 for nested reads and writes. Existing root-document checks and the Railway Mitra user's own duty-diary/employee-profile ownership checks remain unchanged.
+- This protects future descendants such as attempt answers, result details, payment-provider metadata, question-bank revisions and access-audit entries from becoming client-accessible if a later rules edit accidentally covers only parent documents.
+- The rules file itself is unchanged: browser access to all Test Series records remains denied, and the intended application access path remains the authenticated callable backend.
+- The emulator summary now expects 156 checks: the existing 76 root/ownership checks plus 80 nested-descendant checks (20 collections × anonymous/authenticated × read/write).
+- This is an Auth/Firestore Emulator security regression only. It does not modify live Firebase, deploy rules, contact a payment provider or run synthetic student load tests; 20/100/250/500-student load tests and capacity benchmarking remain deferred.
