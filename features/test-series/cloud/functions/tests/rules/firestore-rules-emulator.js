@@ -25,6 +25,12 @@ const protectedCollections = [
   "testSeriesAccessRequests"
 ];
 
+// Probe a document below every protected root to ensure recursive matches keep
+// future private subcollections client-denied as well.
+const nestedProtectedDocuments = protectedCollections.map(
+  collection => `${collection}/rules-probe/private/child`
+);
+
 async function expectStatus(label, response, expected) {
   if (response.status !== expected) {
     const body = await response.text();
@@ -159,7 +165,29 @@ async function main() {
     headers: auth(userA.token)
   });
 
-  const checks = protectedCollections.length * 3 + 16;
+  // Root-document denial is not enough: future subcollections under protected
+  // records must remain inaccessible to both anonymous and signed-in clients.
+  for (const documentPath of nestedProtectedDocuments) {
+    await expectDenied(`unauthenticated read of nested ${documentPath}`, `${base}/${documentPath}`);
+    await expectDenied(`unauthenticated write to nested ${documentPath}`, `${base}:commit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [updateWrite(documentPath, "must-be-denied")] })
+    });
+  }
+
+  for (const documentPath of nestedProtectedDocuments) {
+    await expectDenied(`authenticated user cannot read nested ${documentPath}`, `${base}/${documentPath}`, {
+      headers: auth(userA.token)
+    });
+    await expectDenied(`authenticated user cannot write nested ${documentPath}`, `${base}:commit`, {
+      method: "POST",
+      headers: { ...auth(userA.token), "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [updateWrite(documentPath, "must-be-denied")] })
+    });
+  }
+
+  const checks = protectedCollections.length * 3 + nestedProtectedDocuments.length * 4 + 16;
   console.log("RULES_TEST_RESULT", JSON.stringify({ projectId, checks, result: "passed" }));
 }
 
