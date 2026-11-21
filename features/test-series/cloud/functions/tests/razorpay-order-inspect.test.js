@@ -326,7 +326,46 @@ test("rejects duplicate payment IDs returned across paginated provider pages", a
         notes: { uid: "student_uid", testId: "gdce_test" }
       });
     }
-  }), /duplicate payment across pages/);
+  }), /duplicate payment ID in paginated results/);
 
   assert.equal(paymentPageRequests, 2, "the duplicate must be detected on the second provider page");
+});
+
+test("rejects duplicate payment IDs within a single provider page", async () => {
+  const duplicate = {
+    id: "pay_duplicate123",
+    status: "failed",
+    amount: 49900,
+    currency: "INR",
+    order_id: "order_123456",
+    captured: false
+  };
+  const duplicateCaptured = { ...duplicate, status: "captured", captured: true };
+  let paymentPageRequests = 0;
+
+  await assert.rejects(inspectRazorpayOrder({
+    keyId: "rzp_test_key",
+    keySecret: "secret",
+    orderId: "order_123456",
+    expectedReceipt: "rm_receipt_123",
+    expectedAmountPaise: 49900,
+    expectedUid: "student_uid",
+    expectedTestId: "gdce_test",
+    fetchImpl: async url => {
+      if (url.includes("/payments?")) {
+        paymentPageRequests += 1;
+        return response({ items: [duplicate, duplicateCaptured] });
+      }
+      return response({
+        id: "order_123456",
+        status: "paid",
+        amount: 49900,
+        currency: "INR",
+        receipt: "rm_receipt_123",
+        notes: { uid: "student_uid", testId: "gdce_test" }
+      });
+    }
+  }), /duplicate payment ID in paginated results/);
+
+  assert.equal(paymentPageRequests, 1, "a same-page duplicate must fail before requesting another page");
 });
