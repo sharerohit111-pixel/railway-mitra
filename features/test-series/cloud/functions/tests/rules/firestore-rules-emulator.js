@@ -31,6 +31,10 @@ const nestedProtectedDocuments = protectedCollections.map(
   collection => `${collection}/rules-probe/private/child`
 );
 
+const nestedProtectedCollections = protectedCollections.map(
+  collection => `${collection}/rules-probe/private`
+);
+
 async function expectStatus(label, response, expected) {
   if (response.status !== expected) {
     const body = await response.text();
@@ -75,6 +79,13 @@ function updateWrite(path, value) {
       name: `projects/${projectId}/databases/(default)/documents/${path}`,
       fields: { probe: { stringValue: value } }
     }
+  };
+}
+
+function createWrite(path, value) {
+  return {
+    ...updateWrite(path, value),
+    currentDocument: { exists: false }
   };
 }
 
@@ -176,7 +187,10 @@ async function main() {
     });
   }
 
-  for (const documentPath of nestedProtectedDocuments) {
+  for (let index = 0; index < nestedProtectedDocuments.length; index += 1) {
+    const documentPath = nestedProtectedDocuments[index];
+    const collectionPath = nestedProtectedCollections[index];
+
     await expectDenied(`authenticated user cannot read nested ${documentPath}`, `${base}/${documentPath}`, {
       headers: auth(userA.token)
     });
@@ -185,9 +199,27 @@ async function main() {
       headers: { ...auth(userA.token), "Content-Type": "application/json" },
       body: JSON.stringify({ writes: [updateWrite(documentPath, "must-be-denied")] })
     });
+
+    // Exercise create-only preconditions separately from update denials.
+    await expectDenied(`unauthenticated client cannot create nested ${documentPath}`, `${base}:commit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [createWrite(documentPath, "must-be-denied")] })
+    });
+    await expectDenied(`authenticated client cannot create nested ${documentPath}`, `${base}:commit`, {
+      method: "POST",
+      headers: { ...auth(userA.token), "Content-Type": "application/json" },
+      body: JSON.stringify({ writes: [createWrite(documentPath, "must-be-denied")] })
+    });
+
+    // A get denial does not exercise the collection-list/query endpoint.
+    await expectDenied(`unauthenticated client cannot list nested ${collectionPath}`, `${base}/${collectionPath}?pageSize=1`);
+    await expectDenied(`authenticated client cannot list nested ${collectionPath}`, `${base}/${collectionPath}?pageSize=1`, {
+      headers: auth(userA.token)
+    });
   }
 
-  const checks = protectedCollections.length * 3 + nestedProtectedDocuments.length * 4 + 16;
+  const checks = protectedCollections.length * 3 + nestedProtectedDocuments.length * 8 + 16;
   console.log("RULES_TEST_RESULT", JSON.stringify({ projectId, checks, result: "passed" }));
 }
 
