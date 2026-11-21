@@ -166,8 +166,10 @@ The private answer-key validator independently requires every option index to be
 
 The Owner-only, read-only Razorpay order inspector pages payment attempts in
 batches of 100. It keeps a single payment-ID set across the complete inspection
-and fails closed if a provider payment ID appears more than once, including
-when a duplicate is returned on a later page. It must not silently count the
+and fails closed if a provider payment ID appears more than once, whether the
+duplicate occurs within one page or is returned on a later page. The error
+message describes duplicate IDs in the paginated result rather than assuming
+the duplicate must cross a page boundary. It must not silently count the
 same provider payment twice or present an ambiguous multi-page response as a
 complete reconciliation view.
 
