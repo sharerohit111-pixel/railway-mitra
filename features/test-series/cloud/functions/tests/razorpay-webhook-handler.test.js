@@ -259,6 +259,29 @@ test("routes verified refund.processed events to the refund ledger", async () =>
 });
 
 
+test("acknowledges a captured-event ID collision as a permanent refund rejection", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_collision", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_capture_collision" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("event ID already belongs to a captured-payment ledger entry");
+      error.code = "refund_id_conflict";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 200);
+  assert.deepEqual(res.body, { received: true, rejected: true });
+});
+
 test("rejects oversized raw webhook bodies before signature verification or ledger access", async () => {
   const req = request({ rawBody: Buffer.alloc(MAX_WEBHOOK_BODY_BYTES + 1, 0x20) });
   const originalGet = req.get.bind(req);

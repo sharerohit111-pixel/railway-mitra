@@ -13,6 +13,20 @@ function safeId(value) {
   return typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
 }
 
+function isCapturedPaymentEventRecord(record, eventId) {
+  return Boolean(record &&
+    record.eventId === eventId &&
+    record.status === "processed" &&
+    safeId(record.paymentId) &&
+    safeId(record.razorpayOrderId) &&
+    safeId(record.uid) &&
+    safeId(record.testId) &&
+    Number.isSafeInteger(record.amount) &&
+    record.amount > 0 &&
+    typeof record.currency === "string" &&
+    /^[A-Z]{3}$/.test(record.currency));
+}
+
 // A duplicate provider delivery is acknowledged only while every authoritative
 // record still agrees. Captured payments may have a partial cumulative refund;
 // refunded payments must be fully refunded and have revoked access.
@@ -100,9 +114,14 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
     ]);
 
     if (eventSnap.exists || refundSnap.exists) {
-      // Event and refund records are created atomically. An event without its
-      // refund record is corruption, not a safe duplicate acknowledgement.
+      // Event and refund records are created atomically. A well-formed capture
+      // event already using this ID is a permanent cross-event collision; a
+      // refund event without its paired refund record remains ledger corruption.
       if (eventSnap.exists && !refundSnap.exists) {
+        const previousEvent = eventSnap.data();
+        if (isCapturedPaymentEventRecord(previousEvent, eventId)) {
+          fail("refund_id_conflict", "Provider event ID was already used for a captured-payment event");
+        }
         fail("refund_ledger_inconsistent", "Processed refund event is missing its refund ledger record");
       }
       let priorEvent = null;

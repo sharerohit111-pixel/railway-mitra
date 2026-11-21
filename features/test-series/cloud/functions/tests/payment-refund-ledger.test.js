@@ -101,6 +101,36 @@ test("new-event refund replay fails when the original event record is missing", 
   );
 });
 
+test("classifies a reused captured-payment event ID as a permanent refund conflict without writes", async () => {
+  const h = harness();
+  const eventId = "evt_capture_collision";
+  const captureEvent = {
+    eventId,
+    paymentId: "pay_refund_1",
+    razorpayOrderId: "order_refund_1",
+    uid: "student_1",
+    testId: "test_1",
+    amount: 49900,
+    currency: "INR",
+    status: "processed"
+  };
+  h.docs.set("testSeriesPaymentEvents/" + eventId, captureEvent);
+  const beforePayment = structuredClone(h.docs.get("testSeriesPayments/pay_refund_1"));
+  const beforeOrder = structuredClone(h.docs.get("testSeriesPaymentOrders/order_refund_1"));
+  const beforeEntitlement = structuredClone(h.docs.get(entitlementPath));
+
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId }),
+    { code: "refund_id_conflict" }
+  );
+
+  assert.deepEqual(h.docs.get("testSeriesPaymentEvents/" + eventId), captureEvent);
+  assert.equal(h.docs.has("testSeriesRefunds/rfnd_1"), false);
+  assert.deepEqual(h.docs.get("testSeriesPayments/pay_refund_1"), beforePayment);
+  assert.deepEqual(h.docs.get("testSeriesPaymentOrders/order_refund_1"), beforeOrder);
+  assert.deepEqual(h.docs.get(entitlementPath), beforeEntitlement);
+});
+
 test("event ledger without its refund record is not acknowledged as a duplicate", async () => {
   const h = harness();
   await applyProcessedRefund({ db: h.db, event: h.event, eventId: "evt_refund_partial_record" });

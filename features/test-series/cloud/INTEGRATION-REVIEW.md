@@ -197,3 +197,12 @@ write payment, order, refund, or entitlement records.
   authorized by this checkpoint.
 - Synthetic load tests for 20/100/250/500 students and capacity benchmarking
   remain deferred until the user separately authorizes them.
+
+
+## Razorpay cross-event ID collision handling — 2026-11-21
+
+- A refund delivery that reuses a well-formed event ID already recorded for a captured-payment event is classified as a permanent `refund_id_conflict`. The webhook acknowledges it as a rejected event instead of asking the provider to retry a deterministic collision indefinitely.
+- A `refund_processed` event whose paired refund document is missing remains `refund_ledger_inconsistent` and retryable for support reconciliation. The distinction prevents a genuine partial/corrupt refund write from being mistaken for a safe duplicate.
+- Focused unit coverage verifies the collision creates no refund record and does not mutate payment, order, or entitlement state. A webhook-handler regression verifies the permanent conflict is returned as a rejected acknowledgement.
+- These tests use synthetic Firestore and HTTP fixtures only. They do not contact Razorpay, modify credentials, or perform a payment/refund.
+
