@@ -330,3 +330,26 @@ test("accepts a raw webhook body exactly at the configured byte ceiling", async 
   assert.deepEqual(receivedEvent, event);
   assert.deepEqual(res.body, { received: true, duplicate: false });
 });
+
+test("keeps inconsistent refund ledgers retryable instead of acknowledging them as permanent conflicts", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_inconsistent", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_inconsistent_refund_ledger" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("refund ledger is incomplete and requires reconciliation");
+      error.code = "refund_ledger_inconsistent";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});
