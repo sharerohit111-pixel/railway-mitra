@@ -213,3 +213,12 @@ write payment, order, refund, or entitlement records.
 - An event document that is present but malformed (for example, missing currency, lowercase currency or a non-positive amount) remains `refund_ledger_inconsistent`. The webhook must return a retryable server error for support reconciliation rather than acknowledge corrupted state as a deterministic ID collision.
 - Focused unit coverage verifies malformed records create no refund document and do not mutate payment, order or entitlement records. The webhook-handler test verifies the inconsistent-ledger code is not included in the permanent-rejection acknowledgement set.
 - These checks use synthetic Firestore and signed HTTP fixtures only. They do not contact Razorpay or alter payment/entitlement data.
+
+## Captured-event collision requires a complete backing ledger — 2026-11-21
+
+- A structurally valid capture-event document is not sufficient by itself to classify a reused provider event ID as a permanent refund conflict.
+- Before returning refund_id_conflict, the transaction now verifies that the linked payment, order and entitlement documents all exist, match the capture-event identity and amount/currency, and represent a consistent current state (captured/paid/active for a partial or no-refund payment, or refunded/refunded/revoked for a full refund).
+- Missing or drifted backing records remain refund_ledger_inconsistent, preserving the retry/reconciliation path rather than acknowledging damaged ledger state as a deterministic collision.
+- Focused regression tests cover a missing order and a drifted entitlement. Both assert no refund/event writes and no payment/order/entitlement mutation. The existing complete-ledger collision test continues to require refund_id_conflict.
+- Tests use synthetic Firestore transaction fixtures only; no Razorpay request, credential change, live payment or entitlement mutation occurs.
+

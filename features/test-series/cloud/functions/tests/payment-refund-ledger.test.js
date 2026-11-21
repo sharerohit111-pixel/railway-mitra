@@ -324,3 +324,67 @@ test("keeps malformed captured-event records retryable instead of classifying th
     assert.deepEqual(h.docs.get(entitlementPath), beforeEntitlement);
   }
 });
+
+test("keeps a structurally valid capture-event collision retryable when its backing order is missing", async () => {
+  const h = harness();
+  const eventId = "evt_capture_missing_order";
+  const captureEvent = {
+    eventId,
+    paymentId: "pay_refund_1",
+    razorpayOrderId: "order_refund_1",
+    uid: "student_1",
+    testId: "test_1",
+    amount: 49900,
+    currency: "INR",
+    status: "processed"
+  };
+  h.docs.set("testSeriesPaymentEvents/" + eventId, captureEvent);
+  h.docs.delete("testSeriesPaymentOrders/order_refund_1");
+  const beforePayment = structuredClone(h.docs.get("testSeriesPayments/pay_refund_1"));
+  const beforeEntitlement = structuredClone(h.docs.get(entitlementPath));
+
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId }),
+    { code: "refund_ledger_inconsistent" }
+  );
+
+  assert.equal(h.docs.has("testSeriesRefunds/rfnd_1"), false);
+  assert.deepEqual(h.docs.get("testSeriesPaymentEvents/" + eventId), captureEvent);
+  assert.deepEqual(h.docs.get("testSeriesPayments/pay_refund_1"), beforePayment);
+  assert.deepEqual(h.docs.get(entitlementPath), beforeEntitlement);
+});
+
+test("keeps a capture-event collision retryable when its backing entitlement has drifted", async () => {
+  const h = harness();
+  const eventId = "evt_capture_entitlement_drift";
+  const captureEvent = {
+    eventId,
+    paymentId: "pay_refund_1",
+    razorpayOrderId: "order_refund_1",
+    uid: "student_1",
+    testId: "test_1",
+    amount: 49900,
+    currency: "INR",
+    status: "processed"
+  };
+  h.docs.set("testSeriesPaymentEvents/" + eventId, captureEvent);
+  h.docs.set(entitlementPath, {
+    ...h.docs.get(entitlementPath),
+    status: "revoked"
+  });
+  const beforePayment = structuredClone(h.docs.get("testSeriesPayments/pay_refund_1"));
+  const beforeOrder = structuredClone(h.docs.get("testSeriesPaymentOrders/order_refund_1"));
+  const beforeEntitlement = structuredClone(h.docs.get(entitlementPath));
+
+  await assert.rejects(
+    () => applyProcessedRefund({ db: h.db, event: h.event, eventId }),
+    { code: "refund_ledger_inconsistent" }
+  );
+
+  assert.equal(h.docs.has("testSeriesRefunds/rfnd_1"), false);
+  assert.deepEqual(h.docs.get("testSeriesPaymentEvents/" + eventId), captureEvent);
+  assert.deepEqual(h.docs.get("testSeriesPayments/pay_refund_1"), beforePayment);
+  assert.deepEqual(h.docs.get("testSeriesPaymentOrders/order_refund_1"), beforeOrder);
+  assert.deepEqual(h.docs.get(entitlementPath), beforeEntitlement);
+});
+

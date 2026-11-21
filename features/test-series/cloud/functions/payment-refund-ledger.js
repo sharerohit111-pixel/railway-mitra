@@ -68,6 +68,45 @@ function validateRefundLedgerRecords({ payment, paymentId, order, entitlement } 
 }
 
 /**
+ * A captured-event ID is a permanent collision only when its backing
+ * payment, order and entitlement still form a complete, internally
+ * consistent ledger. A structurally valid event document alone is not
+ * enough: missing or drifted linked records require retry/reconciliation.
+ */
+async function validateCapturedPaymentEventLedger({ db, tx, record } = {}) {
+  const paymentRef = db.doc("testSeriesPayments/" + record.paymentId);
+  const orderRef = db.doc("testSeriesPaymentOrders/" + record.razorpayOrderId);
+  const entitlementRef = db.doc(
+    "testSeriesEntitlements/" + paidEntitlementDocumentId(record.uid, record.testId)
+  );
+  const [paymentSnap, orderSnap, entitlementSnap] = await Promise.all([
+    tx.get(paymentRef),
+    tx.get(orderRef),
+    tx.get(entitlementRef)
+  ]);
+  if (!paymentSnap.exists || !orderSnap.exists || !entitlementSnap.exists) {
+    fail("refund_ledger_inconsistent", "Captured-payment event is missing its backing payment, order or entitlement");
+  }
+
+  const payment = paymentSnap.data();
+  if (payment.paymentId !== record.paymentId ||
+      payment.razorpayOrderId !== record.razorpayOrderId ||
+      payment.uid !== record.uid ||
+      payment.testId !== record.testId ||
+      payment.amount !== record.amount ||
+      payment.currency !== record.currency) {
+    fail("refund_ledger_inconsistent", "Captured-payment event does not match its backing payment record");
+  }
+
+  validateRefundLedgerRecords({
+    payment,
+    paymentId: record.paymentId,
+    order: orderSnap.data(),
+    entitlement: entitlementSnap.data()
+  });
+}
+
+/**
  * Apply a verified refund.processed event. Partial refunds are recorded but
  * retain access; a full refund revokes the matching paid entitlement.
  * Call only after raw-body webhook signature verification.
@@ -120,6 +159,7 @@ async function applyProcessedRefund({ db, event, eventId } = {}) {
       if (eventSnap.exists && !refundSnap.exists) {
         const previousEvent = eventSnap.data();
         if (isCapturedPaymentEventRecord(previousEvent, eventId)) {
+          await validateCapturedPaymentEventLedger({ db, tx, record: previousEvent });
           fail("refund_id_conflict", "Provider event ID was already used for a captured-payment event");
         }
         fail("refund_ledger_inconsistent", "Processed refund event is missing its refund ledger record");
