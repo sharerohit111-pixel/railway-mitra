@@ -115,7 +115,7 @@ async function inspectRazorpayOrder({
     }
     for (const payment of page) {
       if (seenPaymentIds.has(payment.paymentId)) {
-        throw new Error("Razorpay returned a duplicate payment across pages");
+        throw new Error("Razorpay returned a duplicate payment ID in paginated results");
       }
       seenPaymentIds.add(payment.paymentId);
       payments.push(payment);
