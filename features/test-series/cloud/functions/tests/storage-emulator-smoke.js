@@ -7,7 +7,7 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getStorage } = require("firebase-admin/storage");
 const { initializeApp: initializeClientApp, deleteApp: deleteClientApp } = require("firebase/app");
 const { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, deleteUser } = require("firebase/auth");
-const { getStorage: getClientStorage, connectStorageEmulator, ref, uploadBytes, getBytes } = require("firebase/storage");
+const { getStorage: getClientStorage, connectStorageEmulator, ref, uploadBytes, getBytes, deleteObject } = require("firebase/storage");
 
 async function main() {
   if (process.env.STORAGE_EMULATOR_HOST !== "http://127.0.0.1:9199") {
@@ -97,7 +97,19 @@ async function main() {
       }),
       error => error.code === "storage/unauthorized"
     );
-    console.log("Storage Emulator smoke test passed: PNG header inspection, Admin upload/download, custom metadata/checksum, generation, byte-for-byte download, and authenticated client read/write denial for both quarantine and published prefixes.");
+    await assert.rejects(
+      deleteObject(ref(clientStorage, objectPath)),
+      error => error.code === "storage/unauthorized"
+    );
+    await assert.rejects(
+      deleteObject(ref(clientStorage, quarantineObjectPath)),
+      error => error.code === "storage/unauthorized"
+    );
+    const [publishedStillExists] = await file.exists();
+    const [quarantineStillExists] = await quarantineFile.exists();
+    assert.equal(publishedStillExists, true, "a denied client delete must leave published media intact");
+    assert.equal(quarantineStillExists, true, "a denied client delete must leave quarantined media intact");
+    console.log("Storage Emulator smoke test passed: PNG header inspection, Admin upload/download, custom metadata/checksum, generation, byte-for-byte download, and authenticated client read/write/delete denial for both quarantine and published prefixes.");
   } finally {
     if (clientUser) await deleteUser(clientUser).catch(() => {});
     await deleteClientApp(clientApp).catch(() => {});
