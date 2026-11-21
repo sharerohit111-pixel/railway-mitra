@@ -285,3 +285,42 @@ test("rejects payment status that contradicts the cumulative refund state before
   assert.equal(partialRefundWithRefundedStatus.docs.get("testSeriesPayments/pay_refund_1").status, "captured");
   assert.equal(partialRefundWithRefundedStatus.docs.get(entitlementPath).status, "active");
 });
+
+test("keeps malformed captured-event records retryable instead of classifying them as permanent ID collisions", async () => {
+  const baseRecord = {
+    eventId: "evt_capture_collision_malformed",
+    paymentId: "pay_refund_1",
+    razorpayOrderId: "order_refund_1",
+    uid: "student_1",
+    testId: "test_1",
+    amount: 49900,
+    currency: "INR",
+    status: "processed"
+  };
+  const malformedRecords = [
+    (() => { const record = { ...baseRecord }; delete record.currency; return record; })(),
+    { ...baseRecord, currency: "inr" },
+    { ...baseRecord, amount: 0 }
+  ];
+
+  for (let index = 0; index < malformedRecords.length; index++) {
+    const h = harness();
+    const eventId = baseRecord.eventId + "_" + index;
+    const malformedRecord = { ...malformedRecords[index], eventId };
+    h.docs.set("testSeriesPaymentEvents/" + eventId, malformedRecord);
+    const beforePayment = structuredClone(h.docs.get("testSeriesPayments/pay_refund_1"));
+    const beforeOrder = structuredClone(h.docs.get("testSeriesPaymentOrders/order_refund_1"));
+    const beforeEntitlement = structuredClone(h.docs.get(entitlementPath));
+
+    await assert.rejects(
+      () => applyProcessedRefund({ db: h.db, event: h.event, eventId }),
+      { code: "refund_ledger_inconsistent" }
+    );
+
+    assert.deepEqual(h.docs.get("testSeriesPaymentEvents/" + eventId), malformedRecord);
+    assert.equal(h.docs.has("testSeriesRefunds/rfnd_1"), false);
+    assert.deepEqual(h.docs.get("testSeriesPayments/pay_refund_1"), beforePayment);
+    assert.deepEqual(h.docs.get("testSeriesPaymentOrders/order_refund_1"), beforeOrder);
+    assert.deepEqual(h.docs.get(entitlementPath), beforeEntitlement);
+  }
+});
