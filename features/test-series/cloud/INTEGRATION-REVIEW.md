@@ -222,3 +222,10 @@ write payment, order, refund, or entitlement records.
 - Focused regression tests cover a missing order and a drifted entitlement. Both assert no refund/event writes and no payment/order/entitlement mutation. The existing complete-ledger collision test continues to require refund_id_conflict.
 - Tests use synthetic Firestore transaction fixtures only; no Razorpay request, credential change, live payment or entitlement mutation occurs.
 
+## Captured-event backing-ledger negative coverage — 2026-11-21
+
+- Extended the capture-event ID-collision regression matrix to cover a missing payment, payment UID drift, order amount drift, a missing entitlement and entitlement payment-ID drift.
+- Every case must remain `refund_ledger_inconsistent` (retry/reconciliation), create no refund document, preserve the pre-existing event record and leave every backing ledger document unchanged.
+- The existing valid-ledger collision test still requires `refund_id_conflict`; the existing missing-order and revoked-entitlement cases remain covered separately.
+- These are synthetic Firestore transaction fixtures only. No provider request, payment, refund, entitlement grant/revocation, live Firebase configuration or deployment is performed.
+

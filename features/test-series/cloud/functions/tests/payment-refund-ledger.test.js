@@ -388,3 +388,64 @@ test("keeps a capture-event collision retryable when its backing entitlement has
   assert.deepEqual(h.docs.get(entitlementPath), beforeEntitlement);
 });
 
+test("keeps a captured-event collision retryable when any backing ledger record is missing or mismatched", async () => {
+  const baseEvent = {
+    paymentId: "pay_refund_1",
+    razorpayOrderId: "order_refund_1",
+    uid: "student_1",
+    testId: "test_1",
+    amount: 49900,
+    currency: "INR",
+    status: "processed"
+  };
+  const paymentPath = "testSeriesPayments/pay_refund_1";
+  const orderPath = "testSeriesPaymentOrders/order_refund_1";
+  const scenarios = [
+    ["missing payment", h => h.docs.delete(paymentPath)],
+    ["payment identity drift", h => h.docs.set(paymentPath, {
+      ...h.docs.get(paymentPath), uid: "student_other"
+    })],
+    ["order amount drift", h => h.docs.set(orderPath, {
+      ...h.docs.get(orderPath), amount: 49800
+    })],
+    ["missing entitlement", h => h.docs.delete(entitlementPath)],
+    ["entitlement payment identity drift", h => h.docs.set(entitlementPath, {
+      ...h.docs.get(entitlementPath), paymentId: "pay_other"
+    })]
+  ];
+  const ledgerPaths = [paymentPath, orderPath, entitlementPath];
+
+  for (let index = 0; index < scenarios.length; index++) {
+    const [label, mutate] = scenarios[index];
+    const h = harness();
+    const eventId = "evt_capture_backing_drift_" + index;
+    const captureEvent = { ...baseEvent, eventId };
+    const eventPath = "testSeriesPaymentEvents/" + eventId;
+    h.docs.set(eventPath, captureEvent);
+    mutate(h);
+
+    const before = new Map(ledgerPaths.map(path => [
+      path,
+      h.docs.has(path) ? structuredClone(h.docs.get(path)) : null
+    ]));
+
+    await assert.rejects(
+      () => applyProcessedRefund({ db: h.db, event: h.event, eventId }),
+      error => {
+        assert.equal(error.code, "refund_ledger_inconsistent", label);
+        return true;
+      }
+    );
+
+    assert.equal(h.docs.has("testSeriesRefunds/rfnd_1"), false, label + ": no refund document");
+    assert.deepEqual(h.docs.get(eventPath), captureEvent, label + ": existing event is unchanged");
+    for (const path of ledgerPaths) {
+      const existedBefore = before.get(path) !== null;
+      assert.equal(h.docs.has(path), existedBefore, label + ": existence unchanged for " + path);
+      if (existedBefore) {
+        assert.deepEqual(h.docs.get(path), before.get(path), label + ": value unchanged for " + path);
+      }
+    }
+  }
+});
+
