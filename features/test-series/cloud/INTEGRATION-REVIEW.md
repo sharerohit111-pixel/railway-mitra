@@ -206,3 +206,10 @@ write payment, order, refund, or entitlement records.
 - Focused unit coverage verifies the collision creates no refund record and does not mutate payment, order, or entitlement state. A webhook-handler regression verifies the permanent conflict is returned as a rejected acknowledgement.
 - These tests use synthetic Firestore and HTTP fixtures only. They do not contact Razorpay, modify credentials, or perform a payment/refund.
 
+
+## Malformed captured-event collision records — 2026-11-21
+
+- A provider event ID is treated as a permanent cross-event collision only when the existing capture-event ledger record is structurally complete: matching event ID, safe payment/order/student/test IDs, positive safe-integer amount, uppercase three-letter currency and processed status.
+- An event document that is present but malformed (for example, missing currency, lowercase currency or a non-positive amount) remains `refund_ledger_inconsistent`. The webhook must return a retryable server error for support reconciliation rather than acknowledge corrupted state as a deterministic ID collision.
+- Focused unit coverage verifies malformed records create no refund document and do not mutate payment, order or entitlement records. The webhook-handler test verifies the inconsistent-ledger code is not included in the permanent-rejection acknowledgement set.
+- These checks use synthetic Firestore and signed HTTP fixtures only. They do not contact Razorpay or alter payment/entitlement data.
