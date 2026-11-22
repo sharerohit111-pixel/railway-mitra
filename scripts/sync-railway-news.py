@@ -72,7 +72,7 @@ def main():
         if not match:
             continue
         prid = match.group(1)
-        if prid in seen or prid in known:
+        if prid in seen or "pib-rail-" + prid in known:
             continue
         seen.add(prid)
         title_parser = TextExtractor()
