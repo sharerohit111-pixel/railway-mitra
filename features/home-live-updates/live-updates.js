@@ -6,7 +6,7 @@
 
   const style = document.createElement("link");
   style.rel = "stylesheet";
-  style.href = "features/home-live-updates/live-updates.css?v=3";
+  style.href = "features/home-live-updates/live-updates.css?v=4";
   document.head.appendChild(style);
 
   const section = document.createElement("section");
@@ -22,7 +22,8 @@
   section.style.gridColumn = "1 / -1";
 
   const track = section.querySelector(".rm-live-updates__track");
-  const lang = (() => { try { return localStorage.getItem("railwayMitraLanguage") === "hi" ? "hi" : "en"; } catch (_) { return "en"; } })();
+  const getLanguage = () => { try { return localStorage.getItem("railwayMitraLanguage") === "hi" ? "hi" : "en"; } catch (_) { return "en"; } };
+  let lang = getLanguage();
   let tickerAnimation = null;
 
   function stopTicker() {
@@ -105,8 +106,27 @@
   section.addEventListener("focusout", () => tickerAnimation && tickerAnimation.play());
   window.addEventListener("resize", () => { if (track.querySelectorAll(".rm-live-updates__group").length) startTicker(); }, { passive: true });
 
-  fetch("features/updates/notices.json", { cache: "no-store" })
-    .then(response => { if (!response.ok) throw new Error("Feed unavailable"); return response.json(); })
-    .then(payload => render(Array.isArray(payload && payload.notices) ? payload.notices : []))
-    .catch(error => { console.warn("Railway Mitra live updates ticker:", error); showEmpty(lang === "hi" ? "अपडेट लोड नहीं हो सके" : "Updates could not be loaded"); });
+  let lastFeedSignature = "";
+  async function refreshLiveUpdates() {
+    try {
+      const response = await fetch("features/updates/notices.json", { cache: "no-store" });
+      if (!response.ok) throw new Error("Feed unavailable");
+      const payload = await response.json();
+      const items = Array.isArray(payload && payload.notices) ? payload.notices : [];
+      lang = getLanguage();
+      const signature = String(payload && payload.updatedAt || "") + "|" + items.slice(0, 8).map(n => n && n.id).join(",");
+      if (signature !== lastFeedSignature) {
+        lastFeedSignature = signature;
+        render(items);
+      }
+    } catch (error) {
+      console.warn("Railway Mitra live updates ticker:", error);
+      if (!lastFeedSignature) showEmpty(lang === "hi" ? "अपडेट लोड नहीं हो सके" : "Updates could not be loaded");
+    }
+  }
+
+  refreshLiveUpdates();
+  // Keep the home-screen ticker connected to the same official feed as the Updates page.
+  window.setInterval(() => { if (!document.hidden) refreshLiveUpdates(); }, 15 * 60 * 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshLiveUpdates(); });
 })();
