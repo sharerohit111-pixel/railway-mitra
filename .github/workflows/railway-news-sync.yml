@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Fetch and verify new PIB Railway releases
+      - name: Fetch dated notices from official PIB, Railway Board, RRB and zonal portals
         run: python scripts/sync-railway-news.py
       - name: Commit feed only when it changed
         run: |
