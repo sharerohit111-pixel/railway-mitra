@@ -85,6 +85,7 @@ class RowParser(HTMLParser):
         self.rows = []
         self.row = None
         self.cell = None
+        self.active_link = None
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag == "tr":
@@ -92,7 +93,8 @@ class RowParser(HTMLParser):
         elif self.row is not None and tag in ("td", "th"):
             self.cell = []
         elif self.row is not None and tag == "a" and attrs.get("href"):
-            self.row["links"].append((attrs["href"], []))
+            self.row["links"].append([attrs["href"], []])
+            self.active_link = len(self.row["links"]) - 1
     def handle_data(self, data):
         if self.row is not None:
             value = data.strip()
@@ -100,16 +102,18 @@ class RowParser(HTMLParser):
                 self.row["text"].append(value)
                 if self.cell is not None:
                     self.cell.append(value)
-                if self.row["links"]:
-                    self.row["links"][-1][1].append(value)
+                if self.active_link is not None:
+                    self.row["links"][self.active_link][1].append(value)
     def handle_endtag(self, tag):
-        if tag in ("td", "th"):
+        if tag == "a":
+            self.active_link = None
+        elif tag in ("td", "th"):
             self.cell = None
         elif tag == "tr" and self.row is not None:
             self.rows.append(self.row)
             self.row = None
             self.cell = None
-
+            self.active_link = None
 def parse_date(value):
     value = value.strip().replace(".", "-").replace("/", "-")
     for fmt in ("%d-%m-%Y", "%d-%b-%Y", "%d-%B-%Y", "%Y-%m-%d"):
