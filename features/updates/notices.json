@@ -1,32 +1,32 @@
 {
-  "version": 2,
-  "updatedAt": "2026-11-20",
+  "version": 3,
+  "updatedAt": "2026-11-23",
   "notices": [
     {
-      "id": "pib-rail-2338955",
-      "category": "rbe",
+      "id": "pib-labour-railway-2332458",
+      "category": "employee",
       "verified": true,
-      "publishedAt": "2026-11-20",
-      "titleEn": "Indian Railways Organises Mega Camp Under Digital Life Certificate Campaign 5.0 in New Delhi",
-      "titleHi": "रेल मंत्रालय की आधिकारिक सूचना",
-      "summaryEn": "Official release published by the Ministry of Railways. Open the original PIB/Railway Board release for complete details and applicable dates.",
-      "summaryHi": "रेल मंत्रालय द्वारा जारी आधिकारिक सूचना। पूरी जानकारी और लागू तिथियों के लिए मूल सरकारी विज्ञप्ति देखें।",
-      "sourceName": "Ministry of Railways / PIB",
-      "sourceUrl": "https://www.pib.gov.in/PressReleseDetail.aspx?PRID=2338955",
-      "keywords": "Indian Railways Ministry of Railways Railway Board PIB official release"
+      "publishedAt": "2026-11-04",
+      "titleEn": "Chief Labour Commissioner engages with Railway Board on implementation of Labour Codes",
+      "titleHi": "श्रम संहिताओं के क्रियान्वयन पर मुख्य श्रम आयुक्त और रेलवे बोर्ड के बीच चर्चा",
+      "summaryEn": "The Chief Labour Commissioner (Central) met senior Railway Board officers on 3 November 2026 to discuss effective implementation of the Labour Codes, 2020, sector-specific requirements and stronger coordination. CRIS representatives also joined the interaction. This release reports a consultation; it does not announce a new employee entitlement or change in service conditions.",
+      "summaryHi": "मुख्य श्रम आयुक्त (केंद्रीय) ने 3 नवंबर 2026 को रेलवे बोर्ड के वरिष्ठ अधिकारियों के साथ श्रम संहिताओं, 2020 के प्रभावी क्रियान्वयन, रेलवे क्षेत्र की आवश्यकताओं और समन्वय पर चर्चा की। CRIS के प्रतिनिधि भी शामिल हुए। यह विज्ञप्ति परामर्श बैठक की जानकारी देती है; इसमें कर्मचारियों के लिए कोई नया लाभ या सेवा शर्तों में बदलाव घोषित नहीं किया गया है।",
+      "sourceName": "Ministry of Labour & Employment / PIB",
+      "sourceUrl": "https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2332458",
+      "keywords": "Chief Labour Commissioner Railway Board Labour Codes 2020 employee consultation CRIS 3 November 2026"
     },
     {
       "id": "pib-rail-2338955",
-      "category": "rbe",
+      "category": "pension",
       "verified": true,
       "publishedAt": "2026-11-20",
       "titleEn": "Indian Railways Organises Mega Camp Under Digital Life Certificate Campaign 5.0 in New Delhi",
-      "titleHi": "रेल मंत्रालय की आधिकारिक सूचना",
-      "summaryEn": "Official release published by the Ministry of Railways. Open the original PIB/Railway Board release for complete details and applicable dates.",
-      "summaryHi": "रेल मंत्रालय द्वारा जारी आधिकारिक सूचना। पूरी जानकारी और लागू तिथियों के लिए मूल सरकारी विज्ञप्ति देखें।",
+      "titleHi": "रेलवे का डिजिटल जीवन प्रमाणपत्र अभियान 5.0: दिल्ली में 250 से अधिक पेंशनभोगियों ने भाग लिया",
+      "summaryEn": "Northern Railway Headquarters and Delhi Division held the camp on 19 November 2026. More than 250 pensioners registered for digital life certificate submission; 58 certificates were generated on the spot using face authentication in the Jeevan Pramaan App. Representatives of 12 banks and UIDAI assisted participants.",
+      "summaryHi": "उत्तर रेलवे मुख्यालय और दिल्ली मंडल ने 19 नवंबर 2026 को शिविर आयोजित किया। 250 से अधिक पेंशनभोगियों ने डिजिटल जीवन प्रमाणपत्र जमा करने के लिए पंजीकरण कराया और Jeevan Pramaan App के Face Authentication से मौके पर 58 प्रमाणपत्र बनाए गए। 12 बैंकों और UIDAI के प्रतिनिधियों ने सहायता दी।",
       "sourceName": "Ministry of Railways / PIB",
-      "sourceUrl": "https://www.pib.gov.in/PressReleseDetail.aspx?PRID=2338955",
-      "keywords": "Indian Railways Ministry of Railways Railway Board PIB official release"
+      "sourceUrl": "https://www.pib.gov.in/PressReleaseIframePage.aspx?PRID=2338955&lang=2&reg=48",
+      "keywords": "Digital Life Certificate DLC Campaign 5.0 Jeevan Pramaan pensioners Northern Railway Delhi Division face authentication 20 November 2026"
     },
     {
       "id": "pib-rail-2337025",
