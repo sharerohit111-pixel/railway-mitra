@@ -15,6 +15,7 @@ function validNotice(n){
   (!n.deadline||/^\d{4}-\d{2}-\d{2}$/.test(n.deadline));
 }
 async function loadNotices(){
+ loadFailed=false;
  try{
   const response=await fetch("./notices.json",{cache:"no-store"});
   if(!response.ok)throw new Error("Feed request failed");
@@ -68,3 +69,6 @@ document.getElementById("clearSearch").addEventListener("click",()=>{search.valu
 document.getElementById("updatesLanguage").addEventListener("click",()=>{language=language==="en"?"hi":"en";try{localStorage.setItem("railwayMitraLanguage",language);}catch{}renderLanguage();});
 renderLanguage();
 loadNotices();
+// Refresh the official feed while the page remains open; the endpoint is fetched with no-store.
+window.setInterval(()=>{if(!document.hidden)loadNotices();},15*60*1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)loadNotices();});
