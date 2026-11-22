@@ -260,9 +260,9 @@ def main():
             # A matching official PIB detail page must identify the issuing ministry.
             if not re.search(r"Ministry of Railways", body, re.I):
                 continue
-                date_match = re.search(r"(?<!\d)(\d{1,2}[./-]\d{1,2}[./-]\d{4}|\d{1,2}[- /](?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[- /]\d{4}|\d{4}-\d{2}-\d{2})(?!\d)", row_text, re.I)
+            date_match = re.search(r"Posted On:\s*(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})", body, re.I)
             if not date_match:
-                date_match = re.search(r"(?<!\d)(\d{1,2}[./-]\d{1,2}[./-]\d{4}|\d{1,2}[- /](?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[- /]\d{4}|\d{4}-\d{2}-\d{2})(?!\d)", row_text, re.I)
+                date_match = re.search(r"Posted On:\s*(\d{1,2}\s+[A-Za-z]+\s+\d{4})", body, re.I)
             if not date_match:
                 continue
             published = dt.datetime.strptime(date_match.group(1), "%d %b %Y").date().isoformat() if len(date_match.group(1).split()[1]) == 3 else dt.datetime.strptime(date_match.group(1), "%d %B %Y").date().isoformat()
