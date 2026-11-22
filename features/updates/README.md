@@ -2,9 +2,9 @@
 
 ## Current publishing model
 
-The public page reads `notices.json` from this feature folder. A GitHub Actions workflow (`.github/workflows/railway-news-sync.yml`) now checks the official PIB release index every six hours and can also be started manually from the repository Actions tab. The sync script (`scripts/sync-railway-news.py`) opens candidate PIB release pages, accepts only pages identifying the Ministry of Railways, extracts the official publication date and factual source text, deduplicates by PIB release ID, and commits only when new items are found.
+The public page reads `notices.json` from this feature folder. A GitHub Actions workflow (`.github/workflows/railway-news-sync.yml`) checks official sources every six hours and can also be started manually from the repository Actions tab. The sync script (`scripts/sync-railway-news.py`) currently scans the Ministry of Railways PIB release index, selected Railway Board directorate circular indexes (including E(NG)-II, transfer, MPP, E(SCT), training and ERB-I), the unified RRB portal, and the official homepages of all 17 zonal railways plus Metro Railway Kolkata. It accepts only dated rows from official Railway/Government domains, keeps direct original-source links, deduplicates by stable source URL, and commits only when new items are found.
 
-This automation currently covers Ministry of Railways PIB press releases. Railway Board directorate circulars, RBE orders, zonal notices and RRB recruitment notices require separate source-specific adapters; do not assume this first feed captures every such notice. No push notification is configured. The page refreshes its feed when opened while online.
+Coverage is best-effort and depends on each official portal exposing dated notices in parseable HTML table rows. Notices hidden behind scripts, inaccessible document libraries, login-only systems, or nonstandard pages may not be discovered automatically; the RRB portal and zonal homepages therefore need ongoing validation and additional source-specific adapters where their layouts require them. PIB and Railway Board directorate indexes are the strongest current sources. No push notification is configured. The page refreshes its feed every 15 minutes while open and online.
 
 ## Required fields
 
