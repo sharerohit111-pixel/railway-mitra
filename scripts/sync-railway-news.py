@@ -59,6 +59,141 @@ def category_for(title, body):
         return "zone"
     return "rbe"
 
+
+# Official Railway Board circular indexes. These are live directorate pages on
+# rb.indianrailways.gov.in; rows are accepted only when they contain a dated
+# item and a direct official attachment/detail link.
+BOARD_INDEXES = [
+    ("https://rb.indianrailways.gov.in/show-directorate/preview/3291", "Railway Board — E(NG)-II Circulars"),
+    ("https://rb.indianrailways.gov.in/show-directorate/preview/1190", "Railway Board — Transfer Circulars"),
+    ("https://rb.indianrailways.gov.in/show-directorate/preview/781", "Railway Board — MPP Circulars"),
+    ("https://rb.indianrailways.gov.in/show-directorate/preview/1127", "Railway Board — E(SCT) Circulars"),
+    ("https://rb.indianrailways.gov.in/show-directorate/preview/3443", "Railway Board — Training Circulars"),
+    ("https://rb.indianrailways.gov.in/show-directorate/preview/895", "Railway Board — ERB-I Circulars"),
+]
+RRB_INDEXES = [
+    ("https://rrb.indianrailways.gov.in/", "Railway Recruitment Boards — Central Portal"),
+]
+ZONAL_INDEXES = [
+    ("https://nwr.indianrailways.gov.in/", "North Western Railway"),
+]
+MAX_AGE_DAYS = 365
+
+class RowParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.rows = []
+        self.row = None
+        self.cell = None
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "tr":
+            self.row = {"text": [], "links": []}
+        elif self.row is not None and tag in ("td", "th"):
+            self.cell = []
+        elif self.row is not None and tag == "a" and attrs.get("href"):
+            self.row["links"].append((attrs["href"], []))
+    def handle_data(self, data):
+        if self.row is not None:
+            value = data.strip()
+            if value:
+                self.row["text"].append(value)
+                if self.cell is not None:
+                    self.cell.append(value)
+                if self.row["links"]:
+                    self.row["links"][-1][1].append(value)
+    def handle_endtag(self, tag):
+        if tag in ("td", "th"):
+            self.cell = None
+        elif tag == "tr" and self.row is not None:
+            self.rows.append(self.row)
+            self.row = None
+            self.cell = None
+
+def parse_date(value):
+    value = value.strip().replace(".", "-").replace("/", "-")
+    for fmt in ("%d-%m-%Y", "%d-%b-%Y", "%d-%B-%Y", "%Y-%m-%d"):
+        try:
+            return dt.datetime.strptime(value, fmt).date()
+        except ValueError:
+            pass
+    return None
+
+def board_category(title):
+    t = title.lower()
+    if any(x in t for x in ("allowance", "pay", "pension", "leave", "medical", "macp", "increment", "salary", "gratuity", "bonus", "provident fund")):
+        return "pay"
+    if any(x in t for x in ("recruitment", "examination", "exam", "gdce", "ldce", "vacancy", "selection", "result", "rrb", "rbe")):
+        return "exam" if any(x in t for x in ("recruitment", "examination", "exam", "vacancy", "result", "rrb")) else "rbe"
+    if any(x in t for x in ("transfer", "posting", "inter-railway", "mutual")):
+        return "transfer"
+    if any(x in t for x in ("safety", "track", "signal", "engineering", "maintenance", "bridge")):
+        return "transfer"
+    if any(x in t for x in ("train", "passenger", "station", "service", "timetable")):
+        return "medical"
+    if any(x in t for x in ("zone", "division", "project", "electrification", "doubling")):
+        return "zone"
+    return "rbe"
+
+def sync_official_indexes(notices, known):
+    added = 0
+    cutoff = dt.date.today() - dt.timedelta(days=MAX_AGE_DAYS)
+    for index_url, source_name in BOARD_INDEXES + RRB_INDEXES + ZONAL_INDEXES:
+        try:
+            page = get(index_url)
+            parser = RowParser()
+            parser.feed(page)
+            for row in parser.rows:
+                row_text = re.sub(r"\\s+", " ", " ".join(row["text"])).strip()
+                date_match = re.search(r"(?<!\\d)(\\d{1,2}[./-]\\d{1,2}[./-]\\d{4}|\\d{1,2}[- ](?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[- ]\\d{4}|\\d{4}-\\d{2}-\\d{2})(?!\\d)", row_text, re.I)
+                if not date_match:
+                    continue
+                published_date = parse_date(date_match.group(1))
+                if not published_date or published_date < cutoff or published_date > dt.date.today() + dt.timedelta(days=1):
+                    continue
+                if len(row["links"]) == 0:
+                    continue
+                # Pick the most informative linked label, not navigation links.
+                link = max(row["links"], key=lambda item: len(" ".join(item[1])))
+                title = re.sub(r"\\s+", " ", " ".join(link[1])).strip()
+                if len(title) < 12:
+                    title = row_text
+                if len(title) < 12:
+                    continue
+                url = urllib.parse.urljoin(index_url, html.unescape(link[0]))
+                parsed = urllib.parse.urlparse(url)
+                host = (parsed.hostname or "").lower()
+                if not (host.endswith("indianrailways.gov.in") or host.endswith("railnet.gov.in") or host.endswith("gov.in")):
+                    continue
+                if not url.startswith("https://"):
+                    continue
+                stable = re.sub(r"[^a-z0-9]+", "-", (host + parsed.path + parsed.query).lower()).strip("-")
+                notice_id = "rb-index-" + __import__("hashlib").sha256(stable.encode("utf-8")).hexdigest()[:18]
+                if notice_id in known:
+                    continue
+                # Keep row text factual and compact; original order is the source of truth.
+                summary = row_text[:550].rsplit(" ", 1)[0]
+                if len(summary) < 35:
+                    summary = title
+                notices.append({
+                    "id": notice_id,
+                    "category": board_category(title),
+                    "verified": True,
+                    "publishedAt": published_date.isoformat(),
+                    "titleEn": title[:240],
+                    "titleHi": "",
+                    "summaryEn": summary,
+                    "summaryHi": "",
+                    "sourceName": source_name,
+                    "sourceUrl": url,
+                    "keywords": "Indian Railways Railway Board official circular notice " + title
+                })
+                known.add(notice_id)
+                added += 1
+        except (urllib.error.URLError, TimeoutError, ValueError, RuntimeError) as exc:
+            print("Skipping official index", index_url, str(exc), file=sys.stderr)
+    return added
+
 def main():
     payload = json.loads(FEED.read_text(encoding="utf-8"))
     notices = payload.get("notices", [])
@@ -136,12 +271,13 @@ def main():
         except (urllib.error.URLError, TimeoutError, ValueError, RuntimeError) as exc:
             print("Skipping PIB item", prid, str(exc), file=sys.stderr)
             continue
+    other_added = sync_official_indexes(notices, known)
     notices.sort(key=lambda n: str(n.get("publishedAt", "")), reverse=True)
     payload["notices"] = notices
     payload["updatedAt"] = dt.date.today().isoformat()
     payload["version"] = max(3, int(payload.get("version", 2)))
     FEED.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print("PIB candidates:", len(candidates), "| new verified Railway releases:", added, "| total feed items:", len(notices))
+    print("PIB candidates:", len(candidates), "| new PIB releases:", added, "| new Railway Board/RRB/zonal index notices:", other_added, "| total feed items:", len(notices))
 
 if __name__ == "__main__":
     main()
