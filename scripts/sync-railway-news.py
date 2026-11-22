@@ -133,7 +133,7 @@ class RowParser(HTMLParser):
             self.cell = None
             self.active_link = None
 def parse_date(value):
-    value = value.strip().replace(".", "-").replace("/", "-")
+    value = re.sub(r"\s+", "-", value.strip().replace(".", "-").replace("/", "-"))
     for fmt in ("%d-%m-%Y", "%d-%b-%Y", "%d-%B-%Y", "%Y-%m-%d"):
         try:
             return dt.datetime.strptime(value, fmt).date()
