@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FEED = ROOT / "features" / "updates" / "notices.json"
 INDEX_URL = "https://www.pib.gov.in/AllRelease.aspx?MenuId=24&PMO=1&lang=1&reg=1"
 UA = "RailwayMitraNewsBot/1.0 (+https://github.com/sharerohit111-pixel/railway-mitra)"
-MAX_NEW = 25
+MAX_NEW = 15
 
 class TextExtractor(HTMLParser):
     def __init__(self):
@@ -40,7 +40,7 @@ class TextExtractor(HTMLParser):
 
 def get(url):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "text/html"})
-    with urllib.request.urlopen(req, timeout=30) as response:
+    with urllib.request.urlopen(req, timeout=12) as response:
         if response.status != 200:
             raise RuntimeError("HTTP status " + str(response.status) + " for " + url)
         return response.read().decode("utf-8", "replace")
