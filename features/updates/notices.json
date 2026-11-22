@@ -4,7 +4,7 @@
   "notices": [
     {
       "id": "pib-rail-2338955",
-      "category": "pension",
+      "category": "pay",
       "verified": true,
       "publishedAt": "2026-11-20",
       "titleEn": "Indian Railways Organises Mega Camp Under Digital Life Certificate Campaign 5.0 in New Delhi",
@@ -186,7 +186,7 @@
     },
     {
       "id": "pib-labour-railway-2332458",
-      "category": "employee",
+      "category": "pay",
       "verified": true,
       "publishedAt": "2026-11-04",
       "titleEn": "Chief Labour Commissioner engages with Railway Board on implementation of Labour Codes",
