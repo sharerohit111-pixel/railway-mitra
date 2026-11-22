@@ -64,7 +64,7 @@ def main():
     notices = payload.get("notices", [])
     known = {str(n.get("id")) for n in notices}
     index = get(INDEX_URL)
-    links = re.findall(r'<a\b[^>]*href=["\']([^"\']*PressReleseDetail[^"\']*PRID=\d+[^"\']*)["\'][^>]*>(.*?)</a>', index, re.I | re.S)
+    links = re.findall(r'<a\b[^>]*href=["\']([^"\']*(?:PressReleseDetail|PressReleaseDetail|PressReleasePage)[^"\']*PRID=\d+[^"\']*)["\'][^>]*>(.*?)</a>', index, re.I | re.S)
     candidates = []
     seen = set()
     for href, raw_title in links:
