@@ -105,7 +105,7 @@ class RowParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
         if tag == "tr":
-            self.row = {"text": [], "links": []}
+            self.row = {"text": [], "links": [], "cells": []}
         elif self.row is not None and tag in ("td", "th"):
             self.cell = []
         elif self.row is not None and tag == "a" and attrs.get("href"):
@@ -124,6 +124,8 @@ class RowParser(HTMLParser):
         if tag == "a":
             self.active_link = None
         elif tag in ("td", "th"):
+            if self.row is not None and self.cell:
+                self.row["cells"].append(" ".join(self.cell))
             self.cell = None
         elif tag == "tr" and self.row is not None:
             self.rows.append(self.row)
@@ -173,9 +175,18 @@ def sync_official_indexes(notices, known):
                     continue
                 if len(row["links"]) == 0:
                     continue
-                # Pick the most informative linked label, not navigation links.
+                # Prefer the subject cell; linked cells often contain only file numbers.
+                subject_cells = []
+                for cell_text in row.get("cells", []):
+                    cell_text = re.sub(r"\s+", " ", cell_text).strip()
+                    if len(cell_text) < 18 or re.search(r"\d{1,2}[./-]\d{1,2}[./-]\d{4}", cell_text):
+                        continue
+                    if re.match(r"^(?:RBE\s*No\.?|E\(|20\d{2}/|19\d{2}/)", cell_text, re.I):
+                        continue
+                    subject_cells.append(cell_text)
                 link = max(row["links"], key=lambda item: len(" ".join(item[1])))
-                title = re.sub(r"\s+", " ", " ".join(link[1])).strip()
+                linked_title = re.sub(r"\s+", " ", " ".join(link[1])).strip()
+                title = max(subject_cells, key=len) if subject_cells else linked_title
                 if len(title) < 12:
                     title = row_text
                 if len(title) < 12:
