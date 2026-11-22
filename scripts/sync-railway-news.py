@@ -108,7 +108,7 @@ def main():
                 hp.feed(h1.group(1))
                 if len(hp.text()) > 12:
                     title = hp.text()
-            if prid in known:
+            if "pib-rail-" + prid in known:
                 continue
             # Use a short factual excerpt from the official page, not generated claims.
             posted_pos = body.find("Posted On:")
@@ -130,7 +130,7 @@ def main():
                 "sourceUrl": url,
                 "keywords": "Indian Railways Ministry of Railways PIB official release " + title
             })
-            known.add(prid)
+            known.add("pib-rail-" + prid)
             added += 1
             time.sleep(0.25)
         except (urllib.error.URLError, TimeoutError, ValueError, RuntimeError) as exc:
@@ -142,8 +142,6 @@ def main():
     payload["version"] = max(3, int(payload.get("version", 2)))
     FEED.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print("PIB candidates:", len(candidates), "| new verified Railway releases:", added, "| total feed items:", len(notices))
-    if added:
-        print("New items:", ", ".join(n["id"] for n in notices if n["id"].startswith("pib-rail-") and n["id"] not in {str(x.get("id")) for x in []})[:1200])
 
 if __name__ == "__main__":
     main()
