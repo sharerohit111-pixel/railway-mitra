@@ -75,7 +75,23 @@ RRB_INDEXES = [
     ("https://rrb.indianrailways.gov.in/", "Railway Recruitment Boards — Central Portal"),
 ]
 ZONAL_INDEXES = [
+    ("https://cr.indianrailways.gov.in/", "Central Railway"),
+    ("https://er.indianrailways.gov.in/", "Eastern Railway"),
+    ("https://ecr.indianrailways.gov.in/", "East Central Railway"),
+    ("https://eastcoastrail.indianrailways.gov.in/", "East Coast Railway"),
+    ("https://nr.indianrailways.gov.in/", "Northern Railway"),
+    ("https://ncr.indianrailways.gov.in/", "North Central Railway"),
+    ("https://ner.indianrailways.gov.in/", "North Eastern Railway"),
+    ("https://nfr.indianrailways.gov.in/", "Northeast Frontier Railway"),
     ("https://nwr.indianrailways.gov.in/", "North Western Railway"),
+    ("https://sr.indianrailways.gov.in/", "Southern Railway"),
+    ("https://scr.indianrailways.gov.in/", "South Central Railway"),
+    ("https://ser.indianrailways.gov.in/", "South Eastern Railway"),
+    ("https://secr.indianrailways.gov.in/", "South East Central Railway"),
+    ("https://swr.indianrailways.gov.in/", "South Western Railway"),
+    ("https://wr.indianrailways.gov.in/", "Western Railway"),
+    ("https://wcr.indianrailways.gov.in/", "West Central Railway"),
+    ("https://mtp.indianrailways.gov.in/", "Metro Railway Kolkata"),
 ]
 MAX_AGE_DAYS = 365
 
