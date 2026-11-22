@@ -2,9 +2,9 @@
 
 ## Current publishing model
 
-The public page reads `notices.json` from this feature folder. The feed is intentionally empty until a notice has been checked against the issuing authority's original publication.
+The public page reads `notices.json` from this feature folder. A GitHub Actions workflow (`.github/workflows/railway-news-sync.yml`) now checks the official PIB release index every six hours and can also be started manually from the repository Actions tab. The sync script (`scripts/sync-railway-news.py`) opens candidate PIB release pages, accepts only pages identifying the Ministry of Railways, extracts the official publication date and factual source text, deduplicates by PIB release ID, and commits only when new items are found.
 
-For this first release, publishing is a **manual GitHub content update** by the repository owner/maintainer. There is no public submission form, admin dashboard, automatic scraping, scheduler, push notification, or Firebase integration in this module.
+This automation currently covers Ministry of Railways PIB press releases. Railway Board directorate circulars, RBE orders, zonal notices and RRB recruitment notices require separate source-specific adapters; do not assume this first feed captures every such notice. No push notification is configured. The page refreshes its feed when opened while online.
 
 ## Required fields
 
@@ -62,7 +62,7 @@ The example URL and values are placeholders and must never be published.
 
 - Never invent an RBE number, date, deadline, benefit, eligibility condition or official source.
 - Do not publish employee personal data or confidential/internal documents.
-- Do not claim real-time alerts. The page currently displays a feed when the user opens it and has no push notification service.
+- Do not claim real-time alerts. The scheduled workflow syncs the feed approximately every six hours; the page fetches the latest JSON when opened while online. No push notification service is configured.
 - The front-end ignores records without `verified: true` and required fields. This is a display safeguard, not an authorization system; repository access control and human review remain essential.
 
 ## Local draft workspace
