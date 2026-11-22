@@ -10,7 +10,7 @@ try{language=localStorage.getItem("railwayMitraLanguage")==="hi"?"hi":"en";}catc
 function safeText(value){return typeof value==="string"?value.trim():"";}
 function validNotice(n){
  return n&&(n.verified===true||n.userProvided===true)&&categories.includes(n.category)&&n.category!=="all"&&
-  safeText(n.id)&&safeText(n.titleEn)&&safeText(n.titleHi)&&safeText(n.summaryEn)&&safeText(n.summaryHi)&&
+  safeText(n.id)&&safeText(n.titleEn)&&safeText(n.summaryEn)&&
   safeText(n.sourceName)&&(n.userProvided===true||/^https:\/\//i.test(safeText(n.sourceUrl)))&&
   (!n.deadline||/^\d{4}-\d{2}-\d{2}$/.test(n.deadline));
 }
@@ -45,8 +45,8 @@ function renderNotices(){
   if(n.rbeNumber){const num=document.createElement("span");num.textContent=n.rbeNumber;meta.append(num);}
   if(n.publishedAt){const date=document.createElement("span");date.textContent=n.publishedAt;meta.append(date);}
   article.append(meta);
-  const title=document.createElement("h3");title.textContent=language==="hi"?n.titleHi:n.titleEn;article.append(title);
-  const summary=document.createElement("p");summary.textContent=language==="hi"?n.summaryHi:n.summaryEn;article.append(summary);
+  const title=document.createElement("h3");title.textContent=language==="hi"?(safeText(n.titleHi)||n.titleEn):n.titleEn;article.append(title);
+  const summary=document.createElement("p");summary.textContent=language==="hi"?(safeText(n.summaryHi)||n.summaryEn):n.summaryEn;article.append(summary);
   if(n.deadline){const deadline=document.createElement("p");deadline.className="rm-deadline";deadline.textContent=translations[language].lastDate+n.deadline;article.append(deadline);}
   const source=document.createElement("p");source.className="rm-notice-meta";source.textContent=(language==="hi"?"स्रोत: ":"Source: ")+n.sourceName;article.append(source);
   if(/^https:\/\//i.test(safeText(n.sourceUrl))){const link=document.createElement("a");link.href=n.sourceUrl;link.target="_blank";link.rel="noopener noreferrer";link.textContent=translations[language].open;article.append(link);}else if(n.userProvided===true){const note=document.createElement("p");note.className="rm-notice-meta";note.textContent=language==="hi"?"मूल जारीकर्ता लिंक उपलब्ध नहीं है। उपयोग से पहले संबंधित कार्यालय से पुष्टि करें।":"Original issuing-authority link was not supplied. Confirm with the relevant office before relying on this information.";article.append(note);}
