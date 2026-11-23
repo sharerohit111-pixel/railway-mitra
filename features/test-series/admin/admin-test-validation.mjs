@@ -1,0 +1,220 @@
+function hasControlCharacters(value) {
+  // Match the server-side owner-test-editor policy: C0, DEL and C1 controls
+  // are rejected in titles and section labels before any trimming occurs.
+  return /[\u0000-\u001F\u007F-\u009F]/u.test(value);
+}
+
+function hasDisallowedQuestionControls(value) {
+  // Match the server publish boundary: preserve ordinary TAB, LF and CR
+  // formatting while rejecting non-printing controls, DEL and C1.
+  return /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/u.test(value);
+}
+
+function hasDenseArray(value) {
+  if (!Array.isArray(value)) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(value, index)) return false;
+  }
+  return true;
+}
+
+const QUESTION_MEDIA_ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
+const QUESTION_MEDIA_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function projectQuestionMediaDescriptors(media, questionNumber) {
+  if (media === undefined || media === null) return undefined;
+  const invalid = () => new Error("प्रश्न " + questionNumber + " के चित्र विवरण मान्य नहीं हैं।");
+  if (!Array.isArray(media) || media.length < 1 || media.length > 3) throw invalid();
+
+  const seenIds = new Set();
+  const projected = [];
+  for (let index = 0; index < media.length; index += 1) {
+    if (!Object.prototype.hasOwnProperty.call(media, index)) throw invalid();
+    const item = media[index];
+    if (!item || typeof item !== "object" || Array.isArray(item)) throw invalid();
+    const { id, altText, mimeType } = item;
+    if (typeof id !== "string" || !QUESTION_MEDIA_ID_PATTERN.test(id) || seenIds.has(id) ||
+        typeof altText !== "string" || !altText.trim() || altText.length > 200 || hasControlCharacters(altText) ||
+        typeof mimeType !== "string" || !QUESTION_MEDIA_TYPES.has(mimeType)) {
+      throw invalid();
+    }
+    seenIds.add(id);
+    // Keep only the same public descriptor fields accepted by the server.
+    // Upload URLs, storage paths and arbitrary caller metadata never enter a draft.
+    projected.push({ id, altText: altText.trim(), mimeType });
+  }
+  return projected;
+}
+
+export function validateOwnerTestDraft(draft) {
+  if (!draft || typeof draft !== "object" || Array.isArray(draft)) {
+    throw new Error("Test विवरण का प्रारूप सही नहीं है।");
+  }
+
+  const rawTitle = typeof draft.title === "string" ? draft.title : "";
+  if (hasControlCharacters(rawTitle)) {
+    throw new Error("टेस्ट के नाम में control characters स्वीकार नहीं हैं।");
+  }
+  const title = rawTitle.trim();
+  if (!title || title.length > 160) {
+    throw new Error("टेस्ट का नाम आवश्यक है और अधिकतम 160 अक्षरों का होना चाहिए।");
+  }
+
+  const rawCategory = typeof draft.category === "string" ? draft.category : "";
+  const rawFolder = typeof draft.folder === "string" ? draft.folder : "";
+  if (hasControlCharacters(rawCategory)) throw new Error("Category में control characters स्वीकार नहीं हैं।");
+  if (hasControlCharacters(rawFolder)) throw new Error("Folder में control characters स्वीकार नहीं हैं।");
+  const category = rawCategory.trim() || "General";
+  const folder = rawFolder.trim() || "General";
+  if (category.length > 60 || !/^[\p{L}\p{M}\p{N} _-]+$/u.test(category)) throw new Error("Category में केवल अक्षर, अंक, space, _ और - स्वीकार हैं (अधिकतम 60 अक्षर)।");
+  const folderParts = folder.split("/").map(part => part.trim());
+  if (folder.length > 120 || folderParts.length > 4 || folderParts.some(part => !part || part.length > 40 || !/^[\p{L}\p{M}\p{N} _-]+$/u.test(part))) throw new Error("Folder में अधिकतम 4 सुरक्षित स्तर दें; हर स्तर 1–40 अक्षरों का हो।");
+  const mode = draft.mode === "scheduled" ? "scheduled" : draft.mode === "mock" ? "mock" : null;
+  if (!mode) throw new Error("टेस्ट का प्रकार Mock या Scheduled होना चाहिए।");
+
+  const durationMinutes = Number(draft.durationMinutes);
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 240) {
+    throw new Error("टेस्ट की अवधि 1 से 240 मिनट के बीच होनी चाहिए।");
+  }
+
+  const price = Number(draft.price ?? 0);
+  const marksPerQuestion = Number(draft.marksPerQuestion ?? 1);
+  const negativeMarks = Number(draft.negativeMarks ?? 0);
+  if (!Number.isFinite(price) || price < 0 || price > 100000) {
+    throw new Error("टेस्ट की कीमत 0 से 100000 रुपये के बीच होनी चाहिए।");
+  }
+  if (!Number.isFinite(marksPerQuestion) || marksPerQuestion <= 0 || marksPerQuestion > 100) {
+    throw new Error("प्रत्येक प्रश्न के अंक 0 से अधिक और अधिकतम 100 होने चाहिए।");
+  }
+  if (!Number.isFinite(negativeMarks) || negativeMarks < 0 || negativeMarks > 100) {
+    throw new Error("नकारात्मक अंक 0 से 100 के बीच होने चाहिए।");
+  }
+
+  if (!hasDenseArray(draft.questions) || draft.questions.length < 1 || draft.questions.length > 500) {
+    throw new Error("Questions JSON में 1 से 500 प्रश्नों की Array होनी चाहिए।");
+  }
+
+  // GDCE JE Civil has a fixed departmental CBT pattern; keep this preset isolated
+  // so other Railway departmental tests retain their configurable settings.
+  if (category.trim().toLocaleLowerCase() === "gdce je civil" &&
+      (draft.questions.length !== 150 || durationMinutes !== 120 ||
+       marksPerQuestion !== 1 || Math.abs(negativeMarks - (1 / 3)) > 1e-9)) {
+    throw new Error("GDCE JE Civil के लिए 150 प्रश्न, 120 मिनट, प्रत्येक सही उत्तर पर 1 अंक और गलत उत्तर पर 1/3 अंक कटौती अनिवार्य है।");
+  }
+
+  const questionIds = new Set();
+  const questions = draft.questions.map((question, index) => {
+    const number = index + 1;
+    if (!question || typeof question !== "object" || Array.isArray(question)) {
+      throw new Error("प्रश्न " + number + " का प्रारूप सही नहीं है।");
+    }
+
+    const id = typeof question.id === "string" ? question.id.trim() : "";
+    if (!/^[A-Za-z0-9_-]{1,100}$/.test(id) || questionIds.has(id)) {
+      throw new Error("प्रश्न " + number + " की ID खाली, अमान्य या दोहराई गई है।");
+    }
+    questionIds.add(id);
+
+    if (typeof question.text !== "string" || !question.text.trim() || question.text.length > 5000 ||
+        hasDisallowedQuestionControls(question.text)) {
+      throw new Error("प्रश्न " + number + " का प्रश्न-पाठ आवश्यक है (अधिकतम 5000 अक्षर)।");
+    }
+
+    if (!hasDenseArray(question.options) || question.options.length < 2 || question.options.length > 6 ||
+        question.options.some(option => typeof option !== "string" || !option.trim() || option.length > 1000 ||
+          hasDisallowedQuestionControls(option))) {
+      throw new Error("प्रश्न " + number + " में 2 से 6 वैध विकल्प होने चाहिए (प्रत्येक अधिकतम 1000 अक्षर)।");
+    }
+
+    if (!Number.isInteger(question.correctIndex) || question.correctIndex < 0 ||
+        question.correctIndex >= question.options.length) {
+      throw new Error("प्रश्न " + number + " का सही उत्तर (correctIndex) विकल्पों के अनुरूप नहीं है।");
+    }
+
+    if (question.section !== undefined && question.section !== null && typeof question.section !== "string") {
+      throw new Error("प्रश्न " + number + " का सेक्शन नाम text होना चाहिए।");
+    }
+    const rawSection = typeof question.section === "string" ? question.section : "";
+    if (hasControlCharacters(rawSection)) throw new Error("प्रश्न " + number + " के सेक्शन नाम में control characters स्वीकार नहीं हैं।");
+    const section = rawSection.trim();
+    if (section.length > 80) throw new Error("प्रश्न " + number + " का सेक्शन नाम अधिकतम 80 अक्षरों का हो सकता है।");
+    const rawExplanation = question.explanation;
+    if (rawExplanation !== undefined && rawExplanation !== null && typeof rawExplanation !== "string") {
+      throw new Error("प्रश्न " + number + " की Explanation text होनी चाहिए।");
+    }
+    const explanation = typeof rawExplanation === "string" ? rawExplanation : "";
+    if (explanation.length > 4000 || hasDisallowedQuestionControls(explanation)) {
+      throw new Error("प्रश्न " + number + " की Explanation अधिकतम 4000 अक्षरों की हो और उसमें असमर्थित control characters न हों।");
+    }
+    const media = projectQuestionMediaDescriptors(question.media, number);
+    return { id, text: question.text.trim(), options: [...question.options], correctIndex: question.correctIndex,
+      ...(section ? { section } : {}), ...(explanation ? { explanation } : {}), ...(media ? { media } : {}) };
+  });
+
+  const sectionNames = [...new Set(questions.map(question => question.section).filter(Boolean))];
+  if (draft.sections !== undefined && !hasDenseArray(draft.sections)) {
+    throw new Error("सेक्शन सूची का प्रारूप Array होना चाहिए।");
+  }
+  const suppliedSections = draft.sections === undefined ? [] : draft.sections;
+  if (suppliedSections.length > 50) throw new Error("अधिकतम 50 सेक्शन बनाए जा सकते हैं।");
+  const sectionConfig = new Map();
+  suppliedSections.forEach((section, index) => {
+    const rawName = typeof section?.name === "string" ? section.name : "";
+    if (hasControlCharacters(rawName)) throw new Error("सेक्शन " + (index + 1) + " के नाम में control characters स्वीकार नहीं हैं।");
+    const name = rawName.trim();
+    const timeLimitMinutes = Number(section?.timeLimitMinutes ?? 0);
+    if (!name || name.length > 80 || !Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
+      throw new Error("सेक्शन " + (index + 1) + " का नाम या समय सीमा सही नहीं है।");
+    }
+    const key = name.toLocaleLowerCase();
+    if (sectionConfig.has(key)) throw new Error("सेक्शन का नाम दोहराया गया है।");
+    sectionConfig.set(key, { name, timeLimitMinutes });
+  });
+  sectionNames.forEach(name => {
+    const key = name.toLocaleLowerCase();
+    if (!sectionConfig.has(key)) sectionConfig.set(key, { name, timeLimitMinutes: 0 });
+  });
+  // Normalize each question to the canonical configured section spelling.
+  // The CBT section-entry callable uses exact names when selecting questions.
+  questions.forEach(question => {
+    if (question.section) question.section = sectionConfig.get(question.section.toLocaleLowerCase()).name;
+  });
+  const sections = [...sectionConfig.values()].map(section => ({
+    ...section,
+    questionCount: questions.filter(question => question.section?.toLocaleLowerCase() === section.name.toLocaleLowerCase()).length
+  }));
+  if (sections.some(section => section.questionCount === 0)) {
+    throw new Error("हर बनाए गए सेक्शन में कम से कम एक प्रश्न जोड़ें।");
+  }
+
+  const payload = {
+    title,
+    category,
+    folder: folderParts.join(" / "),
+    mode,
+    durationMinutes,
+    price,
+    marksPerQuestion,
+    negativeMarks,
+    sections,
+    status: draft.status === "published" ? "published" : "draft",
+    questions
+  };
+
+  if (mode === "scheduled") {
+    const startValue = draft.scheduleStartAt;
+    const endValue = draft.scheduleEndAt;
+    const startTime = typeof startValue === "string" && startValue ? Date.parse(startValue) : NaN;
+    const endTime = typeof endValue === "string" && endValue ? Date.parse(endValue) : NaN;
+    if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+      throw new Error("कृपया Scheduled Test की प्रारंभ और समाप्ति तिथि/समय सही भरें।");
+    }
+    if (endTime <= startTime) {
+      throw new Error("टेस्ट समाप्ति का समय, प्रारंभ समय के बाद होना चाहिए।");
+    }
+    payload.scheduleStartAt = new Date(startTime).toISOString();
+    payload.scheduleEndAt = new Date(endTime).toISOString();
+  }
+
+  return payload;
+}

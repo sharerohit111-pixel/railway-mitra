@@ -1,0 +1,160 @@
+"use strict";
+
+/**
+ * Best-effort local recovery for answers that the server has not confirmed yet.
+ * The server remains authoritative; this store never marks an answer as saved.
+ */
+const MAX_PENDING_ANSWERS = 500;
+const MAX_PENDING_DRAFT_BYTES = 128 * 1024;
+
+function utf8ByteLength(value) {
+  if (typeof TextEncoder !== "function") return null;
+  try {
+    return new TextEncoder().encode(value).byteLength;
+  } catch {
+    return null;
+  }
+}
+
+export function readPendingAnswerDraft({ storage, key, questions }) {
+  const answers = new Map();
+  let discarded = 0;
+  if (!storage || typeof storage.getItem !== "function") {
+    return { answers, discarded, unavailable: true };
+  }
+
+  let raw;
+  try {
+    raw = storage.getItem(key);
+  } catch {
+    return { answers, discarded, unavailable: true };
+  }
+  if (raw === null || raw === undefined || raw === "") {
+    return { answers, discarded, unavailable: false };
+  }
+  if (typeof raw !== "string") {
+    try { storage.removeItem(key); } catch (_) {}
+    return { answers, discarded: 1, unavailable: false };
+  }
+  const rawBytes = utf8ByteLength(raw);
+  if (rawBytes === null) {
+    return { answers, discarded, unavailable: true };
+  }
+  if (rawBytes > MAX_PENDING_DRAFT_BYTES) {
+    try { storage.removeItem(key); } catch (_) {}
+    return { answers, discarded: 1, unavailable: false };
+  }
+
+  let entries;
+  try {
+    entries = JSON.parse(raw);
+  } catch {
+    try { storage.removeItem(key); } catch (_) {}
+    return { answers, discarded: 1, unavailable: false };
+  }
+  if (!Array.isArray(entries) || entries.length > MAX_PENDING_ANSWERS) {
+    try { storage.removeItem(key); } catch (_) {}
+    return { answers, discarded: 1, unavailable: false };
+  }
+
+  // A draft answer can only be mapped safely when the delivered paper has one
+  // unambiguous, non-empty question ID. Do not let Map's last-write-wins
+  // behavior select one of two duplicate question definitions.
+  const questionList = Array.isArray(questions) ? questions : [];
+  const questionIdCounts = new Map();
+  for (const question of questionList) {
+    const questionId = question && typeof question.id === "string" ? question.id : "";
+    if (!questionId.trim()) continue;
+    questionIdCounts.set(questionId, (questionIdCounts.get(questionId) || 0) + 1);
+  }
+  const validQuestions = new Map(
+    questionList
+      .filter(question =>
+        question &&
+        typeof question.id === "string" &&
+        question.id.trim() &&
+        questionIdCounts.get(question.id) === 1 &&
+        Array.isArray(question.options)
+      )
+      .map(question => [question.id, question])
+  );
+
+  const seenQuestionIds = new Set();
+  const ambiguousQuestionIds = new Set();
+
+  for (const pair of entries) {
+    if (!Array.isArray(pair) || pair.length !== 2) {
+      discarded++;
+      continue;
+    }
+    const [questionId, value] = pair;
+    if (typeof questionId === "string") {
+      if (seenQuestionIds.has(questionId)) {
+        // A duplicated key is ambiguous. Remove an earlier accepted value and
+        // discard every occurrence rather than silently using last-write-wins.
+        if (answers.delete(questionId)) discarded++;
+        ambiguousQuestionIds.add(questionId);
+        discarded++;
+        continue;
+      }
+      seenQuestionIds.add(questionId);
+    }
+    const question = typeof questionId === "string" && !ambiguousQuestionIds.has(questionId)
+      ? validQuestions.get(questionId)
+      : null;
+    // Only accept the exact string format written by this module. Number(null),
+    // Number(false), and Number([]) all become zero and must not restore option A.
+    if (!question || typeof value !== "string" || !/^(0|[1-9]\d*)$/.test(value)) {
+      discarded++;
+      continue;
+    }
+    const optionIndex = Number(value);
+    if (!Number.isSafeInteger(optionIndex) || optionIndex < 0 || optionIndex >= question.options.length) {
+      discarded++;
+      continue;
+    }
+    answers.set(questionId, String(optionIndex));
+  }
+
+  if (!answers.size) {
+    try { storage.removeItem(key); } catch (_) {}
+  }
+  return { answers, discarded, unavailable: false };
+}
+
+function isCanonicalOptionIndex(value) {
+  return typeof value === "string" &&
+    /^(0|[1-9]\d*)$/.test(value) &&
+    Number.isSafeInteger(Number(value));
+}
+
+export function writePendingAnswerDraft({ storage, key, entries }) {
+  if (!storage || typeof storage.setItem !== "function" ||
+      typeof storage.removeItem !== "function" || !Array.isArray(entries)) return false;
+  if (typeof key !== "string" || !key.trim() || entries.length > MAX_PENDING_ANSWERS) return false;
+
+  const seenQuestionIds = new Set();
+  for (const pair of entries) {
+    // Reject sparse/malformed pairs before JSON.stringify can turn holes into null.
+    if (!Array.isArray(pair) || pair.length !== 2) return false;
+    const [questionId, value] = pair;
+    if (typeof questionId !== "string" || !questionId.trim() ||
+        seenQuestionIds.has(questionId) || !isCanonicalOptionIndex(value)) return false;
+    seenQuestionIds.add(questionId);
+  }
+
+  try {
+    if (entries.length) {
+      const serialized = JSON.stringify(entries);
+      if (typeof serialized !== "string") return false;
+      const serializedBytes = utf8ByteLength(serialized);
+      if (serializedBytes === null || serializedBytes > MAX_PENDING_DRAFT_BYTES) return false;
+      storage.setItem(key, serialized);
+    } else {
+      storage.removeItem(key);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}

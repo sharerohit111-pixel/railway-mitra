@@ -1,0 +1,70 @@
+name: Test Series Firestore load test (local emulator only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_load_test:
+        description: "I explicitly approve running this synthetic local-emulator load test"
+        required: true
+        default: false
+        type: boolean
+      students:
+        description: "Synthetic students (1–500)"
+        required: true
+        default: "25"
+        type: string
+      waves:
+        description: "Save waves per student (1–20)"
+        required: true
+        default: "2"
+        type: string
+      concurrency:
+        description: "Concurrent workers (1–500)"
+        required: true
+        default: "10"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  firestore-emulator-load:
+    if: ${{ inputs.confirm_load_test == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java for Firebase emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Validate bounded workload inputs
+        env:
+          LOAD_STUDENTS: ${{ inputs.students || '25' }}
+          LOAD_WAVES: ${{ inputs.waves || '2' }}
+          LOAD_CONCURRENCY: ${{ inputs.concurrency || '10' }}
+        run: |
+          node -e 'const limits = { LOAD_STUDENTS: [1, 500], LOAD_WAVES: [1, 20], LOAD_CONCURRENCY: [1, 500] }; for (const [key, [min, max]] of Object.entries(limits)) { const value = Number(process.env[key]); if (!Number.isInteger(value) || value < min || value > max) { console.error(key + " must be an integer from " + min + " to " + max); process.exit(1); } } if (Number(process.env.LOAD_CONCURRENCY) > Number(process.env.LOAD_STUDENTS)) { console.error("Concurrency cannot exceed student count"); process.exit(1); }'
+
+      - name: Install isolated Test Series Functions dependencies
+        working-directory: features/test-series/cloud/functions
+        run: npm install --no-audit --no-fund
+
+      - name: Run synthetic Firestore workload against local emulators
+        env:
+          FIREBASE_AUTH_EMULATOR_HOST: 127.0.0.1:9099
+          GCLOUD_PROJECT: demo-railway-mitra-load
+          LOAD_STUDENTS: ${{ inputs.students || '25' }}
+          LOAD_WAVES: ${{ inputs.waves || '2' }}
+          LOAD_CONCURRENCY: ${{ inputs.concurrency || '10' }}
+        run: |
+          npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-emulator.json --project demo-railway-mitra-load --only auth,firestore "node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && npm --prefix features/test-series/cloud/functions run load:emulator"

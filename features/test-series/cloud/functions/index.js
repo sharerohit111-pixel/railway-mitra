@@ -1,0 +1,2182 @@
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
+const { initializeApp } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
+const { getFirestore, FieldValue, Timestamp, FieldPath } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
+const { sanitizeImageBuffer } = require("./image-sanitization");
+const { isAuthorizedOwner } = require("./owner-auth");
+const { hasStudentAccess } = require("./student-auth");
+const { defineSecret } = require("firebase-functions/params");
+const { createRazorpayOrder, isRazorpayTestModeKeyId } = require("./razorpay-order");
+const { inspectRazorpayOrder } = require("./razorpay-order-inspect");
+const { recordPaymentInspectionAudit } = require("./payment-reconciliation-audit");
+const { listOwnerPaymentAudit } = require("./owner-payment-audit-history");
+const { verifyRazorpayWebhookSignature } = require("./razorpay-webhook-signature");
+const { applyCapturedPayment } = require("./payment-ledger");
+const { applyProcessedRefund } = require("./payment-refund-ledger");
+const { handleRazorpayWebhook } = require("./razorpay-webhook-handler");
+const { rupeesToPaise } = require("./payment-price");
+const crypto = require("node:crypto");
+const {
+  PAYMENT_REQUEST_STATES,
+  validatePaymentRequestId,
+  paymentRequestDocumentId,
+  paymentStudentTestLockDocumentId,
+  inspectStudentTestPaymentLock,
+  paymentRequestFingerprint,
+  inspectPaymentRequest
+} = require("./payment-order-request");
+const { validateOwnerPrice } = require("./owner-price");
+const { validateOwnerTestAccessRequest, manualAccessDocumentId, ownerAccessRequestFingerprint, ownerAccessCursorMatches, isOwnerAccessGrantUnexpired, effectiveOwnerAccessStatus } = require("./owner-test-access");
+const { listOwnerPaymentHistory } = require("./owner-payment-history");
+const { listOwnerPaymentReconciliation } = require("./owner-payment-reconciliation");
+const { assertFreeTestSelectionAllowed } = require("./free-test-selection");
+const { getCallableOptions } = require("./app-check-policy");
+const { normalizeQuestionBankItem, normalizeQuestionBankListRequest } = require("./question-bank-validation");
+const { selectQuestionBankPage } = require("./question-bank-pagination");
+const { getExamSectionConfig, normalizeSectionLabel } = require("./section-integrity");
+const { getExamScoringConfig } = require("./exam-scoring");
+const { getExamDurationMinutes } = require("./exam-duration");
+const { getExamAnswerKey, addExamAnswerKeyEntry } = require("./exam-answer-key");
+const {
+  projectStudentQuestions,
+  projectStudentSavedAnswers,
+  isCanonicalStudentAnswerIndex,
+  studentAnswerStorageKey
+} = require("./student-question-delivery");
+const { toValidDate } = require("./exam-time");
+const { isActiveAttemptSession } = require("./active-attempt-session");
+const { paidEntitlementDocumentId, getPaidEntitlementLedgerReferences, validatePaidEntitlement } = require("./payment-entitlement");
+const { getStudentTestAccessType } = require("./student-test-access");
+const { getTestLeaderboard } = require("./leaderboard-query");
+const {
+  normalizeOwnerTestTitle,
+  normalizeOwnerQuestionExplanation,
+  restoreOwnerQuestionAnswerKeys,
+  validateOwnerQuestionPaper
+} = require("./owner-test-editor");
+const RAZORPAY_WEBHOOK_SECRET = defineSecret("RAZORPAY_WEBHOOK_SECRET");
+const RAZORPAY_KEY_ID = defineSecret("RAZORPAY_KEY_ID");
+const RAZORPAY_KEY_SECRET = defineSecret("RAZORPAY_KEY_SECRET");
+initializeApp();
+const db = getFirestore(), REGION = "asia-south1";
+const CALLABLE_OPTIONS = getCallableOptions(process.env);
+function user(req) {
+  console.info("CBT auth context", {
+    hasAuth: Boolean(req.auth),
+    hasUid: Boolean(req.auth && req.auth.uid)
+  });
+  if (!req.auth) throw new HttpsError("unauthenticated", "Mobile OTP login required");
+  return req.auth.uid;
+}
+function owner(req) {
+  const uid = user(req);
+  if (!isAuthorizedOwner({ uid, ownerUid: process.env.OWNER_UID, token: req.auth.token })) {
+    throw new HttpsError("permission-denied", "Owner access denied; configured UID and phone MFA are required");
+  }
+  return uid;
+}
+function student(req) {
+  const uid = user(req);
+  const token = req.auth.token || {};
+  if (!hasStudentAccess(token, process.env)) {
+    throw new HttpsError("permission-denied", "Student access requires phone OTP sign-in");
+  }
+  return uid;
+}
+function id(v) { if (typeof v !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(v)) throw new HttpsError("invalid-argument", "Invalid identifier"); return v; }
+function date(v) { return toValidDate(v); }
+function validatedExamSections(test, questions) {
+  try {
+    return getExamSectionConfig(test, questions);
+  } catch (error) {
+    console.error("CBT section integrity check failed", { message: error.message });
+    throw new HttpsError("failed-precondition", "Exam section configuration is inconsistent");
+  }
+}
+
+exports.rmClaimFreeAttempt = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), claimRef = db.doc("testSeriesFreeAttempts/" + uid), configRef = db.doc("testSeriesConfig/freeTest");
+  return db.runTransaction(async tx => {
+    const [claim, config] = await Promise.all([tx.get(claimRef), tx.get(configRef)]);
+    if (claim.exists) throw new HttpsError("already-exists", "Free attempt already claimed");
+    if (!config.exists || !config.data().enabled || !config.data().testId) throw new HttpsError("failed-precondition", "Free test unavailable");
+    const testId = id(config.data().testId), testRef = db.doc("testSeriesTests/" + testId), test = await tx.get(testRef);
+    if (!test.exists || test.data().status !== "published" || typeof test.data().price !== "number" || !Number.isFinite(test.data().price) || test.data().price !== 0) throw new HttpsError("failed-precondition", "Free test is not published with a valid zero price");
+    const attemptRef = db.collection("testSeriesAttempts").doc();
+    tx.create(claimRef, { uid, testId, attemptId: attemptRef.id, claimedAt: FieldValue.serverTimestamp() });
+    tx.create(attemptRef, { uid, testId, mode: test.data().mode || "mock", status: "created", createdAt: FieldValue.serverTimestamp() });
+    // Lock the selected free test in the same transaction as the first claim.
+    // This serializes safely against an Owner trying to change the selection.
+    const claimLockUpdate = {};
+    if (config.data().hasClaims !== true) claimLockUpdate.hasClaims = true;
+    if (!config.data().firstClaimAt) claimLockUpdate.firstClaimAt = FieldValue.serverTimestamp();
+    // Later claims only read this marker; they do not rewrite the shared config document.
+    if (Object.keys(claimLockUpdate).length) tx.update(configRef, claimLockUpdate);
+    return { attemptId: attemptRef.id, testId };
+  });
+});
+
+exports.rmStartExam = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), testId = id(req.data && req.data.testId), testRef = db.doc("testSeriesTests/" + testId);
+  return db.runTransaction(async tx => {
+    const testSnap = await tx.get(testRef);
+    if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
+    const test = testSnap.data(), now = new Date();
+    const testPrice = test.price;
+    if (typeof testPrice !== "number" || !Number.isFinite(testPrice) || testPrice < 0 || testPrice > 100000) {
+      throw new HttpsError("failed-precondition", "Test price configuration is invalid");
+    }
+    if (test.status !== "published") throw new HttpsError("failed-precondition", "Test is not available");
+    let durationMinutes;
+    try {
+      durationMinutes = getExamDurationMinutes(test);
+    } catch (error) {
+      if (error && error.code === "invalid_exam_duration") {
+        throw new HttpsError("failed-precondition", "Exam duration configuration is invalid");
+      }
+      throw error;
+    }
+    if (test.mode === "scheduled") {
+      const start = date(test.scheduleStartAt), end = date(test.scheduleEndAt);
+      if (!start || !end || now < start || now > end) throw new HttpsError("failed-precondition", "Exam is outside its scheduled window");
+    }
+    let freeClaimSnap = null;
+    if (testPrice > 0) {
+      const entitlementSnap = await tx.get(db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId)));
+      const entitlement = entitlementSnap.exists ? entitlementSnap.data() : null;
+      // The entitlement document is only one part of the grant. Re-read its
+      // captured payment and paid order in this same transaction so a stale,
+      // orphaned or edited grant cannot unlock a paid test by itself.
+      const ledgerRefs = getPaidEntitlementLedgerReferences({ uid, testId, entitlement });
+      if (!ledgerRefs) throw new HttpsError("permission-denied", "Paid test access required");
+      const [paymentSnap, orderSnap] = await Promise.all([
+        tx.get(db.doc("testSeriesPayments/" + ledgerRefs.paymentId)),
+        tx.get(db.doc("testSeriesPaymentOrders/" + ledgerRefs.orderId))
+      ]);
+      const access = validatePaidEntitlement({
+        uid,
+        testId,
+        entitlement,
+        payment: paymentSnap.exists ? paymentSnap.data() : null,
+        order: orderSnap.exists ? orderSnap.data() : null
+      });
+      if (!access.valid) throw new HttpsError("permission-denied", "Paid test access required");
+    } else {
+      // The configured free trial always uses its one-time claim; a manual grant
+      // must never reset or bypass that claim.
+      const [claimSnap, freeConfigSnap] = await Promise.all([
+        tx.get(db.doc("testSeriesFreeAttempts/" + uid)),
+        tx.get(db.doc("testSeriesConfig/freeTest"))
+      ]);
+      const configuredFreeTestId = freeConfigSnap.exists ? freeConfigSnap.data().testId : null;
+      if (claimSnap.exists && claimSnap.data().testId === testId) {
+        freeClaimSnap = claimSnap;
+      } else if (configuredFreeTestId === testId) {
+        throw new HttpsError("permission-denied", "Claim the free test before starting");
+      } else {
+        const accessId = manualAccessDocumentId(uid, testId);
+        const manualRef = db.doc("testSeriesManualAccess/" + accessId);
+        const manualSnap = await tx.get(manualRef);
+        const manual = manualSnap.exists ? manualSnap.data() : null;
+        const manualGrantValid = Boolean(
+          manual &&
+          manual.uid === uid &&
+          manual.testId === testId &&
+          manual.source === "owner_manual" &&
+          manual.status === "active" &&
+          (manual.expiresAt === null || manual.expiresAt === undefined ||
+            (date(manual.expiresAt) && date(manual.expiresAt) > now))
+        );
+        if (!manualGrantValid) {
+          // A revoked/expired grant cannot create a new attempt. It does not
+          // interrupt an already-started manual-access attempt: that attempt
+          // may be resumed until its original server deadline.
+          const activeSnap = await tx.get(db.doc("testSeriesActiveSessions/" + uid));
+          const activeSession = activeSnap.exists ? activeSnap.data() : null;
+          if (activeSession && activeSession.testId === testId &&
+              activeSession.status === "in_progress" && date(activeSession.expiresAt) > now) {
+            const priorAttemptId = id(activeSession.attemptId);
+            const priorAttempt = await tx.get(db.doc("testSeriesAttempts/" + priorAttemptId));
+            const prior = priorAttempt.exists ? priorAttempt.data() : null;
+            const isValidManualResume = Boolean(
+              prior &&
+              prior.accessSource === "owner_manual" &&
+              isActiveAttemptSession({ uid, attemptId: priorAttemptId, attempt: prior, activeSession, now })
+            );
+            if (!isValidManualResume) {
+              throw new HttpsError("permission-denied", "Active Owner manual access required");
+            }
+          } else {
+            throw new HttpsError("permission-denied", "Active Owner manual access required");
+          }
+        }
+      }
+    }
+    const freeClaimAttemptId = freeClaimSnap ? id(freeClaimSnap.data().attemptId) : null;
+    const activeRef = db.doc("testSeriesActiveSessions/" + uid), active = await tx.get(activeRef);
+    if (active.exists && active.data().status === "in_progress") {
+      const activeSession = active.data();
+      let activeAttemptId = null;
+      try {
+        activeAttemptId = id(activeSession.attemptId);
+      } catch (_) {
+        // A malformed pointer is handled as an inconsistent session below.
+      }
+      const activeAttemptSnap = activeAttemptId
+        ? await tx.get(db.doc("testSeriesAttempts/" + activeAttemptId))
+        : null;
+      const activeAttempt = activeAttemptSnap && activeAttemptSnap.exists
+        ? activeAttemptSnap.data()
+        : null;
+      const validActiveAttempt = Boolean(activeAttempt && isActiveAttemptSession({
+        uid, attemptId: activeAttemptId, attempt: activeAttempt, activeSession, now
+      }));
+      if (validActiveAttempt) {
+        if (activeSession.testId !== testId) {
+          throw new HttpsError("already-exists", "Another exam session is active");
+        }
+        return {
+          attemptId: activeAttemptId,
+          startedAt: date(activeAttempt.startedAt).toISOString(),
+          expiresAt: date(activeAttempt.expiresAt).toISOString(),
+          resumed: true
+        };
+      }
+
+      // Do not create a second attempt while a referenced attempt owned by
+      // this student still claims to be live. A one-time free claim can repair
+      // its own pointer because the claim record independently anchors it.
+      const activeAttemptBelongsToStudent = Boolean(activeAttempt && activeAttempt.uid === uid);
+      const sessionExpiresAt = date(activeSession.expiresAt);
+      const attemptExpiresAt = activeAttempt ? date(activeAttempt.expiresAt) : null;
+      const sessionMayStillBeLive = activeAttemptBelongsToStudent &&
+        (!sessionExpiresAt || sessionExpiresAt > now);
+      const attemptMayStillBeLive = activeAttemptBelongsToStudent &&
+        (!attemptExpiresAt || attemptExpiresAt > now);
+      const freeClaimAnchorsActiveAttempt = Boolean(
+        freeClaimAttemptId &&
+        activeAttempt &&
+        activeAttemptId === freeClaimAttemptId &&
+        activeAttempt.uid === uid &&
+        activeAttempt.testId === testId
+      );
+      if ((sessionMayStillBeLive || attemptMayStillBeLive) && !freeClaimAnchorsActiveAttempt) {
+        throw new HttpsError(
+          "failed-precondition",
+          "The active exam session is inconsistent; contact support before starting another exam"
+        );
+      }
+      // A free claim repairs only the exact attempt it created. It cannot
+      // displace a different still-live attempt belonging to this student.
+    }
+    const attemptRef = freeClaimSnap
+      ? db.doc("testSeriesAttempts/" + freeClaimAttemptId)
+      : db.collection("testSeriesAttempts").doc();
+
+    const startedAt = Timestamp.now(), expiresAt = Timestamp.fromDate(new Date(now.getTime() + durationMinutes * 60000));
+    if (freeClaimSnap) {
+      const claimedAttempt = await tx.get(attemptRef);
+      if (!claimedAttempt.exists || claimedAttempt.data().uid !== uid || claimedAttempt.data().testId !== testId) {
+        throw new HttpsError("failed-precondition", "Free test attempt is no longer available");
+      }
+      const claimed = claimedAttempt.data();
+      if (claimed.status === "submitted") {
+        throw new HttpsError("already-exists", "Free test attempt has already been submitted");
+      }
+      if (claimed.status === "in_progress") {
+        // The one-time free claim is the durable pointer to this student's only free attempt.
+        // Repair a stale active-session pointer instead of creating or losing another attempt.
+        const claimedExpiresAt = date(claimed.expiresAt);
+        if (!claimedExpiresAt) {
+          throw new HttpsError("failed-precondition", "Free test attempt has no valid expiry");
+        }
+        tx.set(activeRef, {
+          uid, testId, attemptId: attemptRef.id, status: "in_progress",
+          startedAt: claimed.startedAt, expiresAt: claimed.expiresAt
+        });
+        return {
+          attemptId: attemptRef.id,
+          startedAt: date(claimed.startedAt).toISOString(),
+          expiresAt: claimedExpiresAt.toISOString(),
+          resumed: true
+        };
+      }
+      if (claimed.status !== "created") {
+        throw new HttpsError("failed-precondition", "Free test attempt is no longer available");
+      }
+      tx.update(attemptRef, { status: "in_progress", startedAt, expiresAt, answers: {}, updatedAt: FieldValue.serverTimestamp() });
+    } else {
+      tx.create(attemptRef, {
+        uid, testId, mode: test.mode || "mock", status: "in_progress",
+        startedAt, expiresAt, answers: {},
+        ...(Number(test.price || 0) === 0 ? { accessSource: "owner_manual" } : {}),
+        updatedAt: FieldValue.serverTimestamp()
+      });
+    }
+    tx.set(activeRef, { uid, testId, attemptId: attemptRef.id, status: "in_progress", startedAt, expiresAt });
+    return { attemptId: attemptRef.id, startedAt: startedAt.toDate().toISOString(), expiresAt: expiresAt.toDate().toISOString(), resumed: false };
+  });
+});
+
+exports.rmGetExamQuestions = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+
+  // Keep the attempt, active-session pointer and paper metadata in one
+  // Firestore transaction snapshot so a session switch cannot create a
+  // mixed authorization/read view between separate document gets.
+  const { attempt, test, questions } = await db.runTransaction(async tx => {
+    const attemptSnap = await tx.get(attemptRef);
+    if (!attemptSnap.exists || attemptSnap.data().uid !== uid) {
+      throw new HttpsError("permission-denied", "Attempt not found");
+    }
+    const attempt = attemptSnap.data();
+    const now = new Date();
+    const attemptExpiresAt = date(attempt.expiresAt);
+    if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
+      throw new HttpsError("failed-precondition", "Exam is closed");
+    }
+
+    const activeSessionRef = db.doc("testSeriesActiveSessions/" + uid);
+    const activeSessionSnap = await tx.get(activeSessionRef);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+
+    const testRef = db.doc("testSeriesTests/" + id(attempt.testId));
+    const questionsRef = db.doc("testSeriesQuestionSets/" + id(attempt.testId));
+    const [testSnap, questionsSnap] = await Promise.all([
+      tx.get(testRef),
+      tx.get(questionsRef)
+    ]);
+    if (!testSnap.exists || !questionsSnap.exists) {
+      throw new HttpsError("failed-precondition", "Question paper unavailable");
+    }
+    return {
+      attempt,
+      test: testSnap.data(),
+      questions: questionsSnap.data().questions || []
+    };
+  });
+
+  if (!Array.isArray(questions) || !questions.length) throw new HttpsError("failed-precondition", "Question paper is empty");
+  let durationMinutes;
+  try {
+    durationMinutes = getExamDurationMinutes(test);
+  } catch (error) {
+    if (error && error.code === "invalid_exam_duration") {
+      throw new HttpsError("failed-precondition", "Exam duration configuration is invalid");
+    }
+    throw error;
+  }
+  const sections = validatedExamSections(test, questions);
+  let studentQuestions, savedAnswers;
+  try {
+    studentQuestions = projectStudentQuestions(questions);
+    savedAnswers = projectStudentSavedAnswers(studentQuestions, attempt.answers);
+  } catch (error) {
+    console.error("CBT student question or saved-answer payload rejected", { attemptId, message: error.message });
+    throw new HttpsError("failed-precondition", "Question paper or saved answers contain invalid student data");
+  }
+  return {
+    test: { testId: attempt.testId, title: test.title || "", durationMinutes,
+      marksPerQuestion: Number(test.marksPerQuestion ?? 1), negativeMarks: Number(test.negativeMarks ?? 0),
+      sections },
+    questions: studentQuestions,
+    // Array entries survive callable serialization for special question IDs.
+    savedAnswerEntries: Object.entries(savedAnswers),
+    savedAnswers: Object.fromEntries(Object.entries(savedAnswers).filter(([questionId]) =>
+      !["__proto__", "constructor", "toString", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "valueOf", "__defineGetter__", "__defineSetter__"].includes(questionId)
+    )),
+    // Only section timing metadata is exposed; the answer key remains server-side.
+    sectionTimings: Object.fromEntries(Object.entries(attempt.sectionTimings || {}).map(([name, timing]) => [name, {
+      startedAt: date(timing.startedAt)?.toISOString() || null,
+      expiresAt: date(timing.expiresAt)?.toISOString() || null
+    }])),
+    expiresAt: date(attempt.expiresAt).toISOString(),
+    // Anchor the client display clock to server time; the client advances it monotonically.
+    serverNow: new Date().toISOString()
+  };
+});
+
+// Issue a short-lived read URL only after verifying the authenticated active attempt
+// and resolving the media object exclusively from server-owned Firestore metadata.
+const {
+  validateMediaUploadRequest,
+  mediaObjectPath,
+  mediaMappingId,
+  MAX_IMAGE_BYTES
+} = require("./question-media-upload");
+
+exports.rmOwnerCreateQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  let upload;
+  try {
+    upload = validateMediaUploadRequest({
+      testId: data.testId, questionId: data.questionId, mediaId: data.mediaId,
+      mimeType: data.mimeType, sizeBytes: data.sizeBytes, sha256: data.sha256
+    });
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+  const [testSnap, paperSnap] = await Promise.all([
+    db.doc("testSeriesTests/" + upload.testId).get(),
+    db.doc("testSeriesQuestionSets/" + upload.testId).get()
+  ]);
+  if (!testSnap.exists || testSnap.data().status !== "draft") {
+    throw new HttpsError("failed-precondition", "Images can only be uploaded to an existing draft test");
+  }
+  if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Save the draft question paper before uploading images");
+  const question = (paperSnap.data().questions || []).find(item => item && item.id === upload.questionId);
+  if (!question || !(question.media || []).some(item =>
+    item.id === upload.mediaId && item.mimeType === upload.mimeType)) {
+    throw new HttpsError("failed-precondition", "Image metadata must already exist on this draft question");
+  }
+  const mappingRef = db.doc("testSeriesQuestionMedia/" + upload.mappingId);
+  const existing = await mappingRef.get();
+  if (existing.exists && existing.data().status === "ready") {
+    throw new HttpsError("already-exists", "This question image is already uploaded; create a new media ID to replace it");
+  }
+  const file = getStorage().bucket().file(upload.quarantineObjectPath);
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  const customMetadata = {
+    testid: upload.testId,
+    questionid: upload.questionId,
+    mediaid: upload.mediaId,
+    sha256: upload.sha256
+  };
+  const [url] = await file.getSignedUrl({
+    version: "v4",
+    action: "write",
+    expires: expiresAt,
+    contentType: upload.mimeType,
+    extensionHeaders: {
+      "x-goog-meta-testid": customMetadata.testid,
+      "x-goog-meta-questionid": customMetadata.questionid,
+      "x-goog-meta-mediaid": customMetadata.mediaid,
+      "x-goog-meta-sha256": customMetadata.sha256
+    },
+    queryParams: { ifGenerationMatch: "0" }
+  });
+  return {
+    uploadUrl: url,
+    expiresAt: new Date(expiresAt).toISOString(),
+    objectPath: upload.quarantineObjectPath,
+    requiredHeaders: {
+      "Content-Type": upload.mimeType,
+      "x-goog-meta-testid": customMetadata.testid,
+      "x-goog-meta-questionid": customMetadata.questionid,
+      "x-goog-meta-mediaid": customMetadata.mediaid,
+      "x-goog-meta-sha256": customMetadata.sha256
+    }
+  };
+});
+
+exports.rmOwnerFinalizeQuestionMediaUpload = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  let upload;
+  try {
+    upload = validateMediaUploadRequest({
+      testId: data.testId, questionId: data.questionId, mediaId: data.mediaId,
+      mimeType: data.mimeType, sizeBytes: data.sizeBytes, sha256: data.sha256
+    });
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+  const [testSnap, paperSnap] = await Promise.all([
+    db.doc("testSeriesTests/" + upload.testId).get(),
+    db.doc("testSeriesQuestionSets/" + upload.testId).get()
+  ]);
+  if (!testSnap.exists || testSnap.data().status !== "draft" || !paperSnap.exists) {
+    throw new HttpsError("failed-precondition", "Only saved draft questions can receive images");
+  }
+  const question = (paperSnap.data().questions || []).find(item => item && item.id === upload.questionId);
+  if (!question || !(question.media || []).some(item =>
+    item.id === upload.mediaId && item.mimeType === upload.mimeType)) {
+    throw new HttpsError("failed-precondition", "Image descriptor does not belong to this draft question");
+  }
+  const bucket = getStorage().bucket();
+  const quarantineFile = bucket.file(upload.quarantineObjectPath);
+  const [metadata] = await quarantineFile.getMetadata().catch(() => [null]);
+  const size = Number(metadata && metadata.size);
+  let generation = String(metadata && metadata.generation || "");
+  const custom = metadata && metadata.metadata || {};
+  if (!metadata || !Number.isSafeInteger(size) || size !== upload.sizeBytes ||
+      size < 1 || size > MAX_IMAGE_BYTES || metadata.contentType !== upload.mimeType ||
+      custom.testid !== upload.testId || custom.questionid !== upload.questionId ||
+      custom.mediaid !== upload.mediaId || custom.sha256 !== upload.sha256 || !/^[1-9]\d*$/.test(generation)) {
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Uploaded image metadata or size does not match the draft");
+  }
+  const [bytes] = await quarantineFile.download();
+  const actualSha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+  if (actualSha256 !== upload.sha256) {
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Uploaded image checksum does not match");
+  }
+  let imageInfo;
+  try {
+    imageInfo = await sanitizeImageBuffer(bytes, upload.mimeType, { sharp: require("sharp") });
+  } catch (_) {
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Uploaded file could not be fully decoded and safely re-encoded");
+  }
+
+  // Write the clean re-encoded image to the separate published prefix.
+  // The original upload remains quarantined and is never used for student reads.
+  const file = bucket.file(upload.objectPath);
+  const sanitizedSha256 = crypto.createHash("sha256").update(imageInfo.data).digest("hex");
+  try {
+    await file.save(imageInfo.data, {
+      resumable: false,
+      metadata: {
+        contentType: upload.mimeType,
+        metadata: {
+          testid: upload.testId,
+          questionid: upload.questionId,
+          mediaid: upload.mediaId,
+          sha256: sanitizedSha256
+        }
+      },
+      preconditionOpts: { ifGenerationMatch: 0 }
+    });
+  } catch (_) {
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Sanitized image could not be stored safely");
+  }
+  const [sanitizedMetadata] = await file.getMetadata().catch(() => [null]);
+  const sanitizedGeneration = String(sanitizedMetadata && sanitizedMetadata.generation || "");
+  if (!sanitizedMetadata || Number(sanitizedMetadata.size) !== imageInfo.sizeBytes ||
+      sanitizedMetadata.contentType !== upload.mimeType ||
+      !/^[1-9]\d*$/.test(sanitizedGeneration) ||
+      (sanitizedMetadata.metadata || {}).sha256 !== sanitizedSha256) {
+    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+    throw new HttpsError("failed-precondition", "Sanitized image storage verification failed");
+  }
+  generation = sanitizedGeneration;
+
+  const mappingRef = db.doc("testSeriesQuestionMedia/" + upload.mappingId);
+  const mapping = {
+    testId: upload.testId,
+    questionId: upload.questionId,
+    mediaId: upload.mediaId,
+    objectPath: upload.objectPath,
+    contentType: upload.mimeType,
+    sizeBytes: imageInfo.sizeBytes,
+    sha256: sanitizedSha256,
+    width: imageInfo.width,
+    height: imageInfo.height,
+    format: imageInfo.format,
+    generation,
+    status: "ready",
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  };
+  try {
+    await db.runTransaction(async tx => {
+    const existing = await tx.get(mappingRef);
+    if (existing.exists) {
+      const prior = existing.data();
+      if (prior.status === "ready" && prior.generation === generation &&
+          prior.sha256 === sanitizedSha256 && prior.sizeBytes === imageInfo.sizeBytes) return;
+      throw new HttpsError("already-exists", "A different image version is already registered for this question");
+    }
+    tx.create(mappingRef, mapping);
+    });
+  } catch (error) {
+    await file.delete({ ignoreNotFound: true }).catch(() => {});
+    await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+    throw error;
+  }
+  await quarantineFile.delete({ ignoreNotFound: true }).catch(() => {});
+  return { uploaded: true, testId: upload.testId, questionId: upload.questionId, mediaId: upload.mediaId };
+});
+
+exports.rmGetQuestionMediaUrl = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req);
+  const attemptId = id(req.data && req.data.attemptId);
+  const questionId = id(req.data && req.data.questionId);
+  const mediaId = id(req.data && req.data.mediaId);
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+
+  // Resolve authorization, question metadata and the immutable ready mapping
+  // from one Firestore transaction snapshot before inspecting the Storage object.
+  const { testId, media, mapping } = await db.runTransaction(async tx => {
+    const attemptSnap = await tx.get(attemptRef);
+    if (!attemptSnap.exists || attemptSnap.data().uid !== uid) {
+      throw new HttpsError("permission-denied", "Attempt not found");
+    }
+    const attempt = attemptSnap.data();
+    const now = new Date();
+    const attemptExpiresAt = date(attempt.expiresAt);
+    if (attempt.status !== "in_progress" || !attemptExpiresAt || attemptExpiresAt <= now) {
+      throw new HttpsError("failed-precondition", "Exam is closed");
+    }
+
+    const activeSessionRef = db.doc("testSeriesActiveSessions/" + uid);
+    const activeSessionSnap = await tx.get(activeSessionRef);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+
+    const paperRef = db.doc("testSeriesQuestionSets/" + id(attempt.testId));
+    const paperSnap = await tx.get(paperRef);
+    if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+    const questions = paperSnap.data().questions;
+    if (!Array.isArray(questions)) throw new HttpsError("failed-precondition", "Question paper is invalid");
+    const question = questions.find(item => item && item.id === questionId);
+    if (!question) throw new HttpsError("permission-denied", "Question does not belong to this attempt");
+
+    let safeQuestion;
+    try {
+      [safeQuestion] = projectStudentQuestions([question]);
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Question media metadata is invalid");
+    }
+    const media = (safeQuestion.media || []).find(item => item.id === mediaId);
+    if (!media) throw new HttpsError("permission-denied", "Question media not found");
+
+    const mappingId = crypto.createHash("sha256").update(JSON.stringify([attempt.testId, questionId, mediaId])).digest("hex");
+    const mappingRef = db.doc("testSeriesQuestionMedia/" + mappingId);
+    const mappingSnap = await tx.get(mappingRef);
+    if (!mappingSnap.exists) throw new HttpsError("not-found", "Question image is not published");
+    const mapping = mappingSnap.data();
+    if (mapping.status !== "ready" || mapping.testId !== attempt.testId ||
+        mapping.questionId !== questionId || mapping.mediaId !== mediaId ||
+        mapping.contentType !== media.mimeType ||
+        mapping.objectPath !== "test-series-question-media/" + attempt.testId + "/" + questionId + "/" + mediaId ||
+        !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 || mapping.sizeBytes > 5 * 1024 * 1024 ||
+        typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256) ||
+        typeof mapping.generation !== "string" || !/^[1-9]\d*$/.test(mapping.generation)) {
+      throw new HttpsError("failed-precondition", "Question image metadata is inconsistent");
+    }
+    return { testId: attempt.testId, media, mapping };
+  });
+
+  const bucket = getStorage().bucket();
+  const file = bucket.file(mapping.objectPath);
+  const [metadata] = await file.getMetadata().catch(() => [null]);
+  const size = Number(metadata && metadata.size);
+  const generation = String(metadata && metadata.generation || "");
+  const custom = metadata && metadata.metadata || {};
+  if (!metadata || !Number.isSafeInteger(size) || size < 1 || size !== mapping.sizeBytes || size > 5 * 1024 * 1024 ||
+      metadata.contentType !== media.mimeType || generation !== mapping.generation ||
+      custom.testid !== testId || custom.questionid !== questionId || custom.mediaid !== mediaId ||
+      custom.sha256 !== mapping.sha256) {
+    throw new HttpsError("failed-precondition", "Question image failed storage integrity checks");
+  }
+  const expiresAt = Date.now() + 60 * 1000;
+  const [url] = await file.getSignedUrl({
+    version: "v4",
+    action: "read",
+    expires: expiresAt,
+    responseType: media.mimeType,
+    queryParams: { "response-content-disposition": "inline" }
+  });
+  return { url, expiresAt: new Date(expiresAt).toISOString(), mimeType: media.mimeType, altText: media.altText };
+});
+
+exports.rmEnterCbtSection = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId), sectionName = typeof req.data?.section === "string" ? req.data.section.trim() : "";
+  if (!sectionName || sectionName.length > 80) throw new HttpsError("invalid-argument", "Valid section name is required");
+  const attemptRef = db.doc("testSeriesAttempts/" + attemptId);
+  return db.runTransaction(async tx => {
+    const attemptSnap = await tx.get(attemptRef);
+    if (!attemptSnap.exists || attemptSnap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
+    const attempt = attemptSnap.data(), now = new Date(), overallExpiry = date(attempt.expiresAt);
+    if (attempt.status !== "in_progress" || !overallExpiry || overallExpiry <= now) throw new HttpsError("failed-precondition", "Exam is closed");
+    const [testSnap, paperSnap, activeSessionSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesTests/" + attempt.testId)),
+      tx.get(db.doc("testSeriesQuestionSets/" + attempt.testId)),
+      tx.get(db.doc("testSeriesActiveSessions/" + uid))
+    ]);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+    if (!testSnap.exists || !paperSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
+    const paperQuestions = paperSnap.data().questions || [];
+    const sections = validatedExamSections(testSnap.data(), paperQuestions);
+    const config = sections.find(item => item.name === sectionName);
+    if (!config || !paperQuestions.some(item => item.section === sectionName)) {
+      throw new HttpsError("not-found", "Section not found in this exam");
+    }
+    const limit = config.timeLimitMinutes;
+    const timings = attempt.sectionTimings || {}, existing = timings[sectionName];
+    if (existing) {
+      const expiry = date(existing.expiresAt);
+      if (!expiry || expiry <= now) throw new HttpsError("deadline-exceeded", "Section time has expired");
+      return { section: sectionName, startedAt: date(existing.startedAt)?.toISOString() || null, expiresAt: expiry.toISOString(), timeLimitMinutes: limit, resumed: true };
+    }
+    if (!limit) return { section: sectionName, startedAt: null, expiresAt: overallExpiry.toISOString(), timeLimitMinutes: 0, resumed: false };
+    const startedAt = Timestamp.fromDate(now);
+    const expiresAt = Timestamp.fromDate(new Date(Math.min(now.getTime() + limit * 60000, overallExpiry.getTime())));
+    tx.update(attemptRef, { sectionTimings: { ...timings, [sectionName]: { startedAt, expiresAt } }, updatedAt: FieldValue.serverTimestamp() });
+    return { section: sectionName, startedAt: startedAt.toDate().toISOString(), expiresAt: expiresAt.toDate().toISOString(), timeLimitMinutes: limit, resumed: false };
+  });
+});
+
+exports.rmSaveAnswer = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId), questionId = id(req.data && req.data.questionId), answer = req.data && req.data.answer;
+  if (typeof answer !== "string") throw new HttpsError("invalid-argument", "Answer must be a canonical option index");
+  const ref = db.doc("testSeriesAttempts/" + attemptId);
+  await db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
+    const a = snap.data(), now = new Date();
+    const expiresAt = date(a.expiresAt);
+    if (!expiresAt || !Number.isFinite(expiresAt.getTime()) || a.status !== "in_progress" || expiresAt <= now) throw new HttpsError("failed-precondition", "Exam is closed or has an invalid deadline");
+    const [questionSet, testSnap, activeSessionSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesQuestionSets/" + a.testId)),
+      tx.get(db.doc("testSeriesTests/" + a.testId)),
+      tx.get(db.doc("testSeriesActiveSessions/" + uid))
+    ]);
+    const activeSession = activeSessionSnap.exists ? activeSessionSnap.data() : null;
+    if (!isActiveAttemptSession({ uid, attemptId, attempt: a, activeSession, now })) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+    if (!questionSet.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+    const question = (questionSet.data().questions || []).find(item => item.id === questionId);
+    if (!question) throw new HttpsError("invalid-argument", "Question does not belong to this exam");
+    if (!testSnap.exists) throw new HttpsError("failed-precondition", "Exam configuration unavailable");
+    const sections = validatedExamSections(testSnap.data(), questionSet.data().questions || []);
+    if (question.section !== undefined && question.section !== null) {
+      const config = sections.find(item => item.name === question.section);
+      if (!config) throw new HttpsError("failed-precondition", "Question section is not configured for this exam");
+      if (config.timeLimitMinutes > 0) {
+        const expiry = date(a.sectionTimings?.[question.section]?.expiresAt);
+        if (!expiry || expiry <= new Date()) throw new HttpsError("deadline-exceeded", "Section time has expired or has not started");
+      }
+    }
+    if (!isCanonicalStudentAnswerIndex(question, answer)) {
+      throw new HttpsError("invalid-argument", "Answer must be a canonical option index for this question");
+    }
+    const nextAnswers = Object.fromEntries([...Object.entries(a.answers || {}), [studentAnswerStorageKey(questionId), answer]]);
+    tx.update(ref, { answers: nextAnswers, updatedAt: FieldValue.serverTimestamp() });
+  });
+  return { saved: true };
+});
+
+exports.rmSubmitExam = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId), ref = db.doc("testSeriesAttempts/" + attemptId);
+  return db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
+    const a = snap.data();
+    if (a.status === "submitted") return { submitted: true, timedOut: Boolean(a.timedOut), score: a.score, correct: a.correct, wrong: a.wrong, unattempted: a.unattempted, totalQuestions: a.totalQuestions };
+    if (a.status !== "in_progress") throw new HttpsError("failed-precondition", "Attempt cannot be submitted");
+    const expiresAt = date(a.expiresAt);
+    if (!expiresAt || !Number.isFinite(expiresAt.getTime())) throw new HttpsError("failed-precondition", "Attempt deadline is missing or invalid");
+    const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+    const resultRef = db.doc("testSeriesResults/" + attemptId);
+    const [testSnap, keySnap, paperSnap, activeSnap, resultSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesTests/" + a.testId)),
+      tx.get(db.doc("testSeriesAnswerKeys/" + a.testId)),
+      tx.get(db.doc("testSeriesQuestionSets/" + a.testId)),
+      tx.get(activeRef),
+      tx.get(resultRef)
+    ]);
+    const submitNow = new Date();
+    const activeSession = activeSnap.exists ? activeSnap.data() : null;
+    const isCurrentSession = isActiveAttemptSession({
+      uid, attemptId, attempt: a, activeSession, now: submitNow
+    });
+    // A superseded attempt may be finalized after its original deadline, but a
+    // still-live attempt must remain the student's active exam until submission.
+    if (!isCurrentSession && expiresAt > submitNow) {
+      throw new HttpsError("failed-precondition", "Exam is not the active session");
+    }
+    // An in-progress attempt must never overwrite an existing result record.
+    // Treat this orphan/conflicting state as a support-reconciliation blocker.
+    if (resultSnap.exists) {
+      throw new HttpsError("failed-precondition", "A result already exists for this attempt; contact support before resubmitting");
+    }
+    if (!testSnap.exists || !keySnap.exists) throw new HttpsError("failed-precondition", "Answer key not configured");
+    if (!paperSnap.exists) throw new HttpsError("failed-precondition", "Question paper unavailable");
+    const test = testSnap.data();
+    let answers;
+    try {
+      // Validate persisted responses against the current paper and copy only own data entries.
+      // This prevents inherited Object.prototype names from becoming phantom answers at scoring.
+      answers = projectStudentSavedAnswers(paperSnap.data().questions, a.answers);
+    } catch (error) {
+      console.error("CBT submission rejected malformed saved answers", { attemptId, message: error.message });
+      throw new HttpsError("failed-precondition", "Saved answers are inconsistent with the question paper");
+    }
+    let scoring;
+    try {
+      scoring = getExamScoringConfig(test);
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Exam scoring configuration is invalid");
+    }
+    let answerKey;
+    try {
+      answerKey = getExamAnswerKey(paperSnap.data().questions, keySnap.data().questions);
+    } catch (_) {
+      throw new HttpsError("failed-precondition", "Exam answer key is inconsistent with the question paper");
+    }
+    // Once the server deadline passes, accept only the answers already persisted by rmSaveAnswer.
+    // This preserves a result when the client submits at the timer boundary or reconnects late.
+    const timedOut = expiresAt <= new Date();
+    let correct = 0, wrong = 0, unattempted = 0;
+    for (const item of answerKey) {
+      const hasAnswer = Object.hasOwn(answers, item.questionId);
+      const given = hasAnswer ? answers[item.questionId] : undefined;
+      if (!hasAnswer) unattempted++;
+      else if (given === item.correctAnswer) correct++;
+      else wrong++;
+    }
+    const totalQuestions = answerKey.length;
+    const score = correct * scoring.marksPerQuestion - wrong * scoring.negativeMarks;
+    tx.update(ref, { status: "submitted", timedOut, submittedAt: FieldValue.serverTimestamp(), correct, wrong, unattempted, score, totalQuestions });
+    tx.create(resultRef, { uid, testId: a.testId, attemptId, correct, wrong, unattempted, timedOut, score, totalQuestions, submittedAt: FieldValue.serverTimestamp() });
+    // An expired older attempt may be submitted after the student has already
+    // started another exam. Never let that late submission overwrite the newer
+    // active-session pointer.
+    if (activeSnap.exists && activeSnap.data().uid === uid && activeSnap.data().attemptId === attemptId) {
+      tx.set(activeRef, { uid, status: "completed", attemptId, testId: a.testId, completedAt: FieldValue.serverTimestamp() });
+    }
+    return { submitted: true, timedOut, correct, wrong, unattempted, score, totalQuestions };
+  });
+});
+
+exports.rmGetStudentActiveAttempt = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), testId = id(req.data && req.data.testId);
+  const activeRef = db.doc("testSeriesActiveSessions/" + uid);
+
+  // Read the active pointer and its attempt from one Firestore snapshot. A
+  // session switch between separate reads must not return a stale recovery ID.
+  return db.runTransaction(async tx => {
+    const sessionSnap = await tx.get(activeRef);
+    if (!sessionSnap.exists) return { found: false };
+    const session = sessionSnap.data();
+    if (session.uid !== uid || session.testId !== testId || !session.attemptId) {
+      return { found: false };
+    }
+
+    let attemptId;
+    try {
+      attemptId = id(session.attemptId);
+    } catch (_) {
+      return { found: false };
+    }
+
+    const attemptSnap = await tx.get(db.doc("testSeriesAttempts/" + attemptId));
+    if (!attemptSnap.exists) return { found: false };
+    const attempt = attemptSnap.data();
+    if (attempt.uid !== uid || attempt.testId !== testId) return { found: false };
+
+    if (attempt.status === "in_progress") {
+      const now = new Date();
+      if (!isActiveAttemptSession({ uid, attemptId, attempt, activeSession: session, now })) {
+        return { found: false };
+      }
+      return {
+        found: true,
+        attemptId,
+        status: "in_progress",
+        expiresAt: date(attempt.expiresAt).toISOString()
+      };
+    }
+
+    // A completed recovery pointer must agree with the submitted attempt.
+    if (attempt.status === "submitted" && session.status === "completed") {
+      return {
+        found: true,
+        attemptId,
+        status: "completed",
+        expiresAt: date(attempt.expiresAt)?.toISOString() || null
+      };
+    }
+
+    return { found: false };
+  });
+});
+
+exports.rmGetCbtAttemptResult = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), attemptId = id(req.data && req.data.attemptId);
+  const snap = await db.doc("testSeriesAttempts/" + attemptId).get();
+  if (!snap.exists || snap.data().uid !== uid) throw new HttpsError("permission-denied", "Attempt not found");
+  const attempt = snap.data();
+  if (attempt.status !== "submitted") throw new HttpsError("failed-precondition", "Exam result is not available yet");
+  return {
+    submitted: true,
+    timedOut: Boolean(attempt.timedOut),
+    score: Number(attempt.score || 0),
+    correct: Number(attempt.correct || 0),
+    wrong: Number(attempt.wrong || 0),
+    unattempted: Number(attempt.unattempted || 0),
+    totalQuestions: Number(attempt.totalQuestions || 0)
+  };
+});
+
+exports.rmGetOwnerAdminSession = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = owner(req);
+  return { authorized: true, uid, email: req.auth.token.email || null };
+});
+
+// Owner-only manual access control. The Owner guard runs before Auth or Firestore lookups.
+exports.rmOwnerSetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
+  const ownerUid = owner(req);
+  let request;
+  let fingerprint;
+  try {
+    const requestNowMs = Date.now();
+    request = validateOwnerTestAccessRequest(req.data || {}, requestNowMs);
+    fingerprint = ownerAccessRequestFingerprint(req.data || {}, requestNowMs);
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+
+  // Confirm the target is a real Firebase account before changing access.
+  try {
+    await getAuth().getUser(request.studentUid);
+  } catch (error) {
+    if (error && (error.code === "auth/user-not-found" || error.code === "auth/invalid-uid")) {
+      throw new HttpsError("not-found", "Student account not found");
+    }
+    throw new HttpsError("unavailable", "Student account could not be verified");
+  }
+
+  const accessId = manualAccessDocumentId(request.studentUid, request.testId);
+  const requestId = crypto.createHash("sha256").update(ownerUid).update("\\0").update(request.requestId).digest("hex");
+  const accessRef = db.doc("testSeriesManualAccess/" + accessId);
+  const requestRef = db.doc("testSeriesAccessRequests/" + requestId);
+  const testRef = db.doc("testSeriesTests/" + request.testId);
+  const auditRef = db.collection("testSeriesAccessAudit").doc();
+
+  return db.runTransaction(async tx => {
+    const [testSnap, accessSnap, requestSnap, freeConfigSnap] = await Promise.all([
+      tx.get(testRef),
+      tx.get(accessRef),
+      tx.get(requestRef),
+      tx.get(db.doc("testSeriesConfig/freeTest"))
+    ]);
+    if (!testSnap.exists || testSnap.data().status !== "published") {
+      throw new HttpsError("failed-precondition", "Access can be changed only for a published test");
+    }
+    if (request.action === "grant") {
+      if (Number(testSnap.data().price || 0) > 0) {
+        throw new HttpsError("failed-precondition", "Manual access is limited to zero-price complimentary tests");
+      }
+      if (freeConfigSnap.exists && freeConfigSnap.data().testId === request.testId) {
+        throw new HttpsError("failed-precondition", "The configured one-time free test must use its normal claim flow");
+      }
+    }
+
+    if (requestSnap.exists) {
+      const prior = requestSnap.data();
+      if (prior.fingerprint !== fingerprint) {
+        throw new HttpsError("already-exists", "Request ID was already used for a different operation");
+      }
+      return { saved: true, replayed: true, status: prior.status, accessId };
+    }
+    // Account lookup and transaction setup can take time. Do not persist a
+    // grant whose requested expiry elapsed before the transaction committed.
+    if (!isOwnerAccessGrantUnexpired(request, Date.now())) {
+      throw new HttpsError("failed-precondition", "Grant expiry passed before access could be saved");
+    }
+
+    const previous = accessSnap.exists ? accessSnap.data() : null;
+    const status = request.action === "grant" ? "active" : "revoked";
+    const now = Timestamp.now();
+    const expiresAt = request.action === "grant" && request.expiresAt
+      ? Timestamp.fromDate(new Date(request.expiresAt))
+      : null;
+    const accessRecord = {
+      uid: request.studentUid,
+      testId: request.testId,
+      status,
+      source: "owner_manual",
+      reason: request.reason,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: ownerUid,
+      expiresAt
+    };
+    if (!previous) {
+      accessRecord.createdAt = FieldValue.serverTimestamp();
+      accessRecord.createdBy = ownerUid;
+    }
+    tx.set(accessRef, accessRecord, { merge: true });
+    tx.create(auditRef, {
+      targetUid: request.studentUid,
+      testId: request.testId,
+      action: request.action,
+      actorUid: ownerUid,
+      reason: request.reason,
+      previousStatus: previous && previous.status || "none",
+      newStatus: status,
+      createdAt: FieldValue.serverTimestamp(),
+      requestId
+    });
+    tx.create(requestRef, {
+      fingerprint,
+      status,
+      accessId,
+      createdAt: FieldValue.serverTimestamp(),
+      createdBy: ownerUid
+    });
+    return { saved: true, replayed: false, status, accessId };
+  });
+});
+
+// Owner-only, bounded access register. Responses are explicit allow-lists.
+exports.rmOwnerListStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  const pageSize = data.pageSize === undefined ? 25 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new HttpsError("invalid-argument", "pageSize must be an integer from 1 to 100");
+  }
+  const studentUid = data.studentUid === undefined ? null : data.studentUid;
+  const testId = data.testId === undefined ? null : data.testId;
+  const status = data.status === undefined ? null : data.status;
+  if (studentUid !== null && (typeof studentUid !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(studentUid))) {
+    throw new HttpsError("invalid-argument", "Invalid student UID filter");
+  }
+  if (testId !== null && (typeof testId !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(testId))) {
+    throw new HttpsError("invalid-argument", "Invalid test ID filter");
+  }
+  if (status !== null && !["active", "revoked"].includes(status)) {
+    throw new HttpsError("invalid-argument", "Invalid access status filter");
+  }
+  if ([studentUid, testId, status].filter(value => value !== null).length > 1) {
+    throw new HttpsError("invalid-argument", "Use only one access-list filter per request");
+  }
+  let query = db.collection("testSeriesManualAccess").orderBy("updatedAt", "desc");
+  if (studentUid) query = query.where("uid", "==", studentUid);
+  if (testId) query = query.where("testId", "==", testId);
+  if (status) query = query.where("status", "==", status);
+  if (data.cursor !== undefined && data.cursor !== null) {
+    if (typeof data.cursor !== "string" || !/^[a-f0-9]{64}$/.test(data.cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid access cursor");
+    }
+    const cursor = await db.doc("testSeriesManualAccess/" + data.cursor).get();
+    if (!cursor.exists) throw new HttpsError("invalid-argument", "Access cursor not found");
+    const cursorFilter = studentUid ? ["uid", studentUid] : testId ? ["testId", testId] : status ? ["status", status] : [null, null];
+    if (!ownerAccessCursorMatches(cursor.data(), cursorFilter[0], cursorFilter[1], "updatedAt")) {
+      throw new HttpsError("invalid-argument", "Access cursor does not match the active filter");
+    }
+    query = query.startAfter(cursor);
+  }
+  const snap = await query.limit(pageSize + 1).get();
+  const hasMore = snap.docs.length > pageSize;
+  const docs = snap.docs.slice(0, pageSize);
+  const responseNowMs = Date.now();
+  return {
+    items: docs.map(doc => {
+      const value = doc.data();
+      const expiryDate = date(value.expiresAt);
+      const effectiveStatus = effectiveOwnerAccessStatus(value.status, value.expiresAt, responseNowMs);
+      return {
+        accessId: doc.id,
+        studentUid: value.uid,
+        testId: value.testId,
+        status: value.status,
+        effectiveStatus,
+        source: value.source,
+        reason: value.reason,
+        expiresAt: expiryDate?.toISOString() || null,
+        createdAt: date(value.createdAt)?.toISOString() || null,
+        updatedAt: date(value.updatedAt)?.toISOString() || null,
+        createdBy: value.createdBy || null,
+        updatedBy: value.updatedBy || null
+      };
+    }),
+    nextCursor: hasMore && docs.length ? docs[docs.length - 1].id : null,
+    hasMore
+  };
+});
+
+exports.rmOwnerListStudentAccessAudit = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  const pageSize = data.pageSize === undefined ? 25 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new HttpsError("invalid-argument", "pageSize must be an integer from 1 to 100");
+  }
+  const studentUid = data.studentUid === undefined ? null : data.studentUid;
+  const testId = data.testId === undefined ? null : data.testId;
+  const action = data.action === undefined ? null : data.action;
+  if (studentUid !== null && (typeof studentUid !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(studentUid))) {
+    throw new HttpsError("invalid-argument", "Invalid student UID filter");
+  }
+  if (testId !== null && (typeof testId !== "string" || !/^[A-Za-z0-9_-]{1,100}$/.test(testId))) {
+    throw new HttpsError("invalid-argument", "Invalid test ID filter");
+  }
+  if (action !== null && !["grant", "revoke"].includes(action)) {
+    throw new HttpsError("invalid-argument", "Invalid audit action filter");
+  }
+  if ([studentUid, testId, action].filter(value => value !== null).length > 1) {
+    throw new HttpsError("invalid-argument", "Use only one audit-history filter per request");
+  }
+  let query = db.collection("testSeriesAccessAudit").orderBy("createdAt", "desc");
+  if (studentUid) query = query.where("targetUid", "==", studentUid);
+  if (testId) query = query.where("testId", "==", testId);
+  if (action) query = query.where("action", "==", action);
+  if (data.cursor !== undefined && data.cursor !== null) {
+    if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,150}$/.test(data.cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid audit cursor");
+    }
+    const cursor = await db.doc("testSeriesAccessAudit/" + data.cursor).get();
+    if (!cursor.exists) throw new HttpsError("invalid-argument", "Audit cursor not found");
+    const cursorFilter = studentUid ? ["targetUid", studentUid] : testId ? ["testId", testId] : action ? ["action", action] : [null, null];
+    if (!ownerAccessCursorMatches(cursor.data(), cursorFilter[0], cursorFilter[1], "createdAt")) {
+      throw new HttpsError("invalid-argument", "Audit cursor does not match the active filter");
+    }
+    query = query.startAfter(cursor);
+  }
+  const snap = await query.limit(pageSize + 1).get();
+  const hasMore = snap.docs.length > pageSize;
+  const docs = snap.docs.slice(0, pageSize);
+  return {
+    items: docs.map(doc => {
+      const value = doc.data();
+      return {
+        eventId: doc.id,
+        studentUid: value.targetUid,
+        testId: value.testId,
+        action: value.action,
+        actorUid: value.actorUid,
+        reason: value.reason,
+        previousStatus: value.previousStatus,
+        newStatus: value.newStatus,
+        createdAt: date(value.createdAt)?.toISOString() || null
+      };
+    }),
+    nextCursor: hasMore && docs.length ? docs[docs.length - 1].id : null,
+    hasMore
+  };
+});
+
+// Owner selects exactly one published zero-price test as the one-time free trial.
+exports.rmOwnerSetFreeTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = id(req.data && req.data.testId);
+  const configRef = db.doc("testSeriesConfig/freeTest");
+  const testRef = db.doc("testSeriesTests/" + testId);
+
+  // Older deployments may have claims without the hasClaims marker. Detect one
+  // legacy claim before the transaction; concurrent new claims are serialized
+  // by both operations reading and writing the same config document.
+  const configBefore = await configRef.get();
+  const configBeforeData = configBefore.exists ? configBefore.data() : null;
+  let legacyClaimExists = false;
+  if (!configBeforeData || configBeforeData.hasClaims !== true) {
+    const legacyClaims = await db.collection("testSeriesFreeAttempts").limit(1).get();
+    legacyClaimExists = !legacyClaims.empty;
+  }
+
+  await db.runTransaction(async tx => {
+    const [testSnap, configSnap] = await Promise.all([
+      tx.get(testRef),
+      tx.get(configRef)
+    ]);
+    if (!testSnap.exists || testSnap.data().status !== "published") {
+      throw new HttpsError("failed-precondition", "Only a published test can be selected as the free test");
+    }
+    if (Number(testSnap.data().price) !== 0) {
+      throw new HttpsError("failed-precondition", "The free test must have a zero price");
+    }
+
+    const currentConfig = configSnap.exists ? configSnap.data() : null;
+    try {
+      assertFreeTestSelectionAllowed({
+        currentConfig,
+        legacyClaimExists,
+        requestedTestId: testId
+      });
+    } catch (error) {
+      throw new HttpsError("failed-precondition", error.message);
+    }
+
+    const nextConfig = {
+      enabled: true,
+      testId,
+      hasClaims: Boolean((currentConfig && currentConfig.hasClaims === true) || legacyClaimExists),
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: req.auth.uid
+    };
+    if (currentConfig && currentConfig.firstClaimAt) nextConfig.firstClaimAt = currentConfig.firstClaimAt;
+    else if (legacyClaimExists) nextConfig.firstClaimAt = FieldValue.serverTimestamp();
+    tx.set(configRef, nextConfig, { merge: true });
+  });
+  return { saved: true, testId };
+});
+
+
+function ownerTestPayload(data) {
+  let title;
+  try {
+    title = normalizeOwnerTestTitle(data.title);
+  } catch (_) {
+    throw new HttpsError("invalid-argument", "Test title must be 1–160 characters and contain no control characters");
+  }
+  const category = typeof data.category === "string" && data.category.trim() ? data.category.trim() : "General";
+  const folderRaw = typeof data.folder === "string" && data.folder.trim() ? data.folder.trim() : "General";
+  const folderParts = folderRaw.split("/").map(part => part.trim());
+  if (category.length > 60 || !/^[\p{L}\p{M}\p{N} _-]+$/u.test(category)) throw new HttpsError("invalid-argument", "Category contains unsupported characters or is too long");
+  if (folderRaw.length > 120 || folderParts.length > 4 || folderParts.some(part => !part || part.length > 40 || !/^[\p{L}\p{M}\p{N} _-]+$/u.test(part))) throw new HttpsError("invalid-argument", "Folder path must contain up to four safe levels");
+  const mode = data.mode === "scheduled" ? "scheduled" : data.mode === "mock" ? "mock" : null;
+  if (!mode) throw new HttpsError("invalid-argument", "Mode must be mock or scheduled");
+  const durationMinutes = Number(data.durationMinutes);
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 240) throw new HttpsError("invalid-argument", "Duration must be 1–240 minutes");
+  const rawPrice = data.price ?? 0;
+  let price;
+  try { price = validateOwnerPrice(rawPrice); }
+  catch (error) { throw new HttpsError("invalid-argument", error.message); }
+  const marksPerQuestion = Number(data.marksPerQuestion ?? 1), negativeMarks = Number(data.negativeMarks ?? 0);
+  if (!Number.isFinite(marksPerQuestion) || marksPerQuestion <= 0 || marksPerQuestion > 100) throw new HttpsError("invalid-argument", "Invalid marks per question");
+  if (!Number.isFinite(negativeMarks) || negativeMarks < 0 || negativeMarks > 100) throw new HttpsError("invalid-argument", "Invalid negative marks");
+  // Saving a test can only create or update a draft. Publishing is a separate Owner action.
+  const status = "draft";
+  let scheduleStartAt = null, scheduleEndAt = null;
+  if (mode === "scheduled") {
+    scheduleStartAt = date(data.scheduleStartAt); scheduleEndAt = date(data.scheduleEndAt);
+    if (!scheduleStartAt || !scheduleEndAt || !Number.isFinite(scheduleStartAt.getTime()) || !Number.isFinite(scheduleEndAt.getTime()) || scheduleEndAt <= scheduleStartAt) {
+      throw new HttpsError("invalid-argument", "Scheduled tests need valid start and end times");
+    }
+  }
+  if (!Array.isArray(data.questions) || data.questions.length < 1 || data.questions.length > 500) throw new HttpsError("invalid-argument", "Add 1–500 questions");
+  // Enforce the GDCE JE Civil pattern on the trusted server, independently
+  // of browser-side validation. Other departmental exams remain configurable.
+  if (category.trim().toLocaleLowerCase() === "gdce je civil" &&
+      (data.questions.length !== 150 || durationMinutes !== 120 ||
+       marksPerQuestion !== 1 || Math.abs(negativeMarks - (1 / 3)) > 1e-9)) {
+    throw new HttpsError("invalid-argument", "GDCE JE Civil requires 150 questions, 120 minutes, 1 mark per correct answer and 1/3 negative marking");
+  }
+  const seen = new Set();
+  const publicQuestions = [], answerQuestions = {};
+  for (const q of data.questions) {
+    const qid = id(q && q.id);
+    if (seen.has(qid)) throw new HttpsError("invalid-argument", "Duplicate question identifier");
+    seen.add(qid);
+    if (typeof q.text !== "string" || !q.text.trim() || q.text.length > 5000) throw new HttpsError("invalid-argument", "Each question needs text (max 5000 characters)");
+    if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6 || q.options.some(x => typeof x !== "string" || !x.trim() || x.length > 1000)) throw new HttpsError("invalid-argument", "Each question needs 2–6 text options");
+    if (!Number.isInteger(q.correctIndex) || q.correctIndex < 0 || q.correctIndex >= q.options.length) throw new HttpsError("invalid-argument", "Each question needs a valid correctIndex");
+    let section = "";
+    if (q.section !== undefined && q.section !== null) {
+      try {
+        section = normalizeSectionLabel(q.section, true);
+      } catch (_) {
+        throw new HttpsError("invalid-argument", "Question section name is invalid");
+      }
+    }
+    let explanation;
+    try { explanation = normalizeOwnerQuestionExplanation(q.explanation); }
+    catch (_) {
+      throw new HttpsError("invalid-argument", "Question explanation must be text, at most 4000 characters, and contain no unsupported control characters");
+    }
+    let media;
+    try { media = require("./question-media-contract").projectStudentQuestionMedia(q.media); }
+    catch (_) { throw new HttpsError("invalid-argument", "Question image metadata is invalid"); }
+    publicQuestions.push({
+      id: qid,
+      text: q.text.trim(),
+      options: q.options,
+      ...(section ? { section } : {}),
+      ...(explanation ? { explanation } : {}),
+      ...(media ? { media } : {})
+    });
+    addExamAnswerKeyEntry(answerQuestions, qid, q.correctIndex);
+  }
+  const sectionNames = [...new Set(publicQuestions.map(question => question.section).filter(Boolean))];
+  if (data.sections !== undefined && !Array.isArray(data.sections)) {
+    throw new HttpsError("invalid-argument", "Sections must be an array when supplied");
+  }
+  const suppliedSections = data.sections === undefined ? [] : data.sections;
+  if (suppliedSections.length > 50) throw new HttpsError("invalid-argument", "At most 50 sections are allowed");
+  const sectionConfig = new Map();
+  suppliedSections.forEach((section, index) => {
+    let name;
+    try {
+      name = normalizeSectionLabel(section && section.name);
+    } catch (_) {
+      throw new HttpsError("invalid-argument", "Invalid section configuration at index " + index);
+    }
+    const timeLimitMinutes = Number(section && section.timeLimitMinutes !== undefined ? section.timeLimitMinutes : 0);
+    if (!Number.isInteger(timeLimitMinutes) || timeLimitMinutes < 0 || timeLimitMinutes > 240) {
+      throw new HttpsError("invalid-argument", "Invalid section configuration at index " + index);
+    }
+    const key = name.toLocaleLowerCase();
+    if (sectionConfig.has(key)) throw new HttpsError("invalid-argument", "Duplicate section name");
+    sectionConfig.set(key, { name, timeLimitMinutes });
+  });
+  sectionNames.forEach(name => {
+    const key = name.toLocaleLowerCase();
+    if (!sectionConfig.has(key)) sectionConfig.set(key, { name, timeLimitMinutes: 0 });
+  });
+  // Keep question section values identical to canonical section names. CBT
+  // section entry validates exact question.section matches against this list.
+  publicQuestions.forEach(question => {
+    if (question.section) question.section = sectionConfig.get(question.section.toLocaleLowerCase()).name;
+  });
+  const sections = [...sectionConfig.values()].map(section => ({
+    ...section,
+    questionCount: publicQuestions.filter(question => question.section &&
+      question.section.toLocaleLowerCase() === section.name.toLocaleLowerCase()).length
+  }));
+  if (sections.some(section => section.questionCount === 0)) {
+    throw new HttpsError("invalid-argument", "Every configured section must contain at least one question");
+  }
+
+  return {
+    metadata: { title, category, folder: folderParts.join(" / "), mode, durationMinutes, price, marksPerQuestion, negativeMarks, status,
+      scheduleStartAt: scheduleStartAt ? Timestamp.fromDate(scheduleStartAt) : null,
+      scheduleEndAt: scheduleEndAt ? Timestamp.fromDate(scheduleEndAt) : null,
+      questionCount: publicQuestions.length, sections, updatedAt: FieldValue.serverTimestamp() },
+    publicQuestions, answerQuestions
+  };
+}
+
+exports.rmOwnerSaveTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = req.data && req.data.testId ? id(req.data.testId) : db.collection("testSeriesTests").doc().id;
+  const payload = ownerTestPayload(req.data || {});
+  const testRef = db.doc("testSeriesTests/" + testId);
+  await db.runTransaction(async tx => {
+    const existing = await tx.get(testRef);
+    if (existing.exists && existing.data().status === "published") {
+      throw new HttpsError("failed-precondition", "Published tests are immutable. Create a new draft test to make changes.");
+    }
+    tx.set(testRef, { ...payload.metadata, createdAt: existing.exists ? existing.data().createdAt : FieldValue.serverTimestamp() }, { merge: true });
+    tx.set(db.doc("testSeriesQuestionSets/" + testId), { questions: payload.publicQuestions, updatedAt: FieldValue.serverTimestamp() });
+    tx.set(db.doc("testSeriesAnswerKeys/" + testId), { questions: payload.answerQuestions, updatedAt: FieldValue.serverTimestamp() });
+  });
+  return { saved: true, testId, status: payload.metadata.status, questionCount: payload.publicQuestions.length };
+});
+
+// Publishing is an explicit, separate Owner action. A draft is made visible to students
+// only after its private answer-key map and public question set pass integrity checks.
+exports.rmOwnerPublishTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = id(req.data && req.data.testId);
+  const testRef = db.doc("testSeriesTests/" + testId);
+  const questionRef = db.doc("testSeriesQuestionSets/" + testId);
+  const answerRef = db.doc("testSeriesAnswerKeys/" + testId);
+  return db.runTransaction(async tx => {
+    const [testSnap, questionSnap, answerSnap] = await Promise.all([
+      tx.get(testRef), tx.get(questionRef), tx.get(answerRef)
+    ]);
+    if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
+    const test = testSnap.data();
+    if (test.status !== "draft") throw new HttpsError("failed-precondition", "Only a draft test can be published");
+    if (!questionSnap.exists || !answerSnap.exists) throw new HttpsError("failed-precondition", "Question paper or private answer key is missing");
+    const questions = questionSnap.data().questions;
+    const answerMap = answerSnap.data().questions;
+    try {
+      validateOwnerQuestionPaper(test, questions, answerMap);
+      validatedExamSections(test, questions);
+    } catch (error) {
+      console.error("Owner publish integrity check failed", { testId, message: error.message });
+      throw new HttpsError("failed-precondition", "Test details, question paper, section configuration or private answer key is invalid; publishing is blocked");
+    }
+    const mediaDescriptors = [];
+    for (const question of questions) {
+      for (const media of (question.media || [])) {
+        mediaDescriptors.push({ questionId: question.id, media });
+      }
+    }
+    if (mediaDescriptors.length) {
+      const mappingRefs = mediaDescriptors.map(({ questionId, media }) =>
+        db.doc("testSeriesQuestionMedia/" + mediaMappingId(testId, questionId, media.id)));
+      const mappingSnaps = await Promise.all(mappingRefs.map(ref => tx.get(ref)));
+      for (let index = 0; index < mappingSnaps.length; index += 1) {
+        const snap = mappingSnaps[index];
+        const { questionId, media } = mediaDescriptors[index];
+        const mapping = snap.exists ? snap.data() : null;
+        if (!mapping || mapping.status !== "ready" || mapping.testId !== testId ||
+            mapping.questionId !== questionId || mapping.mediaId !== media.id ||
+            mapping.contentType !== media.mimeType ||
+            mapping.objectPath !== mediaObjectPath(testId, questionId, media.id) ||
+            !Number.isSafeInteger(mapping.sizeBytes) || mapping.sizeBytes < 1 ||
+            mapping.sizeBytes > MAX_IMAGE_BYTES ||
+            typeof mapping.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(mapping.sha256) ||
+            typeof mapping.generation !== "string" || !/^[1-9]\d*$/.test(mapping.generation)) {
+          throw new HttpsError("failed-precondition", "Every question image must be uploaded and verified before publishing");
+        }
+      }
+    }
+    tx.update(testRef, { status: "published", publishedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+    return { published: true, testId, questionCount: questions.length };
+  });
+});
+
+exports.rmOwnerGetTest = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const testId = id(req.data && req.data.testId);
+  const [testSnap, questionsSnap, answerKeySnap] = await Promise.all([
+    db.doc("testSeriesTests/" + testId).get(),
+    db.doc("testSeriesQuestionSets/" + testId).get(),
+    db.doc("testSeriesAnswerKeys/" + testId).get()
+  ]);
+  if (!testSnap.exists) throw new HttpsError("not-found", "Test not found");
+  if (!questionsSnap.exists || !answerKeySnap.exists) {
+    throw new HttpsError("failed-precondition", "Test question paper or private answer key is missing; editing is blocked");
+  }
+  const t = testSnap.data();
+  const publicQuestions = questionsSnap.data().questions;
+  const answerMap = answerKeySnap.data().questions;
+  if (!Array.isArray(publicQuestions) || publicQuestions.length < 1 || publicQuestions.length > 500) {
+    throw new HttpsError("failed-precondition", "Test question paper is empty or invalid; editing is blocked");
+  }
+  let questions;
+  try {
+    questions = restoreOwnerQuestionAnswerKeys(publicQuestions, answerMap);
+  } catch (error) {
+    console.error("Owner test answer-key restoration failed", { testId, message: error.message });
+    throw new HttpsError("failed-precondition", "Test answer key is missing or inconsistent; editing is blocked");
+  }
+  return {
+    testId, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
+    durationMinutes: Number(t.durationMinutes || 30), price: Number(t.price || 0),
+    marksPerQuestion: Number(t.marksPerQuestion ?? 1), negativeMarks: Number(t.negativeMarks ?? 0),
+    scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || "",
+    scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || "",
+    sections: Array.isArray(t.sections) ? t.sections : [],
+    questions
+  };
+});
+
+exports.rmOwnerListTests = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  const pageSize = data.pageSize === undefined ? 50 : data.pageSize;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+    throw new HttpsError("invalid-argument", "Page size must be from 1 to 100");
+  }
+  let query = db.collection("testSeriesTests").orderBy("updatedAt", "desc");
+  if (data.cursor !== undefined && data.cursor !== null) {
+    if (typeof data.cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(data.cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid test list cursor");
+    }
+    const cursorSnap = await db.doc("testSeriesTests/" + data.cursor).get();
+    if (!cursorSnap.exists) throw new HttpsError("invalid-argument", "Test list cursor not found");
+    query = query.startAfter(cursorSnap);
+  }
+  const [snap, freeConfigSnap] = await Promise.all([
+    query.limit(pageSize + 1).get(),
+    db.doc("testSeriesConfig/freeTest").get()
+  ]);
+  const hasMore = snap.docs.length > pageSize;
+  const page = snap.docs.slice(0, pageSize);
+  const freeConfig = freeConfigSnap.exists ? freeConfigSnap.data() : null;
+  const freeTestId = freeConfig && freeConfig.enabled && typeof freeConfig.testId === "string"
+    ? freeConfig.testId
+    : null;
+  return {
+    freeTestId,
+    freeTestLocked: Boolean(freeConfig && freeConfig.hasClaims === true),
+    nextCursor: hasMore ? page[page.length - 1].id : null,
+    hasMore,
+    tests: page.map(d => {
+      const t = d.data();
+      return { testId: d.id, title: t.title || "", category: t.category || "General", folder: t.folder || "General", mode: t.mode || "mock", status: t.status || "draft",
+        price: Number(t.price || 0), durationMinutes: Number(t.durationMinutes || 0),
+        questionCount: Number(t.questionCount || 0), scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
+        scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null };
+    })
+  };
+});
+
+
+// Owner-managed reusable question bank. Stored separately from published test snapshots.
+exports.rmOwnerSaveQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const data = req.data || {};
+  let normalized;
+  try {
+    normalized = normalizeQuestionBankItem({
+      topic: data.topic, chapter: data.chapter, folder: data.folder, question: data.question
+    });
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+  const itemId = data.itemId ? id(data.itemId) : db.collection("testSeriesQuestionBank").doc().id;
+  const ref = db.doc("testSeriesQuestionBank/" + itemId);
+  await ref.set({
+    ...normalized,
+    updatedAt: FieldValue.serverTimestamp(),
+    ...(!data.itemId ? { createdAt: FieldValue.serverTimestamp() } : {})
+  }, { merge: true });
+  return { saved: true, itemId };
+});
+
+exports.rmOwnerBulkSaveQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const items = req.data && req.data.items;
+  if (!Array.isArray(items) || items.length < 1 || items.length > 100) {
+    throw new HttpsError("invalid-argument", "Upload between 1 and 100 questions per batch");
+  }
+  let normalized;
+  try {
+    normalized = items.map((item, index) => normalizeQuestionBankItem(item, index + 1));
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+  const batch = db.batch();
+  const refs = normalized.map(() => db.collection("testSeriesQuestionBank").doc());
+  normalized.forEach((item, index) => batch.set(refs[index], {
+    ...item,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  }));
+  await batch.commit();
+  return { saved: refs.length, itemIds: refs.map(ref => ref.id) };
+});
+
+exports.rmOwnerDeleteQuestionBankItem = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const itemId = id(req.data && req.data.itemId);
+  const ref = db.doc("testSeriesQuestionBank/" + itemId);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "Question bank item not found");
+  await ref.delete();
+  return { deleted: true, itemId };
+});
+
+exports.rmOwnerListQuestionBank = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  let listRequest;
+  try {
+    listRequest = normalizeQuestionBankListRequest(req.data || {});
+  } catch (error) {
+    throw new HttpsError("invalid-argument", error.message);
+  }
+  const { pageSize, searchText, filters } = listRequest;
+  let query = db.collection("testSeriesQuestionBank").orderBy("updatedAt", "desc");
+  const cursor = req.data && req.data.cursor;
+  if (cursor !== undefined && cursor !== null) {
+    if (typeof cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid question bank cursor");
+    }
+    const cursorSnap = await db.doc("testSeriesQuestionBank/" + cursor).get();
+    if (!cursorSnap.exists) throw new HttpsError("invalid-argument", "Question bank cursor not found");
+    query = query.startAfter(cursorSnap);
+  }
+
+  // Scan in small pages until one extra match proves there is another result,
+  // or 500 documents have been examined. The cursor is the last returned
+  // match when an extra match exists; otherwise it advances past every
+  // scanned document so sparse filters cannot strand older matching records.
+  const scannedDocs = [];
+  const matches = [];
+  let scanCursor = null;
+  let exhausted = false;
+  const scanLimit = 500;
+  while (scannedDocs.length < scanLimit && matches.length <= pageSize && !exhausted) {
+    const batchSize = Math.min(100, scanLimit - scannedDocs.length);
+    let pageQuery = query.limit(batchSize);
+    if (scanCursor) pageQuery = pageQuery.startAfter(scanCursor);
+    const snap = await pageQuery.get();
+    if (snap.empty) {
+      exhausted = true;
+      break;
+    }
+    scannedDocs.push(...snap.docs);
+    scanCursor = snap.docs[snap.docs.length - 1];
+    for (const doc of snap.docs) {
+      const row = doc.data();
+      const matchesFilters = Object.entries(filters).every(([field, value]) => row[field] === value);
+      const searchable = [row.question && row.question.text, row.topic, row.chapter, row.folder]
+        .filter(Boolean).join(" ").toLocaleLowerCase();
+      if (matchesFilters && (!searchText || searchable.includes(searchText))) matches.push(doc);
+    }
+    if (snap.size < batchSize) exhausted = true;
+  }
+
+  const { page, nextCursor, hasMore } = selectQuestionBankPage({
+    matches, pageSize,
+    lastScannedId: scanCursor ? scanCursor.id : null,
+    scanLimited: scannedDocs.length === scanLimit && matches.length <= pageSize && !exhausted
+  });
+  const items = page.map(doc => {
+    const row = doc.data();
+    return { itemId: doc.id, topic: row.topic, chapter: row.chapter, folder: row.folder,
+      question: row.question, correctIndex: row.correctIndex,
+      createdAt: date(row.createdAt)?.toISOString() || null,
+      updatedAt: date(row.updatedAt)?.toISOString() || null };
+  });
+  const unique = field => [...new Set(scannedDocs.map(doc => doc.data()[field])
+    .filter(value => typeof value === "string" && value))].sort();
+  return {
+    items,
+    nextCursor,
+    hasMore,
+    filters: { topic: filters.topic || null, chapter: filters.chapter || null, folder: filters.folder || null, search: searchText || null },
+    facets: { topics: unique("topic"), chapters: unique("chapter"), folders: unique("folder") },
+    scanLimited: scannedDocs.length === scanLimit && matches.length <= pageSize && !exhausted
+  };
+});
+
+// Owner-only, read-only payment history. Authorization runs before any ledger read.
+exports.rmOwnerListPayments = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  try {
+    return await listOwnerPaymentHistory({
+      db,
+      cursor: req.data && req.data.cursor,
+      pageSize: req.data && req.data.pageSize
+    });
+  } catch (error) {
+    if (error && (error.code === "invalid_page_size" || error.code === "invalid_cursor")) {
+      throw new HttpsError("invalid-argument", error.message);
+    }
+    throw error;
+  }
+});
+
+// Owner-only, read-only queue for payment-order outcomes that need reconciliation.
+// The Owner guard runs before the helper performs any Firestore read.
+exports.rmOwnerListPaymentReconciliation = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  try {
+    return await listOwnerPaymentReconciliation({
+      db,
+      cursor: req.data && req.data.cursor,
+      pageSize: req.data && req.data.pageSize
+    });
+  } catch (error) {
+    if (error && (error.code === "invalid_page_size" || error.code === "invalid_cursor")) {
+      throw new HttpsError("invalid-argument", error.message);
+    }
+    throw error;
+  }
+});
+
+// Owner-only, read-only live lookup of a known provider order. This never changes
+// payment requests, locks, entitlements or the captured-payment ledger.
+// Owner-only live lookup of a known provider order. Financial state and access
+// are never changed; every successful or failed inspection is recorded separately.
+exports.rmOwnerInspectPaymentOrder = onCall({
+  ...CALLABLE_OPTIONS,
+  secrets: [RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET]
+}, async req => {
+  const ownerUid = owner(req);
+  const requestRecordId = req.data && req.data.requestRecordId;
+  if (typeof requestRecordId !== "string" || !/^[a-f0-9]{64}$/.test(requestRecordId)) {
+    throw new HttpsError("invalid-argument", "Invalid payment request reference");
+  }
+  const requestSnap = await db.doc("testSeriesPaymentRequests/" + requestRecordId).get();
+  if (!requestSnap.exists) throw new HttpsError("not-found", "Payment request not found");
+  const record = requestSnap.data() || {};
+  if (!["creating", "unknown"].includes(record.status) ||
+      typeof record.uid !== "string" || typeof record.testId !== "string" ||
+      !Number.isSafeInteger(record.amount) || record.amount <= 0 ||
+      record.currency !== "INR" ||
+      typeof record.receipt !== "string" ||
+      typeof record.providerOrderIdObserved !== "string") {
+    throw new HttpsError("failed-precondition", "This request has no safely inspectable provider order ID");
+  }
+
+  let inspection;
+  try {
+    inspection = await inspectRazorpayOrder({
+      keyId: RAZORPAY_KEY_ID.value(),
+      keySecret: RAZORPAY_KEY_SECRET.value(),
+      orderId: record.providerOrderIdObserved,
+      expectedReceipt: record.receipt,
+      expectedAmountPaise: record.amount,
+      expectedUid: record.uid,
+      expectedTestId: record.testId
+    });
+  } catch (error) {
+    try {
+      await recordPaymentInspectionAudit({
+        db, serverTimestamp: () => FieldValue.serverTimestamp(),
+        ownerUid, requestRecordId, outcome: "provider_lookup_failed"
+      });
+    } catch (auditError) {
+      console.error("Owner payment inspection failure audit could not be recorded", {
+        requestRecordId, message: auditError.message
+      });
+      throw new HttpsError("unavailable", "Razorpay lookup failed and its audit record could not be saved. No payment or access records were changed.");
+    }
+    console.error("Owner Razorpay order inspection failed", {
+      requestRecordId, message: error.message
+    });
+    throw new HttpsError("unavailable", "Razorpay status lookup failed. No payment or access records were changed.");
+  }
+
+  try {
+    await recordPaymentInspectionAudit({
+      db, serverTimestamp: () => FieldValue.serverTimestamp(),
+      ownerUid, requestRecordId, outcome: "success",
+      matchesRequest: inspection.matchesRequest,
+      orderStatus: inspection.order.status,
+      paymentStatuses: inspection.payments.map(payment => payment.status)
+    });
+  } catch (error) {
+    console.error("Owner payment inspection audit could not be recorded", {
+      requestRecordId, message: error.message
+    });
+    throw new HttpsError("unavailable", "Inspection could not be saved to the audit trail. No payment or access records were changed.");
+  }
+  return inspection;
+});
+
+// Owner-only, read-only, cursor-paginated inspection audit history.
+exports.rmOwnerListPaymentAudit = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  try {
+    return await listOwnerPaymentAudit({
+      db,
+      cursor: req.data && req.data.cursor,
+      pageSize: req.data && req.data.pageSize
+    });
+  } catch (error) {
+    if (error && (error.code === "invalid_page_size" || error.code === "invalid_cursor")) {
+      throw new HttpsError("invalid-argument", error.message);
+    }
+    throw error;
+  }
+});
+
+// Owner-only, read-only student exam activity. Returns result summaries only;
+// phone, email, answers, answer keys and raw attempt documents remain private.
+exports.rmOwnerListStudentActivity = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const pageSize = req.data && req.data.pageSize !== undefined ? req.data.pageSize : 25;
+  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 50) {
+    throw new HttpsError("invalid-argument", "Page size must be from 1 to 50");
+  }
+  const cursor = req.data && req.data.cursor;
+  let query = db.collection("testSeriesResults").orderBy("submittedAt", "desc");
+  if (cursor !== undefined && cursor !== null) {
+    if (typeof cursor !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(cursor)) {
+      throw new HttpsError("invalid-argument", "Invalid activity cursor");
+    }
+    const cursorSnap = await db.doc("testSeriesResults/" + cursor).get();
+    if (!cursorSnap.exists || !date(cursorSnap.data().submittedAt)) {
+      throw new HttpsError("invalid-argument", "Activity cursor not found");
+    }
+    query = query.startAfter(cursorSnap);
+  }
+  const snap = await query.limit(pageSize + 1).get();
+  const hasMore = snap.docs.length > pageSize;
+  const page = snap.docs.slice(0, pageSize);
+  const rows = page.map(doc => {
+    const r = doc.data();
+    return {
+      attemptId: doc.id,
+      studentUid: typeof r.uid === "string" ? r.uid : null,
+      testId: typeof r.testId === "string" ? r.testId : null,
+      score: Number(r.score || 0),
+      correct: Number(r.correct || 0),
+      wrong: Number(r.wrong || 0),
+      unattempted: Number(r.unattempted || 0),
+      totalQuestions: Number(r.totalQuestions || 0),
+      timedOut: Boolean(r.timedOut),
+      submittedAt: date(r.submittedAt)?.toISOString() || null
+    };
+  });
+  const testIds = [...new Set(rows.map(row => row.testId).filter(Boolean))];
+  const testSnaps = await Promise.all(testIds.map(testId => db.doc("testSeriesTests/" + testId).get()));
+  const titles = {};
+  testSnaps.forEach(doc => { if (doc.exists) titles[doc.id] = doc.data().title || ""; });
+  rows.forEach(row => { row.testTitle = titles[row.testId] || "Test"; });
+  return {
+    activities: rows,
+    nextCursor: hasMore && page.length ? page[page.length - 1].id : null,
+    hasMore
+  };
+});
+
+// Owner-only analytics over the latest 500 submitted result summaries.
+// This bounded report is explicitly a recent-activity snapshot, not lifetime totals.
+exports.rmOwnerGetResultAnalytics = onCall(CALLABLE_OPTIONS, async req => {
+  owner(req);
+  const snap = await db.collection("testSeriesResults").orderBy("submittedAt", "desc").limit(500).get();
+  const byTest = new Map();
+  let totalScore = 0, totalPercent = 0, scored = 0, timedOut = 0;
+  snap.docs.forEach(doc => {
+    const row = doc.data();
+    const testId = typeof row.testId === "string" ? row.testId : "unknown";
+    const score = Number(row.score || 0);
+    const correct = Number(row.correct || 0);
+    const total = Number(row.totalQuestions || 0);
+    const percent = total > 0 ? (correct / total) * 100 : null;
+    const entry = byTest.get(testId) || { testId, attempts: 0, scoreTotal: 0, percentTotal: 0, percentCount: 0, timedOut: 0 };
+    entry.attempts += 1;
+    entry.scoreTotal += Number.isFinite(score) ? score : 0;
+    if (percent !== null && Number.isFinite(percent)) { entry.percentTotal += percent; entry.percentCount += 1; }
+    if (row.timedOut === true) { entry.timedOut += 1; timedOut += 1; }
+    byTest.set(testId, entry);
+    totalScore += Number.isFinite(score) ? score : 0;
+    if (percent !== null && Number.isFinite(percent)) { totalPercent += percent; scored += 1; }
+  });
+  const testIds = [...byTest.keys()].filter(id => id !== "unknown");
+  const testSnaps = await Promise.all(testIds.map(testId => db.doc("testSeriesTests/" + testId).get()));
+  const titles = {};
+  testSnaps.forEach(doc => { if (doc.exists) titles[doc.id] = doc.data().title || ""; });
+  const tests = [...byTest.values()].map(entry => ({
+    testId: entry.testId,
+    title: titles[entry.testId] || "Test",
+    attempts: entry.attempts,
+    averageScore: Math.round((entry.scoreTotal / entry.attempts) * 100) / 100,
+    averageCorrectPercent: entry.percentCount ? Math.round(entry.percentTotal / entry.percentCount * 10) / 10 : null,
+    timedOut: entry.timedOut
+  })).sort((a, b) => b.attempts - a.attempts);
+  return {
+    window: "latest_500_submissions",
+    sampledAttempts: snap.size,
+    hasMore: snap.size === 500,
+    averageScore: snap.size ? Math.round(totalScore / snap.size * 100) / 100 : 0,
+    averageCorrectPercent: scored ? Math.round(totalPercent / scored * 10) / 10 : null,
+    timedOut,
+    tests
+  };
+});
+
+// Student catalogue exposes published metadata only; question sets and answer keys stay private.
+exports.rmListAvailableTests = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req);
+  const requestedPageSize = req.data?.pageSize === undefined ? 100 : Number(req.data.pageSize);
+  if (!Number.isInteger(requestedPageSize) || requestedPageSize < 1 || requestedPageSize > 100) {
+    throw new HttpsError("invalid-argument", "pageSize must be an integer from 1 to 100");
+  }
+  const cursorId = req.data?.cursor === undefined || req.data?.cursor === null || req.data?.cursor === ""
+    ? null : id(req.data.cursor);
+  let query = db.collection("testSeriesTests")
+    .where("status", "==", "published")
+    .orderBy(FieldPath.documentId())
+    .limit(requestedPageSize + 1);
+  if (cursorId) {
+    const cursorSnap = await db.doc("testSeriesTests/" + cursorId).get();
+    if (!cursorSnap.exists || cursorSnap.data().status !== "published") {
+      throw new HttpsError("invalid-argument", "Catalogue cursor is no longer valid");
+    }
+    query = query.startAfter(cursorSnap);
+  }
+  const [snap, freeConfig] = await Promise.all([
+    query.get(),
+    db.doc("testSeriesConfig/freeTest").get()
+  ]);
+  const hasMore = snap.docs.length > requestedPageSize;
+  const pageDocs = hasMore ? snap.docs.slice(0, requestedPageSize) : snap.docs;
+  const nextCursor = hasMore && pageDocs.length ? pageDocs[pageDocs.length - 1].id : null;
+  const freeTestId = freeConfig.exists && freeConfig.data().enabled ? freeConfig.data().testId : null;
+  const tests = await Promise.all(pageDocs.map(async d => {
+    const t = d.data(), price = typeof t.price === "number" && Number.isFinite(t.price) ? t.price : null;
+    const accessType = await getStudentTestAccessType({
+      db, uid, testId: d.id, test: t, freeTestId
+    });
+    return {
+      testId: d.id,
+      title: t.title || "",
+      category: t.category || "General",
+      folder: t.folder || "General",
+      mode: t.mode === "scheduled" ? "scheduled" : "mock",
+      durationMinutes: Number(t.durationMinutes || 30),
+      price,
+      accessType,
+      questionCount: Number(t.questionCount || 0),
+      scheduleStartAt: date(t.scheduleStartAt)?.toISOString() || null,
+      scheduleEndAt: date(t.scheduleEndAt)?.toISOString() || null
+    };
+  }));
+  tests.sort((a, b) => a.title.localeCompare(b.title));
+  return { tests, nextCursor, hasMore };
+});
+
+
+// Small, server-verified access lookup for one published test. This avoids
+// rescanning the full catalogue after a checkout status check.
+exports.rmGetStudentTestAccess = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req);
+  const testId = id(req.data && req.data.testId);
+  // Read the published test, free-trial selection and payment ledger from one
+  // read-only snapshot. The result is a UI hint; rmStartExam revalidates access
+  // in its own write transaction before creating or resuming an attempt.
+  return db.runTransaction(async tx => {
+    const [testSnap, freeConfigSnap] = await Promise.all([
+      tx.get(db.doc("testSeriesTests/" + testId)),
+      tx.get(db.doc("testSeriesConfig/freeTest"))
+    ]);
+    if (!testSnap.exists || testSnap.data().status !== "published") {
+      throw new HttpsError("not-found", "Published test not found");
+    }
+    const freeTestId = freeConfigSnap.exists && freeConfigSnap.data().enabled
+      ? freeConfigSnap.data().testId
+      : null;
+    const accessType = await getStudentTestAccessType({
+      db, transaction: tx, uid, testId, test: testSnap.data(), freeTestId
+    });
+    // Keep this response minimal: the client cannot grant access from checkout
+    // callbacks or supply any part of the payment ledger.
+    return { testId, accessType };
+  }, { readOnly: true });
+});
+
+
+// Student dashboard is strictly scoped to the authenticated UID. It returns only
+// submitted results belonging to that student and safe test metadata.
+exports.rmGetStudentDashboard = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req);
+  const resultsSnap = await db.collection("testSeriesResults")
+    .where("uid", "==", uid)
+    .orderBy("submittedAt", "desc")
+    .limit(100).get();
+  const results = resultsSnap.docs.map(d => {
+    const r = d.data();
+    return {
+      attemptId: d.id,
+      testId: r.testId,
+      score: Number(r.score || 0),
+      correct: Number(r.correct || 0),
+      wrong: Number(r.wrong || 0),
+      unattempted: Number(r.unattempted || 0),
+      timedOut: Boolean(r.timedOut),
+      totalQuestions: Number(r.totalQuestions || 0),
+      submittedAt: date(r.submittedAt)?.toISOString() || null
+    };
+  });
+  const testIds = [...new Set(results.map(r => r.testId).filter(Boolean))];
+  const testSnaps = await Promise.all(testIds.map(testId => db.doc("testSeriesTests/" + testId).get()));
+  const titles = {};
+  testSnaps.forEach(s => { if (s.exists) titles[s.id] = s.data().title || ""; });
+  results.forEach(r => { r.testTitle = titles[r.testId] || "Test"; });
+  results.sort((a, b) => (b.submittedAt || "").localeCompare(a.submittedAt || ""));
+  return { results, resultCount: results.length };
+});
+
+
+// Privacy-safe per-test leaderboard. Only aggregate rank, score and anonymous
+// display labels are returned; student UID, phone, email and attempt IDs stay private.
+exports.rmGetTestLeaderboard = onCall(CALLABLE_OPTIONS, async req => {
+  const uid = student(req), testId = id(req.data && req.data.testId);
+  const testSnap = await db.doc("testSeriesTests/" + testId).get();
+  if (!testSnap.exists || testSnap.data().status !== "published") {
+    throw new HttpsError("not-found", "Published test not found");
+  }
+  return getTestLeaderboard({ db, uid, testId });
+});
+
+
+// Creates a provider order only from the authenticated student's published test.
+// The browser never supplies price, currency, UID or provider credentials.
+exports.rmCreatePaymentOrder = onCall({
+  ...CALLABLE_OPTIONS,
+  secrets: [RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET]
+}, async req => {
+  const uid = student(req);
+  const testId = id(req.data && req.data.testId);
+  let requestId;
+  try { requestId = validatePaymentRequestId(req.data && req.data.requestId); }
+  catch (error) { throw new HttpsError("invalid-argument", error.message); }
+
+  const testRef = db.doc("testSeriesTests/" + testId);
+  const entitlementRef = db.doc("testSeriesEntitlements/" + paidEntitlementDocumentId(uid, testId));
+  const testSnap = await testRef.get();
+  if (!testSnap.exists || testSnap.data().status !== "published") throw new HttpsError("not-found", "Published test not found");
+  let amount;
+  try {
+    const storedPrice = testSnap.data().price;
+    if (typeof storedPrice !== "number" || !Number.isFinite(storedPrice)) {
+      throw new TypeError("Persisted test price must be a finite number");
+    }
+    amount = rupeesToPaise(storedPrice, { maxRupees: 100000 });
+  } catch {
+    throw new HttpsError("failed-precondition", "This test does not have a valid paid price");
+  }
+
+  // Validate provider configuration only after the published test and its
+  // persisted price are known to be valid. Keep this before any reservation,
+  // student/test lock, or outbound provider request.
+  let keyId = "";
+  try { keyId = RAZORPAY_KEY_ID.value(); } catch (_) {}
+  if (!isRazorpayTestModeKeyId(keyId)) {
+    throw new HttpsError("failed-precondition", "Razorpay Test Mode is not configured; paid checkout is disabled.");
+  }
+
+  const requestDocId = paymentRequestDocumentId({ uid, testId, requestId });
+  const fingerprint = paymentRequestFingerprint({ uid, testId, amount, currency: "INR" });
+  const requestRef = db.doc("testSeriesPaymentRequests/" + requestDocId);
+  const lockRef = db.doc("testSeriesPaymentLocks/" + paymentStudentTestLockDocumentId({ uid, testId }));
+  const reservationToken = crypto.randomUUID();
+  const reservation = await db.runTransaction(async tx => {
+    const [requestSnap, latestTest, entitlement, lockSnap] = await Promise.all([
+      tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef), tx.get(lockRef)
+    ]);
+    let latestAmount = null;
+    if (latestTest.exists && latestTest.data().status === "published" &&
+        typeof latestTest.data().price === "number" && Number.isFinite(latestTest.data().price)) {
+      try { latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }); } catch {}
+    }
+    if (latestAmount !== amount) throw new HttpsError("failed-precondition", "Test price or availability changed. Refresh and try again.");
+    const access = entitlement.exists ? entitlement.data() : null;
+    if (access && access.uid === uid && access.testId === testId && access.status === "active") {
+      throw new HttpsError("already-exists", "You already have access to this test");
+    }
+
+    const lock = lockSnap.exists ? lockSnap.data() : null;
+    const lockDecision = inspectStudentTestPaymentLock(lock, { uid, testId, requestDocId });
+    if (lockDecision.action === "reject") return { action: "blocked" };
+    if (lockDecision.action === "reconcile") return { action: "reconcile_lock" };
+    if (lock && !requestSnap.exists) return { action: "reconcile_lock" };
+    if (lock && requestSnap.exists && lock.status !== requestSnap.data().status) return { action: "reconcile_lock" };
+
+    const decision = inspectPaymentRequest(requestSnap.exists ? requestSnap.data() : null, fingerprint);
+    if (decision.action === "reject") return { action: "reject" };
+    if (decision.action === "reserve") {
+      tx.create(requestRef, {
+        uid, testId, requestId, fingerprint, amount, currency: "INR",
+        status: PAYMENT_REQUEST_STATES.CREATING, reservationToken,
+        receipt: "rm_" + requestDocId.slice(0, 32),
+        createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+      });
+      if (!lockSnap.exists) tx.create(lockRef, {
+        uid, testId, requestDocId, status: PAYMENT_REQUEST_STATES.CREATING,
+        createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+      });
+      return { action: "create" };
+    }
+
+    if (!lockSnap.exists) tx.create(lockRef, {
+      uid, testId, requestDocId, status: requestSnap.data().status,
+      createdAt: requestSnap.data().createdAt || FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    });
+    if (decision.action === "replay") return { action: "replay", orderId: decision.orderId };
+    if (decision.action === "wait") return { action: "wait" };
+    if (decision.action === "reconcile") return { action: "reconcile" };
+    return { action: "reconcile_lock" };
+  });
+
+  if (reservation.action === "blocked") {
+    throw new HttpsError("already-exists", "A payment request for this test is already pending or awaiting reconciliation. Do not start another checkout.", { paymentPending: true });
+  }
+  if (reservation.action === "reconcile_lock") {
+    throw new HttpsError("failed-precondition", "The existing student-test payment lock needs support reconciliation. Do not start another checkout.");
+  }
+  if (reservation.action === "reject") {
+    throw new HttpsError("already-exists", "This payment request ID was already used with a different or failed request. Start a new checkout.");
+  }
+  if (reservation.action === "wait") {
+    throw new HttpsError("unavailable", "This payment request is still processing. Retry with the same request ID shortly.");
+  }
+  if (reservation.action === "reconcile") {
+    throw new HttpsError("failed-precondition", "The previous payment outcome needs support reconciliation. Do not start another checkout yet.");
+  }
+
+  if (reservation.action === "replay") {
+    const orderSnap = await db.doc("testSeriesPaymentOrders/" + reservation.orderId).get();
+    if (!orderSnap.exists) throw new HttpsError("failed-precondition", "The saved payment order needs support reconciliation.");
+    const order = orderSnap.data();
+    if (order.uid !== uid || order.testId !== testId || order.amount !== amount || order.currency !== "INR" || order.status !== "created" || order.razorpayOrderId !== reservation.orderId || order.paymentRequestId !== requestDocId) {
+      throw new HttpsError("failed-precondition", "The saved payment order is inconsistent and needs support reconciliation.");
+    }
+    return { orderId: reservation.orderId, amount: order.amount, currency: order.currency, keyId: keyId, testId };
+  }
+
+  const requestSnap = await requestRef.get();
+  let providerOrder;
+  try {
+    providerOrder = await createRazorpayOrder({
+      keyId: keyId, keySecret: RAZORPAY_KEY_SECRET.value(),
+      amount, currency: "INR", receipt: requestSnap.data().receipt, notes: { uid, testId }
+    });
+  } catch (error) {
+    const definiteFailure = error && error.name === "RazorpayOrderRejectedError";
+    await db.runTransaction(async tx => {
+      const [current, lock] = await Promise.all([tx.get(requestRef), tx.get(lockRef)]);
+      if (current.exists && current.data().reservationToken === reservationToken && current.data().status === PAYMENT_REQUEST_STATES.CREATING) {
+        tx.update(requestRef, {
+          status: definiteFailure ? PAYMENT_REQUEST_STATES.FAILED : PAYMENT_REQUEST_STATES.UNKNOWN,
+          failureCode: definiteFailure ? "provider_rejected" : "provider_outcome_unknown",
+          updatedAt: FieldValue.serverTimestamp()
+        });
+        if (lock.exists && lock.data().requestDocId === requestDocId) {
+          if (definiteFailure) tx.delete(lockRef);
+          else tx.update(lockRef, { status: PAYMENT_REQUEST_STATES.UNKNOWN, updatedAt: FieldValue.serverTimestamp() });
+        } else if (!definiteFailure && !lock.exists) {
+          tx.create(lockRef, {
+            uid, testId, requestDocId, status: PAYMENT_REQUEST_STATES.UNKNOWN,
+            createdAt: current.data().createdAt || FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
+      }
+    }).catch(markError => console.error("Payment request failure state update failed", { requestDocId, message: markError.message }));
+    console.error("Razorpay order creation failed", { uid, testId, definiteFailure, message: error.message });
+    throw new HttpsError(definiteFailure ? "unavailable" : "failed-precondition",
+      definiteFailure ? "Payment provider rejected this order. Start a new checkout if you want to try again."
+        : "Payment provider outcome is unknown. Do not start another checkout; contact support for reconciliation.",
+      definiteFailure ? { retryableNewRequest: true } : undefined);
+  }
+
+  const orderRef = db.doc("testSeriesPaymentOrders/" + providerOrder.id);
+  try {
+    await db.runTransaction(async tx => {
+      const [currentRequest, latestTest, latestEntitlement, currentLock] = await Promise.all([
+        tx.get(requestRef), tx.get(testRef), tx.get(entitlementRef), tx.get(lockRef)
+      ]);
+      if (!currentRequest.exists || currentRequest.data().reservationToken !== reservationToken || currentRequest.data().status !== PAYMENT_REQUEST_STATES.CREATING ||
+          !currentLock.exists || currentLock.data().requestDocId !== requestDocId) {
+        throw new HttpsError("failed-precondition", "Payment reservation changed; provider order requires reconciliation.");
+      }
+      let latestAmount = null;
+      if (latestTest.exists && latestTest.data().status === "published" &&
+          typeof latestTest.data().price === "number" && Number.isFinite(latestTest.data().price)) {
+        try { latestAmount = rupeesToPaise(latestTest.data().price, { maxRupees: 100000 }); } catch {}
+      }
+      if (latestAmount !== amount) throw new HttpsError("failed-precondition", "Test price or availability changed after order creation.");
+      const access = latestEntitlement.exists ? latestEntitlement.data() : null;
+      if (access && access.uid === uid && access.testId === testId && access.status === "active") throw new HttpsError("already-exists", "You already have access to this test.");
+      tx.create(orderRef, {
+        uid, testId, razorpayOrderId: providerOrder.id, amount: providerOrder.amount,
+        currency: providerOrder.currency, status: "created", paymentRequestId: requestDocId,
+        createdAt: FieldValue.serverTimestamp()
+      });
+      tx.update(requestRef, { status: PAYMENT_REQUEST_STATES.CREATED, razorpayOrderId: providerOrder.id, updatedAt: FieldValue.serverTimestamp() });
+      tx.update(lockRef, { status: PAYMENT_REQUEST_STATES.CREATED, updatedAt: FieldValue.serverTimestamp() });
+    });
+  } catch (error) {
+    await db.runTransaction(async tx => {
+      const [current, lock] = await Promise.all([tx.get(requestRef), tx.get(lockRef)]);
+      if (current.exists && current.data().reservationToken === reservationToken && current.data().status === PAYMENT_REQUEST_STATES.CREATING) {
+        tx.update(requestRef, {
+          status: PAYMENT_REQUEST_STATES.UNKNOWN, failureCode: "firestore_commit_after_provider_success",
+          providerOrderIdObserved: providerOrder.id, updatedAt: FieldValue.serverTimestamp()
+        });
+        if (lock.exists && lock.data().requestDocId === requestDocId) {
+          tx.update(lockRef, { status: PAYMENT_REQUEST_STATES.UNKNOWN, updatedAt: FieldValue.serverTimestamp() });
+        } else if (!lock.exists) {
+          tx.create(lockRef, {
+            uid, testId, requestDocId, status: PAYMENT_REQUEST_STATES.UNKNOWN,
+            createdAt: current.data().createdAt || FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        }
+      }
+    }).catch(markError => console.error("Payment request reconciliation marker failed", { requestDocId, message: markError.message }));
+    console.error("Razorpay order ledger write failed", { uid, testId, providerOrderId: providerOrder.id });
+    if (error instanceof HttpsError) throw error;
+    throw new HttpsError("failed-precondition", "Provider order was created but its ledger needs support reconciliation. Do not retry with a new request.");
+  }
+
+  return { orderId: providerOrder.id, amount: providerOrder.amount, currency: providerOrder.currency, keyId: keyId, testId };
+});
+
+// Public provider callback: verify the HMAC against exact raw bytes before parsing
+// or touching the payment ledger. Unknown event types are acknowledged without grants.
+exports.rmRazorpayWebhook = onRequest({
+  region: REGION,
+  secrets: [RAZORPAY_WEBHOOK_SECRET]
+}, async (req, res) => {
+  await handleRazorpayWebhook({
+    req,
+    res,
+    secret: RAZORPAY_WEBHOOK_SECRET.value(),
+    db,
+    applyPayment: applyCapturedPayment,
+    applyRefund: applyProcessedRefund
+  });
+
+});

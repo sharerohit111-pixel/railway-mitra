@@ -1,0 +1,97 @@
+"use strict";
+
+const DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS = 15_000;
+const MAX_RAZORPAY_ORDER_TIMEOUT_MS = 60_000;
+
+function isRazorpayTestModeKeyId(keyId) {
+  return typeof keyId === "string" && /^rzp_test_[A-Za-z0-9]+$/.test(keyId);
+}
+
+function validateOrderInput({ keyId, keySecret, amount, currency = "INR", receipt, notes } = {}) {
+  if (!isRazorpayTestModeKeyId(keyId)) {
+    throw new Error("A valid Razorpay Test Mode Key ID is required; live-mode keys are disabled");
+  }
+  if (typeof keySecret !== "string" || !keySecret.trim()) {
+    throw new Error("Razorpay API credentials are not configured");
+  }
+  if (!Number.isSafeInteger(amount) || amount <= 0) {
+    throw new Error("Order amount must be a positive integer in the smallest currency unit");
+  }
+  if (currency !== "INR") throw new Error("Only INR orders are supported");
+  if (typeof receipt !== "string" || !/^[A-Za-z0-9_-]{1,40}$/.test(receipt)) {
+    throw new Error("A valid server-generated receipt is required");
+  }
+  if (!notes || typeof notes !== "object" || Array.isArray(notes)) {
+    throw new Error("Server-owned order notes are required");
+  }
+}
+
+function createProviderTimeoutSignal(timeoutMs) {
+  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > MAX_RAZORPAY_ORDER_TIMEOUT_MS) {
+    throw new Error("Razorpay order request timeout must be a positive integer no greater than 60000 ms");
+  }
+  if (typeof AbortSignal === "undefined" || typeof AbortSignal.timeout !== "function") {
+    throw new Error("The runtime does not support bounded Razorpay order requests");
+  }
+  return AbortSignal.timeout(timeoutMs);
+}
+
+class RazorpayOrderRejectedError extends Error {
+  constructor(message) { super(message); this.name = "RazorpayOrderRejectedError"; }
+}
+
+async function createRazorpayOrder({
+  fetchImpl = globalThis.fetch,
+  keyId,
+  keySecret,
+  amount,
+  currency = "INR",
+  receipt,
+  notes,
+  timeoutMs = DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS
+} = {}) {
+  validateOrderInput({ keyId, keySecret, amount, currency, receipt, notes });
+  if (typeof fetchImpl !== "function") throw new Error("A supported HTTP client is required");
+  const signal = createProviderTimeoutSignal(timeoutMs);
+
+  const response = await fetchImpl("https://api.razorpay.com/v1/orders", {
+    method: "POST",
+    headers: {
+      Authorization: "Basic " + Buffer.from(keyId + ":" + keySecret).toString("base64"),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ amount, currency, receipt, notes }),
+    signal
+  });
+
+  let payload;
+  try { payload = await response.json(); }
+  catch { throw new Error("Razorpay returned an unreadable order response"); }
+
+  if (!response.ok) {
+    const message = payload && payload.error && payload.error.description;
+    const description = typeof message === "string" ? message : "Razorpay order creation failed";
+    const status = response.status;
+    // A 5xx, timeout-like 4xx, conflict, or missing status may follow a
+    // provider-side create even when the response is unusable. Keep those
+    // outcomes ambiguous so the caller retains its reconciliation lock.
+    const definiteClientRejection = Number.isInteger(status) &&
+      status >= 400 && status < 500 && ![408, 409, 425].includes(status);
+    if (definiteClientRejection) throw new RazorpayOrderRejectedError(description);
+    const statusLabel = Number.isInteger(status) ? " (HTTP " + status + ")" : "";
+    throw new Error("Razorpay order creation outcome is ambiguous" + statusLabel + ": " + description);
+  }
+  if (!payload || typeof payload.id !== "string" || !/^order_[A-Za-z0-9]+$/.test(payload.id) ||
+      payload.amount !== amount || payload.currency !== currency || payload.status !== "created") {
+    throw new Error("Razorpay returned an invalid order record");
+  }
+  return { id: payload.id, amount: payload.amount, currency: payload.currency, status: payload.status };
+}
+
+module.exports = {
+  createRazorpayOrder,
+  isRazorpayTestModeKeyId,
+  RazorpayOrderRejectedError,
+  DEFAULT_RAZORPAY_ORDER_TIMEOUT_MS,
+  MAX_RAZORPAY_ORDER_TIMEOUT_MS
+};
