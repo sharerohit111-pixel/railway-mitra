@@ -1,0 +1,355 @@
+"use strict";
+
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
+const { handleRazorpayWebhook, MAX_WEBHOOK_BODY_BYTES } = require("../razorpay-webhook-handler");
+
+const secret = "webhook-test-secret";
+const event = {
+  event: "payment.captured",
+  payload: { payment: { entity: {
+    id: "pay_handler_1", order_id: "order_handler_1",
+    amount: 49900, currency: "INR", status: "captured"
+  } } }
+};
+
+function request({ method = "POST", body = event, rawBody, signature, eventId = "evt_handler_1" } = {}) {
+  const bytes = rawBody || Buffer.from(JSON.stringify(body));
+  return {
+    method,
+    rawBody: bytes,
+    body,
+    get(name) {
+      if (name === "x-razorpay-signature") return signature ||
+        crypto.createHmac("sha256", secret).update(bytes).digest("hex");
+      if (name === "x-razorpay-event-id") return eventId;
+      return undefined;
+    }
+  };
+}
+
+function response() {
+  return {
+    code: null, body: null, headers: {},
+    set(name, value) { this.headers[name] = value; return this; },
+    status(code) { this.code = code; return this; },
+    send(body) { this.body = body; return this; },
+    json(body) { this.body = body; return this; }
+  };
+}
+
+test("rejects non-POST requests and invalid signatures before ledger access", async () => {
+  let calls = 0;
+  const applyPayment = async () => { calls++; };
+  const methodRes = response();
+  await handleRazorpayWebhook({ req: request({ method: "GET" }), res: methodRes, secret, db: {}, applyPayment });
+  assert.equal(methodRes.code, 405);
+  assert.equal(methodRes.headers.Allow, "POST");
+
+  const badSignatureRes = response();
+  await handleRazorpayWebhook({
+    req: request({ signature: "0".repeat(64) }),
+    res: badSignatureRes, secret, db: {}, applyPayment
+  });
+  assert.equal(badSignatureRes.code, 400);
+  assert.equal(calls, 0);
+});
+
+test("rejects a missing raw request body before invoking either ledger processor", async () => {
+  let calls = 0;
+  const req = request();
+  req.rawBody = undefined;
+  const res = response();
+  await handleRazorpayWebhook({
+    req, res, secret, db: {},
+    applyPayment: async () => { calls++; },
+    applyRefund: async () => { calls++; }
+  });
+  assert.equal(res.code, 400);
+  assert.equal(res.body, "Invalid webhook signature");
+  assert.equal(calls, 0);
+});
+
+test("acknowledges verified non-capture events without creating a ledger entry", async () => {
+  let calls = 0;
+  const body = { ...event, event: "payment.authorized" };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body }), res, secret, db: {},
+    applyPayment: async () => { calls++; }
+  });
+  assert.equal(res.code, 200);
+  assert.equal(res.body, "Event ignored");
+  assert.equal(calls, 0);
+});
+
+test("passes verified captured events to the payment ledger and reports duplicates", async () => {
+  let received;
+  const res = response();
+  const db = { marker: "test-db" };
+  await handleRazorpayWebhook({
+    req: request(), res, secret, db,
+    applyPayment: async args => {
+      received = args;
+      return { granted: false, duplicate: true };
+    }
+  });
+  assert.equal(res.code, 200);
+  assert.deepEqual(res.body, { received: true, duplicate: true });
+  assert.equal(received.db, db);
+  assert.equal(received.eventId, "evt_handler_1");
+  assert.deepEqual(received.event, event);
+});
+
+test("processes only the JSON payload covered by the verified raw-body signature", async () => {
+  const signedEvent = {
+    ...event,
+    payload: { payment: { entity: {
+      id: "pay_signed_body", order_id: "order_handler_1",
+      amount: 49900, currency: "INR", status: "captured"
+    } } }
+  };
+  const untrustedParsedBody = {
+    ...event,
+    payload: { payment: { entity: {
+      id: "pay_untrusted_parsed_body", order_id: "order_handler_1",
+      amount: 1, currency: "USD", status: "captured"
+    } } }
+  };
+  const rawBody = Buffer.from(JSON.stringify(signedEvent));
+  const res = response();
+  let received;
+  await handleRazorpayWebhook({
+    req: request({ body: untrustedParsedBody, rawBody }),
+    res, secret, db: {},
+    applyPayment: async args => { received = args.event; return { granted: true, duplicate: false }; }
+  });
+  assert.equal(res.code, 200);
+  assert.deepEqual(received, signedEvent);
+  assert.notDeepEqual(received, untrustedParsedBody);
+});
+
+test("rejects malformed payload and missing event IDs before ledger access", async () => {
+  let calls = 0;
+  const malformedBytes = Buffer.from("{not-json");
+  const malformedRes = response();
+  await handleRazorpayWebhook({
+    req: request({ body: event, rawBody: malformedBytes }),
+    res: malformedRes, secret, db: {},
+    applyPayment: async () => { calls++; }
+  });
+  assert.equal(malformedRes.code, 400);
+
+  const missingIdRes = response();
+  await handleRazorpayWebhook({
+    req: request({ eventId: "" }), res: missingIdRes, secret, db: {},
+    applyPayment: async () => { calls++; }
+  });
+  assert.equal(missingIdRes.code, 400);
+  assert.equal(calls, 0);
+});
+
+test("acknowledges permanent conflicts but asks the provider to retry transient ledger failures", async () => {
+  const permanentRes = response();
+  await handleRazorpayWebhook({
+    req: request(), res: permanentRes, secret, db: {},
+    applyPayment: async () => { const error = new Error("conflict"); error.code = "event_id_conflict"; throw error; }
+  });
+  assert.equal(permanentRes.code, 200);
+  assert.deepEqual(permanentRes.body, { received: true, rejected: true });
+
+  const invalidOrderRes = response();
+  await handleRazorpayWebhook({
+    req: request(), res: invalidOrderRes, secret, db: {},
+    applyPayment: async () => { const error = new Error("order missing"); error.code = "order_not_found"; throw error; }
+  });
+  assert.equal(invalidOrderRes.code, 200);
+  assert.deepEqual(invalidOrderRes.body, { received: true, rejected: true });
+
+  const transientRes = response();
+  await handleRazorpayWebhook({
+    req: request(), res: transientRes, secret, db: {},
+    applyPayment: async () => { throw new Error("temporary firestore outage"); }
+  });
+  assert.equal(transientRes.code, 500);
+});
+
+test("retries a refund webhook when its captured-payment ledger has not arrived yet", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_before_capture", payment_id: "pay_before_capture", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_before_capture", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_refund_before_capture" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("Captured payment ledger has not arrived yet");
+      error.code = "refund_payment_not_found";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});
+
+test("keeps inconsistent replay ledgers retryable instead of acknowledging a damaged grant", async () => {
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request(), res, secret, db: {},
+    applyPayment: async () => {
+      const error = new Error("previously processed event is missing a matching ledger record");
+      error.code = "event_ledger_inconsistent";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});
+
+
+test("keeps inconsistent refund ledgers retryable instead of acknowledging a damaged entitlement", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_inconsistent_handler", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_inconsistent_refund_handler" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("refund ledger does not match the payment and entitlement");
+      error.code = "refund_ledger_inconsistent";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});
+
+test("routes verified refund.processed events to the refund ledger", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_handler_1", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded" } }
+    }
+  };
+  let received;
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_refund_handler_1" }),
+    res, secret, db: {},
+    applyPayment: async () => { throw new Error("capture processor must not run"); },
+    applyRefund: async args => { received = args; return { duplicate: false, revoked: true }; }
+  });
+  assert.equal(res.code, 200);
+  assert.deepEqual(res.body, { received: true, duplicate: false, revoked: true });
+  assert.equal(received.eventId, "evt_refund_handler_1");
+  assert.deepEqual(received.event, refundEvent);
+});
+
+
+test("acknowledges a captured-event ID collision as a permanent refund rejection", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_collision", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_capture_collision" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("event ID already belongs to a captured-payment ledger entry");
+      error.code = "refund_id_conflict";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 200);
+  assert.deepEqual(res.body, { received: true, rejected: true });
+});
+
+test("rejects oversized raw webhook bodies before signature verification or ledger access", async () => {
+  const req = request({ rawBody: Buffer.alloc(MAX_WEBHOOK_BODY_BYTES + 1, 0x20) });
+  const originalGet = req.get.bind(req);
+  let signatureReads = 0;
+  req.get = name => {
+    if (name === "x-razorpay-signature") signatureReads += 1;
+    return originalGet(name);
+  };
+  let processorCalls = 0;
+  const res = response();
+
+  await handleRazorpayWebhook({
+    req, res, secret, db: {},
+    applyPayment: async () => { processorCalls += 1; },
+    applyRefund: async () => { processorCalls += 1; }
+  });
+
+  assert.equal(res.code, 413);
+  assert.equal(res.body, "Webhook payload too large");
+  assert.equal(signatureReads, 0, "oversized payloads must be rejected before HMAC verification");
+  assert.equal(processorCalls, 0, "oversized payloads must never reach a ledger processor");
+});
+
+
+test("accepts a raw webhook body exactly at the configured byte ceiling", async () => {
+  const signedJson = Buffer.from(JSON.stringify(event), "utf8");
+  assert.ok(signedJson.length < MAX_WEBHOOK_BODY_BYTES);
+  const rawBody = Buffer.alloc(MAX_WEBHOOK_BODY_BYTES, 0x20);
+  signedJson.copy(rawBody);
+
+  let receivedEvent = null;
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ rawBody }),
+    res,
+    secret,
+    db: {},
+    applyPayment: async ({ event: verifiedEvent }) => {
+      receivedEvent = verifiedEvent;
+      return { duplicate: false };
+    }
+  });
+
+  assert.equal(rawBody.length, MAX_WEBHOOK_BODY_BYTES);
+  assert.equal(res.code, 200);
+  assert.deepEqual(receivedEvent, event);
+  assert.deepEqual(res.body, { received: true, duplicate: false });
+});
+
+test("keeps inconsistent refund ledgers retryable instead of acknowledging them as permanent conflicts", async () => {
+  const refundEvent = {
+    event: "refund.processed",
+    payload: {
+      refund: { entity: { id: "rfnd_inconsistent", payment_id: "pay_handler_1", amount: 49900, currency: "INR", status: "processed" } },
+      payment: { entity: { id: "pay_handler_1", amount: 49900, amount_refunded: 49900, currency: "INR", refund_status: "full", status: "refunded", captured: true } }
+    }
+  };
+  const res = response();
+  await handleRazorpayWebhook({
+    req: request({ body: refundEvent, eventId: "evt_inconsistent_refund_ledger" }),
+    res, secret, db: {},
+    applyPayment: async () => assert.fail("refund event must not reach the capture processor"),
+    applyRefund: async () => {
+      const error = new Error("refund ledger is incomplete and requires reconciliation");
+      error.code = "refund_ledger_inconsistent";
+      throw error;
+    }
+  });
+  assert.equal(res.code, 500);
+  assert.equal(res.body, "Payment event could not be safely recorded");
+});

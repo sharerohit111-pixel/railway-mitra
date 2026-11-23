@@ -22,6 +22,14 @@ service firebase.storage {
         );
     }
 
+    // Test Series private question media: server-authorized signed URL flow only.
+    match /test-series-question-media-quarantine/{allPaths=**} {
+      allow read, write: if false;
+    }
+    match /test-series-question-media/{allPaths=**} {
+      allow read, write: if false;
+    }
+
     // Existing exam-content access rule; preserve unchanged.
     match /exam-content/{uid}/{folderId}/{fileName} {
       allow read: if request.auth != null && request.auth.token.admin == true && request.auth.uid == uid;

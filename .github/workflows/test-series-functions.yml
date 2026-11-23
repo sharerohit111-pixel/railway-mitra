@@ -1,0 +1,111 @@
+name: Test Series Functions validation
+
+on:
+  pull_request:
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/firestore.rules"
+      - "storage.rules"
+      - "features/test-series/cloud/README.md"
+      - "features/test-series/cloud/app-check-diagnostic.mjs"
+      - "features/test-series/cloud/app-check-test.html"
+      - "features/test-series/cloud/app-check.js"
+      - "features/test-series/cloud/firebase-app-check-init.js"
+      - "features/test-series/cloud/firebase-emulator-config.mjs"
+      - "features/test-series/cloud/student-client.js"
+      - "features/test-series/student/**"
+      - "features/test-series/admin/**"
+      - "app.html"
+      - "features/test-series/index.html"
+      - "firebase.json"
+      - "firebase.test-series-cbt-emulator.json"
+      - ".github/workflows/test-series-firestore-load-emulator.yml"
+      - ".github/workflows/test-series-callable-load-emulator.yml"
+      - ".github/workflows/pway-calculator-syntax.yml"
+      - ".github/workflows/test-series-functions.yml"
+  push:
+    branches:
+      - feature/test-series-cloud-access
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/firestore.rules"
+      - "storage.rules"
+      - "features/test-series/cloud/README.md"
+      - "features/test-series/cloud/app-check-diagnostic.mjs"
+      - "features/test-series/cloud/app-check-test.html"
+      - "features/test-series/cloud/app-check.js"
+      - "features/test-series/cloud/firebase-app-check-init.js"
+      - "features/test-series/cloud/firebase-emulator-config.mjs"
+      - "features/test-series/cloud/student-client.js"
+      - "features/test-series/student/**"
+      - "features/test-series/admin/**"
+      - "app.html"
+      - "features/test-series/index.html"
+      - "firebase.json"
+      - "firebase.test-series-cbt-emulator.json"
+      - ".github/workflows/test-series-firestore-load-emulator.yml"
+      - ".github/workflows/test-series-callable-load-emulator.yml"
+      - ".github/workflows/test-series-functions.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    env:
+      GCLOUD_PROJECT: demo-railway-mitra-cbt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Firebase codebase configuration
+        run: node -e "const c=require('./firebase.json'); if(!Array.isArray(c.functions)||!c.functions.some(x=>x.codebase==='test-series'&&x.source==='features/test-series/cloud/functions')) process.exit(1)"
+      - name: Validate isolated CBT emulator configuration
+        run: node -e "const c=require('./firebase.test-series-cbt-emulator.json'); const f=c.functions||[]; if(f.length!==1||f[0].codebase!=='test-series'||f[0].source!=='features/test-series/cloud/functions'||c.firestore?.rules!=='features/test-series/cloud/firestore.rules'||c.emulators?.singleProjectMode!==true) process.exit(1)"
+      - name: Install isolated function dependencies
+        working-directory: features/test-series/cloud/functions
+        run: npm ci --ignore-scripts --no-audit --no-fund --include=optional
+      - name: Check JavaScript syntax
+        working-directory: features/test-series/cloud/functions
+        run: npm run lint
+      - name: Check isolated Owner Admin module syntax
+        run: |
+          node --check --input-type=module < features/test-series/admin/admin-dashboard.js
+          node --check --input-type=module < features/test-series/admin/owner-portal.js
+          node --check --input-type=module < features/test-series/admin/owner-test-access-panel.mjs
+          node --check --input-type=module < features/test-series/admin/owner-session.mjs
+          node --check --input-type=module < features/test-series/admin/admin-auth.js
+          node --check --input-type=module < features/test-series/admin/owner-recaptcha.mjs
+          node --check --input-type=module < features/test-series/admin/admin-test-validation.mjs
+          node --check --input-type=module < features/test-series/admin/owner-question-media-upload.mjs
+          node --check --input-type=module < features/test-series/admin/payment-inspection-guidance.mjs
+          node --check --input-type=module < features/test-series/cloud/app-check.js
+          node --check --input-type=module < features/test-series/cloud/firebase-emulator-config.mjs
+          node --check --input-type=module < features/test-series/cloud/firebase-app-check-init.js
+      - name: Test Owner Admin draft validation
+        run: node --test features/test-series/admin/tests/*.test.mjs
+      - name: Check isolated student module syntax
+        run: |
+          node --check --input-type=module < features/test-series/cloud/student-client.js
+          node --check --input-type=module < features/test-series/student/catalogue.js
+          node --check --input-type=module < features/test-series/student/payment-checkout.js
+          node --check --input-type=module < features/test-series/student/exam.js
+          node --check --input-type=module < features/test-series/student/answer-draft-store.mjs
+          node --check --input-type=module < features/test-series/student/dashboard.js
+          node --check --input-type=module < features/test-series/student/leaderboard.js
+          node --check --input-type=module < features/test-series/student/portal.js
+      - name: Test offline answer draft recovery
+        run: node --test features/test-series/student/tests/*.test.mjs
+
+      - name: Run isolated CBT Auth, Firestore, Functions and Storage emulator tests
+        env:
+          OWNER_UID: railway-mitra-cbt-emulator-owner
+          TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR: "true"
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore,functions,storage "npm --prefix features/test-series/cloud/functions test"
+      - name: Verify private question media Storage rules in emulator
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,storage "node features/test-series/cloud/functions/tests/storage-emulator-smoke.js"
+
+      - name: Verify Firestore user ownership and CBT default-deny rules in emulator
+        run: npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore "node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js"

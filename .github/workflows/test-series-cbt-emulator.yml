@@ -1,0 +1,111 @@
+name: Test Series CBT emulator tests
+
+on:
+  push:
+    branches:
+      - feature/test-series-cloud-access
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/firestore.rules"
+      - "storage.rules"
+      - "features/test-series/cloud/README.md"
+      - "features/test-series/cloud/app-check.js"
+      - "features/test-series/cloud/firebase-app-check-init.js"
+      - "features/test-series/cloud/app-check-diagnostic.mjs"
+      - "features/test-series/cloud/app-check-test.html"
+      - "features/test-series/cloud/INTEGRATION-REVIEW.md"
+      - "features/test-series/cloud/firebase-emulator-config.mjs"
+      - "features/test-series/student/**"
+      - "firebase.json"
+      - "firebase.test-series-cbt-emulator.json"
+      - ".github/workflows/test-series-cbt-emulator.yml"
+  pull_request:
+    paths:
+      - "features/test-series/cloud/functions/**"
+      - "features/test-series/cloud/firestore.rules"
+      - "storage.rules"
+      - "features/test-series/cloud/README.md"
+      - "features/test-series/cloud/app-check.js"
+      - "features/test-series/cloud/firebase-app-check-init.js"
+      - "features/test-series/cloud/app-check-diagnostic.mjs"
+      - "features/test-series/cloud/app-check-test.html"
+      - "features/test-series/cloud/INTEGRATION-REVIEW.md"
+      - "features/test-series/cloud/firebase-emulator-config.mjs"
+      - "features/test-series/student/**"
+      - "firebase.json"
+      - "firebase.test-series-cbt-emulator.json"
+      - ".github/workflows/test-series-cbt-emulator.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: test-series-cbt-emulator-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  cbt-emulator-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Validate isolated CBT emulator configuration
+        run: |
+          node - <<'NODE'
+          const config = require("./firebase.test-series-cbt-emulator.json");
+          const functions = config.functions || [];
+          if (
+            functions.length !== 1 ||
+            functions[0].codebase !== "test-series" ||
+            functions[0].source !== "features/test-series/cloud/functions" ||
+            config.firestore?.rules !== "features/test-series/cloud/firestore.rules" ||
+            config.storage?.rules !== "storage.rules" ||
+            config.emulators?.storage?.port !== 9199 ||
+            config.emulators?.singleProjectMode !== true
+          ) {
+            throw new Error("CBT emulator config must contain only the isolated Test Series Functions codebase and CBT Firestore rules.");
+          }
+          console.log("Validated: isolated Auth, Firestore, Storage and Test Series Functions emulators only.");
+          NODE
+
+      - name: Install isolated CBT Functions dependencies
+        working-directory: features/test-series/cloud/functions
+        run: npm ci --no-audit --no-fund --include=optional
+
+      - name: Check CBT Functions syntax
+        working-directory: features/test-series/cloud/functions
+        run: npm run lint
+
+      - name: Check emulator backup fixture syntax
+        run: node --check features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js
+
+      - name: Run isolated student portal regression tests
+        run: node --test features/test-series/student/tests/*.test.mjs
+
+      - name: Run CBT unit and Firestore Rules emulator tests
+        run: OWNER_UID=railway-mitra-cbt-emulator-owner TEST_SERIES_ALLOW_CUSTOM_AUTH_FOR_EMULATOR=true npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore,functions,storage "npm --prefix features/test-series/cloud/functions test && node features/test-series/cloud/functions/tests/rules/firestore-rules-emulator.js && STORAGE_EMULATOR_HOST=http://127.0.0.1:9199 node features/test-series/cloud/functions/tests/storage-emulator-smoke.js"
+
+      - name: Verify synthetic Auth and Firestore emulator backup/restore
+        shell: bash
+        run: |
+          set -euo pipefail
+          export_dir="${RUNNER_TEMP}/railway-mitra-cbt-emulator-export"
+          rm -rf "$export_dir"
+          GCLOUD_PROJECT=demo-railway-mitra-cbt npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore --export-on-exit="$export_dir" "node features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js seed"
+          test -f "$export_dir/firebase-export-metadata.json"
+          GCLOUD_PROJECT=demo-railway-mitra-cbt npx --yes firebase-tools@latest emulators:exec --config firebase.test-series-cbt-emulator.json --project demo-railway-mitra-cbt --only auth,firestore --import="$export_dir" "node features/test-series/cloud/functions/tests/local-emulator-backup-restore-smoke.js verify"
+          rm -rf "$export_dir"

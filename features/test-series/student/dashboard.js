@@ -1,0 +1,109 @@
+import { getStudentCbtDashboard } from "../cloud/student-client.js";
+import { runSingleFlight } from "./single-flight.mjs";
+
+// Keep one click listener per refresh button even if the dashboard is mounted again.
+const refreshHandlers = new WeakMap();
+
+export async function initStudentDashboard({ app, root = document, onLeaderboard = () => {}, isSessionActive = () => true }) {
+  const status = root.getElementById("rm-dashboard-status");
+  const summary = root.getElementById("rm-dashboard-summary");
+  const resultsNode = root.getElementById("rm-dashboard-results");
+  const refresh = root.getElementById("rm-dashboard-refresh");
+  if (!status || !summary || !resultsNode || !refresh) {
+    throw new Error("Student dashboard markup is incomplete");
+  }
+
+  function sessionIsActive() {
+    try { return typeof isSessionActive === "function" && isSessionActive() === true; }
+    catch { return false; }
+  }
+
+  function load() {
+    if (!sessionIsActive()) return Promise.resolve({ results: [], stale: true });
+    return runSingleFlight(refresh, async () => {
+      if (!sessionIsActive()) return { results: [], stale: true };
+      refresh.disabled = true;
+      refresh.setAttribute("aria-busy", "true");
+      status.textContent = "Loading your results…";
+      summary.replaceChildren();
+      summary.hidden = true;
+      resultsNode.replaceChildren();
+      try {
+        const { results = [], resultCount = 0 } = await getStudentCbtDashboard(app);
+        // A logout, account switch or view change may happen while the request is in flight.
+        // Never let an old student response repopulate the shared portal DOM.
+        if (!sessionIsActive()) return { results: [], stale: true };
+        const total = results.reduce((sum, item) => sum + Number(item.totalQuestions || 0), 0);
+        const correct = results.reduce((sum, item) => sum + Number(item.correct || 0), 0);
+        const average = resultCount ? results.reduce((sum, item) => sum + Number(item.score || 0), 0) / resultCount : 0;
+        const stats = [
+          ["Results loaded (latest 100 max.)", resultCount],
+          ["Questions attempted correctly", correct],
+          ["Average score (loaded results)", average.toFixed(2)]
+        ];
+        stats.forEach(([label, value]) => {
+          const card = root.createElement("div");
+          card.className = "rm-dashboard-stat";
+          const strong = root.createElement("strong");
+          strong.textContent = String(value);
+          const caption = root.createElement("span");
+          caption.textContent = label;
+          card.append(strong, caption);
+          summary.append(card);
+        });
+        summary.hidden = false;
+        if (!results.length) {
+          status.textContent = "अभी आपके खाते में कोई जमा किया हुआ टेस्ट परिणाम नहीं है।";
+        } else {
+          status.textContent = "Showing your latest " + resultCount + " submitted result(s). This dashboard loads up to 100 recent results.";
+          results.forEach(item => {
+            const card = root.createElement("article");
+            card.className = "rm-dashboard-result";
+            const heading = root.createElement("h2");
+            heading.textContent = item.testTitle || "Test";
+            const score = root.createElement("p");
+            score.className = "rm-dashboard-score";
+            score.textContent = "Score: " + Number(item.score || 0);
+            const detail = root.createElement("p");
+            detail.textContent = "Correct: " + item.correct + " · Wrong: " + item.wrong + " · Unattempted: " + item.unattempted;
+            const totalLine = root.createElement("p");
+            totalLine.textContent = "Total questions: " + item.totalQuestions;
+            const timingLine = root.createElement("p");
+            timingLine.className = item.timedOut ? "rm-dashboard-timeout" : "rm-dashboard-submission";
+            timingLine.textContent = item.timedOut ? "Time expired — submitted using saved answers" : "Submitted within the exam time";
+            const dateLine = root.createElement("p");
+            dateLine.textContent = item.submittedAt ? "Submitted: " + new Date(item.submittedAt).toLocaleString() : "Submission date unavailable";
+            const leaderboard = root.createElement("button");
+            leaderboard.type = "button";
+            leaderboard.className = "rm-dashboard-leaderboard";
+            leaderboard.textContent = "View Test Leaderboard";
+            leaderboard.addEventListener("click", () => {
+              if (!sessionIsActive()) return;
+              if (typeof onLeaderboard === "function" && item.testId) onLeaderboard(item.testId);
+              else status.textContent = "Leaderboard is unavailable for this result.";
+            });
+            leaderboard.disabled = !item.testId;
+            card.append(heading, score, detail, totalLine, timingLine, dateLine, leaderboard);
+            resultsNode.append(card);
+          });
+        }
+        return { results, resultCount, totalQuestions: total };
+      } catch (error) {
+        if (sessionIsActive()) status.textContent = error.message || "Your results could not be loaded. Please retry.";
+        return { results: [], error };
+      } finally {
+        if (sessionIsActive()) {
+          refresh.disabled = false;
+          refresh.setAttribute("aria-busy", "false");
+        }
+      }
+    });
+  }
+
+  refreshHandlers.set(refresh, load);
+  if (!refresh.dataset.rmDashboardRefreshBound) {
+    refresh.addEventListener("click", () => refreshHandlers.get(refresh)?.());
+    refresh.dataset.rmDashboardRefreshBound = "true";
+  }
+  return load();
+}

@@ -1,0 +1,125 @@
+"use strict";
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const { sanitizeImageBuffer, MAX_IMAGE_BYTES } = require("../image-sanitization");
+const sharp = require("sharp");
+
+function fakeSharp({ data, info, error, format = "png", pages = 1 } = {}) {
+  return (input, options) => {
+    assert.ok(Buffer.isBuffer(input));
+    assert.equal(options.failOn, "error");
+    assert.equal(options.limitInputPixels, 25_000_000);
+    assert.equal(options.limitInputChannels, 4);
+    const pipeline = {
+      rotateCalled: false,
+      metadata: async () => ({
+        format,
+        width: 640,
+        height: 480,
+        pages
+      }),
+      rotate() { this.rotateCalled = true; return this; },
+      toFormat(format) { this.format = format; return this; },
+      async toBuffer() {
+        if (error) throw error;
+        assert.equal(this.rotateCalled, true);
+        return { data: data || Buffer.from("re-encoded-image"), info: info || {
+          format: this.format, width: 640, height: 480
+        } };
+      }
+    };
+    return pipeline;
+  };
+}
+
+test("fully decodes and re-encodes each supported format with bounded dimensions", async () => {
+  for (const [mimeType, format] of [
+    ["image/jpeg", "jpeg"], ["image/png", "png"], ["image/webp", "webp"]
+  ]) {
+    const result = await sanitizeImageBuffer(Buffer.from("input"), mimeType, { sharp: fakeSharp({ format }) });
+    assert.equal(result.format, format);
+    assert.equal(result.mimeType, mimeType);
+    assert.equal(result.width, 640);
+    assert.equal(result.height, 480);
+    assert.equal(result.sizeBytes, result.data.length);
+  }
+});
+
+test("rejects unsupported MIME, missing decoder and oversized input", async () => {
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/svg+xml", { sharp: fakeSharp() }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png"));
+  await assert.rejects(sanitizeImageBuffer(Buffer.alloc(MAX_IMAGE_BYTES + 1), "image/png", { sharp: fakeSharp() }));
+});
+
+test("rejects decoder errors, wrong output format and unsafe dimensions", async () => {
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ error: new Error("truncated image") })
+  }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ info: { format: "jpeg", width: 1, height: 1 } })
+  }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ info: { format: "png", width: 9000, height: 1 } })
+  }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ format: "jpeg" })
+  }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ pages: 2 })
+  }));
+  await assert.rejects(sanitizeImageBuffer(Buffer.from("x"), "image/png", {
+    sharp: fakeSharp({ data: Buffer.alloc(MAX_IMAGE_BYTES + 1) })
+  }));
+});
+
+test("uses the installed native Sharp runtime to decode and re-encode real JPEG, PNG and WebP images", async () => {
+  for (const [mimeType, format] of [
+    ["image/jpeg", "jpeg"], ["image/png", "png"], ["image/webp", "webp"]
+  ]) {
+    const source = await sharp({
+      create: { width: 32, height: 24, channels: 3, background: { r: 20, g: 80, b: 160 } }
+    }).toFormat(format).toBuffer();
+    const clean = await sanitizeImageBuffer(source, mimeType, { sharp });
+    const metadata = await sharp(clean.data).metadata();
+    assert.equal(metadata.format, format);
+    assert.equal(metadata.width, 32);
+    assert.equal(metadata.height, 24);
+    assert.equal(metadata.exif, undefined);
+    assert.equal(metadata.xmp, undefined);
+    assert.equal(metadata.iptc, undefined);
+  }
+});
+
+test("strips embedded EXIF GPS and XMP metadata from a real JPEG before publication", async () => {
+  const xmp = [
+    '<?xml version="1.0"?>',
+    '<x:xmpmeta xmlns:x="adobe:ns:meta/">',
+    '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">',
+    '<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">',
+    '<dc:creator>railway-mitra-private-fixture</dc:creator>',
+    '</rdf:Description></rdf:RDF></x:xmpmeta>'
+  ].join("");
+  const source = await sharp({
+    create: { width: 32, height: 24, channels: 3, background: { r: 20, g: 80, b: 160 } }
+  }).withExif({
+    IFD0: { Artist: "railway-mitra-private-fixture" },
+    IFD3: {
+      GPSLatitudeRef: "N",
+      GPSLatitude: "27/1 42/1 0/1",
+      GPSLongitudeRef: "E",
+      GPSLongitude: "77/1 12/1 0/1"
+    }
+  }).withXmp(xmp).jpeg().toBuffer();
+
+  const sourceMetadata = await sharp(source).metadata();
+  assert.ok(Buffer.isBuffer(sourceMetadata.exif) && sourceMetadata.exif.length > 0);
+  assert.ok(Buffer.isBuffer(sourceMetadata.xmp) && sourceMetadata.xmp.length > 0);
+
+  const clean = await sanitizeImageBuffer(source, "image/jpeg", { sharp });
+  const cleanMetadata = await sharp(clean.data).metadata();
+  assert.equal(cleanMetadata.exif, undefined);
+  assert.equal(cleanMetadata.xmp, undefined);
+  assert.equal(cleanMetadata.iptc, undefined);
+});
+
