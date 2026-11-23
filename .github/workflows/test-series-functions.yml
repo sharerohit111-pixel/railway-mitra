@@ -21,6 +21,7 @@ on:
       - "firebase.test-series-cbt-emulator.json"
       - ".github/workflows/test-series-firestore-load-emulator.yml"
       - ".github/workflows/test-series-callable-load-emulator.yml"
+      - ".github/workflows/pway-calculator-syntax.yml"
       - ".github/workflows/test-series-functions.yml"
   push:
     branches:
