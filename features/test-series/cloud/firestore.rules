@@ -26,6 +26,7 @@ service cloud.firestore {
     match /testSeriesConfig/{document=**} { allow read, write: if false; }
     match /testSeriesQuestionBank/{document=**} { allow read, write: if false; }
     match /testSeriesQuestionSets/{document=**} { allow read, write: if false; }
+    match /testSeriesQuestionMedia/{document=**} { allow read, write: if false; }
     match /testSeriesPaymentRequests/{document=**} { allow read, write: if false; }
     match /testSeriesPaymentLocks/{document=**} { allow read, write: if false; }
     match /testSeriesPaymentOrders/{document=**} { allow read, write: if false; }
