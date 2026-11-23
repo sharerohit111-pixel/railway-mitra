@@ -27,12 +27,14 @@ test("main app keeps its body hidden until the existing auth guard is loaded", (
   assert.equal(guardScripts.length, 1, "Main app must load the auth guard exactly once");
 });
 
-test("main-app auth guard preserves the explicitly requested temporary development mode", () => {
-  assert.match(authGuard, /RAILWAY MITRA - TEMPORARY DEVELOPMENT MODE/);
-  assert.match(authGuard, /Login guard disabled during app development/);
+test("main-app auth guard keeps Firebase sign-in enforcement enabled", () => {
+  assert.match(authGuard, /REQUIRED AUTHENTICATION GUARD/);
+  assert.match(authGuard, /import \{ auth \} from ["']\.\/firebase\.js["']/);
+  assert.match(authGuard, /onAuthStateChanged\(auth/);
+  assert.match(authGuard, /if \(user\)/);
+  assert.match(authGuard, /features\/auth\/login\.html/);
+  assert.match(authGuard, /window\.location\.replace\(loginUrl\.href\)/);
   assert.match(authGuard, /document\.documentElement\.classList\.remove\(["']auth-pending["']\)/);
-  assert.match(authGuard, /document\.documentElement\.dataset\.authReady\s*=\s*["']true["']/);
-  assert.doesNotMatch(authGuard, /onAuthStateChanged|signInWithPhoneNumber|loginUrl|window\.location\.replace/);
 });
 
 test("Test Series landing page exposes Student and Owner navigation without embedding credentials", () => {
@@ -43,7 +45,7 @@ test("Test Series landing page exposes Student and Owner navigation without embe
 
 test("Owner portal documentation matches the navigation-only entry points", () => {
   assert.match(ownerReadme, /Railway Mitra main app currently exposes one Test Series card[\s\S]*landing page[\s\S]*Owner portal/i);
-  assert.match(ownerReadme, /temporary development mode[\s\S]*not evidence of production sign-in/i);
+  assert.match(ownerReadme, /main-app auth guard remains enabled[\s\S]*unauthenticated users/i);
   assert.match(ownerReadme, /navigation-only links/i);
   assert.match(ownerReadme, /OWNER_UID[\s\S]*Phone MFA[\s\S]*App Check/i);
   assert.doesNotMatch(ownerReadme, /not yet linked into the student portal or main app|not linked into the main app/i);
