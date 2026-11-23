@@ -13,6 +13,7 @@ const protectedCollections = [
   "testSeriesConfig",
   "testSeriesQuestionBank",
   "testSeriesQuestionSets",
+  "testSeriesQuestionMedia",
   "testSeriesPaymentRequests",
   "testSeriesPaymentLocks",
   "testSeriesPaymentOrders",
