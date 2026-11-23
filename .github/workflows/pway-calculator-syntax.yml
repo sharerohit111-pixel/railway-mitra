@@ -9,6 +9,7 @@ on:
       - "features/p-way-civil-engineering-tools/cant-safe-speed-calculator/script.js"
       - "features/p-way-civil-engineering-tools/cant-safe-speed-calculator/tests/**"
       - ".github/workflows/pway-calculator-syntax.yml"
+  workflow_dispatch:
   pull_request:
     paths:
       - "features/p-way-civil-engineering-tools/track-fittings-calculator/script.js"
