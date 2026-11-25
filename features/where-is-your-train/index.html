@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="hi">
+<html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#071326">
 <title>Where Is Your Train? | Railway Mitra</title>
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="train.css?v=1">
+<link rel="stylesheet" href="train.css?v=3">
 </head>
 <body>
 <header class="app-header rm-train-header">
@@ -16,7 +18,7 @@
   <section class="rm-train-hero">
     <span class="rm-train-kicker">14704 · JAISALMER EXPRESS ROUTE REFERENCE</span>
     <h2>Train movement, shared by railway employees</h2>
-    <p>Station reports aur timetable ke aadhar par estimated train progress aur non-stop passing time dekhein.</p>
+    <p>View estimated train progress and non-stop passing times based on station reports and the timetable.</p>
     <div class="rm-train-disclaimer">Community reports only · Not official live tracking · Not for railway operations or safety decisions.</div>
   </section>
   <section class="rm-train-map-card" aria-label="Schematic train route">
@@ -25,7 +27,7 @@
       <div class="rm-train-track" id="routeTrack"><div class="rm-train-progress" id="routeProgress"></div><div class="rm-train-marker" id="trainMarker" aria-label="Estimated train position">🚆</div><div id="stationNodes" class="rm-train-stations"></div></div>
     </div>
     <div class="rm-train-position"><strong id="positionName">No movement report yet</strong><span id="positionMeta">Latest verified community report will appear here.</span></div>
-    <p class="rm-train-footnote">Non-stop train passing estimate: timetable arrival se 5 minute pehle. Duty mode में approximate route GPS पर train से 5 km के अंदर आने पर alarm और vibration का प्रयास होगा. Route coordinates schematic/approximate हैं; इसे safety-critical warning न मानें. Yeh official live tracking nahi hai.</p>
+    <p class="rm-train-footnote">Non-stop passing time is estimated at 5 minutes before the timetable time. Duty mode may attempt an alert when your GPS position is within 5 km of the estimated route. Route coordinates are approximate. Do not use this feature for railway operations or safety decisions. This is not official live tracking.</p>
   </section>
   <section class="rm-train-report-card">
     <div class="rm-train-card-heading"><div><span class="rm-train-kicker">EMPLOYEE REPORT</span><h2>Submit train movement</h2></div><span class="rm-train-flame">🔥</span></div>
@@ -44,5 +46,7 @@
   <section class="rm-train-reports-card"><div class="rm-train-card-heading"><div><span class="rm-train-kicker">RECENT COMMUNITY UPDATES</span><h2>Latest reports</h2></div><button id="refreshReports" class="rm-train-refresh" type="button">↻ Refresh</button></div><ol id="reportList" class="rm-train-report-list"><li>Loading reports…</li></ol></section>
   <p class="rm-train-privacy">Your report is associated with your signed-in Railway Mitra account. GPS is not uploaded continuously. Train speed values are estimates, not actual measured speeds.</p>
 </main>
-<script type="module" src="train.js?v=1"></script>
-</body></html>
+<script src="train-language.js?v=2" defer></script>
+<script type="module" src="train.js?v=3"></script>
+</body>
+</html>

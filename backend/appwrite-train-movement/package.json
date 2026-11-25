@@ -1,0 +1,10 @@
+{
+  "name": "railway-mitra-train-movement-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "jose": "^6.1.0"
+  }
+}
