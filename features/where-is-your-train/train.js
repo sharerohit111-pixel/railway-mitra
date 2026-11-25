@@ -64,17 +64,17 @@ function renderPosition(r){latestReport=r;if(!r){$("trainStatus").textContent="W
  $("positionName").textContent=r.stationName+" · "+km+" km";
  const stationIndex=ROUTE.findIndex(x=>x[0]===r.stationName);const passTime=r.movement==="pass"?estimatePassTime(stationIndex):null;$("positionMeta").textContent=(r.movementLabel||r.movement)+" · Report: "+new Date(r.createdAt).toLocaleString()+(passTime?" · Timetable-based estimated pass: "+passTime+" (5 min early)":"")+" · "+(r.trainType==="goods"?"Goods 60":"Passenger 105")+" km/h estimate";
 }
-function renderReports(reports){const list=$("reportList");list.replaceChildren();if(!reports.length){const li=document.createElement("li");li.textContent="Abhi koi report nahi hai.";list.appendChild(li);return}
+function renderReports(reports){const list=$("reportList");list.replaceChildren();if(!reports.length){const li=document.createElement("li");li.textContent="No community reports yet.";list.appendChild(li);return}
  reports.forEach(r=>{const li=document.createElement("li");const title=document.createElement("strong");title.textContent=r.stationName+" · "+r.direction+" · "+(r.movementLabel||r.movement);const meta=document.createElement("small");const stationIndex=ROUTE.findIndex(x=>x[0]===r.stationName);const passTime=r.movement==="pass"?estimatePassTime(stationIndex):null;meta.textContent=new Date(r.createdAt).toLocaleString()+" · "+r.stationKm+" km"+(passTime?" · Estimated non-stop pass "+passTime:"")+(r.movement==="departure"&&r.departureKm!=null?" · Departure KM "+r.departureKm:"");li.append(title,meta);list.appendChild(li)})}
-async function refresh(){try{const result=await callTrainApi({action:"list",limit:30});const reports=result.reports||[];renderReports(reports);renderPosition(reports[0]||null)}catch(e){$("reportList").textContent=e.status===401?"Sign in to Railway Mitra to view employee reports.":"Reports load nahi ho paaye. Internet aur login check karein.";}}
+async function refresh(){try{const result=await callTrainApi({action:"list",limit:30});const reports=result.reports||[];renderReports(reports);renderPosition(reports[0]||null)}catch(e){$("reportList").textContent=e.status===401?"Sign in to Railway Mitra to view employee reports.":"Could not load reports. Check your internet connection and sign-in status.";}}
 $("refreshReports").addEventListener("click",refresh);
 $("movementForm").addEventListener("submit",async event=>{event.preventDefault();const user=auth.currentUser;if(!user){$("formMessage").textContent="Please sign in to Railway Mitra first.";return}
  const index=Number(stationSelect.value),[stationName,stationKm]=ROUTE[index],movement=$("movement").value;
  const departureKm=movement==="departure"?Number($("departureKm").value):null;
- if(movement==="departure"&&(!Number.isFinite(departureKm)||departureKm<0||departureKm>158)){$("formMessage").textContent="Valid departure KM (0–158) enter karein.";return}
+ if(movement==="departure"&&(!Number.isFinite(departureKm)||departureKm<0||departureKm>158)){$("formMessage").textContent="Enter a valid departure KM (0–158).";return}
  const trainType=$("trainType").value;const button=$("submitReport");button.disabled=true;$("formMessage").textContent="Submitting securely…";
- try{await callTrainApi({action:"submit",stationId:String(index),direction:$("direction").value,movement,departureKm,trainType});$("formMessage").textContent="Report submit ho gayi. Thank you!";$("movementForm").reset();$("departureKmWrap").hidden=true;updateClock();await refresh()}
- catch(e){$("formMessage").textContent=e.status===401?"Session expire ho gaya. Dobara sign in karein.":(e.message||"Report submit nahi hui. Dobara try karein.")}
+ try{await callTrainApi({action:"submit",stationId:String(index),direction:$("direction").value,movement,departureKm,trainType});$("formMessage").textContent="Report submitted successfully. Thank you!";$("movementForm").reset();$("departureKmWrap").hidden=true;updateClock();await refresh()}
+ catch(e){$("formMessage").textContent=e.status===401?"Your session has expired. Please sign in again.":(e.message||"Report could not be submitted. Please try again.")}
  finally{button.disabled=false}
 });
 
