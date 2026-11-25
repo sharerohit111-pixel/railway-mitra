@@ -31,7 +31,7 @@ const respond = (res, data, status = 200) => res.json(data, status, corsHeaders)
 
 async function verifyFirebaseUser(req) {
   const firebaseToken = req.headers?.["x-firebase-id-token"] || req.headers?.["X-Firebase-ID-Token"] || "";
-  const match = /^Bearer\s+(.+)$/i.exec(authorization);
+  const match = /^Bearer\s+(.+)$/i.exec(firebaseToken);
   if (!match) throw Object.assign(new Error("Sign in required."), { status: 401 });
   let payload;
   try {
