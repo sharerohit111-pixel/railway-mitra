@@ -22,7 +22,7 @@ async function callTrainApi(payload) {
       body: JSON.stringify(payload),
       async: false,
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { "X-Firebase-ID-Token": `Bearer ${token}` }
     })
   });
   const execution = await response.json();
