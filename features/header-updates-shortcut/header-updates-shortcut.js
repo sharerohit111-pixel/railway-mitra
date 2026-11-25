@@ -1,6 +1,6 @@
 /* Railway Mitra — isolated New Updates header shortcut.
    Reuses a legacy Train shortcut when present; otherwise adds a compact shortcut.
-   The existing Where Is Your Train banner and train-tracking feature remain untouched. */
+   The large Where Is Your Train banner and train-tracking feature remain untouched. */
 (() => {
   "use strict";
 
@@ -11,10 +11,10 @@
     const legacyTrain = Array.from(document.querySelectorAll(".app-header a, .app-header button"))
       .find((element) => {
         if (element.id === "menuBtn" || element.classList.contains("rm-header-refresh")) return false;
-        const label = (element.textContent || "").replace(/\\s+/g, " ").trim();
+        const label = (element.textContent || "").trim().toLowerCase().replace(/\s+/g, " ");
         const href = element.getAttribute("href") || "";
-        return /^(train|where is your train)$/i.test(label) ||
-          /features\\/where-is-your-train(?:\\/index\\.html)?/i.test(href);
+        return label === "train" || label === "where is your train" ||
+          href.includes("features/where-is-your-train");
       });
 
     const link = legacyTrain || document.createElement("a");
