@@ -2,7 +2,10 @@ import { httpsCallable } from "https://www.gstatic.com/firebasejs/13.2.0/firebas
 import { getFunctions } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-functions.js";
 import { auth } from "../../assets/js/firebase.js";
 
-const ROUTE=[["Lalgarh Junction",0],["Nal Halt",10],["Gajner",30],["Kolayat",46],["Diyatara Road",62],["Nokhra",84],["Sird",105],["Bap",122],["Malar",145],["Phalodi Junction",158]];
+const ROUTE=[["Lalgarh Junction",0,"07:25"],["Nal Halt",10,"07:39"],["Gajner",30,"07:56"],["Kolayat",46,"08:11"],["Diyatara Road",62,"08:26"],["Nokhra",84,"08:45"],["Sird",105,"09:02"],["Bap",122,"09:18"],["Malar",145,"09:37"],["Phalodi Junction",158,"10:00"]];
+const TRAIN_APPROACH_ALERT_KM=5;
+const NONSTOP_EARLY_MINUTES=5;
+function estimatePassTime(stationIndex){const scheduled=ROUTE[stationIndex]?.[2];if(!scheduled)return null;const [h,m]=scheduled.split(":").map(Number);const d=new Date();d.setHours(h,m,0,0);d.setMinutes(d.getMinutes()-NONSTOP_EARLY_MINUTES);return d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});}
 const functions=getFunctions(undefined,"asia-south1");
 const submitMovement=httpsCallable(functions,"submitTrainMovementReport");
 const listMovement=httpsCallable(functions,"listTrainMovementReports");
@@ -20,10 +23,10 @@ function renderPosition(r){if(!r){$("trainStatus").textContent="Waiting for repo
  $("routeProgress").style.width=pct+"%";$("trainMarker").style.left=pct+"%";
  $("trainStatus").textContent="Last reported · "+r.direction;
  $("positionName").textContent=r.stationName+" · "+km+" km";
- $("positionMeta").textContent=(r.movementLabel||r.movement)+" · "+new Date(r.createdAt).toLocaleString();
+ const stationIndex=ROUTE.findIndex(x=>x[0]===r.stationName);const passTime=r.movement==="pass"?estimatePassTime(stationIndex):null;$("positionMeta").textContent=(r.movementLabel||r.movement)+" · Report: "+new Date(r.createdAt).toLocaleString()+(passTime?" · Timetable-based estimated pass: "+passTime+" (5 min early)":"");
 }
 function renderReports(reports){const list=$("reportList");list.replaceChildren();if(!reports.length){const li=document.createElement("li");li.textContent="Abhi koi report nahi hai.";list.appendChild(li);return}
- reports.forEach(r=>{const li=document.createElement("li");const title=document.createElement("strong");title.textContent=r.stationName+" · "+r.direction+" · "+(r.movementLabel||r.movement);const meta=document.createElement("small");meta.textContent=new Date(r.createdAt).toLocaleString()+" · "+r.stationKm+" km"+(r.movement==="departure"&&r.departureKm!=null?" · Departure KM "+r.departureKm:"");li.append(title,meta);list.appendChild(li)})}
+ reports.forEach(r=>{const li=document.createElement("li");const title=document.createElement("strong");title.textContent=r.stationName+" · "+r.direction+" · "+(r.movementLabel||r.movement);const meta=document.createElement("small");const stationIndex=ROUTE.findIndex(x=>x[0]===r.stationName);const passTime=r.movement==="pass"?estimatePassTime(stationIndex):null;meta.textContent=new Date(r.createdAt).toLocaleString()+" · "+r.stationKm+" km"+(passTime?" · Estimated non-stop pass "+passTime:"")+(r.movement==="departure"&&r.departureKm!=null?" · Departure KM "+r.departureKm:"");li.append(title,meta);list.appendChild(li)})}
 async function refresh(){try{const result=await listMovement({limit:30});const reports=result.data.reports||[];renderReports(reports);renderPosition(reports[0]||null)}catch(e){$("reportList").textContent=e.code==="unauthenticated"?"Sign in to Railway Mitra to view employee reports.":"Reports load nahi ho paaye. Internet aur login check karein.";}}
 $("refreshReports").addEventListener("click",refresh);
 $("movementForm").addEventListener("submit",async event=>{event.preventDefault();const user=auth.currentUser;if(!user){$("formMessage").textContent="Please sign in to Railway Mitra first.";return}
