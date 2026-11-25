@@ -31,7 +31,6 @@ jobs:
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
         with:
-          name: railway-pages-${{ github.run_id }}-${{ github.run_attempt }}
           path: .
 
       - name: Deploy site
