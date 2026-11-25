@@ -1347,6 +1347,7 @@ const TRAIN_ROUTE = [
   { id: "8", name: "Malar", km: 145 }, { id: "9", name: "Phalodi Junction", km: 158 }
 ];
 const TRAIN_MOVEMENTS = ["pass", "halt", "departure"];
+const TRAIN_SPEEDS = { passenger: 105, goods: 60 };
 exports.submitTrainMovementReport = onCall({ region: REGION }, async request => {
   const uid = requireUser(request);
   const stationId = cleanString(String(request.data.stationId ?? ""), "stationId", 2);
@@ -1356,6 +1357,8 @@ exports.submitTrainMovementReport = onCall({ region: REGION }, async request => 
   if (!["UP", "DOWN"].includes(direction)) throw new HttpsError("invalid-argument", "Direction must be UP or DOWN.");
   const movement = cleanString(request.data.movement, "movement", 16);
   if (!TRAIN_MOVEMENTS.includes(movement)) throw new HttpsError("invalid-argument", "Unknown movement type.");
+  const trainType = cleanString(request.data.trainType, "trainType", 16);
+  if (!Object.prototype.hasOwnProperty.call(TRAIN_SPEEDS, trainType)) throw new HttpsError("invalid-argument", "Unknown train type.");
   let departureKm = null;
   if (movement === "departure") {
     departureKm = validNumber(request.data.departureKm, "departureKm", 0, 158);
@@ -1363,13 +1366,14 @@ exports.submitTrainMovementReport = onCall({ region: REGION }, async request => 
   } else if (request.data.departureKm !== undefined && request.data.departureKm !== null) {
     throw new HttpsError("invalid-argument", "Departure KM is only allowed for departure reports.");
   }
+  const createdAtMs = Date.now();
   const ref = db.collection("trainMovementReports").doc();
-  await ref.create({ uid, routeId: "14704-lgh-phl", stationId, stationName: station.name, stationKm: station.km, direction, movement, movementLabel: movement === "pass" ? "Passed without stop" : movement === "halt" ? "Halted" : "Departed", departureKm, createdAt: FieldValue.serverTimestamp(), createdAtMs: Date.now(), schemaVersion: 1 });
-  return { success: true, reportId: ref.id };
+  await ref.create({ uid, routeId: "14704-lgh-phl", stationId, stationName: station.name, stationKm: station.km, direction, movement, trainType, speedKmh: TRAIN_SPEEDS[trainType], movementLabel: movement === "pass" ? "Passed without stop" : movement === "halt" ? "Halted" : "Departed", departureKm, createdAt: FieldValue.serverTimestamp(), createdAtMs, schemaVersion: 2 });
+  return { success: true, reportId: ref.id, speedKmh: TRAIN_SPEEDS[trainType], createdAtMs };
 });
 exports.listTrainMovementReports = onCall({ region: REGION }, async request => {
   requireUser(request);
   const limit = Math.min(50, Math.max(1, Math.floor(Number(request.data.limit) || 30)));
   const snap = await db.collection("trainMovementReports").where("routeId", "==", "14704-lgh-phl").orderBy("createdAtMs", "desc").limit(limit).get();
-  return { reports: snap.docs.map(doc => { const x = doc.data(); return { stationName: x.stationName, stationKm: x.stationKm, direction: x.direction, movement: x.movement, movementLabel: x.movementLabel, departureKm: x.departureKm, createdAt: x.createdAtMs }; }) };
+  return { reports: snap.docs.map(doc => { const x = doc.data(); return { stationName: x.stationName, stationKm: x.stationKm, direction: x.direction, movement: x.movement, movementLabel: x.movementLabel, trainType: x.trainType || "passenger", speedKmh: x.speedKmh || 105, departureKm: x.departureKm, createdAt: x.createdAtMs }; }) };
 });
