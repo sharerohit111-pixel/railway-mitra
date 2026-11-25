@@ -1336,3 +1336,40 @@ exports.adminGetPreviousPaperDownloadUrl = onCall({ region: REGION }, async requ
     .getSignedUrl({ action: "read", expires: Date.now() + 5 * 60 * 1000, version: "v4", responseDisposition: 'attachment; filename="railway-mitra-previous-paper.pdf"' });
   return { url, expiresInSeconds: 300, fileName: item.originalFileName || "previous-paper.pdf" };
 });
+
+
+// Where Is Your Train — authenticated employee movement reports.
+const TRAIN_ROUTE = [
+  { id: "0", name: "Lalgarh Junction", km: 0 }, { id: "1", name: "Nal Halt", km: 10 },
+  { id: "2", name: "Gajner", km: 30 }, { id: "3", name: "Kolayat", km: 46 },
+  { id: "4", name: "Diyatara Road", km: 62 }, { id: "5", name: "Nokhra", km: 84 },
+  { id: "6", name: "Sird", km: 105 }, { id: "7", name: "Bap", km: 122 },
+  { id: "8", name: "Malar", km: 145 }, { id: "9", name: "Phalodi Junction", km: 158 }
+];
+const TRAIN_MOVEMENTS = ["pass", "halt", "departure"];
+exports.submitTrainMovementReport = onCall({ region: REGION }, async request => {
+  const uid = requireUser(request);
+  const stationId = cleanString(String(request.data.stationId ?? ""), "stationId", 2);
+  const station = TRAIN_ROUTE.find(x => x.id === stationId);
+  if (!station) throw new HttpsError("invalid-argument", "Choose a valid route station.");
+  const direction = cleanString(request.data.direction, "direction", 4);
+  if (!["UP", "DOWN"].includes(direction)) throw new HttpsError("invalid-argument", "Direction must be UP or DOWN.");
+  const movement = cleanString(request.data.movement, "movement", 16);
+  if (!TRAIN_MOVEMENTS.includes(movement)) throw new HttpsError("invalid-argument", "Unknown movement type.");
+  let departureKm = null;
+  if (movement === "departure") {
+    departureKm = validNumber(request.data.departureKm, "departureKm", 0, 158);
+    if (Math.abs(departureKm - station.km) > 5) throw new HttpsError("invalid-argument", "Departure KM must be within 5 km of the selected station.");
+  } else if (request.data.departureKm !== undefined && request.data.departureKm !== null) {
+    throw new HttpsError("invalid-argument", "Departure KM is only allowed for departure reports.");
+  }
+  const ref = db.collection("trainMovementReports").doc();
+  await ref.create({ uid, routeId: "14704-lgh-phl", stationId, stationName: station.name, stationKm: station.km, direction, movement, movementLabel: movement === "pass" ? "Passed without stop" : movement === "halt" ? "Halted" : "Departed", departureKm, createdAt: FieldValue.serverTimestamp(), createdAtMs: Date.now(), schemaVersion: 1 });
+  return { success: true, reportId: ref.id };
+});
+exports.listTrainMovementReports = onCall({ region: REGION }, async request => {
+  requireUser(request);
+  const limit = Math.min(50, Math.max(1, Math.floor(Number(request.data.limit) || 30)));
+  const snap = await db.collection("trainMovementReports").where("routeId", "==", "14704-lgh-phl").orderBy("createdAtMs", "desc").limit(limit).get();
+  return { reports: snap.docs.map(doc => { const x = doc.data(); return { stationName: x.stationName, stationKm: x.stationKm, direction: x.direction, movement: x.movement, movementLabel: x.movementLabel, departureKm: x.departureKm, createdAt: x.createdAtMs }; }) };
+});
