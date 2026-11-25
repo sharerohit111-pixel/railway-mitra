@@ -5,6 +5,7 @@ import { auth } from "../../assets/js/firebase.js";
 const ROUTE=[["Lalgarh Junction",0,"07:25"],["Nal Halt",10,"07:39"],["Gajner",30,"07:56"],["Kolayat",46,"08:11"],["Diyatara Road",62,"08:26"],["Nokhra",84,"08:45"],["Sird",105,"09:02"],["Bap",122,"09:18"],["Malar",145,"09:37"],["Phalodi Junction",158,"10:00"]];
 const TRAIN_APPROACH_ALERT_KM=5;
 const NONSTOP_EARLY_MINUTES=5;
+const TRAIN_SPEED_KMH={passenger:105,goods:60};
 function estimatePassTime(stationIndex){const scheduled=ROUTE[stationIndex]?.[2];if(!scheduled)return null;const [h,m]=scheduled.split(":").map(Number);const d=new Date();d.setHours(h,m,0,0);d.setMinutes(d.getMinutes()-NONSTOP_EARLY_MINUTES);return d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});}
 const functions=getFunctions(undefined,"asia-south1");
 const submitMovement=httpsCallable(functions,"submitTrainMovementReport");
@@ -18,12 +19,13 @@ function updateClock(){$("capturedTime").textContent=new Date().toLocaleString(u
 updateClock();setInterval(updateClock,1000);
 $("movement").addEventListener("change",()=>{$("departureKmWrap").hidden=$("movement").value!=="departure"});
 function kmForReport(r){if(r.movement==="departure"&&Number.isFinite(Number(r.departureKm)))return Number(r.departureKm);return Number(r.stationKm)}
+function estimatedKm(r){const start=kmForReport(r);const elapsedHours=Math.max(0,(Date.now()-r.createdAt)/3600000);const speed=Number(r.speedKmh)||TRAIN_SPEED_KMH[r.trainType]||0;const sign=r.direction==="UP"?1:-1;return Math.max(0,Math.min(158,start+sign*speed*elapsedHours));}
 function renderPosition(r){if(!r){$("trainStatus").textContent="Waiting for report";$("positionName").textContent="No movement report yet";$("positionMeta").textContent="Submit the first community report.";return}
- const km=Math.max(0,Math.min(158,kmForReport(r)));const pct=km/158*100;
+ const km=estimatedKm(r);const pct=km/158*100;
  $("routeProgress").style.width=pct+"%";$("trainMarker").style.left=pct+"%";
  $("trainStatus").textContent="Last reported · "+r.direction;
  $("positionName").textContent=r.stationName+" · "+km+" km";
- const stationIndex=ROUTE.findIndex(x=>x[0]===r.stationName);const passTime=r.movement==="pass"?estimatePassTime(stationIndex):null;$("positionMeta").textContent=(r.movementLabel||r.movement)+" · Report: "+new Date(r.createdAt).toLocaleString()+(passTime?" · Timetable-based estimated pass: "+passTime+" (5 min early)":"");
+ const stationIndex=ROUTE.findIndex(x=>x[0]===r.stationName);const passTime=r.movement==="pass"?estimatePassTime(stationIndex):null;$("positionMeta").textContent=(r.movementLabel||r.movement)+" · Report: "+new Date(r.createdAt).toLocaleString()+(passTime?" · Timetable-based estimated pass: "+passTime+" (5 min early)":"")+" · "+(r.trainType==="goods"?"Goods 60":"Passenger 105")+" km/h estimate";
 }
 function renderReports(reports){const list=$("reportList");list.replaceChildren();if(!reports.length){const li=document.createElement("li");li.textContent="Abhi koi report nahi hai.";list.appendChild(li);return}
  reports.forEach(r=>{const li=document.createElement("li");const title=document.createElement("strong");title.textContent=r.stationName+" · "+r.direction+" · "+(r.movementLabel||r.movement);const meta=document.createElement("small");const stationIndex=ROUTE.findIndex(x=>x[0]===r.stationName);const passTime=r.movement==="pass"?estimatePassTime(stationIndex):null;meta.textContent=new Date(r.createdAt).toLocaleString()+" · "+r.stationKm+" km"+(passTime?" · Estimated non-stop pass "+passTime:"")+(r.movement==="departure"&&r.departureKm!=null?" · Departure KM "+r.departureKm:"");li.append(title,meta);list.appendChild(li)})}
@@ -33,9 +35,13 @@ $("movementForm").addEventListener("submit",async event=>{event.preventDefault()
  const index=Number(stationSelect.value),[stationName,stationKm]=ROUTE[index],movement=$("movement").value;
  const departureKm=movement==="departure"?Number($("departureKm").value):null;
  if(movement==="departure"&&(!Number.isFinite(departureKm)||departureKm<0||departureKm>158)){$("formMessage").textContent="Valid departure KM (0–158) enter karein.";return}
- const button=$("submitReport");button.disabled=true;$("formMessage").textContent="Submitting securely…";
- try{await submitMovement({stationId:String(index),direction:$("direction").value,movement,departureKm});$("formMessage").textContent="Report submit ho gayi. Thank you!";$("movementForm").reset();$("departureKmWrap").hidden=true;updateClock();await refresh()}
+ const trainType=$("trainType").value;const button=$("submitReport");button.disabled=true;$("formMessage").textContent="Submitting securely…";
+ try{await submitMovement({stationId:String(index),direction:$("direction").value,movement,departureKm,trainType});$("formMessage").textContent="Report submit ho gayi. Thank you!";$("movementForm").reset();$("departureKmWrap").hidden=true;updateClock();await refresh()}
  catch(e){$("formMessage").textContent=e.code==="unauthenticated"?"Session expire ho gaya. Dobara sign in karein.":(e.message||"Report submit nahi hui. Dobara try karein.")}
  finally{button.disabled=false}
 });
+
+async function playAlarmTest(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)throw new Error("Audio unavailable");const ctx=new Ctx();await ctx.resume();const start=ctx.currentTime;[0,0.42,0.84].forEach((offset,i)=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type="sine";osc.frequency.value=i===1?880:660;gain.gain.setValueAtTime(0.0001,start+offset);gain.gain.exponentialRampToValueAtTime(0.28,start+offset+0.03);gain.gain.setValueAtTime(0.28,start+offset+0.22);gain.gain.exponentialRampToValueAtTime(0.0001,start+offset+0.32);osc.connect(gain);gain.connect(ctx.destination);osc.start(start+offset);osc.stop(start+offset+0.34)});if(navigator.vibrate)navigator.vibrate([250,120,250,120,450]);$("alarmPermission").textContent="Alarm tone and vibration test played.";}catch(e){$("alarmPermission").textContent="Tap again after allowing audio in browser.";}}
+$("testAlarm").addEventListener("click",playAlarmTest);
+if("Notification" in window){$("alarmPermission").textContent="Notification permission: "+Notification.permission;}
 if(auth.currentUser)refresh();else auth.onAuthStateChanged(user=>{if(user)refresh();else $("reportList").textContent="Sign in required."});
