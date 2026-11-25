@@ -33,11 +33,16 @@ async function verifyFirebaseUser(req) {
   const authorization = req.headers?.authorization || req.headers?.Authorization || "";
   const match = /^Bearer\s+(.+)$/i.exec(authorization);
   if (!match) throw Object.assign(new Error("Sign in required."), { status: 401 });
-  const { payload } = await jwtVerify(match[1], jwks, {
-    issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
-    audience: FIREBASE_PROJECT_ID,
-    algorithms: ["RS256"]
-  });
+  let payload;
+  try {
+    ({ payload } = await jwtVerify(match[1], jwks, {
+      issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+      audience: FIREBASE_PROJECT_ID,
+      algorithms: ["RS256"]
+    }));
+  } catch {
+    throw Object.assign(new Error("Session invalid or expired. Please sign in again."), { status: 401 });
+  }
   if (typeof payload.sub !== "string" || payload.sub.length < 1 || payload.sub.length > 128) {
     throw Object.assign(new Error("Invalid account identity."), { status: 401 });
   }
