@@ -1,6 +1,7 @@
 /* Railway Mitra — compact adaptive header action.
-   Before installation: blinking PWA install CTA.
-   After installation: Where Is Your Train shortcut in the same header slot. */
+   Before installation: PWA install CTA.
+   After installation: New Updates shortcut in the same header slot.
+   The large Where Is Your Train banner remains unchanged. */
 (function () {
   "use strict";
 
@@ -66,11 +67,13 @@
 
       button.style.left = left + "px";
       button.style.width = available + "px";
-      button.hidden = available < 70;
+      button.hidden = available < 42;
       button.classList.toggle("is-compact", available < 118);
 
       if (button.classList.contains("is-installed")) {
-        button.textContent = available < 118 ? "Train" : "Where Is Your Train";
+        button.innerHTML = available < 118
+          ? '<span class="rm-header-install-action__icon" aria-hidden="true">📰</span>'
+          : '<span class="rm-header-install-action__icon" aria-hidden="true">📰</span><span class="rm-header-install-action__label">New Updates</span>';
       } else if (!button.classList.contains("is-installing")) {
         button.textContent = available < 118 ? "Install" : "Install App";
       }
@@ -80,8 +83,8 @@
       button.disabled = false;
       button.classList.remove("is-installing", "is-install-pulse");
       button.classList.add("is-installed");
-      button.setAttribute("aria-label", "Where Is Your Train — open employee train movement reports");
-      button.title = "Open Where Is Your Train employee movement reports";
+      button.setAttribute("aria-label", "New Updates — open latest Railway news and notices");
+      button.title = "New Updates — Railway news, circulars and notices";
       updateSlotPosition();
     }
 
@@ -113,7 +116,7 @@
 
     button.addEventListener("click", async function () {
       if (installedInThisSession || button.classList.contains("is-installed") || isRunningInstalled()) {
-        window.location.href = "features/where-is-your-train/index.html";
+        window.location.href = "features/updates/index.html";
         return;
       }
 
@@ -134,7 +137,7 @@
         const choice = await promptEvent.userChoice;
         if (choice && choice.outcome === "accepted") {
           button.textContent = "Installing…";
-          showHelpToast("Install request accepted. This button will change to What's New when installation completes.");
+          showHelpToast("Install request accepted. This button will change to New Updates when installation completes.");
         } else {
           showInstallAction();
           showHelpToast("Installation cancelled. You can try again whenever you're ready.");
