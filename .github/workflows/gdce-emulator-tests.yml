@@ -13,6 +13,7 @@ on:
       - modular-development
     paths:
       - "features/exams/**"
+      - "features/admin-backup/**"
       - "assets/js/global-search.js"
       - "assets/css/global-search.css"
       - "functions/**"
@@ -48,6 +49,9 @@ jobs:
 
       - name: Check feedback admin module syntax
         run: node --input-type=module --check < features/exams/feedback-admin.js
+
+      - name: Check backup panel module syntax
+        run: node --input-type=module --check < features/admin-backup/backup.js
 
       - name: Check Cloud Functions syntax
         run: npm --prefix functions run lint
