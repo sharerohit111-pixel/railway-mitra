@@ -24,13 +24,13 @@ const SPEEDS = { passenger: 105, goods: 60 };
 const corsHeaders = {
   "Access-Control-Allow-Origin": "https://sharerohit111-pixel.github.io",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Authorization, Content-Type",
+  "Access-Control-Allow-Headers": "X-Firebase-ID-Token, Content-Type",
   "Vary": "Origin"
 };
 const respond = (res, data, status = 200) => res.json(data, status, corsHeaders);
 
 async function verifyFirebaseUser(req) {
-  const authorization = req.headers?.authorization || req.headers?.Authorization || "";
+  const firebaseToken = req.headers?.["x-firebase-id-token"] || req.headers?.["X-Firebase-ID-Token"] || "";
   const match = /^Bearer\s+(.+)$/i.exec(authorization);
   if (!match) throw Object.assign(new Error("Sign in required."), { status: 401 });
   let payload;
