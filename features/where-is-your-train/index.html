@@ -25,18 +25,18 @@
       <div class="rm-train-track" id="routeTrack"><div class="rm-train-progress" id="routeProgress"></div><div class="rm-train-marker" id="trainMarker" aria-label="Estimated train position">🚆</div><div id="stationNodes" class="rm-train-stations"></div></div>
     </div>
     <div class="rm-train-position"><strong id="positionName">No movement report yet</strong><span id="positionMeta">Latest verified community report will appear here.</span></div>
-    <p class="rm-train-footnote">Non-stop train passing estimate: timetable arrival se 5 minute pehle. Employee alarm threshold 5 km rakha gaya hai; actual phone alarm abhi enable nahi hai, kyunki verified track coordinates aur GPS-distance calculation backend se connect karna baaki hai. Yeh official live tracking nahi hai.</p>
+    <p class="rm-train-footnote">Non-stop train passing estimate: timetable arrival se 5 minute pehle. Duty mode में approximate route GPS पर train से 5 km के अंदर आने पर alarm और vibration का प्रयास होगा. Route coordinates schematic/approximate हैं; इसे safety-critical warning न मानें. Yeh official live tracking nahi hai.</p>
   </section>
   <section class="rm-train-report-card">
     <div class="rm-train-card-heading"><div><span class="rm-train-kicker">EMPLOYEE REPORT</span><h2>Submit train movement</h2></div><span class="rm-train-flame">🔥</span></div>
     <form id="movementForm">
       <label>Station<select id="station" required></select></label>
-      <label>Direction<select id="direction" required><option value="UP">UP</option><option value="DOWN">DOWN</option></select></label>
+      <label>Direction<select id="direction" required><option value="UP">UP · Lalgarh → Phalodi</option><option value="DOWN">DOWN · Phalodi → Lalgarh</option></select></label>
       <label>Train type<select id="trainType" required><option value="passenger">Passenger · 105 km/h (estimated)</option><option value="goods">Goods · 60 km/h (estimated)</option></select></label>
       <label>Movement type<select id="movement" required><option value="pass">Train passed without stop</option><option value="halt">Train halted</option><option value="departure">Train departed</option></select></label>
       <label id="departureKmWrap" hidden>Departure KM<input id="departureKm" type="number" min="0" max="158" step="0.1" inputmode="decimal" placeholder="e.g. 145"></label>
       <div class="rm-train-time"><span>Report time (device clock)</span><strong id="capturedTime">Capturing…</strong></div>
-      <section class="rm-train-alarm-settings"><strong>5 km alert sound & vibration</strong><p>Alarm test only. Live GPS alarm will activate after track-distance verification and background delivery setup.</p><button type="button" id="testAlarm" class="rm-train-refresh">🔔 Test alarm & vibration</button><span id="alarmPermission" role="status">Notification permission not checked</span></section>
+      <section class="rm-train-alarm-settings"><strong>5 km alert sound & vibration</strong><p>Alarm test only. Live GPS alarm will activate after track-distance verification and background delivery setup.</p><button type="button" id="enableDuty" class="rm-train-refresh">📍 Enable duty mode & GPS alert</button><button type="button" id="testAlarm" class="rm-train-refresh">🔔 Test alarm & vibration</button><span id="alarmPermission" role="status">Duty mode off · GPS not tracked</span></section>
       <button class="rm-train-submit" type="submit" id="submitReport">Submit report</button>
       <p id="formMessage" class="rm-train-message" role="status" aria-live="polite"></p>
     </form>
