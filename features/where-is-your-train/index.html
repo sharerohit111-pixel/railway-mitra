@@ -32,15 +32,17 @@
     <form id="movementForm">
       <label>Station<select id="station" required></select></label>
       <label>Direction<select id="direction" required><option value="UP">UP</option><option value="DOWN">DOWN</option></select></label>
+      <label>Train type<select id="trainType" required><option value="passenger">Passenger · 105 km/h (estimated)</option><option value="goods">Goods · 60 km/h (estimated)</option></select></label>
       <label>Movement type<select id="movement" required><option value="pass">Train passed without stop</option><option value="halt">Train halted</option><option value="departure">Train departed</option></select></label>
       <label id="departureKmWrap" hidden>Departure KM<input id="departureKm" type="number" min="0" max="158" step="0.1" inputmode="decimal" placeholder="e.g. 145"></label>
       <div class="rm-train-time"><span>Report time (device clock)</span><strong id="capturedTime">Capturing…</strong></div>
+      <section class="rm-train-alarm-settings"><strong>5 km alert sound & vibration</strong><p>Alarm test only. Live GPS alarm will activate after track-distance verification and background delivery setup.</p><button type="button" id="testAlarm" class="rm-train-refresh">🔔 Test alarm & vibration</button><span id="alarmPermission" role="status">Notification permission not checked</span></section>
       <button class="rm-train-submit" type="submit" id="submitReport">Submit report</button>
       <p id="formMessage" class="rm-train-message" role="status" aria-live="polite"></p>
     </form>
   </section>
   <section class="rm-train-reports-card"><div class="rm-train-card-heading"><div><span class="rm-train-kicker">RECENT COMMUNITY UPDATES</span><h2>Latest reports</h2></div><button id="refreshReports" class="rm-train-refresh" type="button">↻ Refresh</button></div><ol id="reportList" class="rm-train-report-list"><li>Loading reports…</li></ol></section>
-  <p class="rm-train-privacy">Your report is associated with your signed-in Railway Mitra account. This page does not continuously track or upload your phone GPS location.</p>
+  <p class="rm-train-privacy">Your report is associated with your signed-in Railway Mitra account. GPS is not uploaded continuously. Train speed values are estimates, not actual measured speeds.</p>
 </main>
 <script type="module" src="train.js?v=1"></script>
 </body></html>
