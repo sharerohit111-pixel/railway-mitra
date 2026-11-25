@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="hi">
+<html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#071326">
 <title>Where Is Your Train? | Railway Mitra</title>
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="train.css?v=1">
+<link rel="stylesheet" href="train.css?v=2">
 </head>
 <body>
 <header class="app-header rm-train-header">
@@ -16,7 +17,7 @@
   <section class="rm-train-hero">
     <span class="rm-train-kicker">14704 · JAISALMER EXPRESS ROUTE REFERENCE</span>
     <h2>Train movement, shared by railway employees</h2>
-    <p>Station reports se route par train ki estimated progress dekhein.</p>
+    <p>View estimated train progress based on community station reports.</p>
     <div class="rm-train-disclaimer">Community reports only · Not official live tracking · Not for railway operations or safety decisions.</div>
   </section>
   <section class="rm-train-map-card" aria-label="Schematic train route">
@@ -42,5 +43,7 @@
   <section class="rm-train-reports-card"><div class="rm-train-card-heading"><div><span class="rm-train-kicker">RECENT COMMUNITY UPDATES</span><h2>Latest reports</h2></div><button id="refreshReports" class="rm-train-refresh" type="button">↻ Refresh</button></div><ol id="reportList" class="rm-train-report-list"><li>Loading reports…</li></ol></section>
   <p class="rm-train-privacy">Your report is associated with your signed-in Railway Mitra account. This page does not continuously track or upload your phone GPS location.</p>
 </main>
+<script src="train-language.js?v=1" defer></script>
 <script type="module" src="train.js?v=1"></script>
-</body></html>
+</body>
+</html>
