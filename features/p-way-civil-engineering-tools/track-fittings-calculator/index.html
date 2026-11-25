@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Indian Railways Track Fittings Calculator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">
+        <h1 id="appTitle">Track Fittings Calculator</h1>
+        <p id="appSubtitle">RDSO Drawing No. Finder</p>
+      </div>
+      <div class="lang-toggle" onclick="toggleLanguage()">
+        <button type="button" class="lang-btn active" id="btnEn">EN</button>
+        <button type="button" class="lang-btn" id="btnHi">हिंदी</button>
+      </div>
+    </div>
+
+    <!-- 3 Compact Inputs -->
+    <div class="inputs-section">
+      <div class="input-group">
+        <label for="sleeperSelect" id="lblSleeper">1. Sleeper Type</label>
+        <select id="sleeperSelect" onchange="calculateFittings()">
+          <option value="RT-2496">Standard 60 kg PSC (RT-2496)</option>
+          <option value="RT-2495">Standard 52 kg PSC (RT-2495)</option>
+          <option value="RT-8746">Wider Base PSC (RT-8746)</option>
+          <option value="RT-8527">25T Heavy Duty PSC (RT-8527)</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="railSelect" id="lblRail">2. Rail Section</label>
+        <select id="railSelect" onchange="calculateFittings()">
+          <option value="60kg">60 kg (UIC 60 / 60E1)</option>
+          <option value="52kg">52 kg</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="circuitSelect" id="lblCircuit">3. Track Circuiting / Liner Type</label>
+        <select id="circuitSelect" onchange="calculateFittings()">
+          <option value="metal">Non-Track Circuited (Metal Liner)</option>
+          <option value="gfn">Track Circuited (GFN / HVN Liner)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Auto Output Section -->
+    <div class="results-section">
+      <div class="section-label">
+        <span id="lblResultHeader">RDSO Drawing Details</span>
+        <span class="badge-sleeper" id="sleeperBadge">RDSO/T-2496</span>
+      </div>
+
+      <div class="cards-grid" id="cardsGrid">
+        <!-- Cards dynamically populated by JS -->
+      </div>
+
+      <div class="note-box" id="warningNote"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
