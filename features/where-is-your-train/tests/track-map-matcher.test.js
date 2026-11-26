@@ -61,6 +61,18 @@ test("rejects a different route identity", () => {
   assert.equal(result.reason, "route_mismatch");
 });
 
+test("rejects a route feature whose embedded route identity differs", () => {
+  const wrongFeature = structuredClone(route);
+  wrongFeature.properties.route = "OTHER-ROUTE";
+  const result = matchGpsToRoute({
+    ...common,
+    routeFeature: wrongFeature,
+    latitude: 27,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "route_feature_identity_mismatch");
+});
+
 test("rejects inaccurate GPS", () => {
   const result = matchGpsToRoute({
     ...common,
