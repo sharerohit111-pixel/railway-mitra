@@ -32,5 +32,7 @@
     "15810",
     "18037"
   ],
-  "sourceGeometrySha256": "475fadf6525facf005f365c83cf03ca894dab75de0cf8cf697b8207748ea9678"
+  "sourceGeometrySha256": "475fadf6525facf005f365c83cf03ca894dab75de0cf8cf697b8207748ea9678",
+  "alertRouteStartChainageKm": 0,
+  "alertRouteEndChainageKm": 155.655
 }
