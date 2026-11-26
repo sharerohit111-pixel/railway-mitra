@@ -19,7 +19,7 @@ on:
       - 'sitemap.xml'
       - '.github/workflows/public-site-checks.yml'
   push:
-    branches: [main]
+    branches: [main, 'feat/train-gps-location-alert-v1']
     paths:
       - 'index.html'
       - 'app.html'
@@ -35,6 +35,8 @@ on:
       - 'service-worker.js'
       - 'robots.txt'
       - 'sitemap.xml'
+      - 'scripts/inspect-ir-track-geometry.py'
+      - '.github/workflows/public-site-checks.yml'
 
 jobs:
   public-site-validation:
