@@ -40,7 +40,8 @@ class TrackMapMatcher private constructor(private val assetJsonLoader: () -> Str
         val routeId: String,
         val candidateStatus: String,
         val points: List<Point>,
-        val calibration: List<Calibration>
+        val calibration: List<Calibration>,
+        val alertRouteEndChainageKm: Double
     )
 
     private val route: RouteData by lazy { loadRoute() }
@@ -114,6 +115,7 @@ class TrackMapMatcher private constructor(private val assetJsonLoader: () -> Str
         val best = sorted.firstOrNull() ?: return fail("route_geometry_invalid")
         val second = sorted.getOrNull(1)
         if (best.distanceM > maxTrackOffsetM) return fail("gps_off_candidate_route")
+        if (best.chainageKm > route.alertRouteEndChainageKm + 0.05) return fail("outside_alert_route_corridor")
         if (second != null
             && second.distanceM - best.distanceM <= ambiguityDistanceDeltaM
             && abs(second.chainageKm - best.chainageKm) > ambiguityChainageDeltaKm) {
@@ -152,7 +154,8 @@ class TrackMapMatcher private constructor(private val assetJsonLoader: () -> Str
             root.getString("route"),
             root.optString("candidateStatus", "UNKNOWN"),
             points,
-            calibration
+            calibration,
+            root.optDouble("alertRouteEndChainageKm", 155.655)
         )
     }
 
