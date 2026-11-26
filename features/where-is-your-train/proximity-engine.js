@@ -7,6 +7,8 @@ export function evaluateFiveKmApproach({
   armed = false,
   routeId,
   expectedRouteId,
+  previousTrainNumber,
+  currentTrainNumber,
   previousTrainKm,
   currentTrainKm,
   trainDirectionSign,
@@ -20,6 +22,10 @@ export function evaluateFiveKmApproach({
 } = {}) {
   const fail = reason => ({ eligible: false, reason });
   if (!armed) return fail("not_armed");
+  const previousIdentity = typeof previousTrainNumber === "string" ? previousTrainNumber.trim().toUpperCase() : "";
+  const currentIdentity = typeof currentTrainNumber === "string" ? currentTrainNumber.trim().toUpperCase() : "";
+  if (!previousIdentity || !currentIdentity) return fail("train_identity_missing");
+  if (previousIdentity !== currentIdentity) return fail("train_identity_mismatch");
   if (!routeId || routeId !== expectedRouteId) return fail("route_mismatch");
   if (![previousTrainKm, currentTrainKm, userTrackKm, previousReportAt, currentReportAt, gpsFixAt, now].every(Number.isFinite)) return fail("invalid_input");
   if (![1, -1].includes(trainDirectionSign)) return fail("unknown_direction");
