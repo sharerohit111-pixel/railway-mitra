@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
     private val allowedHost = "sharerohit111-pixel.github.io"
     private val allowedPath = "/railway-mitra/"
     private val permissionRequestCode = 4101
+    private val backgroundPermissionRequestCode = 4102
 
     private val requestedPermissions: Array<String>
         get() = mutableListOf(
@@ -65,6 +67,30 @@ class MainActivity : ComponentActivity() {
         web.loadUrl("https://$allowedHost$allowedPath")
     }
 
+    private fun hasBackgroundLocationPermission(): Boolean {
+        return Build.VERSION.SDK_INT < 29 || ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasNotificationPermission(): Boolean {
+        return Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun openAppSettings(): String {
+        return try {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.parse("package:$packageName")
+            }
+            startActivity(intent)
+            "settings_opened"
+        } catch (_: Exception) {
+            "settings_failed"
+        }
+    }
+
     private fun requestMissingPermissions() {
         val missing = requestedPermissions.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
@@ -76,11 +102,47 @@ class MainActivity : ComponentActivity() {
 
     inner class LocationBridge {
         @JavascriptInterface
+        fun getBackgroundLocationPermissionState(): String {
+            return if (hasBackgroundLocationPermission()) "granted" else "required"
+        }
+
+        @JavascriptInterface
+        fun getNotificationPermissionState(): String {
+            return if (hasNotificationPermission()) "granted" else "required"
+        }
+
+        @JavascriptInterface
+        fun requestBackgroundLocationPermission(): String {
+            if (Build.VERSION.SDK_INT < 29 || hasBackgroundLocationPermission()) return "granted"
+            return try {
+                if (Build.VERSION.SDK_INT >= 30) {
+                    openAppSettings()
+                } else {
+                    ActivityCompat.requestPermissions(
+                        this@MainActivity,
+                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                        backgroundPermissionRequestCode
+                    )
+                    "permission_requested"
+                }
+            } catch (_: Exception) {
+                "settings_failed"
+            }
+        }
+
+        @JavascriptInterface
+        fun openNotificationSettings(): String {
+            return openAppSettings()
+        }
+
+        @JavascriptInterface
         fun startLocationMonitoring(): String {
             val fineGranted = ContextCompat.checkSelfPermission(
                 this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
             if (!fineGranted) return "permission_required"
+            if (!hasBackgroundLocationPermission()) return "background_permission_required"
+            if (!hasNotificationPermission()) return "notification_permission_required"
             return try {
                 ContextCompat.startForegroundService(
                     this@MainActivity,
@@ -130,6 +192,18 @@ class MainActivity : ComponentActivity() {
                 fine -> "precise"
                 coarse -> "approximate"
                 else -> "denied"
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::web.isInitialized) {
+            web.post {
+                web.evaluateJavascript(
+                    "window.onRailwayMitraNativeResume && window.onRailwayMitraNativeResume()",
+                    null
+                )
             }
         }
     }
