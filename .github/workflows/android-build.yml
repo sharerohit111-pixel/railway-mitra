@@ -5,7 +5,7 @@ on:
       - "android/**"
       - ".github/workflows/android-build.yml"
   push:
-    branches: [main, "feat/train-gps-location-alert-v1"]
+    branches: [main, "feat/train-gps-location-alert-v1", "feat/android-google-auth-native"]
     paths:
       - "android/**"
       - ".github/workflows/android-build.yml"
