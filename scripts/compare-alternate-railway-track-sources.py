@@ -325,6 +325,17 @@ def main():
                         "station_to_route_geometry_m": round(route_geom_projected.distance(point), 2),
                     })
 
+                anchor_checks = route_candidate["station_anchor_checks"]
+                anchors_ok = len(anchor_checks) == 8 and all(
+                    row["station_to_route_geometry_m"] <= 500.0
+                    and row["chainage_delta_km"] is not None
+                    and abs(row["chainage_delta_km"]) <= 0.5
+                    for row in anchor_checks
+                )
+                route_candidate["station_anchor_validation_passed"] = anchors_ok
+                if not anchors_ok:
+                    raise SystemExit("GatiShakti route candidate failed station anchor checks")
+
                 soi_rows = source_rows["SOI_Railway_Tracks"]
                 soi_ranked = []
                 for feature in soi_rows:
@@ -373,6 +384,12 @@ def main():
                             for item in aligned[:10]
                         ],
                     }
+
+    if not route_candidate["candidate_found"] or not route_candidate["continuous"] or not route_candidate["geometry_exported"]:
+        raise SystemExit("GatiShakti LGH-PLC source route is not a continuous, exportable candidate")
+    soi_alignment = route_candidate.get("independent_SOI_alignment")
+    if not soi_alignment or soi_alignment.get("sampled_vertex_offset_max_m", 1e9) > 100.0:
+        raise SystemExit("Independent SOI geometry does not corroborate the GatiShakti route within 100 metres")
 
     Path(args.route_output).write_text(
         json.dumps(route_geojson, indent=2, ensure_ascii=False) + "\n",
