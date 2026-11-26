@@ -95,7 +95,7 @@ class TrainReportPollingClientTest {
     }
 
     @Test
-    fun appliesGoodsTrainSpeedCeiling() {
+    fun filtersGoodsReportsForThePassengerTargetTrain() {
         val now = 1_000_000L
         val goods = validReport(now).put("trainType", "goods")
         val feed = TrainReportPollingClient.parseExecutionResponse(
@@ -103,6 +103,6 @@ class TrainReportPollingClientTest {
             200,
             now
         )
-        assertEquals(100.0, feed.reports.single().maxSpeedKmh, 0.001)
+        assertEquals(0, feed.reports.size)
     }
 }
