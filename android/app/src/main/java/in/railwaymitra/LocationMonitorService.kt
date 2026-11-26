@@ -4,6 +4,8 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -13,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 
 class LocationMonitorService : Service(), LocationListener {
     private lateinit var locationManager: LocationManager
@@ -33,9 +36,17 @@ class LocationMonitorService : Service(), LocationListener {
             return START_NOT_STICKY
         }
 
+        if (Build.VERSION.SDK_INT >= 29 && ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         return try {
             // Android 14+ validates the location FGS permission at startForeground().
-            startForeground(7102, notification("Starting GPS location monitoring"))
+            startForeground(7102, notification("GPS capture active · data stays on this phone · 5 KM alert disabled"))
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 updateNotification("Turn on device location to continue")
                 return START_STICKY
@@ -78,7 +89,7 @@ class LocationMonitorService : Service(), LocationListener {
             .putFloat("accuracy", location.accuracy)
             .putLong("timestamp", location.time)
             .apply()
-        updateNotification("GPS updated · accuracy ±" + location.accuracy.toInt() + " m")
+        updateNotification("GPS saved locally · accuracy ±" + location.accuracy.toInt() + " m · 5 KM alert disabled")
     }
 
     private fun createChannel() {
@@ -101,7 +112,7 @@ class LocationMonitorService : Service(), LocationListener {
     private fun notification(message: String): Notification =
         NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentTitle("Railway Mitra · Location ON")
+            .setContentTitle("Railway Mitra · GPS capture")
             .setContentText(message)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
