@@ -1,7 +1,7 @@
 package in.railwaymitra
 
 import android.content.Context
-import android.util.Base64
+import java.util.Base64
 import org.json.JSONObject
 import kotlin.math.*
 
@@ -135,7 +135,7 @@ class TrackMapMatcher private constructor(private val assetJsonLoader: () -> Str
 
     private fun loadRoute(): RouteData {
         val root = JSONObject(assetJsonLoader())
-        val encoded = String(Base64.decode(root.getString("encodedPolylineBase64"), Base64.DEFAULT), Charsets.UTF_8)
+        val encoded = String(Base64.getDecoder().decode(root.getString("encodedPolylineBase64")), Charsets.UTF_8)
         val precision = root.optInt("precision", 6)
         val points = decodePolyline(encoded, precision)
         val rows = root.getJSONArray("chainageCalibration")
