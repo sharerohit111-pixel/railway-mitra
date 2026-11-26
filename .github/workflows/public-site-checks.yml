@@ -268,7 +268,7 @@ jobs:
       - name: Compare independent SOI and GatiShakti track candidates
         run: |
           set -euo pipefail
-          python scripts/compare-alternate-railway-track-sources.py --ir-tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --soi-tracks gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl --gatishakti-tracks gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/alternate-track-source-comparison.json
+          python scripts/compare-alternate-railway-track-sources.py --ir-tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --soi-tracks gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl --gatishakti-tracks gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/alternate-track-source-comparison.json --route-output gis-inspection/candidate-route.geojson
       - name: Upload inspected corridor geometries
         uses: actions/upload-artifact@v4
         with:
@@ -285,5 +285,6 @@ jobs:
             gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl
             gis-inspection/track-geometry-qa.json
             gis-inspection/alternate-track-source-comparison.json
+            gis-inspection/candidate-route.geojson
           if-no-files-found: error
           retention-days: 7
