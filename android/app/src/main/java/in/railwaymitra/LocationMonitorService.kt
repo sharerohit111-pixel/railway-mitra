@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import java.util.Locale
 
 class LocationMonitorService : Service(), LocationListener {
     private lateinit var locationManager: LocationManager
@@ -132,7 +133,7 @@ class LocationMonitorService : Service(), LocationListener {
             .putLong("timestamp", location.time)
             .putString("candidateTrackMatchReason", match?.reason ?: "route_match_error")
             .putString("candidateRouteStatus", match?.candidateStatus ?: "NOT_PRODUCTION_VERIFIED")
-        if (match?.matched == true && match.chainageKm != null) {
+        if (match != null && match.matched && match.chainageKm != null) {
             editor.putFloat("candidateTrackKm", match.chainageKm.toFloat())
                 .putFloat("candidateTrackOffsetM", (match.crossTrackDistanceM ?: 0.0).toFloat())
         } else {
@@ -141,8 +142,8 @@ class LocationMonitorService : Service(), LocationListener {
         }
         editor.apply()
 
-        val matchMessage = if (match?.matched == true && match.chainageKm != null) {
-            " · candidate KM " + String.format("%.3f", match.chainageKm)
+        val matchMessage = if (match != null && match.matched && match.chainageKm != null) {
+            " · candidate KM " + String.format(Locale.US, "%.3f", match.chainageKm)
         } else {
             " · no candidate track match"
         }
