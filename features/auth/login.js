@@ -164,7 +164,16 @@ emailLoginForm.addEventListener("submit", async (event) => {
         window.location.href = postLoginUrl;
     } catch (error) {
         console.error("Email Login Error:", error);
-        showMessage("Email Login में समस्या: " + error.message, true);
+        const messages = {
+            "auth/invalid-credential": "Email या Password सही नहीं है। यदि पासवर्ड याद नहीं है, तो नीचे 'पासवर्ड भूल गए?' विकल्प से रीसेट करें।",
+            "auth/user-not-found": "इस ईमेल से खाता नहीं मिला। ईमेल की वर्तनी जाँचें या सहायता लें।",
+            "auth/wrong-password": "पासवर्ड सही नहीं है। 'पासवर्ड भूल गए?' विकल्प से रीसेट करें।",
+            "auth/invalid-email": "कृपया सही ईमेल पता दर्ज करें।",
+            "auth/too-many-requests": "कई बार प्रयास हुए हैं। सुरक्षा के लिए कुछ देर बाद दोबारा कोशिश करें।",
+            "auth/network-request-failed": "इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।",
+            "auth/operation-not-allowed": "Firebase में Email/Password Login अभी सक्षम नहीं है।"
+        };
+        showMessage(messages[error.code] || "Email Login पूरा नहीं हुआ (" + (error.code || "unknown") + ")।", true);
     } finally {
         emailLoginBtn.disabled = false;
     }
