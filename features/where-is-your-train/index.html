@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#071326">
 <title>Where Is Your Train? | Railway Mitra</title>
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="train.css?v=3">
+<link rel="stylesheet" href="train.css?v=4">
 </head>
 <body>
 <header class="app-header rm-train-header">
@@ -37,8 +37,7 @@
       <label>Station<select id="station" required></select></label>
       <label>Direction<select id="direction" required><option value="UP">UP</option><option value="DOWN">DOWN</option></select></label>
       <label>Train type<select id="trainType" required><option value="passenger">Passenger train</option><option value="goods">Goods train</option></select></label>
-      <label>Movement type<select id="movement" required><option value="pass">Train passed without stop</option><option value="halt">Train halted</option><option value="departure">Train departed</option></select></label>
-      <label id="departureKmWrap" hidden>Departure KM<input id="departureKm" type="number" min="0" max="158" step="0.1" inputmode="decimal" placeholder="e.g. 145"></label>
+      <label>Movement type<select id="movement" required><option value="departure" selected>Train departed</option><option value="pass">Train passed without stop</option><option value="halt">Train halted</option></select></label>
       <div class="rm-train-time"><span>Report time (device clock)</span><strong id="capturedTime">Capturing…</strong></div>
       <button class="rm-train-submit" type="submit" id="submitReport">Submit report</button>
       <p id="formMessage" class="rm-train-message" role="status" aria-live="polite"></p>
@@ -53,7 +52,7 @@
     <div class="rm-train-disclaimer">Community reports only · Not official live tracking · Not for railway operations or safety decisions.</div>
   </section>
 </main>
-<script src="train-language.js?v=1" defer></script>
-<script type="module" src="train.js?v=3"></script>
+<script src="train-language.js?v=2" defer></script>
+<script type="module" src="train.js?v=4"></script>
 </body>
 </html>
