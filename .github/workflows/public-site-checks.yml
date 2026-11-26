@@ -164,7 +164,7 @@ jobs:
                           kind = geom.get('type', 'null')
                           geometry_types[kind] = geometry_types.get(kind, 0) + 1
                           coords = list(points(geom.get('coordinates')))
-                          if coords and any(west <= x <= east and south <= y <= north for x, y in coords):
+                          if coords and max(x for x, _ in coords) >= west and min(x for x, _ in coords) <= east and max(y for _, y in coords) >= south and min(y for _, y in coords) <= north:
                               candidates += 1
                               out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\n')
           summary = {
