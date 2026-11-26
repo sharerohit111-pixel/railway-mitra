@@ -114,7 +114,14 @@ class FiveKmApproachGateTest {
 
     @Test
     fun rejectsMovingAwayAndNonCrossingObservations() {
-        assertEquals("train_not_confirmed_approaching", FiveKmApproachGate.evaluate(base.copy(currentTrainKm = 12.0)).reason)
+        assertEquals(
+            "distance_not_decreasing",
+            FiveKmApproachGate.evaluate(base.copy(userTrackKm = 10.0)).reason
+        )
+        assertEquals(
+            "train_not_confirmed_approaching",
+            FiveKmApproachGate.evaluate(base.copy(currentTrainKm = 12.0)).reason
+        )
         assertEquals(
             "five_km_threshold_not_crossed",
             FiveKmApproachGate.evaluate(base.copy(previousTrainKm = 10.0, currentTrainKm = 12.0)).reason
