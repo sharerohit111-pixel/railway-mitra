@@ -51,6 +51,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "697258746002-6m7h97qaibjoe7kivfchknu0ifl0nhj7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.railwaymitra",
+            "certificate_hash": "17368780b3be20edb8e78c161e3a8c14a9107018"
+          }
+        },
+        {
           "client_id": "697258746002-1jhiooa1usotbra5r8kf2l2jv1ia2t6l.apps.googleusercontent.com",
           "client_type": 3
         }
