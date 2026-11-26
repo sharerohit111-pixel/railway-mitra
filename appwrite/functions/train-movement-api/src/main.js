@@ -1,9 +1,9 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomUUID } from "node:crypto";
-import { isValidTrainNumber } from "./train-identity.js";
+import { isValidTrainNumber, isAlertTargetTrain } from "./train-identity.js";
 import { createPublicPollGuard } from "./public-poll-guard.js";
 const PROJECT_ID="6b070890000e2fca34fd", DATABASE_ID="railway_mitra", TABLE_ID="train_movement_reports";
-const ROUTE_ID="14704-lgh-phl", ALERT_TRAIN_NUMBER="14704", FIREBASE_PROJECT_ID=process.env.FIREBASE_PROJECT_ID||"railway-mitra";
+const ROUTE_ID="14704-lgh-phl", FIREBASE_PROJECT_ID=process.env.FIREBASE_PROJECT_ID||"railway-mitra";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1";
 const jwks=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
 const publicPollGuard=createPublicPollGuard();
@@ -31,7 +31,7 @@ async function listRouteReports(limit){
       stationName:r.stationName,stationKm:r.stationKm,direction:r.direction,
       movement:r.movement,movementLabel:r.movementLabel,trainType:r.trainType,
       trainNumber:r.trainNumber||null,chainageVerified,independentReporterCount,
-      alertEligible:r.trainNumber===ALERT_TRAIN_NUMBER&&r.trainType==="passenger"&&chainageVerified&&r.departureKm==null&&independentReporterCount>=2,
+      alertEligible:isAlertTargetTrain(r.trainNumber,r.trainType)&&chainageVerified&&r.departureKm==null&&independentReporterCount>=2,
       departureKm:r.departureKm,createdAt:Number(r.createdAtMs)
     };
   });
