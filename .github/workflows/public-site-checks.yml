@@ -190,7 +190,7 @@ jobs:
                           station_features.append(station)
                           station_keys.update(map(str, (station.get('properties') or {}).keys()))
           station_output = Path('gis-inspection/ir_stations_corridor_candidates.geojsonl')
-          station_output.write_text(''.join(json.dumps(x, ensure_ascii=False, separators=(',', ':')) + '\\n' for x in station_features))
+          station_output.write_text(''.join(json.dumps(x, ensure_ascii=False, separators=(',', ':')) + '\n' for x in station_features))
           summary = {
               'source_archive': 'IR_Tracks.geojsonl.7z',
               'station_source_archive': 'IR_Stations.geojsonl.7z',
