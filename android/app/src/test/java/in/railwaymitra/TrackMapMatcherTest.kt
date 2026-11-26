@@ -8,7 +8,7 @@ import org.junit.Test
 import java.io.File
 
 class TrackMapMatcherTest {
-    private val assetJson = File("src/main/assets/route-lgh-plc-candidate.json").readText()
+    private val assetJson = this::class.java.getResourceAsStream("/route-lgh-plc-candidate.json")!!.bufferedReader().use { it.readText() }
     private val matcher = TrackMapMatcher(assetJson)
 
     @Test
