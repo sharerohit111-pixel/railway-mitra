@@ -16,6 +16,18 @@ import android.webkit.WebChromeClient
 import android.webkit.JavascriptInterface
 import android.net.http.SslError
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.NoCredentialException
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.CustomCredential
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
@@ -27,6 +39,9 @@ class MainActivity : ComponentActivity() {
     private val githubPagesPath = "/railway-mitra/"
     private val permissionRequestCode = 4101
     private val backgroundPermissionRequestCode = 4102
+    private val credentialManager by lazy { CredentialManager.create(this) }
+    private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
+    @Volatile private var googleSignInInProgress = false
 
     private val requestedPermissions: Array<String>
         get() = mutableListOf(
@@ -108,6 +123,78 @@ class MainActivity : ComponentActivity() {
     }
 
     inner class LocationBridge {
+
+        @JavascriptInterface
+        fun startGoogleSignIn(): String {
+            if (!isTrustedWebOrigin()) return "untrusted_origin"
+            if (googleSignInInProgress) return "in_progress"
+            googleSignInInProgress = true
+            runOnUiThread {
+                lifecycleScope.launch {
+                    try {
+                        val token = requestGoogleIdToken()
+                        val credential = GoogleAuthProvider.getCredential(token, null)
+                        firebaseAuth.signInWithCredential(credential).await()
+                        deliverGoogleSignInResult(token, null)
+                    } catch (error: Exception) {
+                        val message = when (error) {
+                            is GetCredentialCancellationException -> "cancelled"
+                            is NoCredentialException -> "no_account"
+                            else -> "google_sign_in_failed"
+                        }
+                        deliverGoogleSignInResult(null, message)
+                    } finally {
+                        googleSignInInProgress = false
+                    }
+                }
+            }
+            return "started"
+        }
+
+        private suspend fun requestGoogleIdToken(): String {
+            suspend fun request(filterAuthorized: Boolean): String {
+                val option = GetGoogleIdOption.Builder()
+                    .setServerClientId(getString(R.string.default_web_client_id))
+                    .setFilterByAuthorizedAccounts(filterAuthorized)
+                    .setAutoSelectEnabled(false)
+                    .build()
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(option)
+                    .build()
+                val result = credentialManager.getCredential(this@MainActivity, request)
+                val credential = result.credential
+                if (credential is CustomCredential &&
+                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                ) {
+                    return GoogleIdTokenCredential.createFrom(credential.data).idToken
+                }
+                throw IllegalStateException("unsupported_credential")
+            }
+
+            return try {
+                request(true)
+            } catch (_: NoCredentialException) {
+                request(false)
+            }
+        }
+
+        private fun isTrustedWebOrigin(): Boolean {
+            val uri = web.url?.let { Uri.parse(it) } ?: return false
+            return uri.scheme == "https" && when (uri.host) {
+                "railwaymitra.com", "www.railwaymitra.com" -> true
+                "sharerohit111-pixel.github.io" -> uri.path?.startsWith(githubPagesPath) == true
+                else -> false
+            }
+        }
+
+        private fun deliverGoogleSignInResult(idToken: String?, error: String?) {
+            val payload = JSONObject()
+                .put("idToken", idToken ?: JSONObject.NULL)
+                .put("error", error ?: JSONObject.NULL)
+            val script = "window.onRailwayMitraGoogleSignInResult && window.onRailwayMitraGoogleSignInResult(" + payload.toString() + ");"
+            web.post { web.evaluateJavascript(script, null) }
+        }
+
         @JavascriptInterface
         fun getBackgroundLocationPermissionState(): String {
             return if (hasBackgroundLocationPermission()) "granted" else "required"

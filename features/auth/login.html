@@ -34,7 +34,7 @@
 
                 <label for="emailPassword" style="margin-top:14px;">Password</label>
                 <input type="password" id="emailPassword" placeholder="अपना पासवर्ड दर्ज करें" autocomplete="current-password" required>
-                <button type="button" id="resetPasswordBtn">पासवर्ड भूल गए? ईमेल पर रीसेट लिंक भेजें</button>
+                <button type="button" id="resetPasswordBtn" class="rm-password-reset">पासवर्ड भूल गए? ईमेल पर रीसेट लिंक भेजें</button>
 
                 <button type="submit" id="emailLoginBtn">Email से लॉगिन करें</button>
             </form>
@@ -53,38 +53,18 @@
 
                 <div class="rm-phone-input">
                     <span>+91</span>
-                    <input
-                        type="tel"
-                        id="phoneNumber"
-                        placeholder="10 अंकों का मोबाइल नंबर"
-                        inputmode="numeric"
-                        maxlength="10"
-                        required
-                    >
+                    <input type="tel" id="phoneNumber" placeholder="10 अंकों का मोबाइल नंबर" inputmode="numeric" maxlength="10" required>
                 </div>
 
                 <div id="recaptcha-container"></div>
 
-                <button type="submit" id="sendOtpBtn">
-                    OTP भेजें
-                </button>
+                <button type="submit" id="sendOtpBtn">OTP भेजें</button>
             </form>
 
             <form id="otpForm" hidden>
                 <label for="otpCode">OTP दर्ज करें</label>
-
-                <input
-                    type="text"
-                    id="otpCode"
-                    placeholder="6 अंकों का OTP"
-                    inputmode="numeric"
-                    maxlength="6"
-                    required
-                >
-
-                <button type="submit" id="verifyOtpBtn">
-                    OTP सत्यापित करें
-                </button>
+                <input type="text" id="otpCode" placeholder="6 अंकों का OTP" inputmode="numeric" maxlength="6" required>
+                <button type="submit" id="verifyOtpBtn">OTP सत्यापित करें</button>
             </form>
 
             <p id="loginMessage" role="status"></p>

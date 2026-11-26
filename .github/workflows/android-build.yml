@@ -1,11 +1,12 @@
 name: Android app build
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "android/**"
       - ".github/workflows/android-build.yml"
   push:
-    branches: [main, "feat/train-gps-location-alert-v1"]
+    branches: [main, "feat/train-gps-location-alert-v1", "feat/android-google-auth-native"]
     paths:
       - "android/**"
       - ".github/workflows/android-build.yml"
@@ -36,6 +37,8 @@ jobs:
           if [ ! -f ~/.android/debug.keystore ]; then
             keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
           fi
+      - name: Report Android debug signing fingerprints
+        run: keytool -list -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey | grep -E 'SHA1:|SHA256:'
       - name: Run Android JVM unit tests
         working-directory: android
         run: gradle --no-daemon testDebugUnitTest
