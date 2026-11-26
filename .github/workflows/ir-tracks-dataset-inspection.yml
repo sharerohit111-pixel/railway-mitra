@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/ir-tracks-dataset-inspection.yml'
+  push:
+    branches: ['feat/train-gps-location-alert-v1']
   workflow_dispatch:
 
 permissions:
@@ -79,7 +81,7 @@ jobs:
                           pts = list(coordinates(geom.get("coordinates")))
                           if pts and any(west <= x <= east and south <= y <= north for x, y in pts):
                               candidates += 1
-                              out.write(json.dumps(feature, ensure_ascii=False, separators=(",", ":")) + "\\n")
+                              out.write(json.dumps(feature, ensure_ascii=False, separators=(",", ":")) + "\n")
 
           summary = {
               "source_archive": "IR_Tracks.geojsonl.7z",
@@ -93,7 +95,7 @@ jobs:
               "source_files": [str(p) for p in sources],
           }
           Path("gis-inspection/inspection-summary.json").write_text(
-              json.dumps(summary, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+              json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
           )
           print(json.dumps(summary, indent=2, ensure_ascii=False))
           if total == 0:
