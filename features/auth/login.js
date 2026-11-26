@@ -5,6 +5,7 @@ import {
     signInWithPhoneNumber,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithCredential,
     signInWithEmailAndPassword,
     sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
@@ -210,14 +211,60 @@ resetPasswordBtn.addEventListener("click", async () => {
 const googleLoginBtn = document.getElementById("googleLoginBtn");
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
+let nativeGoogleLoginPending = false;
+let nativeGoogleLoginTimeout = null;
+
+window.onRailwayMitraGoogleSignInResult = async ({ idToken, error } = {}) => {
+    if (!nativeGoogleLoginPending) return;
+    nativeGoogleLoginPending = false;
+    if (nativeGoogleLoginTimeout) clearTimeout(nativeGoogleLoginTimeout);
+    try {
+        if (error || !idToken) {
+            const messages = {
+                cancelled: "Google Login रद्द कर दिया गया।",
+                no_account: "इस डिवाइस पर Google Account उपलब्ध नहीं मिला।",
+                google_sign_in_failed: "Google Login पूरा नहीं हुआ। कृपया दोबारा प्रयास करें।"
+            };
+            showMessage(messages[error] || "Google Login पूरा नहीं हुआ।", true);
+            return;
+        }
+        await signInWithCredential(auth, GoogleAuthProvider.credential(idToken));
+        showMessage("Google Login सफल हुआ। Railway Mitra में आपका स्वागत है।");
+        window.location.href = postLoginUrl;
+    } catch (authError) {
+        console.error("Native Google Firebase Auth Error:", authError);
+        showMessage("Google खाते का Firebase सत्यापन पूरा नहीं हुआ (" + (authError.code || "unknown") + ")।", true);
+    } finally {
+        googleLoginBtn.disabled = false;
+    }
+};
+
 googleLoginBtn.addEventListener("click", async () => {
     googleLoginBtn.disabled = true;
     showMessage("Google Account से लॉगिन किया जा रहा है...");
     try {
-        const isAndroidWebView = /; wv\\)|\\bwv\\b/i.test(navigator.userAgent) ||
-            (window.RailwayMitraNative && typeof window.RailwayMitraNative.getLocationPermissionState === "function");
+        const isAndroidWebView = !!(window.RailwayMitraNative &&
+            typeof window.RailwayMitraNative.startGoogleSignIn === "function");
         if (isAndroidWebView) {
-            showMessage("Android ऐप के अंदर Google Login अभी native OAuth सेटअप के बिना उपलब्ध नहीं है। कृपया अभी Email Login या पासवर्ड रीसेट का उपयोग करें।", true);
+            nativeGoogleLoginPending = true;
+            const status = window.RailwayMitraNative.startGoogleSignIn();
+            if (status !== "started") {
+                nativeGoogleLoginPending = false;
+                const statusMessages = {
+                    in_progress: "Google Login पहले से चल रहा है। कृपया प्रतीक्षा करें।",
+                    untrusted_origin: "सुरक्षा कारणों से इस पेज पर Native Google Login उपलब्ध नहीं है।"
+                };
+                showMessage(statusMessages[status] || "Native Google Login शुरू नहीं हो पाया।", true);
+                googleLoginBtn.disabled = false;
+                return;
+            }
+            showMessage("Google Account चुनें...");
+            nativeGoogleLoginTimeout = setTimeout(() => {
+                if (!nativeGoogleLoginPending) return;
+                nativeGoogleLoginPending = false;
+                googleLoginBtn.disabled = false;
+                showMessage("Google Login का जवाब नहीं मिला। कृपया दोबारा प्रयास करें।", true);
+            }, 120000);
             return;
         }
         await signInWithPopup(auth, googleProvider);
@@ -233,7 +280,6 @@ googleLoginBtn.addEventListener("click", async () => {
         };
         showMessage(messages[error.code] || "Google Login पूरा नहीं हुआ (" + (error.code || "unknown") + ")।", true);
     } finally {
-        googleLoginBtn.disabled = false;
+        if (!nativeGoogleLoginPending) googleLoginBtn.disabled = false;
     }
 });
-
