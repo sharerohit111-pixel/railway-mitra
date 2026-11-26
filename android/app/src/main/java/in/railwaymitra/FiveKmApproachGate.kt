@@ -1,4 +1,4 @@
-package in.railwaymitra
+package `in`.railwaymitra
 
 data class FiveKmApproachInput(
     val armed: Boolean = false,
