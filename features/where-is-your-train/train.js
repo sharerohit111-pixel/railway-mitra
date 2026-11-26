@@ -1,6 +1,6 @@
 import { auth } from "../../assets/js/firebase.js";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1", PROJECT="6b070890000e2fca34fd", FUNCTION="train-movement-api";
-const ROUTE=[["Lalgarh Junction",0],["Nal Halt",12],["Gajner",31],["Kolayat",46],["Diyatara Road",62],["Nokhra",85],["Sird",105],["Bap",123],["Malar",145],["Phalodi Junction",158]];
+const ROUTE=[["Lalgarh Junction",0],["Nal Halt",12],["Darbari",25],["Gajner",31],["Channi",39],["Kolayat",46],["Diyatra Road",62],["Nokhra",85],["Sird",105],["Bap",123],["Malar",145],["Phalodi Junction",158]];
 const $=id=>document.getElementById(id), stationSelect=$("station");
 ROUTE.forEach(([name,km],i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=name+" · "+km+" km";stationSelect.appendChild(o);});
 $("movement").value="departure";
