@@ -27,6 +27,7 @@
     <form id="movementForm">
       <label>Station<select id="station" required></select></label>
       <label>Direction<select id="direction" required><option value="UP">UP</option><option value="DOWN">DOWN</option></select></label>
+      <label>Train type<select id="trainType" required><option value="passenger">Passenger train</option><option value="goods">Goods train</option></select></label>
       <label>Movement type<select id="movement" required><option value="pass">Train passed without stop</option><option value="halt">Train halted</option><option value="departure">Train departed</option></select></label>
       <label id="departureKmWrap" hidden>Departure KM<input id="departureKm" type="number" min="0" max="158" step="0.1" inputmode="decimal" placeholder="e.g. 145"></label>
       <div class="rm-train-time"><span>Report time (device clock)</span><strong id="capturedTime">Capturing…</strong></div>
@@ -44,6 +45,6 @@
   </section>
 </main>
 <script src="train-language.js?v=1" defer></script>
-<script type="module" src="train.js?v=1"></script>
+<script type="module" src="train.js?v=2"></script>
 </body>
 </html>
