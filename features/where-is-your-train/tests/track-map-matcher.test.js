@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { haversineMeters, matchGpsToRoute } from "../track-map-matcher.js";
+import { getCandidateRouteFeature } from "../route-data.js";
 
 function fixtureRoute(coordinates) {
   const lengths = coordinates.slice(0, -1).map((point, index) =>
@@ -49,6 +50,21 @@ test("matches a fresh accurate GPS fix to the source-calibrated route chainage",
   assert.equal(result.reason, "gps_matched_to_route");
   assert.ok(result.chainageKm > 0.4 && result.chainageKm < 0.6, JSON.stringify(result));
   assert.ok(result.crossTrackDistanceM < 20);
+});
+
+test("rejects source geometry beyond the Phalodi alert corridor endpoint", () => {
+  const candidateRoute = getCandidateRouteFeature();
+  const result = matchGpsToRoute({
+    routeId: "LGH-PLC",
+    expectedRouteId: "LGH-PLC",
+    routeFeature: candidateRoute,
+    latitude: 27.124527657026647,
+    longitude: 72.36914400988917,
+    accuracyM: 5,
+    gpsFixAt: 95000,
+    now: 100000
+  });
+  assert.equal(result.reason, "outside_alert_route_corridor");
 });
 
 test("rejects a different route identity", () => {
