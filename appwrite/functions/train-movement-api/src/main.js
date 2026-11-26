@@ -4,7 +4,7 @@ const PROJECT_ID="6b070890000e2fca34fd", DATABASE_ID="railway_mitra", TABLE_ID="
 const ROUTE_ID="14704-lgh-phl", FIREBASE_PROJECT_ID=process.env.FIREBASE_PROJECT_ID||"railway-mitra";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1";
 const jwks=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
-const ROUTE=[["Lalgarh Junction",0],["Nal Halt",12],["Gajner",31],["Kolayat",46],["Diyatara Road",62],["Nokhra",85],["Sird",105],["Bap",123],["Malar",145],["Phalodi Junction",158]];
+const ROUTE=[["Lalgarh Junction",0],["Nal Halt",12],["Darbari",25],["Gajner",31],["Channi",39],["Kolayat",46],["Diyatra Road",62],["Nokhra",85],["Sird",105],["Bap",123],["Malar",145],["Phalodi Junction",158]];
 const SPEEDS={passenger:105,goods:60};
 function parseObject(value){if(value&&typeof value==="object"&&!Array.isArray(value))return value;if(typeof value==="string"){try{const parsed=JSON.parse(value);if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))return parsed;}catch{}}return null;}
 function getBody(req){
