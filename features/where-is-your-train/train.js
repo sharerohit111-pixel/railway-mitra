@@ -21,7 +21,7 @@ async function invoke(action,data={}){
   return result;
 }
 let lastGpsPosition=null;
-function syncNativeGps(){try{if(window.RailwayMitraNative){const raw=window.RailwayMitraNative.getLastLocation();if(raw){const p=JSON.parse(raw),age=Date.now()-Number(p.timestamp);if(!Number.isFinite(age)||age<0||age>60000){$("gpsStatus").textContent="Last Android GPS fix is stale. Waiting for a fresh location update.";$("gpsKm").textContent="No candidate match · GPS fix stale";return;}if(!Number.isFinite(Number(p.accuracy))||Number(p.accuracy)>100){$("gpsStatus").textContent="GPS accuracy is too low for reliable position display.";$("gpsKm").textContent="No candidate match · GPS accuracy insufficient";return;}onGpsPosition({coords:{latitude:Number(p.latitude),longitude:Number(p.longitude),accuracy:Number(p.accuracy)},timestamp:Number(p.timestamp)});}}catch{$("gpsStatus").textContent="Could not read the Android GPS status.";}}
+function syncNativeGps(){try{if(window.RailwayMitraNative){const raw=window.RailwayMitraNative.getLastLocation();if(raw){const p=JSON.parse(raw),age=Date.now()-Number(p.timestamp);if(!Number.isFinite(age)||age<0||age>60000){$("gpsStatus").textContent="Last Android GPS fix is stale. Waiting for a fresh location update.";$("gpsKm").textContent="No candidate match · GPS fix stale";return;}if(!Number.isFinite(Number(p.accuracy))||Number(p.accuracy)>100){$("gpsStatus").textContent="GPS accuracy is too low for reliable position display.";$("gpsKm").textContent="No candidate match · GPS accuracy insufficient";return;}onGpsPosition({coords:{latitude:Number(p.latitude),longitude:Number(p.longitude),accuracy:Number(p.accuracy)},timestamp:Number(p.timestamp),nativeCandidateTrackKm:p.candidateTrackKm==null?null:Number(p.candidateTrackKm),nativeCandidateTrackMatchReason:p.candidateTrackMatchReason||null,nativeCandidateRouteStatus:p.candidateRouteStatus||"NOT_PRODUCTION_VERIFIED"});}}catch{$("gpsStatus").textContent="Could not read the Android GPS status.";}}
 window.onRailwayMitraNativeResume=()=>{if(!window.RailwayMitraNative)return;if(typeof window.RailwayMitraNative.getBackgroundLocationPermissionState!=="function"||typeof window.RailwayMitraNative.getNotificationPermissionState!=="function"){$("gpsStatus").textContent="Update the Railway Mitra Android app to use the background permission flow.";syncNativeGps();return;}const background=window.RailwayMitraNative.getBackgroundLocationPermissionState(),notifications=window.RailwayMitraNative.getNotificationPermissionState();if(background==="granted"&&notifications==="granted")$("gpsStatus").textContent="Background location and notifications are allowed. Tap Start background GPS capture to begin.";else if(background!=="granted")$("gpsStatus").textContent="Background location is not allowed yet. Choose Location → Allow all the time in Android app settings.";else $("gpsStatus").textContent="Allow notifications for the persistent GPS service and future alarm delivery.";syncNativeGps();};
 $("backgroundGpsOn").addEventListener("click",()=>{if(!window.RailwayMitraNative){$("gpsStatus").textContent="Native Android service is available only in the Railway Mitra Android app.";return;}const permission=window.RailwayMitraNative.getLocationPermissionState();if(permission!=="precise"){$("gpsStatus").textContent=permission==="approximate"?"Precise location permission is required. Enable Use precise location in Android app permissions.":"Allow precise location permission for Railway Mitra in Android settings, then try again.";return;}if(typeof window.RailwayMitraNative.getBackgroundLocationPermissionState!=="function"||typeof window.RailwayMitraNative.getNotificationPermissionState!=="function"||typeof window.RailwayMitraNative.requestBackgroundLocationPermission!=="function"||typeof window.RailwayMitraNative.openNotificationSettings!=="function"||typeof window.RailwayMitraNative.openAppSettings!=="function"){$("gpsStatus").textContent="Update the Railway Mitra Android app to use the background permission flow.";return;}const background=window.RailwayMitraNative.getBackgroundLocationPermissionState();if(background!=="granted"){$("gpsStatus").textContent="Android 11+: open app settings and choose Location → Allow all the time. Also set Battery usage to Unrestricted. Return here and tap Start again.";window.RailwayMitraNative.requestBackgroundLocationPermission();return;}const notifications=window.RailwayMitraNative.getNotificationPermissionState();if(notifications!=="granted"){$("gpsStatus").textContent="Notification permission is required for the persistent service notification and future alarm delivery. Enable it in app settings.";window.RailwayMitraNative.openNotificationSettings();return;}const result=window.RailwayMitraNative.startLocationMonitoring();$("gpsStatus").textContent=result==="started"?"Background GPS capture service started. Android will show a persistent notification.":result==="background_permission_required"?"Allow Location → Allow all the time in Android settings, then retry.":result==="notification_permission_required"?"Allow notifications in Android app settings, then retry.":result==="start_not_allowed"?"Android did not allow GPS service startup. Open the app and try again.":"Location permission is required; allow it in Android settings.";syncNativeGps();});
 $("openAndroidSettings").addEventListener("click",()=>{if(!window.RailwayMitraNative||typeof window.RailwayMitraNative.openAppSettings!=="function"){$("gpsStatus").textContent="Open Android app settings manually to review battery restrictions.";return;}window.RailwayMitraNative.openAppSettings();$("gpsStatus").textContent="Review Location, Notifications and Battery usage settings, then return to Railway Mitra.";});
@@ -40,20 +40,30 @@ function updateCandidateRouteMatch(position){
     expectedRouteId:"LGH-PLC",
     routeFeature:getCandidateRouteFeature()
   });
-  if(result.matched){
-    $("gpsKm").textContent="Candidate KM "+result.chainageKm.toFixed(3)+" · "+Math.round(result.crossTrackDistanceM)+" m from line";
-    $("gpsStatus").textContent="Phone GPS acquired · candidate track matched · 5 KM alert remains disabled";
+  if(!result.matched){
+    const messages={
+      gps_accuracy_insufficient:"Need precise GPS accuracy of 50 m or better",
+      gps_fix_stale:"GPS fix is stale; waiting for a fresh location",
+      gps_off_candidate_route:"Phone is not close enough to the candidate railway line",
+      ambiguous_track_match:"More than one route projection is possible; KM withheld",
+      chainage_calibration_missing:"Source chainage calibration is unavailable",
+      chainage_calibration_invalid:"Source chainage calibration is invalid"
+    };
+    $("gpsKm").textContent="No candidate match · "+(messages[result.reason]||"Location could not be safely matched");
     return;
   }
-  const messages={
-    gps_accuracy_insufficient:"Need precise GPS accuracy of 50 m or better",
-    gps_fix_stale:"GPS fix is stale; waiting for a fresh location",
-    gps_off_candidate_route:"Phone is not close enough to the candidate railway line",
-    ambiguous_track_match:"More than one route projection is possible; KM withheld",
-    chainage_calibration_missing:"Source chainage calibration is unavailable",
-    chainage_calibration_invalid:"Source chainage calibration is invalid"
-  };
-  $("gpsKm").textContent="No candidate match · "+(messages[result.reason]||"Location could not be safely matched");
+  const nativeReason=position.nativeCandidateTrackMatchReason;
+  if(nativeReason&&nativeReason!=="not_available"){
+    const nativeKm=position.nativeCandidateTrackKm;
+    if(nativeReason!=="gps_matched_to_route"||!Number.isFinite(nativeKm)||Math.abs(nativeKm-result.chainageKm)>0.05){
+      $("gpsKm").textContent="No candidate match · native and page map matches disagree";
+      $("gpsStatus").textContent="Map-match disagreement detected; railway KM withheld";
+      return;
+    }
+  }
+  $("gpsKm").textContent="Candidate KM "+result.chainageKm.toFixed(3)+" · "+Math.round(result.crossTrackDistanceM)+" m from line";
+  $("gpsStatus").textContent="Phone GPS acquired · candidate track matched"+(nativeReason&&nativeReason!=="not_available"?" · native match agrees":"")+" · 5 KM alert remains disabled";
+  return;
 }
 function onGpsPosition(position){lastGpsPosition=position;const {latitude,longitude,accuracy}=position.coords;$("gpsCoordinates").textContent=latitude.toFixed(6)+", "+longitude.toFixed(6)+" · ±"+Math.round(accuracy)+" m";$("gpsStatus").textContent="Phone GPS acquired · "+new Date(position.timestamp).toLocaleTimeString();updateCandidateRouteMatch(position);localStorage.setItem("rmTrainGpsLastFix",JSON.stringify({latitude,longitude,accuracy,timestamp:position.timestamp}));}
 $("getGpsLocation").addEventListener("click",()=>{if(!("geolocation" in navigator)){$("gpsStatus").textContent="This browser does not support GPS location.";return;}if(!window.isSecureContext){$("gpsStatus").textContent="GPS requires a secure HTTPS page.";return;}$("gpsStatus").textContent="Requesting phone location permission…";navigator.geolocation.getCurrentPosition(onGpsPosition,showGpsError,{enableHighAccuracy:true,timeout:20000,maximumAge:0});});
