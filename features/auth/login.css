@@ -190,3 +190,8 @@
 .rm-phone-login-later{margin-top:18px;padding:12px;border:1px solid rgba(53,232,255,.2);border-radius:12px;color:#AFC5DA;font-size:13px}
 .rm-phone-login-later summary{cursor:pointer;color:#35E8FF}
 .rm-phone-login-later p{margin-bottom:0}
+
+/* Password recovery action */
+.rm-login-card .rm-password-reset{display:block;width:auto;min-height:0;margin:9px 0 0 auto;padding:4px 0;border:0;border-radius:0;background:transparent;color:#62e8ff;font-size:13px;font-weight:600;box-shadow:none;text-align:right;text-decoration:underline;}
+.rm-login-card .rm-password-reset:hover{color:#fff;text-shadow:0 0 10px rgba(98,232,255,.55);}
+.rm-login-card .rm-password-reset:disabled{opacity:.6;}
