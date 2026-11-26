@@ -38,7 +38,9 @@ export default async({req,res,log,error})=>{
       const station=ROUTE[Number(body.stationId)],direction=body.direction,movement=body.movement,trainType=body.trainType;
       if(!station||String(Number(body.stationId))!==String(body.stationId))return res.json({error:"Choose a valid route station."},400);
       if(!["UP","DOWN"].includes(direction)||!["pass","halt","departure"].includes(movement)||!Object.hasOwn(SPEEDS,trainType))return res.json({error:"Invalid report details."},400);
-      const departureKm=movement==="departure"?station[1]:null;
+      const hasReportedKm=body.departureKm!==null&&body.departureKm!==undefined&&String(body.departureKm).trim()!=="";
+      const departureKm=hasReportedKm?Number(body.departureKm):station[1];
+      if(!Number.isFinite(departureKm)||departureKm<0||departureKm>158)return res.json({error:"Reported KM must be between 0 and 158."},400);
       const createdAtMs=Date.now();
       await db(`/tablesdb/${DATABASE_ID}/tables/${TABLE_ID}/rows`,{method:"POST",body:JSON.stringify({rowId:randomUUID().replaceAll("-","").slice(0,32),data:{uid,routeId:ROUTE_ID,stationId:String(Number(body.stationId)),stationName:station[0],stationKm:station[1],direction,movement,trainType,speedKmh:SPEEDS[trainType],movementLabel:movement==="pass"?"Passed without stop":movement==="halt"?"Halted":"Departed",departureKm,createdAtMs,schemaVersion:2},permissions:[]})});
       return res.json({success:true,createdAtMs,speedKmh:SPEEDS[trainType]});
