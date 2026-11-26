@@ -26,6 +26,7 @@ class LocationMonitorService : Service(), LocationListener {
     private val channelId = "rm_location_monitor"
     private var monitoring = false
     private var reportPollExecutor: ScheduledExecutorService? = null
+    private val trackMapMatcher by lazy { TrackMapMatcher(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -110,13 +111,42 @@ class LocationMonitorService : Service(), LocationListener {
     }
 
     override fun onLocationChanged(location: Location) {
-        getSharedPreferences("rm_location", MODE_PRIVATE).edit()
+        val match = try {
+            trackMapMatcher.matchGpsToRoute(
+                latitude = location.latitude,
+                longitude = location.longitude,
+                accuracyM = location.accuracy.toDouble(),
+                gpsFixAtMs = location.time,
+                nowMs = System.currentTimeMillis()
+            )
+        } catch (error: Exception) {
+            Log.w("LocationMonitorService", "Candidate route map matching failed closed", error)
+            null
+        }
+
+        val locationPrefs = getSharedPreferences("rm_location", MODE_PRIVATE)
+        val editor = locationPrefs.edit()
             .putString("lat", location.latitude.toString())
             .putString("lon", location.longitude.toString())
             .putFloat("accuracy", location.accuracy)
             .putLong("timestamp", location.time)
-            .apply()
-        updateNotification("GPS saved locally · accuracy ±" + location.accuracy.toInt() + " m · 5 KM alert disabled")
+            .putString("candidateTrackMatchReason", match?.reason ?: "route_match_error")
+            .putString("candidateRouteStatus", match?.candidateStatus ?: "NOT_PRODUCTION_VERIFIED")
+        if (match?.matched == true && match.chainageKm != null) {
+            editor.putFloat("candidateTrackKm", match.chainageKm.toFloat())
+                .putFloat("candidateTrackOffsetM", (match.crossTrackDistanceM ?: 0.0).toFloat())
+        } else {
+            editor.remove("candidateTrackKm")
+                .remove("candidateTrackOffsetM")
+        }
+        editor.apply()
+
+        val matchMessage = if (match?.matched == true && match.chainageKm != null) {
+            " · candidate KM " + String.format("%.3f", match.chainageKm)
+        } else {
+            " · no candidate track match"
+        }
+        updateNotification("GPS saved locally · accuracy ±" + location.accuracy.toInt() + " m" + matchMessage + " · 5 KM alert disabled")
     }
 
     private fun createChannel() {
