@@ -40,6 +40,10 @@ class LocationMonitorService : Service(), LocationListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP_TRAIN_ALERT) {
             trainAlertNotifier.stop()
+            if (!monitoring) {
+                stopSelf()
+                return START_NOT_STICKY
+            }
             return START_STICKY
         }
         if (intent?.action == ACTION_STOP) {
