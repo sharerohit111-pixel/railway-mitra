@@ -98,7 +98,7 @@ class FiveKmAlertEvaluatorTest {
         val result = FiveKmAlertEvaluator.evaluate(
             previous, changed, 12.0, 10.0, 225_000L, 230_000L,
             true, true, true
-        ) { -1 }
+        ) { _, _ -> -1 }
         assertFalse(result.eligible)
         assertEquals("target_train_mismatch", result.reason)
     }
