@@ -81,15 +81,17 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openAppSettings(): String {
-        return try {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.parse("package:$packageName")
+        runOnUiThread {
+            try {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+                startActivity(intent)
+            } catch (_: Exception) {
+                // The WebView status message remains visible if Android cannot open Settings.
             }
-            startActivity(intent)
-            "settings_opened"
-        } catch (_: Exception) {
-            "settings_failed"
         }
+        return "settings_opened"
     }
 
     private fun requestMissingPermissions() {
@@ -119,11 +121,13 @@ class MainActivity : ComponentActivity() {
                 if (Build.VERSION.SDK_INT >= 30) {
                     openAppSettings()
                 } else {
-                    ActivityCompat.requestPermissions(
-                        this@MainActivity,
-                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-                        backgroundPermissionRequestCode
-                    )
+                    runOnUiThread {
+                        ActivityCompat.requestPermissions(
+                            this@MainActivity,
+                            arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                            backgroundPermissionRequestCode
+                        )
+                    }
                     "permission_requested"
                 }
             } catch (_: Exception) {
