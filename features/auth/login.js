@@ -243,9 +243,18 @@ googleLoginBtn.addEventListener("click", async () => {
     googleLoginBtn.disabled = true;
     showMessage("Google Account से लॉगिन किया जा रहा है...");
     try {
-        const isAndroidWebView = !!(window.RailwayMitraNative &&
+        const nativeBridgeAvailable = !!(window.RailwayMitraNative &&
             typeof window.RailwayMitraNative.startGoogleSignIn === "function");
-        if (isAndroidWebView) {
+        const userAgent = navigator.userAgent || "";
+        const isAndroidWebView = /Android/i.test(userAgent) &&
+            (/;\s*wv\)/i.test(userAgent) || /Version\/\d+\.\d+/i.test(userAgent));
+
+        if (isAndroidWebView && !nativeBridgeAvailable) {
+            showMessage("ऐप का Native Google Login Bridge उपलब्ध नहीं है। कृपया Railway Mitra का नवीनतम APK इंस्टॉल करें।", true);
+            googleLoginBtn.disabled = false;
+            return;
+        }
+        if (nativeBridgeAvailable) {
             nativeGoogleLoginPending = true;
             const status = window.RailwayMitraNative.startGoogleSignIn();
             if (status !== "started") {
