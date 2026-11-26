@@ -61,6 +61,7 @@ jobs:
           node --check features/where-is-your-train/route-data.js
           node --test features/where-is-your-train/tests/route-data.test.js
           node --check appwrite/functions/train-movement-api/src/main.js
+          node --test appwrite/functions/train-movement-api/tests/public-poll-guard.test.js
       - name: Verify train route station chainage consistency
         run: |
           python - <<'PY'
