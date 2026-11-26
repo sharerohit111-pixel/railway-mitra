@@ -48,6 +48,8 @@ jobs:
         run: |
           node --check features/auth/login.js
           node --check features/where-is-your-train/train.js
+          node --check features/where-is-your-train/proximity-engine.js
+          node --test features/where-is-your-train/tests/proximity-engine.test.js
           node --check appwrite/functions/train-movement-api/src/main.js
       - name: Verify train route station chainage consistency
         run: |
