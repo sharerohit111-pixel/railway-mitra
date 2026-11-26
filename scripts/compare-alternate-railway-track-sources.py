@@ -333,24 +333,45 @@ def main():
                     geom = transform(PROJECT, shape(feature["geometry"]))
                     if geom.geom_type not in ("LineString", "MultiLineString"):
                         continue
-                    soi_ranked.append((geom.distance(route_geom_projected), feature, geom))
-                if soi_ranked:
-                    distance, feature, geom = min(soi_ranked, key=lambda item: item[0])
-                    vertices = []
-                    if geom.geom_type == "LineString":
-                        vertices = list(geom.coords)
-                    else:
-                        vertices = [point for part in geom.geoms for point in part.coords]
+                    vertices = (
+                        list(geom.coords) if geom.geom_type == "LineString"
+                        else [point for part in geom.geoms for point in part.coords]
+                    )
                     offsets = [Point(point).distance(route_geom_projected) for point in vertices]
+                    if not offsets:
+                        continue
+                    soi_ranked.append((
+                        max(offsets),
+                        sorted(offsets)[len(offsets)//2],
+                        geom.distance(route_geom_projected),
+                        feature,
+                    ))
+                soi_ranked.sort(key=lambda item: (item[0], item[1], item[2]))
+                if soi_ranked:
+                    best_max, best_median, distance, feature = soi_ranked[0]
                     props = feature.get("properties") or {}
+                    aligned = [
+                        item for item in soi_ranked
+                        if item[0] <= 100.0
+                    ]
                     route_candidate["independent_SOI_alignment"] = {
+                        "selection_method": "lowest maximum sampled vertex offset to the candidate route",
                         "feature_id": props.get("objectid"),
                         "railway": props.get("rly_name"),
                         "line_type": props.get("line_type"),
                         "additional_info": props.get("addl_info"),
                         "minimum_geometry_separation_m": round(distance, 2),
-                        "sampled_vertex_offset_max_m": round(max(offsets), 2) if offsets else None,
-                        "sampled_vertex_offset_median_m": round(sorted(offsets)[len(offsets)//2], 2) if offsets else None,
+                        "sampled_vertex_offset_max_m": round(best_max, 2),
+                        "sampled_vertex_offset_median_m": round(best_median, 2),
+                        "SOI_features_with_all_vertices_within_100m": len(aligned),
+                        "best_aligned_feature_ids": [
+                            {
+                                "objectid": item[3].get("properties", {}).get("objectid"),
+                                "max_vertex_offset_m": round(item[0], 2),
+                                "median_vertex_offset_m": round(item[1], 2),
+                            }
+                            for item in aligned[:10]
+                        ],
                     }
 
     Path(args.route_output).write_text(
