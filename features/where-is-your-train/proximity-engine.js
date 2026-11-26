@@ -11,6 +11,8 @@ export function evaluateFiveKmApproach({
   currentTrainNumber,
   previousDirection,
   currentDirection,
+  previousIndependentReporterCount,
+  currentIndependentReporterCount,
   previousTrainKm,
   currentTrainKm,
   trainDirectionSign,
@@ -33,6 +35,10 @@ export function evaluateFiveKmApproach({
   if (previousIdentity !== currentIdentity) return fail("train_identity_mismatch");
   if (!["UP", "DOWN"].includes(previousDirection) || !["UP", "DOWN"].includes(currentDirection)) return fail("unknown_direction");
   if (previousDirection !== currentDirection) return fail("train_direction_changed");
+  if (!Number.isInteger(previousIndependentReporterCount) || !Number.isInteger(currentIndependentReporterCount)
+    || previousIndependentReporterCount < 2 || currentIndependentReporterCount < 2) {
+    return fail("independent_reports_insufficient");
+  }
   if (!routeId || routeId !== expectedRouteId) return fail("route_mismatch");
   if (![previousTrainKm, currentTrainKm, userTrackKm, previousReportAt, currentReportAt, gpsFixAt, now].every(Number.isFinite)) return fail("invalid_input");
   if (![1, -1].includes(trainDirectionSign)) return fail("unknown_direction");
