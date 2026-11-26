@@ -386,6 +386,8 @@ def main():
                     if not vertices:
                         continue
                     offsets = [Point(point).distance(route_geom_projected) for point in vertices]
+                    geometry_length_m = ir_geom.length
+                    chainage_span_m = (end_km - start_km) * 1000.0
                     final_section_checks.append({
                         "feature_id": props.get("objectid", feature.get("id")),
                         "division": props.get("division"),
@@ -393,6 +395,10 @@ def main():
                         "chainage_from_km": round(start_km, 3),
                         "chainage_to_km": round(end_km, 3),
                         "vertex_count": len(vertices),
+                        "geometry_length_m": round(geometry_length_m, 2),
+                        "published_chainage_span_m": round(chainage_span_m, 2),
+                        "geometry_minus_chainage_m": round(geometry_length_m - chainage_span_m, 2),
+                        "chainage_span_consistent": abs(geometry_length_m - chainage_span_m) <= max(100.0, chainage_span_m * 0.02),
                         "median_vertex_offset_m": round(sorted(offsets)[len(offsets) // 2], 2),
                         "max_vertex_offset_m": round(max(offsets), 2),
                     })
@@ -407,6 +413,9 @@ def main():
                     ),
                     "coverage_reaches_alert_endpoint": any(
                         row["chainage_to_km"] >= alert_end_chainage_km for row in final_section_checks
+                    ),
+                    "chainage_span_consistent_feature_count": sum(
+                        1 for row in final_section_checks if row["chainage_span_consistent"]
                     ),
                     "note": "Independent source alignment only; original IR_Tracks section gaps elsewhere remain unresolved.",
                 }
