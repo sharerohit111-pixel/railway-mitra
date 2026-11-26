@@ -12,6 +12,7 @@ data class FiveKmApproachInput(
     val expectedTrackRouteId: String = TrackMapMatcher.EXPECTED_ROUTE_ID,
     val previousTrainNumber: String?,
     val currentTrainNumber: String?,
+    val expectedTrainNumber: String = "14704",
     val previousDirection: String?,
     val currentDirection: String?,
     val previousIndependentReporterCount: Int,
@@ -49,7 +50,7 @@ object FiveKmApproachGate {
         val previousIdentity = input.previousTrainNumber?.trim()?.uppercase().orEmpty()
         val currentIdentity = input.currentTrainNumber?.trim()?.uppercase().orEmpty()
         if (previousIdentity.isBlank() || currentIdentity.isBlank()) return fail("train_identity_missing")
-        if (previousIdentity != currentIdentity) return fail("train_identity_mismatch")
+        if (previousIdentity != currentIdentity || currentIdentity != input.expectedTrainNumber) return fail("train_identity_mismatch")
         if ((input.previousDirection != "UP" && input.previousDirection != "DOWN")
             || (input.currentDirection != "UP" && input.currentDirection != "DOWN")) {
             return fail("unknown_direction")
