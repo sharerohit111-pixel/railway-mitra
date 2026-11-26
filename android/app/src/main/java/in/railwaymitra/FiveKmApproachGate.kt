@@ -48,7 +48,8 @@ object FiveKmApproachGate {
         val currentIdentity = input.currentTrainNumber?.trim()?.uppercase().orEmpty()
         if (previousIdentity.isBlank() || currentIdentity.isBlank()) return fail("train_identity_missing")
         if (previousIdentity != currentIdentity) return fail("train_identity_mismatch")
-        if (input.previousDirection !in setOf("UP", "DOWN") || input.currentDirection !in setOf("UP", "DOWN")) {
+        if ((input.previousDirection != "UP" && input.previousDirection != "DOWN")
+            || (input.currentDirection != "UP" && input.currentDirection != "DOWN")) {
             return fail("unknown_direction")
         }
         if (input.previousDirection != input.currentDirection) return fail("train_direction_changed")
@@ -71,9 +72,10 @@ object FiveKmApproachGate {
         }
         if (input.currentReportAtMs <= 0L || input.nowMs < input.currentReportAtMs
             || input.nowMs - input.currentReportAtMs > 60_000L) return fail("train_report_stale")
+        if (input.previousReportAtMs <= 0L || input.maxReportIntervalMs <= 0L) return fail("report_interval_invalid")
         val reportIntervalMs = input.currentReportAtMs - input.previousReportAtMs
         if (reportIntervalMs <= 0L || reportIntervalMs > input.maxReportIntervalMs) return fail("report_interval_invalid")
-        if (input.maxSpeedKmh <= 0.0 || input.maxSpeedKmh > 220.0 || input.minObservedSpeedKmh < 0.0) {
+        if (input.maxSpeedKmh <= 0.0 || input.maxSpeedKmh > 220.0 || input.minObservedSpeedKmh < 0.0 || input.minObservedSpeedKmh > input.maxSpeedKmh) {
             return fail("speed_limit_invalid")
         }
         if (input.previousTrainKm < 0.0 || input.currentTrainKm < 0.0 || input.userTrackKm < 0.0 || input.radiusKm <= 0.0) {
