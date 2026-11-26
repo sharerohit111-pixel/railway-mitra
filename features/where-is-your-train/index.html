@@ -33,7 +33,7 @@
       <button id="openAndroidSettings" type="button" class="rm-train-submit">Review Android app and battery settings</button>
       <small>Android 11+: choose Location → Allow all the time in app settings and set Battery usage to Unrestricted. Android force-stop will stop background monitoring.</small>
       <button id="enableTrainAlert" type="button" class="rm-train-submit" disabled>5 KM alert disabled — verification pending</button>
-      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">The displayed KM is a provisional source-derived route match. The 5 KM alarm stays disabled until official track identity, train identity and direction, background report polling, and physical Android alarm delivery are verified.</p>
+      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">The displayed KM is a provisional source-derived route match. The 5 KM alert target is Train 14704 LGH–JSM Express (Lalgarh → Jaisalmer) only; other train numbers are ignored. The alarm stays disabled until full-route geometry, report-feed approval and physical Android delivery are verified.</p>
     </div>
   </section>
   <section class="rm-train-report-card">
@@ -59,6 +59,6 @@
   </section>
 </main>
 <script src="train-language.js?v=4" defer></script>
-<script type="module" src="train.js?v=17"></script>
+<script type="module" src="train.js?v=18"></script>
 </body>
 </html>
