@@ -5,6 +5,8 @@
  */
 export function evaluateFiveKmApproach({
   armed = false,
+  routeGeometryProductionVerified = false,
+  reportFeedProductionApproved = false,
   routeId,
   expectedRouteId,
   previousTrainNumber,
@@ -29,6 +31,8 @@ export function evaluateFiveKmApproach({
 } = {}) {
   const fail = reason => ({ eligible: false, reason });
   if (!armed) return fail("not_armed");
+  if (!routeGeometryProductionVerified) return fail("route_geometry_not_production_verified");
+  if (!reportFeedProductionApproved) return fail("report_feed_not_production_approved");
   const previousIdentity = typeof previousTrainNumber === "string" ? previousTrainNumber.trim().toUpperCase() : "";
   const currentIdentity = typeof currentTrainNumber === "string" ? currentTrainNumber.trim().toUpperCase() : "";
   if (!previousIdentity || !currentIdentity) return fail("train_identity_missing");
