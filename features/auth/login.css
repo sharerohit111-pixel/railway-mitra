@@ -190,3 +190,8 @@
 .rm-phone-login-later{margin-top:18px;padding:12px;border:1px solid rgba(53,232,255,.2);border-radius:12px;color:#AFC5DA;font-size:13px}
 .rm-phone-login-later summary{cursor:pointer;color:#35E8FF}
 .rm-phone-login-later p{margin-bottom:0}
+
+
+/* Password recovery action */
+.rm-login-card .reset-password-btn{min-height:36px;margin-top:8px;padding:6px 10px;background:transparent;border:1px solid rgba(53,232,255,.22);box-shadow:none;color:#35E8FF;font-size:14px;font-weight:600}
+.rm-login-card .reset-password-btn:hover{background:rgba(53,232,255,.08)}
