@@ -19,7 +19,8 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
-import androidx.credentials.NoCredentialException
+import androidx.credentials.exceptions.NoCredentialException
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.CustomCredential
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -137,7 +138,7 @@ class MainActivity : ComponentActivity() {
                         deliverGoogleSignInResult(token, null)
                     } catch (error: Exception) {
                         val message = when (error) {
-                            is androidx.credentials.GetCredentialCancellationException -> "cancelled"
+                            is GetCredentialCancellationException -> "cancelled"
                             is NoCredentialException -> "no_account"
                             else -> "google_sign_in_failed"
                         }
