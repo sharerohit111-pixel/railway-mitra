@@ -121,7 +121,7 @@ jobs:
             'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/IR_Tracks.geojsonl.7z' \
             --output gis-inspection/IR_Tracks.geojsonl.7z
           sha256sum gis-inspection/IR_Tracks.geojsonl.7z | tee gis-inspection/source.sha256
-          stat --printf='Compressed bytes: %s\\n' gis-inspection/IR_Tracks.geojsonl.7z
+          stat --printf='Compressed bytes: %s\n' gis-inspection/IR_Tracks.geojsonl.7z
       - name: Validate archive and extract GeoJSONL
         run: |
           set -euo pipefail
@@ -166,7 +166,7 @@ jobs:
                           coords = list(points(geom.get('coordinates')))
                           if coords and any(west <= x <= east and south <= y <= north for x, y in coords):
                               candidates += 1
-                              out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\\n')
+                              out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\n')
           summary = {
               'source_archive': 'IR_Tracks.geojsonl.7z',
               'search_envelope_wgs84': {'west': west, 'south': south, 'east': east, 'north': north},
@@ -177,7 +177,7 @@ jobs:
               'property_keys': sorted(property_keys),
               'candidate_file': output.name,
           }
-          Path('gis-inspection/inspection-summary.json').write_text(json.dumps(summary, indent=2) + '\\n')
+          Path('gis-inspection/inspection-summary.json').write_text(json.dumps(summary, indent=2) + '\n')
           print(json.dumps(summary, indent=2))
           if total == 0:
               raise SystemExit('Dataset contains zero features')
