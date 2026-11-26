@@ -50,7 +50,7 @@ object SpeedBasedTrainEstimator {
         // Positive distance means the train is still ahead of the user in its direction of travel.
         val distanceAhead = (userTrackKm - estimatedTrainKm) * departure.directionSign
         if (distanceAhead < -0.05) return fail("train_estimate_already_passed_user")
-        if (distanceAhead > alertRadiusKm) return fail("train_not_within_alert_radius")
+        if (distanceAhead > alertRadiusKm + 0.001) return fail("train_not_within_alert_radius")
 
         return EstimatedTrainApproach(
             eligible = true,
