@@ -43,7 +43,7 @@ class FiveKmAlertEvaluatorTest {
         armed = armed,
         routeGeometryProductionVerified = routeVerified,
         reportFeedProductionApproved = feedApproved,
-        directionSignFor = { directionSign }
+        directionSignFor = { _, _ -> directionSign }
     )
 
     @Test
@@ -67,11 +67,22 @@ class FiveKmAlertEvaluatorTest {
     }
 
     @Test
+    fun rejectsAnyTrainOutsideTheRouteTargetIdentity() {
+        val otherTrain = current.copy(reports = listOf(report(16.0, 220_000L).copy(trainNumber = "14705")))
+        val result = FiveKmAlertEvaluator.evaluate(
+            previous, otherTrain, 12.0, 10.0, 225_000L, 230_000L,
+            true, true, true
+        ) { _, _ -> 1 }
+        assertFalse(result.eligible)
+        assertEquals("target_train_mismatch", result.reason)
+    }
+
+    @Test
     fun rejectsMissingPreviousObservationAndTrackMatch() {
         val noPrevious = FiveKmAlertEvaluator.evaluate(
             null, current, 12.0, 10.0, 225_000L, 230_000L,
             true, true, true
-        ) { -1 }
+        ) { _, _ -> -1 }
         assertEquals("previous_report_observation_missing", noPrevious.reason)
 
         val noTrack = FiveKmAlertEvaluator.evaluate(
@@ -89,6 +100,6 @@ class FiveKmAlertEvaluatorTest {
             true, true, true
         ) { -1 }
         assertFalse(result.eligible)
-        assertEquals("matching_train_observation_missing", result.reason)
+        assertEquals("target_train_mismatch", result.reason)
     }
 }
