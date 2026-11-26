@@ -1,5 +1,7 @@
 package `in`.railwaymitra
 
+import kotlin.math.abs
+
 data class FiveKmApproachInput(
     val armed: Boolean = false,
     val routeGeometryProductionVerified: Boolean = false,
