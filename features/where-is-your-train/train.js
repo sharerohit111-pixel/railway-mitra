@@ -1,4 +1,6 @@
 import { auth } from "../../assets/js/firebase.js";
+import { getCandidateRouteFeature } from "./route-data.js";
+import { matchGpsToRoute } from "./track-map-matcher.js";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1", PROJECT="6b070890000e2fca34fd", FUNCTION="train-movement-api";
 const ROUTE=[["Lalgarh Junction",0],["Nal Halt",12],["Darbari",25],["Gajner",31],["Channi",39],["Kolayat",46],["Diyatra Road",62],["Nokhra",85],["Sird",105],["Bap",123],["Malar",145],["Phalodi Junction",158]];
 const $=id=>document.getElementById(id), stationSelect=$("station");
@@ -23,7 +25,34 @@ $("backgroundGpsOn").addEventListener("click",()=>{if(!window.RailwayMitraNative
 $("backgroundGpsOff").addEventListener("click",()=>{if(!window.RailwayMitraNative){$("gpsStatus").textContent="Open this feature in the Railway Mitra Android app to stop native GPS.";return;}const result=window.RailwayMitraNative.stopLocationMonitoring();$("gpsStatus").textContent=result==="stopped"?"Background GPS monitoring stopped.":"Could not stop background GPS.";});
 setInterval(syncNativeGps,10000);
 function showGpsError(error){const messages={1:"Location permission was denied. Allow location access in Android settings.",2:"Phone location is unavailable. Turn on GPS and try again.",3:"GPS request timed out. Move to an open area and retry."};$("gpsStatus").textContent=messages[error.code]||"Unable to read phone location.";}
-function onGpsPosition(position){lastGpsPosition=position;const {latitude,longitude,accuracy}=position.coords;$("gpsCoordinates").textContent=latitude.toFixed(6)+", "+longitude.toFixed(6)+" · ±"+Math.round(accuracy)+" m";$("gpsStatus").textContent="Phone GPS acquired · "+new Date(position.timestamp).toLocaleTimeString();$("gpsKm").textContent="Not calculated — verified track geometry is not installed";localStorage.setItem("rmTrainGpsLastFix",JSON.stringify({latitude,longitude,accuracy,timestamp:position.timestamp}));}
+function updateCandidateRouteMatch(position){
+  const {latitude,longitude,accuracy}=position.coords;
+  const result=matchGpsToRoute({
+    latitude:Number(latitude),
+    longitude:Number(longitude),
+    accuracyM:Number(accuracy),
+    gpsFixAt:Number(position.timestamp),
+    now:Date.now(),
+    routeId:"LGH-PLC",
+    expectedRouteId:"LGH-PLC",
+    routeFeature:getCandidateRouteFeature()
+  });
+  if(result.matched){
+    $("gpsKm").textContent="Candidate KM "+result.chainageKm.toFixed(3)+" · "+Math.round(result.crossTrackDistanceM)+" m from line";
+    $("gpsStatus").textContent="Phone GPS acquired · candidate track matched · 5 KM alert remains disabled";
+    return;
+  }
+  const messages={
+    gps_accuracy_insufficient:"Need precise GPS accuracy of 50 m or better",
+    gps_fix_stale:"GPS fix is stale; waiting for a fresh location",
+    gps_off_candidate_route:"Phone is not close enough to the candidate railway line",
+    ambiguous_track_match:"More than one route projection is possible; KM withheld",
+    chainage_calibration_missing:"Source chainage calibration is unavailable",
+    chainage_calibration_invalid:"Source chainage calibration is invalid"
+  };
+  $("gpsKm").textContent="No candidate match · "+(messages[result.reason]||"Location could not be safely matched");
+}
+function onGpsPosition(position){lastGpsPosition=position;const {latitude,longitude,accuracy}=position.coords;$("gpsCoordinates").textContent=latitude.toFixed(6)+", "+longitude.toFixed(6)+" · ±"+Math.round(accuracy)+" m";$("gpsStatus").textContent="Phone GPS acquired · "+new Date(position.timestamp).toLocaleTimeString();updateCandidateRouteMatch(position);localStorage.setItem("rmTrainGpsLastFix",JSON.stringify({latitude,longitude,accuracy,timestamp:position.timestamp}));}
 $("getGpsLocation").addEventListener("click",()=>{if(!("geolocation" in navigator)){$("gpsStatus").textContent="This browser does not support GPS location.";return;}if(!window.isSecureContext){$("gpsStatus").textContent="GPS requires a secure HTTPS page.";return;}$("gpsStatus").textContent="Requesting phone location permission…";navigator.geolocation.getCurrentPosition(onGpsPosition,showGpsError,{enableHighAccuracy:true,timeout:20000,maximumAge:0});});
 try{const savedFix=JSON.parse(localStorage.getItem("rmTrainGpsLastFix")||"null");if(savedFix&&Date.now()-savedFix.timestamp<3600000){$("gpsCoordinates").textContent=Number(savedFix.latitude).toFixed(6)+", "+Number(savedFix.longitude).toFixed(6)+" · saved fix";$("gpsStatus").textContent="Showing last GPS fix; tap Get my phone location to refresh.";} }catch{}
 $("enableTrainAlert").addEventListener("click",()=>{$("alertMessage").textContent="Alert is not armed: reliable GPS-to-track KM mapping and Android background location service are not yet available. No false alarm will be triggered.";});
