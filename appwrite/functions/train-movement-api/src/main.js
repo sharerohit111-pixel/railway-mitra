@@ -90,10 +90,9 @@ export default async({req,res,log,error})=>{
       const departureKm=hasReportedKm?Number(body.departureKm):null;
       if(hasReportedKm&&(!Number.isFinite(departureKm)||departureKm<0||departureKm>158.15))return res.json({error:"Reported KM must be between 0 and 158.15."},400);
       const chainageVerified=station[2]===true;
-      const alertEligible=Boolean(trainNumber)&&chainageVerified&&!hasReportedKm;
       const createdAtMs=Date.now();
       await db(`/tablesdb/${DATABASE_ID}/tables/${TABLE_ID}/rows`,{method:"POST",body:JSON.stringify({rowId:randomUUID().replaceAll("-","").slice(0,32),data:{uid,routeId:ROUTE_ID,stationId:String(Number(body.stationId)),stationName:station[0],stationKm:station[1],direction,movement,trainType,trainNumber:trainNumber||null,speedKmh:LEGACY_SPEED_KMH[trainType],movementLabel:movement==="pass"?"Passed without stop":movement==="halt"?"Halted":"Departed",departureKm,createdAtMs,schemaVersion:3},permissions:[]})});
-      return res.json({success:true,createdAtMs,trainNumber:trainNumber||null,chainageVerified,alertEligible:false,awaitingIndependentReports:Boolean(trainNumber)&&chainageVerified});
+      return res.json({success:true,createdAtMs,trainNumber:trainNumber||null,chainageVerified,alertEligible:false,awaitingIndependentReports:isAlertTargetTrain(trainNumber,trainType)&&chainageVerified&&!hasReportedKm});
     }
     if(body.action==="list"){
       const n=Number(body.limit),limit=Number.isFinite(n)?Math.min(50,Math.max(1,Math.floor(n))):30;
