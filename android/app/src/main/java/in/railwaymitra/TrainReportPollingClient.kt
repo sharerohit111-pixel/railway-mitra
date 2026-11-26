@@ -125,7 +125,7 @@ class TrainReportPollingClient(
                 if (trainNumber != EXPECTED_TRAIN_NUMBER) continue
                 if (direction != "UP" && direction != "DOWN") continue
                 if (stationName.isBlank() || !stationKm.isFinite() || stationKm !in 0.0..158.15) continue
-                if (trainType != "passenger" && trainType != "goods") continue
+                if (trainType != "passenger") continue
                 if (movement !in setOf("pass", "halt", "departure")) continue
                 if (createdAt <= 0L || createdAt > now || now - createdAt > MAX_REPORT_AGE_MS) continue
                 if (reporterCount < 2) continue
