@@ -51,6 +51,10 @@ The existing `route_created_desc` index should remain until query usage is revie
 5. Verify old rows still list successfully and show as not alert-eligible.
 6. Only after real report identity, chainage and direction checks pass should alert evaluation be connected.
 
+## Route identity binding
+
+The movement-report backend uses route ID `14704-lgh-phl`; the source-derived track geometry uses `LGH-PLC`. These are different identifiers for the same Lalgarh–Phalodi corridor, not interchangeable strings. Any future native alert evaluator must require both exact identifiers and use an explicit reviewed mapping between them. It must never accept an arbitrary report route merely because the station names look similar.
+
 ## Background service report feed
 
 The function source also contains a read-only `public_list` action for the Android foreground service:
