@@ -46,3 +46,5 @@ body.rm-touch-layout #movementForm{grid-template-columns:minmax(0,1fr)}
 body.rm-touch-layout .rm-train-hero,body.rm-touch-layout .rm-train-map-card,body.rm-touch-layout .rm-train-report-card,body.rm-touch-layout .rm-train-reports-card{padding:15px}
 @media(max-width:560px){.rm-train-header{padding:10px 12px}.rm-train-header .brand-icon{font-size:1.5rem}.rm-train-status{font-size:.7rem}.rm-train-position{display:grid;gap:6px}}
 @media(hover:none) and (pointer:coarse){.rm-train-shell{max-width:100%}#movementForm{grid-template-columns:minmax(0,1fr)}}
+
+.rm-train-alert-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-top:14px}.rm-train-alert-controls label{font-size:.86rem;color:#d9e9f5}.rm-train-alert-controls select{width:100%;min-height:46px;padding:11px;border:1px solid #315777;border-radius:12px;background:#07182a;color:#fff;font:inherit;font-size:16px}.rm-train-alert-controls .rm-train-submit{margin-top:4px;cursor:pointer}.rm-train-alert-controls .rm-train-message{line-height:1.5}

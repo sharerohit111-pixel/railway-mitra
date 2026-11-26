@@ -23,6 +23,15 @@
     <p class="rm-train-footnote">The moving marker represents the last reported station/KM, not a GPS-derived train position.</p>
   </section>
   <section class="rm-train-report-card">
+    <div class="rm-train-card-heading"><div><span class="rm-train-kicker">5 KM APPROACH ALERT</span><h2>Get notified near your station</h2></div><span class="rm-train-flame">🔔</span></div>
+    <div class="rm-train-alert-controls">
+      <label for="alertStation">Alert station</label><select id="alertStation"></select>
+      <label for="alertDirection">Train direction</label><select id="alertDirection"><option value="UP">UP</option><option value="DOWN">DOWN</option></select>
+      <button id="enableTrainAlert" type="button" class="rm-train-submit">Enable 5 km alert</button>
+      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">Keep this page open for live community-report checks.</p>
+    </div>
+  </section>
+  <section class="rm-train-report-card">
     <div class="rm-train-card-heading"><div><span class="rm-train-kicker">EMPLOYEE REPORT</span><h2>Submit train movement</h2></div><span class="rm-train-flame">🔥</span></div>
     <form id="movementForm">
       <label>Station<select id="station" required></select></label>
