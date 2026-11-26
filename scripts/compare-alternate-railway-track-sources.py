@@ -164,6 +164,8 @@ def main():
         "continuous": False,
         "source_feature_count": len(route_features),
         "source_feature_ids": [],
+        "alert_route_start_chainage_km": 0.0,
+        "alert_route_end_chainage_km": 155.655,
         "segments": [],
         "station_anchor_checks": [],
         "independent_SOI_alignment": None,
@@ -299,6 +301,8 @@ def main():
                         "source_feature_ids": route_candidate["source_feature_ids"],
                         "chainage_from_km": route_features[0][0],
                         "chainage_to_km": route_features[-1][1],
+                        "alert_route_start_chainage_km": 0.0,
+                        "alert_route_end_chainage_km": 155.655,
                         "chainage_calibration": [
                             {
                                 "source_feature_id": segment[4],
