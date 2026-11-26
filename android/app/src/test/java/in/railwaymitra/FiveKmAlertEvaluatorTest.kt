@@ -20,7 +20,7 @@ class FiveKmAlertEvaluatorTest {
     private val previous = TrainReportFeed(
         routeId = TrainReportPollingClient.EXPECTED_ROUTE_ID,
         serverTimeMs = 100_000L,
-        reports = listOf(report(20.0, 100_000L))
+        reports = listOf(report(14.0, 100_000L))
     )
     private val current = TrainReportFeed(
         routeId = TrainReportPollingClient.EXPECTED_ROUTE_ID,
@@ -32,11 +32,11 @@ class FiveKmAlertEvaluatorTest {
         armed: Boolean = true,
         routeVerified: Boolean = true,
         feedApproved: Boolean = true,
-        directionSign: Int? = -1
+        directionSign: Int? = 1
     ) = FiveKmAlertEvaluator.evaluate(
         previousFeed = previous,
         currentFeed = current,
-        userTrackKm = 12.0,
+        userTrackKm = 20.0,
         gpsAccuracyM = 10.0,
         gpsFixAtMs = 225_000L,
         nowMs = 230_000L,
