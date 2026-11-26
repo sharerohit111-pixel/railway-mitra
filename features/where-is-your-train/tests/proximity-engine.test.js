@@ -40,7 +40,14 @@ test("allows only a confirmed approach crossing into five kilometres", () => {
   assert.equal(result.distanceKm, 4);
 });
 
-test("does not alert when train is moving away", () => {
+test("does not alert when train is moving away from the phone", () => {
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, userTrackKm: 10 }).reason,
+    "distance_not_decreasing"
+  );
+});
+
+test("rejects movement opposite to the target train's scheduled route", () => {
   assert.equal(
     evaluateFiveKmApproach({ ...base, currentTrainKm: 12 }).reason,
     "train_not_confirmed_approaching"
