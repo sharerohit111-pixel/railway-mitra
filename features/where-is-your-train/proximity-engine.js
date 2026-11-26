@@ -9,6 +9,7 @@ export function evaluateFiveKmApproach({
   reportFeedProductionApproved = false,
   routeId,
   expectedRouteId,
+  expectedTrainNumber = "14704",
   previousTrainNumber,
   currentTrainNumber,
   previousDirection,
@@ -36,7 +37,7 @@ export function evaluateFiveKmApproach({
   const previousIdentity = typeof previousTrainNumber === "string" ? previousTrainNumber.trim().toUpperCase() : "";
   const currentIdentity = typeof currentTrainNumber === "string" ? currentTrainNumber.trim().toUpperCase() : "";
   if (!previousIdentity || !currentIdentity) return fail("train_identity_missing");
-  if (previousIdentity !== currentIdentity) return fail("train_identity_mismatch");
+  if (previousIdentity !== currentIdentity || currentIdentity !== expectedTrainNumber) return fail("train_identity_mismatch");
   if (!["UP", "DOWN"].includes(previousDirection) || !["UP", "DOWN"].includes(currentDirection)) return fail("unknown_direction");
   if (previousDirection !== currentDirection) return fail("train_direction_changed");
   if (!Number.isInteger(previousIndependentReporterCount) || !Number.isInteger(currentIndependentReporterCount)
