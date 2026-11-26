@@ -299,6 +299,16 @@ def main():
                         "source_feature_ids": route_candidate["source_feature_ids"],
                         "chainage_from_km": route_features[0][0],
                         "chainage_to_km": route_features[-1][1],
+                        "chainage_calibration": [
+                            {
+                                "source_feature_id": segment[4],
+                                "measure_from_m": round(calibration[0], 3),
+                                "measure_to_m": round(calibration[1], 3),
+                                "chainage_from_km": round(calibration[2], 6),
+                                "chainage_to_km": round(calibration[3], 6),
+                            }
+                            for segment, calibration in zip(oriented_segments, cumulative_lengths)
+                        ],
                     },
                     "geometry": {
                         "type": "LineString",
