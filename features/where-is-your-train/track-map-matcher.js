@@ -169,6 +169,10 @@ export function matchGpsToRoute({
   const best = candidates[0];
   const second = candidates[1];
   if (!best || best.distanceM > maxTrackOffsetM) return fail("gps_off_candidate_route");
+  const alertRouteEndKm = finite(routeFeature.properties.alert_route_end_chainage_km)
+    ? routeFeature.properties.alert_route_end_chainage_km
+    : 155.655;
+  if (best.chainageKm > alertRouteEndKm + 0.05) return fail("outside_alert_route_corridor");
 
   if (second
     && second.distanceM - best.distanceM <= ambiguityDistanceDeltaM
