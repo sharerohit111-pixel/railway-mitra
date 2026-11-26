@@ -129,6 +129,12 @@ jobs:
           sudo apt-get install --yes p7zip-full
           7z t gis-inspection/IR_Tracks.geojsonl.7z
           7z x gis-inspection/IR_Tracks.geojsonl.7z -ogis-inspection/extracted -y
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/IR_Stations.geojsonl.7z' \
+            --output gis-inspection/IR_Stations.geojsonl.7z
+          sha256sum gis-inspection/IR_Stations.geojsonl.7z | tee gis-inspection/stations-source.sha256
+          7z t gis-inspection/IR_Stations.geojsonl.7z
+          7z x gis-inspection/IR_Stations.geojsonl.7z -ogis-inspection/stations -y
       - name: Inspect candidate track features near Lalgarh–Phalodi
         run: |
           set -euo pipefail
@@ -167,8 +173,29 @@ jobs:
                           if coords and max(x for x, _ in coords) >= west and min(x for x, _ in coords) <= east and max(y for _, y in coords) >= south and min(y for _, y in coords) <= north:
                               candidates += 1
                               out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\n')
+          station_files = list(Path('gis-inspection/stations').rglob('*.geojsonl'))
+          if not station_files:
+              raise SystemExit('IR_Stations archive contains no GeoJSONL file')
+          station_features = []
+          station_keys = set()
+          for source in station_files:
+              with source.open(encoding='utf-8') as stream:
+                  for line in stream:
+                      if not line.strip():
+                          continue
+                      station = json.loads(line)
+                      geom = station.get('geometry') or {}
+                      coords = list(points(geom.get('coordinates')))
+                      if coords and west <= coords[0][0] <= east and south <= coords[0][1] <= north:
+                          station_features.append(station)
+                          station_keys.update(map(str, (station.get('properties') or {}).keys()))
+          station_output = Path('gis-inspection/ir_stations_corridor_candidates.geojsonl')
+          station_output.write_text(''.join(json.dumps(x, ensure_ascii=False, separators=(',', ':')) + '\\n' for x in station_features))
           summary = {
               'source_archive': 'IR_Tracks.geojsonl.7z',
+              'station_source_archive': 'IR_Stations.geojsonl.7z',
+              'station_features_in_discovery_envelope': len(station_features),
+              'station_property_keys': sorted(station_keys),
               'search_envelope_wgs84': {'west': west, 'south': south, 'east': east, 'north': north},
               'warning': 'Discovery envelope only; not a verified railway route or chainage reference.',
               'total_features': total,
@@ -188,7 +215,9 @@ jobs:
           name: ir-tracks-corridor-inspection
           path: |
             gis-inspection/source.sha256
+            gis-inspection/stations-source.sha256
             gis-inspection/inspection-summary.json
             gis-inspection/ir_tracks_corridor_candidates.geojsonl
+            gis-inspection/ir_stations_corridor_candidates.geojsonl
           if-no-files-found: error
           retention-days: 7
