@@ -20,7 +20,7 @@ Create one optional, queryable string column:
 |---|---|---:|---|---|
 | `trainNumber` | string | 10 | false | false |
 
-Do not create an `alertEligible` column; the API derives it from the presence of a valid `trainNumber`.
+Do not create an `alertEligible` column; the API derives it at read time from a valid `trainNumber`, a station with verified chainage, no manually supplied report KM, and at least two distinct authenticated reporters for the same train number and direction within 15 minutes.
 
 Recommended index for future per-train queries:
 
@@ -36,6 +36,9 @@ The existing `route_created_desc` index should remain until query usage is revie
 - Passenger train numbers accept 4–6 digits.
 - Goods identifiers accept 2–10 uppercase letters, digits or hyphens.
 - Blank train number remains allowed for ordinary community display, but `alertEligible` is false.
+- Reports from unverified intermediate halts (currently Darbari and Channi) remain visible but are not eligible for alert evaluation until their station chainage is sourced.
+- A single reporter is insufficient; the list API counts distinct authenticated reporter UIDs internally and returns only the aggregate count. It never returns UIDs to the client.
+- The approach gate also requires the same train number, unchanged reported UP/DOWN direction, a plausible average speed inferred from two report timestamps and chainages, fresh reports/GPS, decreasing distance, and an actual 5 km threshold crossing.
 - The existing required `speedKmh` column is retained for schema compatibility only. Its legacy nominal value must never be treated as measured train speed or used by the proximity engine.
 - The proximity engine requires equal, non-empty previous/current train numbers before evaluating approach.
 
