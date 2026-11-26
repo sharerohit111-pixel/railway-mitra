@@ -20,6 +20,7 @@ on:
       - 'scripts/inspect-ir-track-geometry.py'
       - 'scripts/compare-alternate-railway-track-sources.py'
       - '.github/workflows/public-site-checks.yml'
+  push:
     branches: [main, 'feat/train-gps-location-alert-v1']
     paths:
       - 'index.html'
@@ -37,6 +38,7 @@ on:
       - 'robots.txt'
       - 'sitemap.xml'
       - 'scripts/inspect-ir-track-geometry.py'
+      - 'scripts/compare-alternate-railway-track-sources.py'
       - '.github/workflows/public-site-checks.yml'
 
 jobs:
