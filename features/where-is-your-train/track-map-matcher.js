@@ -100,6 +100,7 @@ export function matchGpsToRoute({
   if (!finite(gpsFixAt) || !finite(now) || gpsFixAt > now) return fail("gps_timestamp_invalid");
   if (now - gpsFixAt > maxAgeMs) return fail("gps_fix_stale");
 
+  if (routeFeature?.properties?.route !== routeId) return fail("route_feature_identity_mismatch");
   const geometry = routeFeature?.geometry;
   const calibration = routeFeature?.properties?.chainage_calibration;
   if (geometry?.type !== "LineString"
