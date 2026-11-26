@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#071326">
 <title>Where Is Your Train? | Railway Mitra</title>
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="train.css?v=2">
+<link rel="stylesheet" href="train.css?v=4">
 </head>
 <body>
 <header class="app-header rm-train-header">
@@ -28,7 +28,7 @@
       <label for="alertStation">Alert station</label><select id="alertStation"></select>
       <label for="alertDirection">Train direction</label><select id="alertDirection"><option value="UP">UP</option><option value="DOWN">DOWN</option></select>
       <button id="enableTrainAlert" type="button" class="rm-train-submit">Enable 5 km alert</button>
-      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">Keep this page open for live community-report checks.</p>
+      <p id="etaSummary" class="rm-train-eta" role="status" aria-live="polite">Estimated arrival time will appear after a fresh report.</p><p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">Keep this page open for live community-report checks.</p>
     </div>
   </section>
   <section class="rm-train-report-card">
@@ -54,6 +54,6 @@
   </section>
 </main>
 <script src="train-language.js?v=1" defer></script>
-<script type="module" src="train.js?v=2"></script>
+<script type="module" src="train.js?v=4"></script>
 </body>
 </html>
