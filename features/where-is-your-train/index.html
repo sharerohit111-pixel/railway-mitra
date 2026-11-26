@@ -26,12 +26,12 @@
     <div class="rm-train-card-heading"><div><span class="rm-train-kicker">GPS LOCATION & 5 KM ALERT</span><h2>Alert based on your phone location</h2></div><span class="rm-train-flame">🔔</span></div>
     <div class="rm-train-alert-controls">
       <div class="rm-gps-status" id="gpsStatus" role="status" aria-live="polite">Your phone location has not been fetched yet.</div>
-      <div class="rm-gps-details"><span>GPS coordinates</span><strong id="gpsCoordinates">Not available</strong><span>Railway KM</span><strong id="gpsKm">Waiting for verified track mapping</strong></div>
+      <div class="rm-gps-details"><span>GPS coordinates</span><strong id="gpsCoordinates">Not available</strong><span>Candidate route KM</span><strong id="gpsKm">Waiting for a fresh GPS fix</strong></div>
       <button id="getGpsLocation" type="button" class="rm-train-submit">Get my phone location</button>
-      <button id="backgroundGpsOn" type="button" class="rm-train-submit">Keep GPS running in background (Android)</button>
-      <button id="backgroundGpsOff" type="button" class="rm-train-submit">Stop background GPS</button>
-      <button id="enableTrainAlert" type="button" class="rm-train-submit" disabled>5 KM alert unavailable</button>
-      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">GPS can be read while this page is open. Background alert needs the Android location service and verified track geometry.</p>
+      <button id="backgroundGpsOn" type="button" class="rm-train-submit">Keep GPS capture running in background (Android)</button>
+      <button id="backgroundGpsOff" type="button" class="rm-train-submit">Stop background GPS capture</button>
+      <button id="enableTrainAlert" type="button" class="rm-train-submit" disabled>5 KM alert disabled — verification pending</button>
+      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">The displayed KM is a provisional source-derived route match. The 5 KM alarm stays disabled until official track identity, train identity and direction, background report polling, and physical Android alarm delivery are verified.</p>
     </div>
   </section>
   <section class="rm-train-report-card">
