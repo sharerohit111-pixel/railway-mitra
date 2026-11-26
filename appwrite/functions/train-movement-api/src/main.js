@@ -1,34 +1,12 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomUUID } from "node:crypto";
 import { isValidTrainNumber } from "./train-identity.js";
+import { createPublicPollGuard } from "./public-poll-guard.js";
 const PROJECT_ID="6b070890000e2fca34fd", DATABASE_ID="railway_mitra", TABLE_ID="train_movement_reports";
 const ROUTE_ID="14704-lgh-phl", FIREBASE_PROJECT_ID=process.env.FIREBASE_PROJECT_ID||"railway-mitra";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1";
 const jwks=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
-const publicPollRate=new Map();
-function requestHeader(req,name){
-  const headers=req.headers;
-  if(Array.isArray(headers)){
-    const item=headers.find(h=>String(h.name||"").toLowerCase()===name.toLowerCase());
-    if(item?.value)return String(item.value);
-  }else if(headers&&typeof headers==="object"){
-    const value=headers[name]||headers[name.toLowerCase()];
-    if(value)return String(value);
-  }
-  return "";
-}
-function allowPublicPoll(req,now){
-  const forwarded=requestHeader(req,"x-forwarded-for")||requestHeader(req,"x-real-ip")||requestHeader(req,"cf-connecting-ip");
-  if(!forwarded)return true;
-  const key=forwarded.split(",")[0].trim();
-  const last=publicPollRate.get(key)||0;
-  if(now-last<5000)return false;
-  publicPollRate.set(key,now);
-  if(publicPollRate.size>1000){
-    for(const [ip,at] of publicPollRate)if(now-at>60000)publicPollRate.delete(ip);
-  }
-  return true;
-}
+const publicPollGuard=createPublicPollGuard();
 async function listRouteReports(limit){
   const qs=[
     {method:"equal",attribute:"routeId",values:[ROUTE_ID]},
@@ -89,7 +67,7 @@ export default async({req,res,log,error})=>{
     const body=getBody(req);
     if(body.action==="public_list"){
       const now=Date.now();
-      if(!allowPublicPoll(req,now))return res.json({error:"Polling too frequent. Retry shortly."},429);
+      if(!publicPollGuard.allow(req,now))return res.json({error:"Polling too frequent. Retry shortly."},429);
       const n=Number(body.limit),limit=Number.isFinite(n)?Math.min(50,Math.max(1,Math.floor(n))):50;
       const reports=await listRouteReports(limit);
       const eligible=reports.filter(r=>r.alertEligible&&now-Number(r.createdAt)>=0&&now-Number(r.createdAt)<=900000);
