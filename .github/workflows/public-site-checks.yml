@@ -121,6 +121,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Download pinned CC0 IR_Tracks release asset
         run: |
           set -euo pipefail
@@ -271,6 +274,8 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/compare-alternate-railway-track-sources.py --ir-tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --soi-tracks gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl --gatishakti-tracks gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/alternate-track-source-comparison.json --route-output gis-inspection/candidate-route.geojson
+      - name: Test GPS map matching against real route station anchors
+        run: node --test features/where-is-your-train/tests/track-map-matcher-real-route.test.js
       - name: Upload inspected corridor geometries
         uses: actions/upload-artifact@v4
         with:
