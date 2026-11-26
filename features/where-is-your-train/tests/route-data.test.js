@@ -13,6 +13,8 @@ test("bundled LGH-PLC geometry is the CC0 source-derived candidate", () => {
   assert.equal(feature.properties.candidate_status, "NOT_PRODUCTION_VERIFIED");
   assert.deepEqual(feature.properties.source_feature_ids, ["16025", "15810", "18037"]);
   assert.equal(feature.properties.chainage_to_km, 158.15);
+  assert.equal(feature.properties.alert_route_start_chainage_km, 0);
+  assert.equal(feature.properties.alert_route_end_chainage_km, 155.655);
   assert.equal(feature.properties.chainage_calibration.length, 3);
   assert.equal(feature.properties.source_geometry_sha256, "475fadf6525facf005f365c83cf03ca894dab75de0cf8cf697b8207748ea9678");
 });
