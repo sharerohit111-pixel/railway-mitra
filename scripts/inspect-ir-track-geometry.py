@@ -226,6 +226,14 @@ def main():
     ))
 
     blockers = []
+    origin_intervals = section_report["LGH-KLYT"]["chainage_coverage_intervals_km"]
+    if origin_intervals and origin_intervals[0][0] > 0.001:
+        blockers.append({
+            "type": "route_origin_chainage_gap",
+            "from_km": 0.0,
+            "to_km": origin_intervals[0][0],
+            "gap_km": round(origin_intervals[0][0], 3),
+        })
     if section_report["LGH-KLYT"]["chainage_coverage_intervals_km"] and section_report["KLYT-PLC"]["chainage_coverage_intervals_km"]:
         left_end = section_report["LGH-KLYT"]["chainage_coverage_intervals_km"][-1][1]
         right_start = section_report["KLYT-PLC"]["chainage_coverage_intervals_km"][0][0]
