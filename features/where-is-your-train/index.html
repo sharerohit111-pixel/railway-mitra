@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#071326">
 <title>Where Is Your Train? | Railway Mitra</title>
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="train.css?v=5">
+<link rel="stylesheet" href="train.css?v=6">
 </head>
 <body>
 <header class="app-header rm-train-header">
@@ -20,32 +20,37 @@
       <div class="rm-train-track" id="routeTrack"><div class="rm-train-progress" id="routeProgress"></div><div class="rm-train-marker" id="trainMarker" aria-label="Estimated train position">🚆</div><div id="stationNodes" class="rm-train-stations"></div></div>
     </div>
     <div class="rm-train-position"><strong id="positionName">No movement report yet</strong><span id="positionMeta">Latest verified community report will appear here.</span></div>
-    <p class="rm-train-footnote">The moving marker represents the last reported station/KM, not a GPS-derived train position.</p>
+    <p class="rm-train-footnote">The train marker uses the last reported KM on the route chainage scale. It is not a GPS-derived train position.</p>
   </section>
   <section class="rm-train-report-card">
-    <div class="rm-train-card-heading"><div><span class="rm-train-kicker">5 KM APPROACH ALERT</span><h2>Get notified near your station</h2></div><span class="rm-train-flame">🔔</span></div>
+    <div class="rm-train-card-heading"><div><span class="rm-train-kicker">GPS LOCATION & 5 KM ALERT</span><h2>Alert based on your phone location</h2></div><span class="rm-train-flame">🔔</span></div>
     <div class="rm-train-alert-controls">
-      <label for="alertStation">Alert station</label><select id="alertStation"></select>
-      <label for="alertDirection">Train direction</label><select id="alertDirection"><option value="UP">UP</option><option value="DOWN">DOWN</option></select>
-      <button id="enableTrainAlert" type="button" class="rm-train-submit">Enable 5 km alert</button>
-      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">Keep this page open for live community-report checks.</p>
+      <div class="rm-gps-status" id="gpsStatus" role="status" aria-live="polite">Your phone location has not been fetched yet.</div>
+      <div class="rm-gps-details"><span>GPS coordinates</span><strong id="gpsCoordinates">Not available</strong><span>Candidate route KM</span><strong id="gpsKm">Waiting for a fresh GPS fix</strong></div>
+      <button id="getGpsLocation" type="button" class="rm-train-submit">Get my phone location</button>
+      <button id="backgroundGpsOn" type="button" class="rm-train-submit">Keep GPS capture running in background (Android)</button>
+      <button id="backgroundGpsOff" type="button" class="rm-train-submit">Stop background GPS capture</button>
+      <button id="openAndroidSettings" type="button" class="rm-train-submit">Review Android app and battery settings</button>
+      <small>Android 11+: choose Location → Allow all the time in app settings and set Battery usage to Unrestricted. Android force-stop will stop background monitoring.</small>
+      <button id="enableTrainAlert" type="button" class="rm-train-submit" disabled>5 KM alert disabled — verification pending</button>
+      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">The displayed KM is a provisional source-derived route match. The 5 KM alert target is Train 14704 LGH–JSM Express (Lalgarh → Jaisalmer) only; other train numbers are ignored. The alarm stays disabled until full-route geometry, report-feed approval and physical Android delivery are verified.</p>
     </div>
   </section>
   <section class="rm-train-report-card">
     <div class="rm-train-card-heading"><div><span class="rm-train-kicker">EMPLOYEE REPORT</span><h2>Submit train movement</h2></div><span class="rm-train-flame">🔥</span></div>
     <form id="movementForm">
       <label>Station<select id="station" required></select></label>
+      <label>Train number (optional; required for 5 KM matching)<input id="trainNumber" type="text" maxlength="10" inputmode="numeric" autocomplete="off" pattern="[A-Za-z0-9-]{2,10}" placeholder="e.g. 14704"><small>Only passenger train 14704 (Lalgarh → Jaisalmer) is eligible for the 5 KM alert. Other train reports remain visible but cannot trigger it.</small></label>
       <label>Direction<select id="direction" required><option value="UP">UP</option><option value="DOWN">DOWN</option></select></label>
       <label>Train type<select id="trainType" required><option value="passenger">Passenger train</option><option value="goods">Goods train</option></select></label>
       <label>Movement type<select id="movement" required><option value="departure" selected>Train departed</option><option value="pass">Train passed without stop</option><option value="halt">Train halted</option></select></label>
-      <label>Departure / Report KM (optional)<input id="departureKm" type="number" min="0" max="158" step="0.1" inputmode="decimal" placeholder="Leave blank to use selected station KM"></label>
       <div class="rm-train-time"><span>Report time (device clock)</span><strong id="capturedTime">Capturing…</strong></div>
       <button class="rm-train-submit" type="submit" id="submitReport">Submit report</button>
       <p id="formMessage" class="rm-train-message" role="status" aria-live="polite"></p>
     </form>
   </section>
   <section class="rm-train-reports-card"><div class="rm-train-card-heading"><div><span class="rm-train-kicker">RECENT COMMUNITY UPDATES</span><h2>Latest reports</h2></div><button id="refreshReports" class="rm-train-refresh" type="button">↻ Refresh</button></div><ol id="reportList" class="rm-train-report-list"><li>Loading reports…</li></ol></section>
-  <p class="rm-train-privacy">Your report is associated with your signed-in Railway Mitra account. This page does not continuously track or upload your phone GPS location.</p>
+  <p class="rm-train-privacy">Your employee reports are separate from your phone GPS. GPS location is requested only when you tap the location button; it is not uploaded.</p>
   <section class="rm-train-hero">
     <span class="rm-train-kicker">14704 · JAISALMER EXPRESS ROUTE REFERENCE</span>
     <h2>Train movement, shared by railway employees</h2>
@@ -53,7 +58,7 @@
     <div class="rm-train-disclaimer">Community reports only · Not official live tracking · Not for railway operations or safety decisions.</div>
   </section>
 </main>
-<script src="train-language.js?v=3" defer></script>
-<script type="module" src="train.js?v=5"></script>
+<script src="train-language.js?v=4" defer></script>
+<script type="module" src="train.js?v=19"></script>
 </body>
 </html>

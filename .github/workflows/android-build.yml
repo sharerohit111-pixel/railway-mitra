@@ -1,0 +1,50 @@
+name: Android app build
+on:
+  pull_request:
+    paths:
+      - "android/**"
+      - ".github/workflows/android-build.yml"
+  push:
+    branches: [main, "feat/train-gps-location-alert-v1"]
+    paths:
+      - "android/**"
+      - ".github/workflows/android-build.yml"
+permissions:
+  contents: read
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      # Reuse one CI debug signing key so APKs from later runs can update
+      # the installed test app instead of failing with a certificate mismatch.
+      - name: Restore persistent debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: railway-mitra-debug-signing-v1
+      - name: Ensure debug signing key exists
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
+      - name: Run Android JVM unit tests
+        working-directory: android
+        run: gradle --no-daemon testDebugUnitTest
+      - name: Assemble debug APK
+        working-directory: android
+        run: gradle --no-daemon assembleDebug
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: railway-mitra-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

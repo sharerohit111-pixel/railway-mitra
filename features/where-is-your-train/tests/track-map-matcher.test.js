@@ -1,0 +1,156 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { haversineMeters, matchGpsToRoute } from "../track-map-matcher.js";
+import { getCandidateRouteFeature } from "../route-data.js";
+
+function fixtureRoute(coordinates) {
+  const lengths = coordinates.slice(0, -1).map((point, index) =>
+    haversineMeters(point, coordinates[index + 1])
+  );
+  let measure = 0;
+  let chainage = 0;
+  const calibration = lengths.map((length, index) => {
+    const nextMeasure = measure + length;
+    const nextChainage = chainage + length / 1000;
+    const row = {
+      source_feature_id: String(index + 1),
+      measure_from_m: measure,
+      measure_to_m: nextMeasure,
+      chainage_from_km: chainage,
+      chainage_to_km: nextChainage
+    };
+    measure = nextMeasure;
+    chainage = nextChainage;
+    return row;
+  });
+  return {
+    type: "Feature",
+    properties: { route: "LGH-PLC", chainage_calibration: calibration },
+    geometry: { type: "LineString", coordinates }
+  };
+}
+
+const route = fixtureRoute([[72, 27], [72.01, 27], [72.02, 27]]);
+const common = {
+  routeId: "LGH-PLC",
+  expectedRouteId: "LGH-PLC",
+  routeFeature: route,
+  accuracyM: 8,
+  gpsFixAt: 95000,
+  now: 100000
+};
+
+test("matches a fresh accurate GPS fix to the source-calibrated route chainage", () => {
+  const result = matchGpsToRoute({
+    ...common,
+    latitude: 27.0001,
+    longitude: 72.005
+  });
+  assert.equal(result.matched, true);
+  assert.equal(result.reason, "gps_matched_to_route");
+  assert.ok(result.chainageKm > 0.4 && result.chainageKm < 0.6, JSON.stringify(result));
+  assert.ok(result.crossTrackDistanceM < 20);
+});
+
+test("rejects source geometry beyond the Phalodi alert corridor endpoint", () => {
+  const candidateRoute = getCandidateRouteFeature();
+  const result = matchGpsToRoute({
+    routeId: "LGH-PLC",
+    expectedRouteId: "LGH-PLC",
+    routeFeature: candidateRoute,
+    latitude: 27.124527657026647,
+    longitude: 72.36914400988917,
+    accuracyM: 5,
+    gpsFixAt: 95000,
+    now: 100000
+  });
+  assert.equal(result.reason, "outside_alert_route_corridor");
+});
+
+test("rejects a different route identity", () => {
+  const result = matchGpsToRoute({
+    ...common,
+    routeId: "OTHER-ROUTE",
+    latitude: 27,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "route_mismatch");
+});
+
+test("rejects a route feature whose embedded route identity differs", () => {
+  const wrongFeature = structuredClone(route);
+  wrongFeature.properties.route = "OTHER-ROUTE";
+  const result = matchGpsToRoute({
+    ...common,
+    routeFeature: wrongFeature,
+    latitude: 27,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "route_feature_identity_mismatch");
+});
+
+test("rejects inaccurate GPS", () => {
+  const result = matchGpsToRoute({
+    ...common,
+    accuracyM: 75,
+    latitude: 27,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "gps_accuracy_insufficient");
+});
+
+test("rejects stale and future GPS timestamps", () => {
+  assert.equal(matchGpsToRoute({
+    ...common, gpsFixAt: 69000, latitude: 27, longitude: 72.005
+  }).reason, "gps_fix_stale");
+  assert.equal(matchGpsToRoute({
+    ...common, gpsFixAt: 101000, latitude: 27, longitude: 72.005
+  }).reason, "gps_timestamp_invalid");
+});
+
+test("rejects a GPS fix too far from the route", () => {
+  const result = matchGpsToRoute({
+    ...common,
+    latitude: 27.02,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "gps_off_candidate_route");
+});
+
+test("rejects incomplete or discontinuous chainage calibration", () => {
+  const badRoute = structuredClone(route);
+  badRoute.properties.chainage_calibration[1].measure_from_m += 5;
+  const result = matchGpsToRoute({
+    ...common,
+    routeFeature: badRoute,
+    latitude: 27,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "chainage_calibration_measure_gap");
+});
+
+test("rejects ambiguous parallel route projections", () => {
+  const loopRoute = fixtureRoute([
+    [72, 27],
+    [72.01, 27],
+    [72.01, 27.001],
+    [72, 27.001]
+  ]);
+  const result = matchGpsToRoute({
+    ...common,
+    routeFeature: loopRoute,
+    latitude: 27.0005,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "ambiguous_track_match");
+});
+
+test("rejects malformed route geometry", () => {
+  const result = matchGpsToRoute({
+    ...common,
+    routeFeature: { type: "Feature", properties: { route: "LGH-PLC" }, geometry: { type: "Point", coordinates: [72, 27] } },
+    latitude: 27,
+    longitude: 72.005
+  });
+  assert.equal(result.reason, "route_geometry_invalid");
+});

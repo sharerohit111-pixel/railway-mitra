@@ -11,13 +11,17 @@ on:
       - 'guides/**'
       - 'features/auth/login.js'
       - 'features/privacy/**'
+      - 'features/where-is-your-train/**'
+      - 'appwrite/functions/train-movement-api/**'
       - 'manifest.json'
       - 'service-worker.js'
       - 'robots.txt'
       - 'sitemap.xml'
+      - 'scripts/inspect-ir-track-geometry.py'
+      - 'scripts/compare-alternate-railway-track-sources.py'
       - '.github/workflows/public-site-checks.yml'
   push:
-    branches: [main]
+    branches: [main, 'feat/train-gps-location-alert-v1']
     paths:
       - 'index.html'
       - 'app.html'
@@ -27,10 +31,15 @@ on:
       - 'guides/**'
       - 'features/auth/login.js'
       - 'features/privacy/**'
+      - 'features/where-is-your-train/**'
+      - 'appwrite/functions/train-movement-api/**'
       - 'manifest.json'
       - 'service-worker.js'
       - 'robots.txt'
       - 'sitemap.xml'
+      - 'scripts/inspect-ir-track-geometry.py'
+      - 'scripts/compare-alternate-railway-track-sources.py'
+      - '.github/workflows/public-site-checks.yml'
 
 jobs:
   public-site-validation:
@@ -40,8 +49,38 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check login JavaScript syntax
-        run: node --check features/auth/login.js
+      - name: Check JavaScript syntax for public and train modules
+        run: |
+          node --check features/auth/login.js
+          node --check features/where-is-your-train/train.js
+          node --test features/where-is-your-train/tests/train-identity.test.js
+          node --check features/where-is-your-train/proximity-engine.js
+          node --test features/where-is-your-train/tests/proximity-engine.test.js
+          node --check features/where-is-your-train/track-map-matcher.js
+          node --test features/where-is-your-train/tests/track-map-matcher.test.js
+          node --check features/where-is-your-train/route-data.js
+          node --test features/where-is-your-train/tests/route-data.test.js
+          node --check appwrite/functions/train-movement-api/src/train-identity.js
+          node --test appwrite/functions/train-movement-api/tests/train-identity.test.js
+          node --check appwrite/functions/train-movement-api/src/main.js
+          node --test appwrite/functions/train-movement-api/tests/public-poll-guard.test.js
+      - name: Verify train route station chainage consistency
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          files = ['features/where-is-your-train/train.js', 'appwrite/functions/train-movement-api/src/main.js']
+          arrays = []
+          for name in files:
+              text = Path(name).read_text()
+              match = re.search(r'const ROUTE=(\[.*?\]);', text)
+              if not match:
+                  raise SystemExit(f'ROUTE array missing in {name}')
+              arrays.append(match.group(1))
+          if arrays[0] != arrays[1]:
+              raise SystemExit('Frontend and backend train route chainage arrays differ')
+          print('Train route chainage arrays match')
+          PY
       - name: Validate sitemap XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('sitemap.xml'); print('Sitemap XML is valid')"
       - name: Validate PWA manifest and public pages
@@ -82,3 +121,183 @@ jobs:
               assert Path(route).is_file(), f'Explore Features route missing: {route}'
           print('Public pages and PWA manifest checks passed')
           PY
+
+  inspect-ir-tracks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download pinned CC0 IR_Tracks release asset
+        run: |
+          set -euo pipefail
+          mkdir -p gis-inspection
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/IR_Tracks.geojsonl.7z' \
+            --output gis-inspection/IR_Tracks.geojsonl.7z
+          sha256sum gis-inspection/IR_Tracks.geojsonl.7z | tee gis-inspection/source.sha256
+          stat --printf='Compressed bytes: %s\n' gis-inspection/IR_Tracks.geojsonl.7z
+      - name: Validate archive and extract GeoJSONL
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes p7zip-full
+          7z t gis-inspection/IR_Tracks.geojsonl.7z
+          7z x gis-inspection/IR_Tracks.geojsonl.7z -ogis-inspection/extracted -y
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/IR_Stations.geojsonl.7z' \
+            --output gis-inspection/IR_Stations.geojsonl.7z
+          sha256sum gis-inspection/IR_Stations.geojsonl.7z | tee gis-inspection/stations-source.sha256
+          7z t gis-inspection/IR_Stations.geojsonl.7z
+          7z x gis-inspection/IR_Stations.geojsonl.7z -ogis-inspection/stations -y
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/SOI_Railway_Tracks.geojsonl.7z' \
+            --output gis-inspection/SOI_Railway_Tracks.geojsonl.7z
+          sha256sum gis-inspection/SOI_Railway_Tracks.geojsonl.7z | tee gis-inspection/soi-tracks-source.sha256
+          7z t gis-inspection/SOI_Railway_Tracks.geojsonl.7z
+          7z x gis-inspection/SOI_Railway_Tracks.geojsonl.7z -ogis-inspection/soi-tracks -y
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/GatiShakti_Railway_tracks.geojsonl.7z' \
+            --output gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z
+          sha256sum gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z | tee gis-inspection/gatishakti-tracks-source.sha256
+          7z t gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z
+          7z x gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z -ogis-inspection/gatishakti-tracks -y
+      - name: Inspect candidate track features near Lalgarh–Phalodi
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          sources = list(Path('gis-inspection/extracted').rglob('*.geojsonl'))
+          if not sources:
+              raise SystemExit('Archive contains no GeoJSONL file')
+          # Broad discovery envelope only; never treated as a route.
+          west, south, east, north = 71.5, 26.5, 74.5, 28.5
+          def points(value):
+              if isinstance(value, (list, tuple)):
+                  if len(value) >= 2 and all(isinstance(v, (int, float)) for v in value[:2]):
+                      yield float(value[0]), float(value[1])
+                  else:
+                      for child in value:
+                          yield from points(child)
+          total = candidates = 0
+          geometry_types, property_keys = {}, set()
+          output = Path('gis-inspection/ir_tracks_corridor_candidates.geojsonl')
+          with output.open('w', encoding='utf-8') as out:
+              for source in sources:
+                  with source.open(encoding='utf-8') as stream:
+                      for line_no, line in enumerate(stream, 1):
+                          if not line.strip():
+                              continue
+                          total += 1
+                          feature = json.loads(line)
+                          props = feature.get('properties') or {}
+                          property_keys.update(map(str, props))
+                          geom = feature.get('geometry') or {}
+                          kind = geom.get('type', 'null')
+                          geometry_types[kind] = geometry_types.get(kind, 0) + 1
+                          coords = list(points(geom.get('coordinates')))
+                          if coords and max(x for x, _ in coords) >= west and min(x for x, _ in coords) <= east and max(y for _, y in coords) >= south and min(y for _, y in coords) <= north:
+                              candidates += 1
+                              out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\n')
+          station_files = list(Path('gis-inspection/stations').rglob('*.geojsonl'))
+          if not station_files:
+              raise SystemExit('IR_Stations archive contains no GeoJSONL file')
+          station_features = []
+          station_keys = set()
+          for source in station_files:
+              with source.open(encoding='utf-8') as stream:
+                  for line in stream:
+                      if not line.strip():
+                          continue
+                      station = json.loads(line)
+                      geom = station.get('geometry') or {}
+                      coords = list(points(geom.get('coordinates')))
+                      if coords and west <= coords[0][0] <= east and south <= coords[0][1] <= north:
+                          station_features.append(station)
+                          station_keys.update(map(str, (station.get('properties') or {}).keys()))
+          station_output = Path('gis-inspection/ir_stations_corridor_candidates.geojsonl')
+          station_output.write_text(''.join(json.dumps(x, ensure_ascii=False, separators=(',', ':')) + '\n' for x in station_features))
+          alternate_summaries = {}
+          for label, folder, output_name in [
+              ('SOI_Railway_Tracks', 'gis-inspection/soi-tracks', 'soi_railway_tracks_corridor_candidates.geojsonl'),
+              ('GatiShakti_Railway_tracks', 'gis-inspection/gatishakti-tracks', 'gatishakti_railway_tracks_corridor_candidates.geojsonl'),
+          ]:
+              files = list(Path(folder).rglob('*.geojsonl'))
+              if not files:
+                  raise SystemExit(f'{label} archive contains no GeoJSONL file')
+              count = 0
+              candidate_count = 0
+              keys = set()
+              output = Path('gis-inspection') / output_name
+              with output.open('w', encoding='utf-8') as out:
+                  for source in files:
+                      with source.open(encoding='utf-8') as stream:
+                          for line_no, line in enumerate(stream, 1):
+                              if not line.strip():
+                                  continue
+                              count += 1
+                              feature = json.loads(line)
+                              keys.update(map(str, (feature.get('properties') or {}).keys()))
+                              geom = feature.get('geometry') or {}
+                              coords = list(points(geom.get('coordinates')))
+                              if coords and max(x for x, _ in coords) >= west and min(x for x, _ in coords) <= east and max(y for _, y in coords) >= south and min(y for _, y in coords) <= north:
+                                  candidate_count += 1
+                                  out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\n')
+              alternate_summaries[label] = {
+                  'total_features': count,
+                  'candidate_features': candidate_count,
+                  'property_keys': sorted(keys),
+                  'candidate_file': output_name,
+              }
+          summary = {
+              'source_archive': 'IR_Tracks.geojsonl.7z',
+              'station_source_archive': 'IR_Stations.geojsonl.7z',
+              'station_features_in_discovery_envelope': len(station_features),
+              'station_property_keys': sorted(station_keys),
+              'alternate_track_sources': alternate_summaries,
+              'search_envelope_wgs84': {'west': west, 'south': south, 'east': east, 'north': north},
+              'warning': 'Discovery envelope only; not a verified railway route or chainage reference.',
+              'total_features': total,
+              'candidate_features': candidates,
+              'geometry_types': geometry_types,
+              'property_keys': sorted(property_keys),
+              'candidate_file': output.name,
+          }
+          Path('gis-inspection/inspection-summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+          print(json.dumps(summary, indent=2))
+          if total == 0:
+              raise SystemExit('Dataset contains zero features')
+          PY
+      - name: Run conservative track geometry continuity audit
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check shapely pyproj
+          python scripts/inspect-ir-track-geometry.py --tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/track-geometry-qa.json
+      - name: Compare independent SOI and GatiShakti track candidates
+        run: |
+          set -euo pipefail
+          python scripts/compare-alternate-railway-track-sources.py --ir-tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --soi-tracks gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl --gatishakti-tracks gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/alternate-track-source-comparison.json --route-output gis-inspection/candidate-route.geojson
+      - name: Test GPS map matching against real route station anchors
+        run: node --test features/where-is-your-train/tests/track-map-matcher-real-route.test.js
+      - name: Upload inspected corridor geometries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ir-tracks-corridor-inspection
+          path: |
+            gis-inspection/source.sha256
+            gis-inspection/stations-source.sha256
+            gis-inspection/soi-tracks-source.sha256
+            gis-inspection/gatishakti-tracks-source.sha256
+            gis-inspection/inspection-summary.json
+            gis-inspection/ir_tracks_corridor_candidates.geojsonl
+            gis-inspection/ir_stations_corridor_candidates.geojsonl
+            gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl
+            gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl
+            gis-inspection/track-geometry-qa.json
+            gis-inspection/alternate-track-source-comparison.json
+            gis-inspection/candidate-route.geojson
+          if-no-files-found: error
+          retention-days: 7

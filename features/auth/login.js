@@ -5,7 +5,8 @@ import {
     signInWithPhoneNumber,
     GoogleAuthProvider,
     signInWithPopup,
-    signInWithEmailAndPassword
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
 
 const phoneForm = document.getElementById("phoneLoginForm");
@@ -163,9 +164,45 @@ emailLoginForm.addEventListener("submit", async (event) => {
         window.location.href = postLoginUrl;
     } catch (error) {
         console.error("Email Login Error:", error);
-        showMessage("Email Login में समस्या: " + error.message, true);
+        const messages = {
+            "auth/invalid-credential": "Email या Password सही नहीं है। यदि पासवर्ड याद नहीं है, तो नीचे 'पासवर्ड भूल गए?' विकल्प से रीसेट करें।",
+            "auth/user-not-found": "इस ईमेल से खाता नहीं मिला। ईमेल की वर्तनी जाँचें या सहायता लें।",
+            "auth/wrong-password": "पासवर्ड सही नहीं है। 'पासवर्ड भूल गए?' विकल्प से रीसेट करें।",
+            "auth/invalid-email": "कृपया सही ईमेल पता दर्ज करें।",
+            "auth/too-many-requests": "कई बार प्रयास हुए हैं। सुरक्षा के लिए कुछ देर बाद दोबारा कोशिश करें।",
+            "auth/network-request-failed": "इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।",
+            "auth/operation-not-allowed": "Firebase में Email/Password Login अभी सक्षम नहीं है।"
+        };
+        showMessage(messages[error.code] || "Email Login पूरा नहीं हुआ (" + (error.code || "unknown") + ")।", true);
     } finally {
         emailLoginBtn.disabled = false;
+    }
+});
+
+// Password recovery
+const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+resetPasswordBtn.addEventListener("click", async () => {
+    const email = document.getElementById("emailAddress").value.trim();
+    if (!email) {
+        showMessage("पहले अपना Email Address दर्ज करें।", true);
+        document.getElementById("emailAddress").focus();
+        return;
+    }
+    resetPasswordBtn.disabled = true;
+    showMessage("पासवर्ड रीसेट ईमेल भेजा जा रहा है...");
+    try {
+        await sendPasswordResetEmail(auth, email);
+        showMessage("यदि इस ईमेल से खाता मौजूद है, तो रीसेट लिंक भेज दिया गया है। Inbox और Spam फ़ोल्डर जाँचें।");
+    } catch (error) {
+        console.error("Password Reset Error:", error);
+        const messages = {
+            "auth/invalid-email": "ईमेल पता सही नहीं है।",
+            "auth/too-many-requests": "बहुत अधिक प्रयास हुए हैं। कुछ देर बाद कोशिश करें।",
+            "auth/network-request-failed": "इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।"
+        };
+        showMessage(messages[error.code] || "पासवर्ड रीसेट ईमेल भेजने में समस्या हुई।", true);
+    } finally {
+        resetPasswordBtn.disabled = false;
     }
 });
 
@@ -177,11 +214,24 @@ googleLoginBtn.addEventListener("click", async () => {
     googleLoginBtn.disabled = true;
     showMessage("Google Account से लॉगिन किया जा रहा है...");
     try {
+        const isAndroidWebView = /; wv\\)|\\bwv\\b/i.test(navigator.userAgent) ||
+            (window.RailwayMitraNative && typeof window.RailwayMitraNative.getLocationPermissionState === "function");
+        if (isAndroidWebView) {
+            showMessage("Android ऐप के अंदर Google Login अभी native OAuth सेटअप के बिना उपलब्ध नहीं है। कृपया अभी Email Login या पासवर्ड रीसेट का उपयोग करें।", true);
+            return;
+        }
         await signInWithPopup(auth, googleProvider);
         window.location.href = postLoginUrl;
     } catch (error) {
         console.error("Google Login Error:", error);
-        showMessage("Google Login में समस्या: " + error.message, true);
+        const messages = {
+            "auth/popup-blocked": "ब्राउज़र ने Google Login popup रोक दिया। Popup की अनुमति दें।",
+            "auth/popup-closed-by-user": "Google Login विंडो बंद हो गई। दोबारा प्रयास करें।",
+            "auth/unauthorized-domain": "यह वेबसाइट Firebase Authentication में Authorized Domain के रूप में जोड़ी नहीं गई है।",
+            "auth/operation-not-allowed": "Firebase Console में Google Sign-In provider सक्षम नहीं है।",
+            "auth/network-request-failed": "इंटरनेट कनेक्शन जाँचें और फिर प्रयास करें।"
+        };
+        showMessage(messages[error.code] || "Google Login पूरा नहीं हुआ (" + (error.code || "unknown") + ")।", true);
     } finally {
         googleLoginBtn.disabled = false;
     }

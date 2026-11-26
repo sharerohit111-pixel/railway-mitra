@@ -1,0 +1,98 @@
+/**
+ * Source-derived Lalgarh–Phalodi route candidate.
+ * Geometry is encoded from GatiShakti_Railway_tracks (CC0-1.0), release infra/railways.
+ * Independent SOI Railway Tracks alignment corroborates 4 continuous sections.
+ * This remains NOT_PRODUCTION_VERIFIED; do not enable alarms solely from this file.
+ */
+const ENCODED_POLYLINE_BASE64 = "YXxzbnRAe252eWpDZXpBZ19BYV9BX2xAa05nSWVXZU5rR3dDaVBhSW1OYUdnTF9Fa0prRHFHbUJfRWFBaUh7QW1Je0FfTV9CX0lxQGdMdUBzSl1nSU99SkFzTGRAcUhkQGtMbkF3Sn5BdUpkQn1KbENjSHhCd0lqRHlIaERjSmhFcUp6RnFIcEZ3R2ZGcUd2RmlGbEZzRmJHZUZkSGlFakdvRGxGZUlkTnNGakxlRnpMfUd2U21DYEtfRW5Se0NkU2NCdlJ1QHBVRXpUaEBgVG5BYlR4QnxYbE1meUFoTG5yQXRMenNBdFBqbEJiUH5oQmxKdGZBdEt+bUFyR2h0QGBLempBckZ+b0B4Q3hbfEV6YkBkTWJgQW5HbmdAdEVkY0BmRXRjQHxHantAZlJ6c0JiT2ZjQmJVYGlDdE9oaEJwSGR8QGxLYm5BaEx2bEFqTm5fQmxBdk5mRGJfQGhFfG5AZkdsZ0FsQ2RkQHpDbmRAZEVqZ0BmS3BnQXpGZGxAaEV8akB2THxyQWRQemtCYlV+ZkN6TH5yQXhFYGpAekt8cEF6THxxQWBLYmlBeE1sfUFmU2h6QnJTYmFDblJmeUJ6Unx4QnhVYm5DbFJ0e0J8UHBqQmhTeH1CYlBiaUJ0T2BlQmxOantBYkp0Z0F2YEB8b0V8UnR8QnhMaHJBckxwc0F6R3B3QHRQeGxCdlR6Y0NgWW5jRHJEdl9AbktmakFuXWR8RGJaeGZEbkl+YkFmSnJjQX5Dcl9AfEh8ekByR3Z2QHJObH5Bbk1keEFoSHZ3QHpLam5BdklqY0F0SXp8QHJMdHRBflN4fUJ+V2xhRHZMZnNBclNsX0NyUnB7QnRTZnxCdk9iYEJoTWB6QWRUfH1CaFVgbENoRXpmQHpMeHJBckxyc0FyUnx3QmBTantCYlhmekNsUmp3QmpSYnZCbFNuX0NiRGJcZkRmWnZEclV8RX5WYkd2V3pHelZoSn5ZfEhmU2xNbll0SWxQektqUnZMdlFyTHBQeFBmU3hNbk5yekB6ekBkakF0akF+eEF8eEF8a0FibEF8cUFockF0fUFufUFofUJ8fUJqdkFidkF+YkF+YkFsbkB0bkBqaEFmaEFoakFwakFsdEF0dEF8fEFifUF+Y0F4Y0FqXmJfQHB6Qnp6QnRkQXBkQXhfQWJgQWJfQGBfQGRsQGpsQGhxQGBxQH5hQWRiQXxsQWBtQWRpQXZpQXZqQnJtQnBqQHRoQHh0QH50QGZ9QGp9QGhvQX5uQW5mQXplQXZkQW5lQXp+QXR+QXpgQn5gQmJjQXxiQWZ8QWh8QWJqQWhqQWZuQXhuQWJwQWJwQXhqQXxqQWRkQWRkQXBvQXBvQX5qQnJrQmZsQWBsQXJlQnhlQmhmQ3JmQ2BqQnxpQnpvQHZvQHZ4QWp5QXxhQnJhQnJkQmxkQmB7Qmh7QmxxRHpxRGBzRGZzRGxmQ2pmQ2ZvQHxuQGZbaFt2WWJbalJkVmhNblFsUGJYckx2VGBRZGBAeEh+UnBLalxsWHBmQWxVfmBBbGFAYmBCcGxAdGBDam1AamJDcGJAamVCYElgWXpHdlJ6SGBTYkp4U3ZJYlFsS2JScE1iU2hOaFJqT2ZSemFAYmVAZmZAZGpAbnVAbnpAcGBBdmdBdn1AdmNBYGhCZHJCYGRBdmtBdlRuVnRsQ3h6Q3p9RH5wRXBiQGBmQGJUYFZybkBgc0Bkc0B4eEBuaEF4b0FqYkFoaUF8X0FyZkF0c0Fue0F4bUFudUFmakF0cUF+aUJqdEJgc0BieEBkX0FyZUFgYkF6aEFyYkFkaUFgZUFibEFgZEF+akFuZUFsbEF8X0FmZkFqfUBmY0F8Y0F2akF0X0NkbUNwVHpVaFB0UHxQbk9wUmxPaF9BZnNAdGlBenpAYGZCcHFBfl9BYnNAenxAZnBAbGJBYnVAcm9BbF9BeHZAdGtAfnBBZGFBcHdBYGdBZm5Bcn5AfGdCYnJBfGhBbHpAdnFBYGFBZF9BZnNAemRBbHZAfHFBaGFBbmVAcl10ZUB8XWJSZE5kVnhSZF9Acl1gbEBwbEB6YUF6YUFsbUFmbkFoX0FsX0FkbEFwbEF0aUBmakBwbkB0bkByZUF0ZkFoZkF4ZkF0YkF0YkFuZEFwZEF6e0B+fEB0YkB6YkB0dEB6dEBweUB8eUB4Y0FwZEF6bUF4bkFwZUF+ZUFqakBiakB2b0BicEBmfUBsfkB4fEB8fEB4bUB6bUBoaEFkaUFkZ0FsZ0FmX0BiX0BiV3BWZFNwU2ZQZlFkUG5SclJiWGRSbll6c0Bya0FidEBqa0FmWHJiQHJnQGh5QGp1QGZtQXx7QHZ1QWx9QHR4QXR+QHR5QWhpQWhqQnJzQHhpQX57QXpjQ3BpQXJpQnh3QW5+QnptQGRfQXxlQWB4QWxmQGRxQHJYbl9Abl58ZkBodUBkZEFqb0B8e0Boa0BodkByaEFye0FoS3pOYlN+WHJtQXhhQnxuQHx7QHJkQXh3QXJrQWZgQnJkQWp2QWBSYlh+eEJ6eUN8YUFmc0F+cEF6ZkJmfUd6aEpuX0BiaEB+XGZlQHBSZFZiVWZXcld6VnBjQHRecmdAfl9AcnhAam9AfHtBaGxBZnxBaG1BfHdCZGRCZmZCZHVBbmRCbHJBeGJDYG1CdHpCYmZCZGpCeHdBeH1BYm5Ban5CYmlCdnFCZn5BbmlDdHJCZGhEZmxDYHZEZHdDYHFBdGNBemxAemRAaHlAbm9AamBBZnVAbnJAfGlAfGZBenpAan5AfHNAbl9BYnVAdFBoTnp+QHRzQGZoQm52QW5zQWplQXJoQGRhQGZsQGZlQHR6QmZmQmhebFl4b0B+ZkBoWnRVdFNqUGpdYFlqcEBuZ0BwaUF6fEB4bkF+YEFyeUFyakFodEFiZkF0bkFoYUF0Z0Fie0BwZEJ2c0F+aEF6fEBscUFyY0FmbUBmZUBiZUB+X0B2UnBQcFJ2UXRLdkxqSn5LalRmWnhQcFlyWXxqQHZfQHh6QHx2QGZjQmhuQGB1QWhXYGxAdFh4a0BkfkBqcEJqb0Jqa0VmbkB2ckFyX0F6dEJiWX5sQG5uQXpuQ2R8QHRtQmZcbHRAYmRBenlCZGNCdnREfGpBYmlDbGRAZmFBdnFAZntBaGFAcHtAcFZ6akBmbUBucUFwaUB0a0FqZUBqY0F2d0BmZkJsUmhjQHJWcGhAbk58WmRQeF1uZUFofUJgd0B0ZEJgfUBib0JmYUFwdUJ0Tn5baHFAbnlBbHJAfnpBam9BcHBDcHxAYG1CYmJAcn5AZGJAcH5AfGpAbm1BcmtAfG9BflZ2aUBiekBiakJoX0B6d0Byb0BudkFoYUFodEJgakN2ekZkdUBgYkJmZUB+YkFgaUBsbEFkd0B+YkJoa0B8b0F+b0B2dUF6c0ZmeExkX0FmcUJ+e0F+Z0RoX0Fuc0J+dEB0X0JsYEBoekB4U2hmQG5SYGFAZHFAbHlBbGFAdn1AfnZAfGJCdFdmbEBucUBmeUFqYEF2dEJudkF8fENobUJgZUV2d0B2ZUJ4YUB0fEBseUBuaUJ8YEB+ekB6YkJoc0R2c0B8fEFuakBgb0F6ekB2aUJ+WXJvQHBTbmJAYE5oVnhPeFZqUn5WdGBAemRAZm5AdHFAaFtkXnB0QWJ7QX5yQWB6QXJmQnpuQmp3QHx7QHptQ3h4Q2BlQnxtQmZoQX5tQXx1QGJ6QHJ+QHJjQWZlQGhoQHp0QHB5QGJlQGJoQGxeYGJAZHlAanxAeGlBfG9BZmNBZGlBblxsXnplQGRpQHJmQ3BxQ3ZpQnxxQm5gQ3RqQ2hzQXR5QXxqQWRxQXRnQHxqQHBuQGRyQHplQWxrQWpqQWpxQWxfQXRjQWBnQXxsQXJoQXZuQWJxQXx2QWpsQG5wQGBqQWJwQW5mQWZrQWRpQGptQHJfQWhkQXBfQX5kQWxYaltuTGpOdk5iUnJfQGZoQHxuQH58QHxrQGp4QGR6QGZrQWh7QHxsQXB6QHJrQX55QHpqQXx0QHhkQWRoQGRzQHp7QXJ3QmxfQWxxQWZuQWRlQmB4QmR7Q3RsQXxiQnhgQXJzQXZlQHxwQGBsQGB5QHZuQHx8QGJwQHZ8QGZ4QGRqQXZwQGZ+QH58QGRuQW5dbGdAdmJAfGtAfl5uaUBwa0Bgd0BufkB2cEF6ekB6a0F4e0B0bEFqY0F8dkFgYUFkdEF8ZEFieUFgYkF4dEFoZEFgeEFycEB8fkBiWWBgQHZvQHp+QGZmQXx5QW5gQnx8QnB6Qm59Q25SeFdgYEFyc0F8bUF6Y0Jod0F4cEJ+cEF2Z0J+bUBue0BqcEFoZ0JiYkF4dUF0ekBwa0FqZ0BkckBmfUBsb0FybUFyY0JqZURmdUV0Z0F+e0FmYUB2akB8aUBsdkB4cEBkX0F+ZEB6b0B0ZUFsekFkY0FqdkFsakFiYEJqaEFifEF2ZEB+b0BiVWpadGNAcG5AdmxAdHlAcGxBemNCdnZBfG5CemtCdmxDaGdBaHpBZHFBYGhCdndCdHlDfnBBZGlCZHRAYGNBfmdCamZDdHtCeF9EamVBdnhBbHxAbG1BbHNDdn1Ean5BZHpCYG5BYmRCfmBBfnJBZHpAfGlBfndAfGdBam5DYHhEdGRBeHhBYld2XnhsQWZhQnhyQXBqQmJ8Qm5fRH5lQWR6QXp1QXZuQnJnQXZ7QXpcdGVAanNAYGJBZmBBZnNBZHZAemVBanRBbmxCYmdDYmxEemVCZmRDbnZCendDYHdFYnRHfHJBbmpCZGdAdnJAantDcGZFcHFAYGBBbF9AfGhAdk16UWByQGZgQXptQHB7QHRmQHBxQGJqQHR1QHxcbmRAZlx4ZUBqfUBob0F6W3RjQGRjQGxtQHZgQXpyQXBQfFVqZ0BickBwdUBiZUF8Z0FofEF0dUJgd0NyaEJoZkNsaEBuc0B0ZEJwYUNqTWJRdn5AdnBBemBAcmpAYll4YEB6YEB0aUBieEFocUJsZ0F+e0FyYkB0bEB2Z0Bkc0Bsb0ByfEB0W2xjQGBnQHZyQHZtQHh6QGxoQHR0QGJyQGJgQXpoQHJ0QHhqQGZ2QH5rQGJ5QH5vQHx9QHxxQGpfQWpjQX52QWZxQGZfQWpoQGR0QGRsQG54QHxSdlhiU2hYdFZuXWRSdldkXnpmQHpjQHptQGxgQGJqQGBiQHhrQGBebGZAeHpAcGtBbkxoUG5LeFB6THZUektyVGBJfFFsSGRSZEVqTXJJcFlwSmJdYEx+YUBoSnBcfmBAfHdBflN+dkB4Wm5nQW5KZF1oSmhdclJwckB8SWRacEp2XHBFaFBiSHxXYkl2WGJVdHdAdE5yZ0BoTWxkQHBGZlNiRn5Rbkl8WXBQam1AdktmYUB2TmZoQG5JelpwSnRccktoYUBiR3JSekdmVWpGblJgS2hfQGpJfllyWWRmQWZacmZBZFpgZkFmS2JedkhuWWRMemFAaFh+YUFoVWh5QGRVYHpAelhqYUFyU3B1QHJYeGFBeFRqd0BkT3BqQGRNdmNAbkpqXGxOfmdAZEpwW2BQYmxAell8ZUF+T3hrQGJRdG5AekpoX0BqUXhuQGRSeHBAbFR+dkBqS3hebElkV3BKblZ4SWBTYk5iWG5LZFJsTnhTaE9wUmBQYFJyTmZPeFV2VHRceFluWGhVelJ0UHhmQG5hQGZgQGJcbG9AbmlAamxAZmdAcnJAbGxAcGtAZGZAfnBAempAdmdAaGJAYnJAZGxAYG1AaGdAdnNAZm1AaGtAbmVAZnVAaG5AentAdnNAaHVAcm5Acl16WWBeYFp2cUB0a0B4a0ByZkBucEB+aUBsdkBqb0B8akByZUBqfUB6dUBydEB+bUByfEBkdUB2ZUF6fEB0XGxZcnBAYGpAZnFAYmtAemBAclx8Y0BwX0BqbEBgZ0ByaUBqZEB6ZkBsYUB4bEB4ZkB0dkB2cEBgfkN0aUNoakNqeUJuZkFmfUBqdUBobkBwYUFoeUB8ZkFmfkB4dEFqakF8bEFmY0FsX0Jic0FgZEFofEBgZUF0fEBmYEF2d0BwYUFseUBobEF4YkFuZkN4dEJ2bENwekJkZEFkfEBkZ0B8YUByfUBsdUBobkBmaUBwckFuZ0FuakB6ZUBuYEJ4c0F+aEFkYEF2bkJ+YEJ2bUFqY0FyeUJ2akJ2bER4dkNqbEN0ekJ0c0B+bEBgdEBqbUB+aEF+X0FyakFgYUFqa0FyYUFyfUBgdkB6X0N+bkJ+a0J4fkFwaUFsX0FgdUFia0Fud0BycEBue0Bsc0Byb0BwaUBmZkJmeUFqdUBwbkB+bUJsX0JmaUJkfEF0VnxTbHlAenFAdHxAfHRAcG5AdGhAeFhyVXJnQHBiQGJyQGprQGhkQWB8QGJrQWxhQWZ+QGh2QGpiQXB5QHxsQXRiQWZvQmZhQmZuQWhkQX59QWByQX5qQWxhQW5kQGBgQGZ4QHpwQHxfQWp3QHpyQX5oQW51QHhuQHxtQH5nQGZ7QGBzQHBpQGBkQH5mQGBiQHpyQGpsQGpwQGJqQHZvQGxpQGhvQHJoQGRoQGBjQGJ7QHRzQHxmQWh9QGJpQWBfQXhkQXh7QHRnQWp+QH5uQGJpQGZlQGRhQG5qQH5kQGptQW5jQX5uQXBkQWBkQXR7QHpgQnpzQXpkQGJgQGhkQWR7QHpiQXR6QHh0QWhpQXJtQW5jQWxlQWp8QHp3QHZwQHphQGZdanFBdmdBYmNBZHpAfHBAYmpAdlZqUnpXfFBoVnRNfldkTXpZcEtuWnpJeGNAbkp+VHxEfnFAZExiYEF4T2BefkZofUFoV3RyQXJUamBBeE9+X0J+V2J9QnZfQGpyRXZ1QGxvRXp0QGZ9QGJPfmtBflJqdEJ+XGpzQXxUfn1BbldyY0NoYUBkdENuZUBickVqdUBobUVodEBmcUFqVHx9QGJPfmtBYFNwZEFoUWpqQXJSYF5wR2RpQH5JamVAekd4W3RFaFt6RGZSckF2YkBuQWBbSGxWXWpZc0FkWXFDeFh5RGJZdUZ+VWdGaFJhRm5QZUZ4Tm9HZFJtSnhZcVB6VmVRblxnV2hoRWd1RGx2VXlwU2h3RWFiRXh0RWlgRXRpQW1iQX5mQmF9QWJ7QX1xQWJ8QmlwQnxqQ3t9Qn58Q29tQ2J2QH1wQHByQm1nQmRiQ2F1Qm5qQ2d9QmxlQ2V4QnZ0RGNkRGhnQX1+QG5SdU5oW31SfldtTnRYc0x4Xl9NcHBAbVJ4bEB1UH58QXNiQG56Qm1uQHZ1QHtSempCZWlAfG1CZ2lAdmREcX5AfnJAfVJgW29JfHNBe19AcH5CcW9AbF9BX1d8YUJvZEB+bkJlaUBwWndJZnBAfVFkakVfa0FgbUNzdEBycUJfa0BgekBnVXxmQW1aemhBY1tibEJ9aEB+b0JnakBsY0JnZUB6Y0JrZUBkaUFtW2RtRXdtQX5+RGFoQXJzRXFwQXpoQGtPalx5SX5fRW9oQWpjQX1YaHFBaV54Z0JfZ0BkYEJhZEB8dkBnVHptQnFpQGBuQmlpQHx1RH1kQXR4Q3N5QGZ+RWN0QXJyQHdRcH5CX3BAbnpAX1VqYkFhWWhWcUd0UXtEZFh1RW5Va0RyU2tCaFZzQWRWXWhOQ3RSWnJVZkFsVmRCcFN8QmZhQHBGaHdAekxsY0BySHZkQHBJbltgRmBpQGBKeFV8RXJXakVobkB8SmJlQGZJan1Ack90YEBsSHBbbEV6Y0FiUnB2QHZNZGxAeEpoaUBmSX5kQWpQamdCcFp0bUBuSmBtQXxTbnNBbFVgXWxGbk9uQ2JTfEVgVHRHdktiRWZQdkh0T2xJaEh2RXpSdE5mR2pGbk5iT3pMdk5ySHJLbEhiTGxNYFV8SHJQbkV2S35EaktoQ2BJfkR0TnxEaFFsQ2ZQckJ4TWRCbk90QXpRbEB6TlJgTkpyUUF+U1liTndAfE9zQWJQZ0F8SXVBekt7Q3pQc0NyTWtEZk5fRWpOdUh+VnlOZmNAe2RAdHZBX29AeG5Cd1Nib0BnVHZvQHdjQHZzQWNoQGpgQnNlQGx3QWtQYmdAY3VAZntCY11sZkFnXnRnQW9uQGptQn1NamFA";
+function decodeBase64Ascii(value) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let buffer = 0;
+  let bits = 0;
+  let output = "";
+  for (const character of value) {
+    if (character === "=") break;
+    const digit = alphabet.indexOf(character);
+    if (digit < 0) throw new Error("Invalid base64 route data");
+    buffer = (buffer << 6) | digit;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      output += String.fromCharCode((buffer >> bits) & 0xff);
+      buffer &= (1 << bits) - 1;
+    }
+  }
+  return output;
+}
+const ENCODED_POLYLINE = decodeBase64Ascii(ENCODED_POLYLINE_BASE64);
+
+const CHAINAGE_CALIBRATION = Object.freeze([
+  Object.freeze({ source_feature_id: "16025", measure_from_m: 0, measure_to_m: 46107.048, chainage_from_km: 0, chainage_to_km: 46.15 }),
+  Object.freeze({ source_feature_id: "15810", measure_from_m: 46107.048, measure_to_m: 152054.669, chainage_from_km: 46.15, chainage_to_km: 152.0 }),
+  Object.freeze({ source_feature_id: "18037", measure_from_m: 152054.669, measure_to_m: 158084.88, chainage_from_km: 152.0, chainage_to_km: 158.15 })
+]);
+
+export function decodePolyline(encoded = ENCODED_POLYLINE, precision = 6) {
+  let index = 0;
+  let latitude = 0;
+  let longitude = 0;
+  const factor = 10 ** precision;
+  const coordinates = [];
+
+  const decodeValue = () => {
+    let result = 0;
+    let shift = 0;
+    let byte;
+    do {
+      if (index >= encoded.length) throw new Error("Truncated route polyline");
+      byte = encoded.charCodeAt(index++) - 63;
+      if (byte < 0 || byte > 63) throw new Error("Invalid route polyline character");
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+    return (result & 1) ? ~(result >> 1) : (result >> 1);
+  };
+
+  while (index < encoded.length) {
+    latitude += decodeValue();
+    longitude += decodeValue();
+    coordinates.push([longitude / factor, latitude / factor]);
+  }
+  if (coordinates.length < 2) throw new Error("Route polyline has insufficient coordinates");
+  return coordinates;
+}
+
+const coordinates = decodePolyline();
+coordinates.forEach(Object.freeze);
+Object.freeze(coordinates);
+
+export const CANDIDATE_ROUTE_FEATURE = Object.freeze({
+  type: "Feature",
+  properties: Object.freeze({
+    source: "GatiShakti_Railway_tracks",
+    source_license: "CC0-1.0",
+    source_release: "infra/railways",
+    source_feature_ids: Object.freeze(["16025", "15810", "18037"]),
+    route: "LGH-PLC",
+    route_code: "671",
+    line_code: "003",
+    line: "SL",
+    gauge: "BG",
+    candidate_status: "NOT_PRODUCTION_VERIFIED",
+    chainage_from_km: 0,
+    chainage_to_km: 158.15,
+    alert_route_start_chainage_km: 0,
+    alert_route_end_chainage_km: 155.655,
+    geometry_length_km: 158.085,
+    source_geometry_sha256: "475fadf6525facf005f365c83cf03ca894dab75de0cf8cf697b8207748ea9678",
+    chainage_calibration: CHAINAGE_CALIBRATION
+  }),
+  geometry: Object.freeze({
+    type: "LineString",
+    coordinates
+  })
+});
+
+export function getCandidateRouteFeature() {
+  return CANDIDATE_ROUTE_FEATURE;
+}
