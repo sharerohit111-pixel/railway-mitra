@@ -6,6 +6,7 @@ is snapped, merged, interpolated, or promoted into a production route.
 """
 import argparse
 import json
+import math
 from pathlib import Path
 
 from pyproj import Transformer
@@ -295,10 +296,11 @@ def main():
                     },
                 })
 
-                for name in sorted(ROUTE_STATION_NAMES := {
+                route_station_names = {
                     "LALGARH", "GAJNER", "KOLAYAT", "DIYATRA ROAD",
                     "NOKHRA", "BAAP", "MALAR", "PHALODI",
-                }):
+                }
+                for name in sorted(route_station_names):
                     station = station_by_name.get(name)
                     if not station:
                         continue
