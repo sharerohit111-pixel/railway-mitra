@@ -47,14 +47,32 @@ export default async({req,res,log,error})=>{
       const alertEligible=Boolean(trainNumber)&&chainageVerified&&!hasReportedKm;
       const createdAtMs=Date.now();
       await db(`/tablesdb/${DATABASE_ID}/tables/${TABLE_ID}/rows`,{method:"POST",body:JSON.stringify({rowId:randomUUID().replaceAll("-","").slice(0,32),data:{uid,routeId:ROUTE_ID,stationId:String(Number(body.stationId)),stationName:station[0],stationKm:station[1],direction,movement,trainType,trainNumber:trainNumber||null,speedKmh:LEGACY_SPEED_KMH[trainType],movementLabel:movement==="pass"?"Passed without stop":movement==="halt"?"Halted":"Departed",departureKm,createdAtMs,schemaVersion:3},permissions:[]})});
-      return res.json({success:true,createdAtMs,trainNumber:trainNumber||null,chainageVerified,alertEligible});
+      return res.json({success:true,createdAtMs,trainNumber:trainNumber||null,chainageVerified,alertEligible:false,awaitingIndependentReports:Boolean(trainNumber)&&chainageVerified});
     }
     if(body.action==="list"){
       const n=Number(body.limit),limit=Number.isFinite(n)?Math.min(50,Math.max(1,Math.floor(n))):30;
       const qs=[{method:"equal",attribute:"routeId",values:[ROUTE_ID]},{method:"orderDesc",attribute:"createdAtMs"},{method:"limit",values:[limit]}];
       const p=new URLSearchParams();qs.forEach(q=>p.append("queries[]",JSON.stringify(q)));p.set("total","false");
       const data=await db(`/tablesdb/${DATABASE_ID}/tables/${TABLE_ID}/rows?${p}`,{method:"GET"});
-      return res.json({reports:(data.rows||[]).map(r=>{const station=ROUTE[Number(r.stationId)],chainageVerified=station?.[2]===true;return {stationName:r.stationName,stationKm:r.stationKm,direction:r.direction,movement:r.movement,movementLabel:r.movementLabel,trainType:r.trainType,trainNumber:r.trainNumber||null,chainageVerified,alertEligible:Boolean(r.trainNumber)&&chainageVerified&&r.departureKm==null,departureKm:r.departureKm,createdAt:r.createdAtMs};})});
+      const rows=data.rows||[];
+      const reports=rows.map(r=>{
+        const station=ROUTE[Number(r.stationId)],chainageVerified=station?.[2]===true;
+        const reportTime=Number(r.createdAtMs);
+        const matchingReports=r.trainNumber?rows.filter(other=>
+          other.trainNumber===r.trainNumber
+          && other.direction===r.direction
+          && Math.abs(Number(other.createdAtMs)-reportTime)<=900000
+        ):[];
+        const independentReporterCount=new Set(matchingReports.map(other=>other.uid).filter(Boolean)).size;
+        return {
+          stationName:r.stationName,stationKm:r.stationKm,direction:r.direction,
+          movement:r.movement,movementLabel:r.movementLabel,trainType:r.trainType,
+          trainNumber:r.trainNumber||null,chainageVerified,independentReporterCount,
+          alertEligible:Boolean(r.trainNumber)&&chainageVerified&&r.departureKm==null&&independentReporterCount>=2,
+          departureKm:r.departureKm,createdAt:r.createdAtMs
+        };
+      });
+      return res.json({reports});
     }
     return res.json({error:"Unknown action."},400);
   }catch(e){
