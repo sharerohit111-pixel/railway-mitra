@@ -98,7 +98,7 @@ test("rejects a GPS fix too far from the route", () => {
     latitude: 27.02,
     longitude: 72.005
   });
-  assert.equal(result.reason, "gps_off_verified_route");
+  assert.equal(result.reason, "gps_off_candidate_route");
 });
 
 test("rejects incomplete or discontinuous chainage calibration", () => {
