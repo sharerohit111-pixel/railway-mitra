@@ -51,6 +51,10 @@ The existing `route_created_desc` index should remain until query usage is revie
 5. Verify old rows still list successfully and show as not alert-eligible.
 6. Only after real report identity, chainage and direction checks pass should alert evaluation be connected.
 
+## Target train and movement direction
+
+The alert route identity `14704-lgh-phl` is restricted to passenger train `14704` only. Indian Railways' train list identifies 14704 as LGH–JSM (Lalgarh to Jaisalmer); the route chainage increases from Lalgarh toward Phalodi. The native evaluator therefore accepts only train 14704 and uses increasing chainage (+1) as its scheduled direction. The submitted UP/DOWN label must remain consistent across the independent reports, but it is not trusted to define the chainage sign. Observed report chainage must still increase and the distance to the phone must decrease. Other train numbers and goods reports are excluded from the public alert feed.
+
 ## Route identity binding
 
 The movement-report backend uses route ID `14704-lgh-phl`; the source-derived track geometry uses `LGH-PLC`. These are different identifiers for the same Lalgarh–Phalodi corridor, not interchangeable strings. Any future native alert evaluator must require both exact identifiers and use an explicit reviewed mapping between them. It must never accept an arbitrary report route merely because the station names look similar.
