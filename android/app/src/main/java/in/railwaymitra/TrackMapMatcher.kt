@@ -17,7 +17,12 @@ data class TrackMapMatchResult(
     val candidateStatus: String = "NOT_PRODUCTION_VERIFIED"
 )
 
-class TrackMapMatcher(context: Context) {
+class TrackMapMatcher private constructor(private val assetJsonLoader: () -> String) {
+    constructor(context: Context) : this({
+        context.applicationContext.assets.open(ASSET_NAME).bufferedReader(Charsets.UTF_8).use { it.readText() }
+    })
+
+    internal constructor(assetJson: String) : this({ assetJson })
     private data class Point(val longitude: Double, val latitude: Double)
     private data class Calibration(
         val measureFromM: Double,
@@ -38,7 +43,6 @@ class TrackMapMatcher(context: Context) {
         val calibration: List<Calibration>
     )
 
-    private val appContext = context.applicationContext
     private val route: RouteData by lazy { loadRoute() }
 
     fun matchGpsToRoute(
@@ -130,8 +134,7 @@ class TrackMapMatcher(context: Context) {
     }
 
     private fun loadRoute(): RouteData {
-        val json = appContext.assets.open(ASSET_NAME).bufferedReader(Charsets.UTF_8).use { it.readText() }
-        val root = JSONObject(json)
+        val root = JSONObject(assetJsonLoader())
         val encoded = String(Base64.decode(root.getString("encodedPolylineBase64"), Base64.DEFAULT), Charsets.UTF_8)
         val precision = root.optInt("precision", 6)
         val points = decodePolyline(encoded, precision)
