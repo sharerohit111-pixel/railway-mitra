@@ -27,6 +27,13 @@ test("fails closed until the train report feed is production approved", () => {
   );
 });
 
+test("rejects a different train even when its reports are internally consistent", () => {
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, previousTrainNumber: "14705", currentTrainNumber: "14705" }).reason,
+    "train_identity_mismatch"
+  );
+});
+
 test("allows only a confirmed approach crossing into five kilometres", () => {
   const result = evaluateFiveKmApproach(base);
   assert.equal(result.eligible, true);
