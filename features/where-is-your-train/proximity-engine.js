@@ -18,7 +18,10 @@ export function evaluateFiveKmApproach({
   gpsAccuracyM,
   gpsFixAt,
   now = Date.now(),
-  radiusKm = 5
+  radiusKm = 5,
+  maxReportIntervalMs = 900000,
+  maxSpeedKmh = 160,
+  minObservedSpeedKmh = 0.5
 } = {}) {
   const fail = reason => ({ eligible: false, reason });
   if (!armed) return fail("not_armed");
@@ -32,11 +35,18 @@ export function evaluateFiveKmApproach({
   if (gpsAccuracyM == null || !Number.isFinite(gpsAccuracyM) || gpsAccuracyM > 50) return fail("gps_accuracy_insufficient");
   if (now - gpsFixAt < 0 || now - gpsFixAt > 30000) return fail("gps_fix_stale");
   if (now - currentReportAt < 0 || now - currentReportAt > 60000) return fail("train_report_stale");
-  if (currentReportAt <= previousReportAt || currentReportAt - previousReportAt > 120000) return fail("report_interval_invalid");
+  const reportIntervalMs = currentReportAt - previousReportAt;
+  if (reportIntervalMs <= 0 || reportIntervalMs > maxReportIntervalMs) return fail("report_interval_invalid");
+  if (!Number.isFinite(maxSpeedKmh) || maxSpeedKmh <= 0 || maxSpeedKmh > 220) return fail("speed_limit_invalid");
   if (previousTrainKm < 0 || currentTrainKm < 0 || userTrackKm < 0) return fail("chainage_invalid");
 
   const movementKm = (currentTrainKm - previousTrainKm) * trainDirectionSign;
-  if (movementKm <= 0 || movementKm > 10) return fail("train_not_confirmed_approaching");
+  if (movementKm <= 0) return fail("train_not_confirmed_approaching");
+  // This is an average inferred from two timestamped reports, not a live speed sensor.
+  const observedAverageSpeedKmh = movementKm / (reportIntervalMs / 3600000);
+  if (observedAverageSpeedKmh < minObservedSpeedKmh || observedAverageSpeedKmh > maxSpeedKmh) {
+    return fail("observed_speed_implausible");
+  }
   const previousDistanceKm = Math.abs(userTrackKm - previousTrainKm);
   const currentDistanceKm = Math.abs(userTrackKm - currentTrainKm);
   if (currentDistanceKm >= previousDistanceKm) return fail("distance_not_decreasing");
@@ -46,6 +56,7 @@ export function evaluateFiveKmApproach({
     eligible: true,
     reason: "approach_threshold_crossed",
     distanceKm: Number(currentDistanceKm.toFixed(3)),
-    previousDistanceKm: Number(previousDistanceKm.toFixed(3))
+    previousDistanceKm: Number(previousDistanceKm.toFixed(3)),
+    observedAverageSpeedKmh: Number(observedAverageSpeedKmh.toFixed(1))
   };
 }
