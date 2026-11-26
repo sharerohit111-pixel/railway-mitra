@@ -51,6 +51,18 @@ The existing `route_created_desc` index should remain until query usage is revie
 5. Verify old rows still list successfully and show as not alert-eligible.
 6. Only after real report identity, chainage and direction checks pass should alert evaluation be connected.
 
+## Background service report feed
+
+The function source also contains a read-only `public_list` action for the Android foreground service:
+
+- No Firebase token is required because the response contains only public train movement fields for reports already marked alert-eligible.
+- It returns at most 50 reports from the latest 15-minute window, plus a server timestamp and route identity.
+- It omits reporter UIDs and all user/device GPS coordinates.
+- It applies a best-effort per-IP polling interval; the Android client polls no faster than every 30 seconds.
+- The endpoint is source-only until the schema migration and function deployment are separately approved.
+
+The Android poller is dormant unless an explicit future alert-arm state is set. GPS capture by itself must not start report polling or trigger an alarm.
+
 ## Rollback
 
 1. Revert the Appwrite function to a version that does not read/write `trainNumber`.
