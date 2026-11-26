@@ -53,6 +53,7 @@ jobs:
         run: |
           node --check features/auth/login.js
           node --check features/where-is-your-train/train.js
+          node --test features/where-is-your-train/tests/train-identity.test.js
           node --check features/where-is-your-train/proximity-engine.js
           node --test features/where-is-your-train/tests/proximity-engine.test.js
           node --check features/where-is-your-train/track-map-matcher.js
