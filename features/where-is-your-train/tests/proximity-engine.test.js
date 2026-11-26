@@ -6,8 +6,8 @@ const base = {
   armed: true, routeId: "14704-lgh-phl", expectedRouteId: "14704-lgh-phl",
   previousTrainNumber: "14704", currentTrainNumber: "14704",
   previousTrainKm: 20, currentTrainKm: 16, trainDirectionSign: -1,
-  previousReportAt: 100000, currentReportAt: 110000,
-  userTrackKm: 12, gpsAccuracyM: 12, gpsFixAt: 115000, now: 120000
+  previousReportAt: 100000, currentReportAt: 220000,
+  userTrackKm: 12, gpsAccuracyM: 12, gpsFixAt: 225000, now: 230000
 };
 
 test("allows only a confirmed approach crossing into five kilometres", () => {
@@ -30,6 +30,39 @@ test("does not alert for stale train reports", () => {
 
 test("does not alert if already inside radius at first observation", () => {
   assert.equal(evaluateFiveKmApproach({ ...base, previousTrainKm: 16, currentTrainKm: 14 }).reason, "five_km_threshold_not_crossed");
+});
+
+test("returns report-derived average speed rather than a nominal train speed", () => {
+  const result = evaluateFiveKmApproach(base);
+  assert.equal(result.eligible, true);
+  assert.equal(result.observedAverageSpeedKmh, 120);
+});
+
+test("rejects an impossible report-derived speed", () => {
+  const result = evaluateFiveKmApproach({
+    ...base,
+    currentReportAt: 130000,
+    gpsFixAt: 135000,
+    now: 140000
+  });
+  assert.equal(result.reason, "observed_speed_implausible");
+});
+
+test("rejects report pairs more than fifteen minutes apart", () => {
+  const result = evaluateFiveKmApproach({
+    ...base,
+    currentReportAt: 100000 + 901000,
+    gpsFixAt: 100000 + 906000,
+    now: 100000 + 910000
+  });
+  assert.equal(result.reason, "report_interval_invalid");
+});
+
+test("applies a stricter speed ceiling when supplied for goods trains", () => {
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, maxSpeedKmh: 100 }).reason,
+    "observed_speed_implausible"
+  );
 });
 
 test("does not alert when train identity is missing", () => {
