@@ -6,6 +6,7 @@ const base = {
   armed: true, routeId: "14704-lgh-phl", expectedRouteId: "14704-lgh-phl",
   previousTrainNumber: "14704", currentTrainNumber: "14704",
   previousDirection: "UP", currentDirection: "UP",
+  previousIndependentReporterCount: 2, currentIndependentReporterCount: 2,
   previousTrainKm: 20, currentTrainKm: 16, trainDirectionSign: -1,
   previousReportAt: 100000, currentReportAt: 220000,
   userTrackKm: 12, gpsAccuracyM: 12, gpsFixAt: 225000, now: 230000
@@ -69,6 +70,13 @@ test("applies a stricter speed ceiling when supplied for goods trains", () => {
 test("does not alert when train identity is missing", () => {
   const { previousTrainNumber, currentTrainNumber, ...withoutIdentity } = base;
   assert.equal(evaluateFiveKmApproach(withoutIdentity).reason, "train_identity_missing");
+});
+
+test("does not alert without two independent reporters for both observations", () => {
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, currentIndependentReporterCount: 1 }).reason,
+    "independent_reports_insufficient"
+  );
 });
 
 test("does not alert when the reported direction changes", () => {
