@@ -18,8 +18,8 @@ on:
       - 'robots.txt'
       - 'sitemap.xml'
       - 'scripts/inspect-ir-track-geometry.py'
+      - 'scripts/compare-alternate-railway-track-sources.py'
       - '.github/workflows/public-site-checks.yml'
-  push:
     branches: [main, 'feat/train-gps-location-alert-v1']
     paths:
       - 'index.html'
@@ -263,6 +263,10 @@ jobs:
           set -euo pipefail
           python -m pip install --disable-pip-version-check shapely pyproj
           python scripts/inspect-ir-track-geometry.py --tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/track-geometry-qa.json
+      - name: Compare independent SOI and GatiShakti track candidates
+        run: |
+          set -euo pipefail
+          python scripts/compare-alternate-railway-track-sources.py --ir-tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --soi-tracks gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl --gatishakti-tracks gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/alternate-track-source-comparison.json
       - name: Upload inspected corridor geometries
         uses: actions/upload-artifact@v4
         with:
@@ -278,5 +282,6 @@ jobs:
             gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl
             gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl
             gis-inspection/track-geometry-qa.json
+            gis-inspection/alternate-track-source-comparison.json
           if-no-files-found: error
           retention-days: 7
