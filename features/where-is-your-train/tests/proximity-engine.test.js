@@ -4,6 +4,7 @@ import { evaluateFiveKmApproach } from "../proximity-engine.js";
 
 const base = {
   armed: true, routeId: "14704-lgh-phl", expectedRouteId: "14704-lgh-phl",
+  previousTrainNumber: "14704", currentTrainNumber: "14704",
   previousTrainKm: 20, currentTrainKm: 16, trainDirectionSign: -1,
   previousReportAt: 100000, currentReportAt: 110000,
   userTrackKm: 12, gpsAccuracyM: 12, gpsFixAt: 115000, now: 120000
@@ -29,6 +30,18 @@ test("does not alert for stale train reports", () => {
 
 test("does not alert if already inside radius at first observation", () => {
   assert.equal(evaluateFiveKmApproach({ ...base, previousTrainKm: 16, currentTrainKm: 14 }).reason, "five_km_threshold_not_crossed");
+});
+
+test("does not alert when train identity is missing", () => {
+  const { previousTrainNumber, currentTrainNumber, ...withoutIdentity } = base;
+  assert.equal(evaluateFiveKmApproach(withoutIdentity).reason, "train_identity_missing");
+});
+
+test("does not alert when reports belong to different trains", () => {
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, currentTrainNumber: "14705" }).reason,
+    "train_identity_mismatch"
+  );
 });
 
 test("does not alert when route identity differs", () => {
