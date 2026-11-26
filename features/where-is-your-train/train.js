@@ -6,7 +6,7 @@ const ROUTE=[["Lalgarh Junction",0,true],["Nal Halt",11.19,true],["Darbari",25,f
 const $=id=>document.getElementById(id), stationSelect=$("station");
 ROUTE.forEach(([name,km],i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=name+" · "+km+" km";stationSelect.appendChild(o);});
 $("movement").value="departure";
-ROUTE.forEach(([name,km])=>{const n=document.createElement("span");n.className="rm-station-node";n.style.left=(km/158*100)+"%";n.dataset.label=name;n.title=name+" · "+km+" km";$("stationNodes").appendChild(n);});
+ROUTE.forEach(([name,km])=>{const n=document.createElement("span");n.className="rm-station-node";n.style.left=(km/158.15*100)+"%";n.dataset.label=name;n.title=name+" · "+km+" km";$("stationNodes").appendChild(n);});
 function clock(){$("capturedTime").textContent=new Date().toLocaleString(undefined,{dateStyle:"medium",timeStyle:"medium"});}clock();setInterval(clock,1000);setInterval(()=>{if(auth.currentUser)refresh();},30000);
 // Departure KM is derived from the selected station; no separate KM input is needed.
 async function invoke(action,data={}){
