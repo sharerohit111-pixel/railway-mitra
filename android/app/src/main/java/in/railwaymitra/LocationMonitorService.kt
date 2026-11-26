@@ -14,13 +14,18 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 class LocationMonitorService : Service(), LocationListener {
     private lateinit var locationManager: LocationManager
     private val channelId = "rm_location_monitor"
     private var monitoring = false
+    private var reportPollExecutor: ScheduledExecutorService? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -59,6 +64,7 @@ class LocationMonitorService : Service(), LocationListener {
             )
             monitoring = true
             locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let { onLocationChanged(it) }
+            startReportPollingIfArmed()
             START_STICKY
         } catch (_: SecurityException) {
             stopMonitoring()
@@ -69,6 +75,27 @@ class LocationMonitorService : Service(), LocationListener {
             updateNotification("GPS provider is unavailable on this device")
             START_NOT_STICKY
         }
+    }
+
+    /**
+     * Poll only after a future, fully verified alert flow explicitly arms the service.
+     * The current UI never sets alert_armed; GPS capture alone must not poll or alarm.
+     */
+    private fun startReportPollingIfArmed() {
+        val alertPrefs = getSharedPreferences("rm_train_gps", MODE_PRIVATE)
+        if (!alertPrefs.getBoolean("alert_armed", false) || reportPollExecutor != null) return
+        reportPollExecutor = Executors.newSingleThreadScheduledExecutor()
+        reportPollExecutor?.scheduleWithFixedDelay({
+            try {
+                val feed = TrainReportPollingClient().fetchEligibleReports()
+                alertPrefs.edit()
+                    .putString("latest_public_train_reports", feed.toJson())
+                    .putLong("train_reports_server_time", feed.serverTimeMs)
+                    .apply()
+            } catch (error: Exception) {
+                Log.w("LocationMonitorService", "Train report poll failed; no alert may be inferred", error)
+            }
+        }, 0, 30, TimeUnit.SECONDS)
     }
 
     private fun stopMonitoring() {
@@ -129,6 +156,8 @@ class LocationMonitorService : Service(), LocationListener {
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
 
     override fun onDestroy() {
+        reportPollExecutor?.shutdownNow()
+        reportPollExecutor = null
         stopMonitoring()
         super.onDestroy()
     }
