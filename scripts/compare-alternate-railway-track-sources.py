@@ -392,7 +392,7 @@ def main():
                         "median_vertex_offset_m": round(sorted(offsets)[len(offsets) // 2], 2),
                         "max_vertex_offset_m": round(max(offsets), 2),
                     })
-                final_section_checks.sort(key=lambda row: (row["chainage_from_km"], row["feature_id"] or 0))
+                final_section_checks.sort(key=lambda row: (row["chainage_from_km"], str(row["feature_id"])))
                 route_candidate["IR_Tracks_BKN_final_alert_section_alignment"] = {
                     "alert_corridor_end_chainage_km": alert_end_chainage_km,
                     "section_filter": "KLYT-PLC / BKN",
