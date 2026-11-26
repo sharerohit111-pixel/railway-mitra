@@ -38,10 +38,10 @@
     <div class="rm-train-card-heading"><div><span class="rm-train-kicker">EMPLOYEE REPORT</span><h2>Submit train movement</h2></div><span class="rm-train-flame">🔥</span></div>
     <form id="movementForm">
       <label>Station<select id="station" required></select></label>
+      <label>Train number (optional; required for 5 KM matching)<input id="trainNumber" type="text" maxlength="10" inputmode="numeric" autocomplete="off" pattern="[A-Za-z0-9-]{2,10}" placeholder="e.g. 14704"><small>Reports without a train number remain visible but are never used for a 5 KM alert.</small></label>
       <label>Direction<select id="direction" required><option value="UP">UP</option><option value="DOWN">DOWN</option></select></label>
       <label>Train type<select id="trainType" required><option value="passenger">Passenger train</option><option value="goods">Goods train</option></select></label>
       <label>Movement type<select id="movement" required><option value="departure" selected>Train departed</option><option value="pass">Train passed without stop</option><option value="halt">Train halted</option></select></label>
-      <label>Departure / Report KM (optional)<input id="departureKm" type="number" min="0" max="158" step="0.1" inputmode="decimal" placeholder="Leave blank to use selected station KM"></label>
       <div class="rm-train-time"><span>Report time (device clock)</span><strong id="capturedTime">Capturing…</strong></div>
       <button class="rm-train-submit" type="submit" id="submitReport">Submit report</button>
       <p id="formMessage" class="rm-train-message" role="status" aria-live="polite"></p>
@@ -57,6 +57,6 @@
   </section>
 </main>
 <script src="train-language.js?v=4" defer></script>
-<script type="module" src="train.js?v=7"></script>
+<script type="module" src="train.js?v=8"></script>
 </body>
 </html>
