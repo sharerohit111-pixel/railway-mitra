@@ -150,12 +150,17 @@ class TrackMapMatcher private constructor(private val assetJsonLoader: () -> Str
                 row.getDouble("chainageToKm")
             )
         }
+        val alertRouteEndChainageKm = root.optDouble("alertRouteEndChainageKm", Double.NaN)
+        if (!alertRouteEndChainageKm.isFinite() || alertRouteEndChainageKm <= 0.0
+            || alertRouteEndChainageKm > calibration.last().chainageToKm) {
+            throw IllegalArgumentException("Invalid alert route chainage limit")
+        }
         return RouteData(
             root.getString("route"),
             root.optString("candidateStatus", "UNKNOWN"),
             points,
             calibration,
-            root.optDouble("alertRouteEndChainageKm", 155.655)
+            alertRouteEndChainageKm
         )
     }
 
