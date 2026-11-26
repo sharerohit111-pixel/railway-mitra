@@ -214,10 +214,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check shapely pyproj
-          python scripts/inspect-ir-track-geometry.py \\
-            --tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl \\
-            --stations gis-inspection/ir_stations_corridor_candidates.geojsonl \\
-            --output gis-inspection/track-geometry-qa.json
+          python scripts/inspect-ir-track-geometry.py --tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl --stations gis-inspection/ir_stations_corridor_candidates.geojsonl --output gis-inspection/track-geometry-qa.json
       - name: Upload inspected corridor geometries
         uses: actions/upload-artifact@v4
         with:
