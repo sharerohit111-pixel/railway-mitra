@@ -37,7 +37,8 @@ async function listRouteReports(limit){
   });
 }
 const ROUTE=[["Lalgarh Junction",0,true],["Nal Halt",11.19,true],["Darbari",25,false],["Gajner",30.9,true],["Channi",39,false],["Kolayat",46.15,true],["Diyatra Road",62.5,true],["Nokhra",84.85,true],["Sird",105,true],["Bap",122.74,true],["Malar",145.35,true],["Phalodi Junction",155.655,true]];
-// Legacy schema column only. This nominal value is never used as measured train speed or for alert decisions.\nconst LEGACY_SPEED_KMH={passenger:105,goods:60};
+// Legacy schema column only. This nominal value is never used as measured train speed or for alert decisions.
+const LEGACY_SPEED_KMH={passenger:105,goods:60};
 function parseObject(value){if(value&&typeof value==="object"&&!Array.isArray(value))return value;if(typeof value==="string"){try{const parsed=JSON.parse(value);if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))return parsed;}catch{}}return null;}
 function getBody(req){
   let body=parseObject(req.bodyJson)||parseObject(req.body)||parseObject(req.bodyRaw);
