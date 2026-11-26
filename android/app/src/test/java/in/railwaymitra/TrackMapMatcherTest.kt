@@ -67,6 +67,19 @@ class TrackMapMatcherTest {
     }
 
     @Test
+    fun rejectsTrackGeometryBeyondPhalodiAlertEndpoint() {
+        val result = matcher.matchGpsToRoute(
+            latitude = 27.124527657026647,
+            longitude = 72.36914400988917,
+            accuracyM = 5.0,
+            gpsFixAtMs = 100_000L,
+            nowMs = 100_000L
+        )
+        assertFalse(result.matched)
+        assertEquals("outside_alert_route_corridor", result.reason)
+    }
+
+    @Test
     fun rejectsGpsFarFromCandidateTrack() {
         val result = matcher.matchGpsToRoute(
             latitude = 28.5,
