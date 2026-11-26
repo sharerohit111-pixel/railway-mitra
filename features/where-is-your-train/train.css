@@ -48,3 +48,17 @@ body.rm-touch-layout .rm-train-hero,body.rm-touch-layout .rm-train-map-card,body
 @media(hover:none) and (pointer:coarse){.rm-train-shell{max-width:100%}#movementForm{grid-template-columns:minmax(0,1fr)}}
 
 .rm-train-alert-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;margin-top:14px}.rm-train-alert-controls label{font-size:.86rem;color:#d9e9f5}.rm-train-alert-controls select{width:100%;min-height:46px;padding:11px;border:1px solid #315777;border-radius:12px;background:#07182a;color:#fff;font:inherit;font-size:16px}.rm-train-alert-controls .rm-train-submit{margin-top:4px;cursor:pointer}.rm-train-alert-controls .rm-train-message{line-height:1.5}
+
+/* GPS-first alert panel */
+.rm-train-track{min-width:0;width:100%}
+.rm-train-track-wrap{overflow:visible}
+.rm-train-stations{display:block;inset:-9px 0 auto}
+.rm-station-node{position:absolute;transform:translateX(-50%)}
+.rm-station-node:first-child{transform:none}
+.rm-station-node:last-child{transform:translateX(-100%)}
+.rm-train-marker{z-index:5}
+.rm-gps-status{padding:12px;border:1px solid #315777;border-radius:12px;background:#07182a;color:#aeefff;line-height:1.45}
+.rm-gps-details{display:grid;grid-template-columns:1fr;gap:5px;padding:12px;border-radius:12px;background:#07182a}
+.rm-gps-details span{font-size:.78rem;color:#9bb4c8}
+.rm-gps-details strong{font-size:.95rem;overflow-wrap:anywhere;color:#eaf8ff;margin-bottom:7px}
+.rm-train-alert-controls .rm-train-submit:disabled{opacity:.55;filter:grayscale(.3);cursor:not-allowed}
