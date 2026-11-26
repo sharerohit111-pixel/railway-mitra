@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
             val lon = p.getString("lon", null) ?: return ""
             val accuracy = p.getFloat("accuracy", -1f)
             val timestamp = p.getLong("timestamp", 0L)
-            return "{\\"latitude\\":$lat,\\"longitude\\":$lon,\\"accuracy\\":$accuracy,\\"timestamp\\":$timestamp}"
+            return "{\\\"latitude\\\":$lat,\\\"longitude\\\":$lon,\\\"accuracy\\\":$accuracy,\\\"timestamp\\\":$timestamp}"
         }
 
         @JavascriptInterface
