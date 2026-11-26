@@ -356,6 +356,59 @@ def main():
                 if not anchors_ok:
                     raise SystemExit("GatiShakti route candidate failed station anchor checks")
 
+                # Cross-check the final alert section against original IR_Tracks BKN features.
+                # This records source alignment only; it does not snap or replace the GatiShakti geometry.
+                alert_end_chainage_km = 155.655
+                final_section_checks = []
+                for feature in ir_rows:
+                    props = feature.get("properties") or {}
+                    if props.get("tmssection") != "KLYT-PLC" or props.get("division") != "BKN":
+                        continue
+                    try:
+                        start_km = float(props.get("distfromkm") or 0) + float(props.get("distfromm") or 0) / 1000.0
+                        end_km = float(props.get("disttokm") or 0) + float(props.get("disttom") or 0) / 1000.0
+                    except (TypeError, ValueError):
+                        continue
+                    if end_km < alert_end_chainage_km - 10.0 or start_km > alert_end_chainage_km:
+                        continue
+                    geom_data = feature.get("geometry")
+                    if not geom_data:
+                        continue
+                    ir_geom = transform(PROJECT, shape(geom_data))
+                    vertices = (
+                        list(ir_geom.coords) if ir_geom.geom_type == "LineString"
+                        else [point for part in getattr(ir_geom, "geoms", []) for point in part.coords]
+                    )
+                    if not vertices:
+                        continue
+                    offsets = [Point(point).distance(route_geom_projected) for point in vertices]
+                    final_section_checks.append({
+                        "feature_id": props.get("objectid", feature.get("id")),
+                        "division": props.get("division"),
+                        "tmssection": props.get("tmssection"),
+                        "chainage_from_km": round(start_km, 3),
+                        "chainage_to_km": round(end_km, 3),
+                        "vertex_count": len(vertices),
+                        "median_vertex_offset_m": round(sorted(offsets)[len(offsets) // 2], 2),
+                        "max_vertex_offset_m": round(max(offsets), 2),
+                    })
+                final_section_checks.sort(key=lambda row: (row["chainage_from_km"], row["feature_id"] or 0))
+                route_candidate["IR_Tracks_BKN_final_alert_section_alignment"] = {
+                    "alert_corridor_end_chainage_km": alert_end_chainage_km,
+                    "section_filter": "KLYT-PLC / BKN",
+                    "feature_count": len(final_section_checks),
+                    "features": final_section_checks,
+                    "all_features_within_100m_of_GatiShakti_candidate": bool(final_section_checks) and all(
+                        row["max_vertex_offset_m"] <= 100.0 for row in final_section_checks
+                    ),
+                    "coverage_reaches_alert_endpoint": any(
+                        row["chainage_to_km"] >= alert_end_chainage_km for row in final_section_checks
+                    ),
+                    "note": "Independent source alignment only; original IR_Tracks section gaps elsewhere remain unresolved.",
+                }
+                if not final_section_checks or not route_candidate["IR_Tracks_BKN_final_alert_section_alignment"]["all_features_within_100m_of_GatiShakti_candidate"] or not route_candidate["IR_Tracks_BKN_final_alert_section_alignment"]["coverage_reaches_alert_endpoint"]:
+                    raise SystemExit("IR_Tracks BKN features do not corroborate the final alert section")
+
                 soi_rows = source_rows["SOI_Railway_Tracks"]
                 soi_ranked = []
                 for feature in soi_rows:
