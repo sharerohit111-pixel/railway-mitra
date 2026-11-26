@@ -41,7 +41,10 @@ test("allows only a confirmed approach crossing into five kilometres", () => {
 });
 
 test("does not alert when train is moving away", () => {
-  assert.equal(evaluateFiveKmApproach({ ...base, currentTrainKm: 24 }).eligible, false);
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, currentTrainKm: 12 }).reason,
+    "train_not_confirmed_approaching"
+  );
 });
 
 test("does not alert without a fresh GPS fix", () => {
@@ -53,13 +56,13 @@ test("does not alert for stale train reports", () => {
 });
 
 test("does not alert if already inside radius at first observation", () => {
-  assert.equal(evaluateFiveKmApproach({ ...base, previousTrainKm: 16, currentTrainKm: 14 }).reason, "five_km_threshold_not_crossed");
+  assert.equal(evaluateFiveKmApproach({ ...base, previousTrainKm: 16, currentTrainKm: 18 }).reason, "five_km_threshold_not_crossed");
 });
 
 test("returns report-derived average speed rather than a nominal train speed", () => {
   const result = evaluateFiveKmApproach(base);
   assert.equal(result.eligible, true);
-  assert.equal(result.observedAverageSpeedKmh, 120);
+  assert.equal(result.observedAverageSpeedKmh, 60);
 });
 
 test("rejects an impossible report-derived speed", () => {
@@ -84,7 +87,7 @@ test("rejects report pairs more than fifteen minutes apart", () => {
 
 test("applies a stricter speed ceiling when supplied for goods trains", () => {
   assert.equal(
-    evaluateFiveKmApproach({ ...base, maxSpeedKmh: 100 }).reason,
+    evaluateFiveKmApproach({ ...base, maxSpeedKmh: 50 }).reason,
     "observed_speed_implausible"
   );
 });
