@@ -139,6 +139,18 @@ jobs:
           sha256sum gis-inspection/IR_Stations.geojsonl.7z | tee gis-inspection/stations-source.sha256
           7z t gis-inspection/IR_Stations.geojsonl.7z
           7z x gis-inspection/IR_Stations.geojsonl.7z -ogis-inspection/stations -y
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/SOI_Railway_Tracks.geojsonl.7z' \
+            --output gis-inspection/SOI_Railway_Tracks.geojsonl.7z
+          sha256sum gis-inspection/SOI_Railway_Tracks.geojsonl.7z | tee gis-inspection/soi-tracks-source.sha256
+          7z t gis-inspection/SOI_Railway_Tracks.geojsonl.7z
+          7z x gis-inspection/SOI_Railway_Tracks.geojsonl.7z -ogis-inspection/soi-tracks -y
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/GatiShakti_Railway_tracks.geojsonl.7z' \
+            --output gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z
+          sha256sum gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z | tee gis-inspection/gatishakti-tracks-source.sha256
+          7z t gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z
+          7z x gis-inspection/GatiShakti_Railway_tracks.geojsonl.7z -ogis-inspection/gatishakti-tracks -y
       - name: Inspect candidate track features near Lalgarh–Phalodi
         run: |
           set -euo pipefail
@@ -195,11 +207,44 @@ jobs:
                           station_keys.update(map(str, (station.get('properties') or {}).keys()))
           station_output = Path('gis-inspection/ir_stations_corridor_candidates.geojsonl')
           station_output.write_text(''.join(json.dumps(x, ensure_ascii=False, separators=(',', ':')) + '\n' for x in station_features))
+          alternate_summaries = {}
+          for label, folder, output_name in [
+              ('SOI_Railway_Tracks', 'gis-inspection/soi-tracks', 'soi_railway_tracks_corridor_candidates.geojsonl'),
+              ('GatiShakti_Railway_tracks', 'gis-inspection/gatishakti-tracks', 'gatishakti_railway_tracks_corridor_candidates.geojsonl'),
+          ]:
+              files = list(Path(folder).rglob('*.geojsonl'))
+              if not files:
+                  raise SystemExit(f'{label} archive contains no GeoJSONL file')
+              count = 0
+              candidate_count = 0
+              keys = set()
+              output = Path('gis-inspection') / output_name
+              with output.open('w', encoding='utf-8') as out:
+                  for source in files:
+                      with source.open(encoding='utf-8') as stream:
+                          for line_no, line in enumerate(stream, 1):
+                              if not line.strip():
+                                  continue
+                              count += 1
+                              feature = json.loads(line)
+                              keys.update(map(str, (feature.get('properties') or {}).keys()))
+                              geom = feature.get('geometry') or {}
+                              coords = list(points(geom.get('coordinates')))
+                              if coords and max(x for x, _ in coords) >= west and min(x for x, _ in coords) <= east and max(y for _, y in coords) >= south and min(y for _, y in coords) <= north:
+                                  candidate_count += 1
+                                  out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\n')
+              alternate_summaries[label] = {
+                  'total_features': count,
+                  'candidate_features': candidate_count,
+                  'property_keys': sorted(keys),
+                  'candidate_file': output_name,
+              }
           summary = {
               'source_archive': 'IR_Tracks.geojsonl.7z',
               'station_source_archive': 'IR_Stations.geojsonl.7z',
               'station_features_in_discovery_envelope': len(station_features),
               'station_property_keys': sorted(station_keys),
+              'alternate_track_sources': alternate_summaries,
               'search_envelope_wgs84': {'west': west, 'south': south, 'east': east, 'north': north},
               'warning': 'Discovery envelope only; not a verified railway route or chainage reference.',
               'total_features': total,
@@ -225,9 +270,13 @@ jobs:
           path: |
             gis-inspection/source.sha256
             gis-inspection/stations-source.sha256
+            gis-inspection/soi-tracks-source.sha256
+            gis-inspection/gatishakti-tracks-source.sha256
             gis-inspection/inspection-summary.json
             gis-inspection/ir_tracks_corridor_candidates.geojsonl
             gis-inspection/ir_stations_corridor_candidates.geojsonl
+            gis-inspection/soi_railway_tracks_corridor_candidates.geojsonl
+            gis-inspection/gatishakti_railway_tracks_corridor_candidates.geojsonl
             gis-inspection/track-geometry-qa.json
           if-no-files-found: error
           retention-days: 7
