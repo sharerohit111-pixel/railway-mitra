@@ -172,6 +172,11 @@ export function matchGpsToRoute({
   const alertRouteEndKm = finite(routeFeature.properties.alert_route_end_chainage_km)
     ? routeFeature.properties.alert_route_end_chainage_km
     : 155.655;
+  const routeChainageEndKm = routeFeature.properties.chainage_to_km;
+  if (!finite(alertRouteEndKm) || alertRouteEndKm <= 0
+      || (finite(routeChainageEndKm) && alertRouteEndKm > routeChainageEndKm)) {
+    return fail("alert_route_limit_invalid");
+  }
   if (best.chainageKm > alertRouteEndKm + 0.05) return fail("outside_alert_route_corridor");
 
   if (second
