@@ -5,7 +5,7 @@ on:
       - "android/**"
       - ".github/workflows/android-build.yml"
   push:
-    branches: [main]
+    branches: [main, "feat/train-gps-location-alert-v1"]
     paths:
       - "android/**"
       - ".github/workflows/android-build.yml"
@@ -34,13 +34,7 @@ jobs:
         run: |
           mkdir -p ~/.android
           if [ ! -f ~/.android/debug.keystore ]; then
-            keytool -genkeypair -v \\
-              -keystore ~/.android/debug.keystore \\
-              -storepass android \\
-              -alias androiddebugkey \\
-              -keypass android \\
-              -dname "CN=Android Debug,O=Android,C=US" \\
-              -keyalg RSA -keysize 2048 -validity 10000
+            keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
           fi
       - name: Run Android JVM unit tests
         working-directory: android
