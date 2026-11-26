@@ -16,10 +16,46 @@ async function invoke(action,data={}){
   if(status<200||status>=300)throw Error(result.error||("Train report service returned HTTP "+status+"."));
   return result;
 }
-let alertEnabled=false,lastAlertKey="";
-function checkFiveKmAlert(reports){if(!alertEnabled||!reports.length)return;const idx=Number(alertStation.value),target=ROUTE[idx];if(!target)return;const wantedDirection=$("alertDirection").value;const r=reports.find(x=>x.direction===wantedDirection);if(!r)return;const reportedAt=Number(r.createdAt),age=Date.now()-reportedAt;if(!Number.isFinite(reportedAt)||age<0||age>20*60*1000)return;const km=r.movement==="departure"&&Number.isFinite(Number(r.departureKm))?Number(r.departureKm):Number(r.stationKm);if(!Number.isFinite(km))return;const distance=Math.abs(km-target[1]);const key=[r.createdAt,r.stationName,r.direction,r.movement,target[0]].join("|");if(distance<=5&&key!==lastAlertKey){lastAlertKey=key;const message="Train report: "+r.stationName+" ("+km+" km), "+distance.toFixed(1)+" km from "+target[0]+". Report age: "+Math.round(age/60000)+" min."; $("alertMessage").textContent="🔔 "+message;if("Notification" in window&&Notification.permission==="granted"){new Notification("Railway Mitra · Train within 5 km",{body:message,tag:"rm-train-"+key});}if(navigator.vibrate)navigator.vibrate([350,150,350]);}}
-$("enableTrainAlert").addEventListener("click",async()=>{try{if(!("Notification" in window))throw Error("This browser does not support notifications.");if(!auth.currentUser)throw Error("Please sign in first.");const permission=await Notification.requestPermission();if(permission!=="granted")throw Error("Notification permission was not granted.");alertEnabled=true;lastAlertKey="";$("alertMessage").textContent="5 km alert enabled for "+ROUTE[Number(alertStation.value)][0]+" ("+$("alertDirection").value+"). Keep this page open.";try{localStorage.setItem("rmTrainAlertPrefs",JSON.stringify({station:alertStation.value,direction:$("alertDirection").value,enabled:true}));}catch{}await refresh();}catch(e){$("alertMessage").textContent=e.message;}});
+let alertEnabled=false,lastAlertKey="",latestReports=[];
+const AVG_SPEED_KMH={passenger:105,goods:60};
+const fmtTime=ms=>new Date(ms).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
+function estimateArrival(r,target,direction){
+ const origin=Number(r.movement==="departure"&&r.departureKm!=null?r.departureKm:r.stationKm),dest=target[1],speed=AVG_SPEED_KMH[r.trainType]||AVG_SPEED_KMH.passenger,reportedAt=Number(r.createdAt);
+ if(!Number.isFinite(origin)||!Number.isFinite(reportedAt))return null;
+ const forward=direction==="UP"?dest>=origin:dest<=origin;
+ if(!forward)return {passed:true,origin,dest,speed,reportedAt};
+ const distance=Math.max(0,Math.abs(dest-origin)),toAlert=Math.max(0,distance-5);
+ return {passed:false,origin,dest,speed,reportedAt,distance,arrivalAt:reportedAt+distance/speed*3600000,alertAt:reportedAt+toAlert/speed*3600000};
+}
+function updateEtaAndAlarm(){
+ const target=ROUTE[Number(alertStation.value)],direction=$("alertDirection").value,box=$("etaSummary");
+ if(!target||!box)return;
+ const r=latestReports.find(x=>x.direction===direction);
+ if(!r){box.textContent="Selected direction ki abhi koi report nahi mili.";return;}
+ const now=Date.now(),reportedAt=Number(r.createdAt),age=now-reportedAt;
+ if(!Number.isFinite(reportedAt)||age<0||age>20*60*1000){box.textContent="Latest report 20 minute se purani hai. Nayi report ka wait karein.";return;}
+ const eta=estimateArrival(r,target,direction);
+ if(!eta){box.textContent="ETA calculate nahi ho paaya.";return;}
+ if(eta.passed){box.textContent="Latest report ke mutabik train "+target[0]+" ko cross kar chuki ho sakti hai. Nayi report ka wait karein.";return;}
+ const key=[r.createdAt,r.stationName,direction,target[0]].join("|");
+ const remain=eta.arrivalAt-now,alarmRemain=eta.alertAt-now;
+ const distanceNow=Math.max(0,eta.distance-(age/3600000)*eta.speed);
+ box.textContent="Estimated arrival at "+target[0]+": "+fmtTime(eta.arrivalAt)+" · 5 km alert expected: "+fmtTime(eta.alertAt)+" · Approx distance: "+distanceNow.toFixed(1)+" km · Assumed speed: "+eta.speed+" km/h. Ye estimate hai, guarantee nahi.";
+ if(alertEnabled&&Notification.permission==="granted"&&alarmRemain<=0&&lastAlertKey!==key){
+  lastAlertKey=key;
+  const message="Train may be within 5 km of "+target[0]+". Estimated station arrival: "+fmtTime(eta.arrivalAt)+".";
+  $("alertMessage").textContent="🔔 "+message;
+  new Notification("Railway Mitra · 5 km approach",{body:message,tag:"rm-train-"+key});
+  if(navigator.vibrate)navigator.vibrate([500,180,500,180,700]);
+ }
+ if(alertEnabled&&alarmRemain>0&&alarmRemain<24*3600000){
+  $("alertMessage").textContent="5 km alarm expected at "+fmtTime(eta.alertAt)+". Station arrival estimate: "+fmtTime(eta.arrivalAt)+".";
+ }
+}
+function checkFiveKmAlert(reports){latestReports=reports;updateEtaAndAlarm();}
+$("enableTrainAlert").addEventListener("click",async()=>{try{if(!("Notification" in window))throw Error("This browser does not support notifications.");if(!auth.currentUser)throw Error("Please sign in first.");const permission=await Notification.requestPermission();if(permission!=="granted")throw Error("Notification permission was not granted.");alertEnabled=true;lastAlertKey="";$("alertMessage").textContent="5 km alert enabled for "+ROUTE[Number(alertStation.value)][0]+" ("+$("alertDirection").value+"). Keep this page open.";try{localStorage.setItem("rmTrainAlertPrefs",JSON.stringify({station:alertStation.value,direction:$("alertDirection").value,enabled:true}));}catch{}await refresh();updateEtaAndAlarm();}catch(e){$("alertMessage").textContent=e.message;}});
 try{const saved=JSON.parse(localStorage.getItem("rmTrainAlertPrefs")||"null");if(saved){alertStation.value=saved.station||"0";$("alertDirection").value=saved.direction||"UP";}}catch{}
+alertStation.addEventListener("change",updateEtaAndAlarm);$("alertDirection").addEventListener("change",updateEtaAndAlarm);setInterval(updateEtaAndAlarm,1000);
 function renderPosition(r){if(!r){$("trainStatus").textContent="Waiting for report";$("positionName").textContent="No movement report yet";$("positionMeta").textContent="Submit the first community report.";$("routeProgress").style.width="0%";$("trainMarker").style.left="0%";return;}const km=Math.max(0,Math.min(158,r.movement==="departure"&&Number.isFinite(Number(r.departureKm))?Number(r.departureKm):Number(r.stationKm)));const pct=km/158*100;$("routeProgress").style.width=pct+"%";$("trainMarker").style.left=pct+"%";$("trainStatus").textContent="Last reported · "+r.direction;$("positionName").textContent=r.stationName+" · "+km+" km";$("positionMeta").textContent=(r.movementLabel||r.movement)+" · "+new Date(r.createdAt).toLocaleString();}
 function renderReports(reports){const list=$("reportList");list.replaceChildren();if(!reports.length){const li=document.createElement("li");li.textContent="Abhi koi report nahi hai.";list.appendChild(li);return;}reports.forEach(r=>{const li=document.createElement("li"),title=document.createElement("strong"),meta=document.createElement("small");title.textContent=r.stationName+" · "+r.direction+" · "+(r.movementLabel||r.movement);meta.textContent=new Date(r.createdAt).toLocaleString()+" · "+r.stationKm+" km"+(r.movement==="departure"&&r.departureKm!=null?" · Departure KM "+r.departureKm:"");li.append(title,meta);list.appendChild(li);});}
 async function refresh(){try{const result=await invoke("list",{limit:30}),reports=Array.isArray(result.reports)?result.reports:[];renderReports(reports);renderPosition(reports[0]||null);checkFiveKmAlert(reports);}catch(e){$("reportList").textContent=e.code==="unauthenticated"?"Sign in to Railway Mitra to view employee reports.":(e.message||"Reports load nahi ho paaye. Internet aur login check karein.");}}
