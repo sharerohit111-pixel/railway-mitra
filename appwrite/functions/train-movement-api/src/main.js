@@ -4,7 +4,7 @@ const PROJECT_ID="6b070890000e2fca34fd", DATABASE_ID="railway_mitra", TABLE_ID="
 const ROUTE_ID="14704-lgh-phl", FIREBASE_PROJECT_ID=process.env.FIREBASE_PROJECT_ID||"railway-mitra";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1";
 const jwks=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
-const ROUTE=[["Lalgarh Junction",0,true],["Nal Halt",11.19,true],["Darbari",25,false],["Gajner",30.9,true],["Channi",39,false],["Kolayat",46.15,true],["Diyatra Road",62.5,true],["Nokhra",84.85,true],["Sird",105,true],["Bap",122.74,true],["Malar",145.35,true],["Phalodi Junction",158.15,true]];
+const ROUTE=[["Lalgarh Junction",0,true],["Nal Halt",11.19,true],["Darbari",25,false],["Gajner",30.9,true],["Channi",39,false],["Kolayat",46.15,true],["Diyatra Road",62.5,true],["Nokhra",84.85,true],["Sird",105,true],["Bap",122.74,true],["Malar",145.35,true],["Phalodi Junction",155.655,true]];
 // Legacy schema column only. This nominal value is never used as measured train speed or for alert decisions.\nconst LEGACY_SPEED_KMH={passenger:105,goods:60};
 function parseObject(value){if(value&&typeof value==="object"&&!Array.isArray(value))return value;if(typeof value==="string"){try{const parsed=JSON.parse(value);if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))return parsed;}catch{}}return null;}
 function getBody(req){
