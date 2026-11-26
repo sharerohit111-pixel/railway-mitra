@@ -81,6 +81,8 @@ export const CANDIDATE_ROUTE_FEATURE = Object.freeze({
     candidate_status: "NOT_PRODUCTION_VERIFIED",
     chainage_from_km: 0,
     chainage_to_km: 158.15,
+    alert_route_start_chainage_km: 0,
+    alert_route_end_chainage_km: 155.655,
     geometry_length_km: 158.085,
     source_geometry_sha256: "475fadf6525facf005f365c83cf03ca894dab75de0cf8cf697b8207748ea9678",
     chainage_calibration: CHAINAGE_CALIBRATION
