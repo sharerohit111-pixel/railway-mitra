@@ -269,6 +269,16 @@ def main():
                 route_geom_wgs84 = LineString(combined_coords)
                 route_geom_projected = transform(PROJECT, route_geom_wgs84)
                 route_candidate["geometry_length_km"] = round(route_geom_projected.length / 1000.0, 3)
+                route_candidate["geometry_is_valid"] = route_geom_projected.is_valid
+                route_candidate["geometry_is_simple"] = route_geom_projected.is_simple
+                route_candidate["max_source_vertex_spacing_m"] = round(
+                    max(
+                        math.hypot(b[0] - a[0], b[1] - a[1])
+                        for a, b in zip(route_geom_projected.coords, list(route_geom_projected.coords)[1:])
+                    ), 2
+                )
+                if not route_geom_projected.is_valid or not route_geom_projected.is_simple:
+                    raise SystemExit("GatiShakti route candidate geometry is invalid or self-intersecting")
                 route_candidate["published_chainage_length_km"] = round(
                     route_features[-1][1] - route_features[0][0], 3
                 )
@@ -473,11 +483,6 @@ def main():
         "projection_for_distance_checks": "EPSG:32643",
         "alternate_sources": results,
         "gati_lgh_plc_route_candidate": route_candidate,
-        "reference_sections": list(SECTIONS),
-        "IR_section_gap_m": round(left_union.distance(right_union), 2),
-        "gap_segment_length_m": round(gap_line.length, 2),
-        "projection_for_distance_checks": "EPSG:32643",
-        "alternate_sources": results,
         "production_route_geometry_verified": False,
         "production_alert_enablement_allowed": False,
         "limitations": [
