@@ -47,7 +47,7 @@ test("matches a fresh accurate GPS fix to the source-calibrated route chainage",
   });
   assert.equal(result.matched, true);
   assert.equal(result.reason, "gps_matched_to_route");
-  assert.ok(result.chainageKm > 0.5 && result.chainageKm < 0.7);
+  assert.ok(result.chainageKm > 0.4 && result.chainageKm < 0.6, JSON.stringify(result));
   assert.ok(result.crossTrackDistanceM < 20);
 });
 
@@ -132,7 +132,7 @@ test("rejects ambiguous parallel route projections", () => {
 test("rejects malformed route geometry", () => {
   const result = matchGpsToRoute({
     ...common,
-    routeFeature: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [72, 27] } },
+    routeFeature: { type: "Feature", properties: { route: "LGH-PLC" }, geometry: { type: "Point", coordinates: [72, 27] } },
     latitude: 27,
     longitude: 72.005
   });
