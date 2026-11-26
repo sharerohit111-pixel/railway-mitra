@@ -4,6 +4,59 @@ const PROJECT_ID="6b070890000e2fca34fd", DATABASE_ID="railway_mitra", TABLE_ID="
 const ROUTE_ID="14704-lgh-phl", FIREBASE_PROJECT_ID=process.env.FIREBASE_PROJECT_ID||"railway-mitra";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1";
 const jwks=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
+const publicPollRate=new Map();
+function requestHeader(req,name){
+  const headers=req.headers;
+  if(Array.isArray(headers)){
+    const item=headers.find(h=>String(h.name||"").toLowerCase()===name.toLowerCase());
+    if(item?.value)return String(item.value);
+  }else if(headers&&typeof headers==="object"){
+    const value=headers[name]||headers[name.toLowerCase()];
+    if(value)return String(value);
+  }
+  return "";
+}
+function allowPublicPoll(req,now){
+  const forwarded=requestHeader(req,"x-forwarded-for")||requestHeader(req,"x-real-ip")||requestHeader(req,"cf-connecting-ip");
+  if(!forwarded)return true;
+  const key=forwarded.split(",")[0].trim();
+  const last=publicPollRate.get(key)||0;
+  if(now-last<5000)return false;
+  publicPollRate.set(key,now);
+  if(publicPollRate.size>1000){
+    for(const [ip,at] of publicPollRate)if(now-at>60000)publicPollRate.delete(ip);
+  }
+  return true;
+}
+async function listRouteReports(limit){
+  const qs=[
+    {method:"equal",attribute:"routeId",values:[ROUTE_ID]},
+    {method:"orderDesc",attribute:"createdAtMs"},
+    {method:"limit",values:[limit]}
+  ];
+  const p=new URLSearchParams();
+  qs.forEach(q=>p.append("queries[]",JSON.stringify(q)));
+  p.set("total","false");
+  const data=await db(`/tablesdb/${DATABASE_ID}/tables/${TABLE_ID}/rows?${p}`,{method:"GET"});
+  const rows=data.rows||[];
+  return rows.map(r=>{
+    const station=ROUTE[Number(r.stationId)],chainageVerified=station?.[2]===true;
+    const reportTime=Number(r.createdAtMs);
+    const matchingReports=r.trainNumber?rows.filter(other=>
+      other.trainNumber===r.trainNumber
+      && other.direction===r.direction
+      && Math.abs(Number(other.createdAtMs)-reportTime)<=900000
+    ):[];
+    const independentReporterCount=new Set(matchingReports.map(other=>other.uid).filter(Boolean)).size;
+    return {
+      stationName:r.stationName,stationKm:r.stationKm,direction:r.direction,
+      movement:r.movement,movementLabel:r.movementLabel,trainType:r.trainType,
+      trainNumber:r.trainNumber||null,chainageVerified,independentReporterCount,
+      alertEligible:Boolean(r.trainNumber)&&chainageVerified&&r.departureKm==null&&independentReporterCount>=2,
+      departureKm:r.departureKm,createdAt:Number(r.createdAtMs)
+    };
+  });
+}
 const ROUTE=[["Lalgarh Junction",0,true],["Nal Halt",11.19,true],["Darbari",25,false],["Gajner",30.9,true],["Channi",39,false],["Kolayat",46.15,true],["Diyatra Road",62.5,true],["Nokhra",84.85,true],["Sird",105,true],["Bap",122.74,true],["Malar",145.35,true],["Phalodi Junction",155.655,true]];
 // Legacy schema column only. This nominal value is never used as measured train speed or for alert decisions.\nconst LEGACY_SPEED_KMH={passenger:105,goods:60};
 function parseObject(value){if(value&&typeof value==="object"&&!Array.isArray(value))return value;if(typeof value==="string"){try{const parsed=JSON.parse(value);if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))return parsed;}catch{}}return null;}
@@ -33,6 +86,19 @@ export default async({req,res,log,error})=>{
   if(req.method!=="POST")return res.json({error:"Method not allowed."},405);
   try{
     const body=getBody(req);
+    if(body.action==="public_list"){
+      const now=Date.now();
+      if(!allowPublicPoll(req,now))return res.json({error:"Polling too frequent. Retry shortly."},429);
+      const n=Number(body.limit),limit=Number.isFinite(n)?Math.min(50,Math.max(1,Math.floor(n))):50;
+      const reports=await listRouteReports(limit);
+      const eligible=reports.filter(r=>r.alertEligible&&now-Number(r.createdAt)>=0&&now-Number(r.createdAt)<=900000);
+      return res.json({
+        schemaVersion:1,
+        routeId:ROUTE_ID,
+        serverTime:now,
+        reports:eligible
+      });
+    }
     const uid=await verify(body);
     if(body.action==="submit"){
       const station=ROUTE[Number(body.stationId)],direction=body.direction,movement=body.movement,trainType=body.trainType;
@@ -51,27 +117,7 @@ export default async({req,res,log,error})=>{
     }
     if(body.action==="list"){
       const n=Number(body.limit),limit=Number.isFinite(n)?Math.min(50,Math.max(1,Math.floor(n))):30;
-      const qs=[{method:"equal",attribute:"routeId",values:[ROUTE_ID]},{method:"orderDesc",attribute:"createdAtMs"},{method:"limit",values:[limit]}];
-      const p=new URLSearchParams();qs.forEach(q=>p.append("queries[]",JSON.stringify(q)));p.set("total","false");
-      const data=await db(`/tablesdb/${DATABASE_ID}/tables/${TABLE_ID}/rows?${p}`,{method:"GET"});
-      const rows=data.rows||[];
-      const reports=rows.map(r=>{
-        const station=ROUTE[Number(r.stationId)],chainageVerified=station?.[2]===true;
-        const reportTime=Number(r.createdAtMs);
-        const matchingReports=r.trainNumber?rows.filter(other=>
-          other.trainNumber===r.trainNumber
-          && other.direction===r.direction
-          && Math.abs(Number(other.createdAtMs)-reportTime)<=900000
-        ):[];
-        const independentReporterCount=new Set(matchingReports.map(other=>other.uid).filter(Boolean)).size;
-        return {
-          stationName:r.stationName,stationKm:r.stationKm,direction:r.direction,
-          movement:r.movement,movementLabel:r.movementLabel,trainType:r.trainType,
-          trainNumber:r.trainNumber||null,chainageVerified,independentReporterCount,
-          alertEligible:Boolean(r.trainNumber)&&chainageVerified&&r.departureKm==null&&independentReporterCount>=2,
-          departureKm:r.departureKm,createdAt:r.createdAtMs
-        };
-      });
+      const reports=await listRouteReports(limit);
       return res.json({reports});
     }
     return res.json({error:"Unknown action."},400);
