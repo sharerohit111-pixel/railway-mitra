@@ -168,7 +168,7 @@ export function matchGpsToRoute({
   candidates.sort((a, b) => a.distanceM - b.distanceM);
   const best = candidates[0];
   const second = candidates[1];
-  if (!best || best.distanceM > maxTrackOffsetM) return fail("gps_off_verified_route");
+  if (!best || best.distanceM > maxTrackOffsetM) return fail("gps_off_candidate_route");
 
   if (second
     && second.distanceM - best.distanceM <= ambiguityDistanceDeltaM
