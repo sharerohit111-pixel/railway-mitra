@@ -113,6 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - uses: actions/checkout@v4
       - name: Download pinned CC0 IR_Tracks release asset
         run: |
           set -euo pipefail
@@ -209,6 +210,14 @@ jobs:
           if total == 0:
               raise SystemExit('Dataset contains zero features')
           PY
+      - name: Run conservative track geometry continuity audit
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check shapely pyproj
+          python scripts/inspect-ir-track-geometry.py \\
+            --tracks gis-inspection/ir_tracks_corridor_candidates.geojsonl \\
+            --stations gis-inspection/ir_stations_corridor_candidates.geojsonl \\
+            --output gis-inspection/track-geometry-qa.json
       - name: Upload inspected corridor geometries
         uses: actions/upload-artifact@v4
         with:
@@ -219,5 +228,6 @@ jobs:
             gis-inspection/inspection-summary.json
             gis-inspection/ir_tracks_corridor_candidates.geojsonl
             gis-inspection/ir_stations_corridor_candidates.geojsonl
+            gis-inspection/track-geometry-qa.json
           if-no-files-found: error
           retention-days: 7
