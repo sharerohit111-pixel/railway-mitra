@@ -27,6 +27,7 @@ class LocationMonitorService : Service(), LocationListener {
     private val channelId = "rm_location_monitor"
     private var monitoring = false
     private var reportPollExecutor: ScheduledExecutorService? = null
+    @Volatile private var previousReportFeed: TrainReportFeed? = null
     private val trackMapMatcher by lazy { TrackMapMatcher(this) }
 
     override fun onCreate() {
@@ -90,10 +91,31 @@ class LocationMonitorService : Service(), LocationListener {
         reportPollExecutor?.scheduleWithFixedDelay({
             try {
                 val feed = TrainReportPollingClient().fetchEligibleReports()
+                val locationPrefs = getSharedPreferences("rm_location", MODE_PRIVATE)
+                val candidateKm = locationPrefs.getFloat("candidateTrackKm", Float.NaN)
+                val gpsAccuracy = locationPrefs.getFloat("accuracy", -1f)
+                val gpsFixAt = locationPrefs.getLong("timestamp", 0L)
+                val evaluation = FiveKmAlertEvaluator.evaluate(
+                    previousFeed = previousReportFeed,
+                    currentFeed = feed,
+                    userTrackKm = candidateKm.takeIf { it.isFinite() }?.toDouble(),
+                    gpsAccuracyM = gpsAccuracy.toDouble(),
+                    gpsFixAtMs = gpsFixAt,
+                    nowMs = System.currentTimeMillis(),
+                    armed = true,
+                    // These remain hard-disabled until official route identity and backend rollout are approved.
+                    routeGeometryProductionVerified = false,
+                    reportFeedProductionApproved = false,
+                    // UP/DOWN operational chainage orientation has not been field-verified.
+                    directionSignFor = { null }
+                )
                 alertPrefs.edit()
                     .putString("latest_public_train_reports", feed.toJson())
                     .putLong("train_reports_server_time", feed.serverTimeMs)
+                    .putString("last_approach_evaluation", evaluation.reason)
+                    .putLong("last_approach_evaluation_at", System.currentTimeMillis())
                     .apply()
+                previousReportFeed = feed
             } catch (error: Exception) {
                 Log.w("LocationMonitorService", "Train report poll failed; no alert may be inferred", error)
             }
