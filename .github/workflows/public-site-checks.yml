@@ -108,3 +108,87 @@ jobs:
               assert Path(route).is_file(), f'Explore Features route missing: {route}'
           print('Public pages and PWA manifest checks passed')
           PY
+
+  inspect-ir-tracks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download pinned CC0 IR_Tracks release asset
+        run: |
+          set -euo pipefail
+          mkdir -p gis-inspection
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://github.com/yashveeeeeeer/india-geodata/releases/download/infra/railways/IR_Tracks.geojsonl.7z' \
+            --output gis-inspection/IR_Tracks.geojsonl.7z
+          sha256sum gis-inspection/IR_Tracks.geojsonl.7z | tee gis-inspection/source.sha256
+          stat --printf='Compressed bytes: %s\\n' gis-inspection/IR_Tracks.geojsonl.7z
+      - name: Validate archive and extract GeoJSONL
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes p7zip-full
+          7z t gis-inspection/IR_Tracks.geojsonl.7z
+          7z x gis-inspection/IR_Tracks.geojsonl.7z -ogis-inspection/extracted -y
+      - name: Inspect candidate track features near Lalgarh–Phalodi
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          sources = list(Path('gis-inspection/extracted').rglob('*.geojsonl'))
+          if not sources:
+              raise SystemExit('Archive contains no GeoJSONL file')
+          # Broad discovery envelope only; never treated as a route.
+          west, south, east, north = 71.5, 26.5, 74.5, 28.5
+          def points(value):
+              if isinstance(value, (list, tuple)):
+                  if len(value) >= 2 and all(isinstance(v, (int, float)) for v in value[:2]):
+                      yield float(value[0]), float(value[1])
+                  else:
+                      for child in value:
+                          yield from points(child)
+          total = candidates = 0
+          geometry_types, property_keys = {}, set()
+          output = Path('gis-inspection/ir_tracks_corridor_candidates.geojsonl')
+          with output.open('w', encoding='utf-8') as out:
+              for source in sources:
+                  with source.open(encoding='utf-8') as stream:
+                      for line_no, line in enumerate(stream, 1):
+                          if not line.strip():
+                              continue
+                          total += 1
+                          feature = json.loads(line)
+                          props = feature.get('properties') or {}
+                          property_keys.update(map(str, props))
+                          geom = feature.get('geometry') or {}
+                          kind = geom.get('type', 'null')
+                          geometry_types[kind] = geometry_types.get(kind, 0) + 1
+                          coords = list(points(geom.get('coordinates')))
+                          if coords and any(west <= x <= east and south <= y <= north for x, y in coords):
+                              candidates += 1
+                              out.write(json.dumps(feature, ensure_ascii=False, separators=(',', ':')) + '\\n')
+          summary = {
+              'source_archive': 'IR_Tracks.geojsonl.7z',
+              'search_envelope_wgs84': {'west': west, 'south': south, 'east': east, 'north': north},
+              'warning': 'Discovery envelope only; not a verified railway route or chainage reference.',
+              'total_features': total,
+              'candidate_features': candidates,
+              'geometry_types': geometry_types,
+              'property_keys': sorted(property_keys),
+              'candidate_file': output.name,
+          }
+          Path('gis-inspection/inspection-summary.json').write_text(json.dumps(summary, indent=2) + '\\n')
+          print(json.dumps(summary, indent=2))
+          if total == 0:
+              raise SystemExit('Dataset contains zero features')
+          PY
+      - name: Upload inspected corridor geometries
+        uses: actions/upload-artifact@v4
+        with:
+          name: ir-tracks-corridor-inspection
+          path: |
+            gis-inspection/source.sha256
+            gis-inspection/inspection-summary.json
+            gis-inspection/ir_tracks_corridor_candidates.geojsonl
+          if-no-files-found: error
+          retention-days: 7
