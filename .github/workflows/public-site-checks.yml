@@ -55,6 +55,8 @@ jobs:
           node --check features/where-is-your-train/train.js
           node --check features/where-is-your-train/proximity-engine.js
           node --test features/where-is-your-train/tests/proximity-engine.test.js
+          node --check features/where-is-your-train/track-map-matcher.js
+          node --test features/where-is-your-train/tests/track-map-matcher.test.js
           node --check appwrite/functions/train-movement-api/src/main.js
       - name: Verify train route station chainage consistency
         run: |
