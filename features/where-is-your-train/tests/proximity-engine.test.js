@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { evaluateFiveKmApproach } from "../proximity-engine.js";
 
 const base = {
-  armed: true, routeId: "14704-lgh-phl", expectedRouteId: "14704-lgh-phl",
+  armed: true, routeGeometryProductionVerified: true, reportFeedProductionApproved: true,
+  routeId: "14704-lgh-phl", expectedRouteId: "14704-lgh-phl",
   previousTrainNumber: "14704", currentTrainNumber: "14704",
   previousDirection: "UP", currentDirection: "UP",
   previousIndependentReporterCount: 2, currentIndependentReporterCount: 2,
@@ -11,6 +12,20 @@ const base = {
   previousReportAt: 100000, currentReportAt: 220000,
   userTrackKm: 12, gpsAccuracyM: 12, gpsFixAt: 225000, now: 230000
 };
+
+test("fails closed while candidate route geometry is not production verified", () => {
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, routeGeometryProductionVerified: false }).reason,
+    "route_geometry_not_production_verified"
+  );
+});
+
+test("fails closed until the train report feed is production approved", () => {
+  assert.equal(
+    evaluateFiveKmApproach({ ...base, reportFeedProductionApproved: false }).reason,
+    "report_feed_not_production_approved"
+  );
+});
 
 test("allows only a confirmed approach crossing into five kilometres", () => {
   const result = evaluateFiveKmApproach(base);
