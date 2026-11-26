@@ -8,9 +8,9 @@ const base = {
   previousTrainNumber: "14704", currentTrainNumber: "14704",
   previousDirection: "UP", currentDirection: "UP",
   previousIndependentReporterCount: 2, currentIndependentReporterCount: 2,
-  previousTrainKm: 20, currentTrainKm: 16, trainDirectionSign: -1,
+  previousTrainKm: 14, currentTrainKm: 16, trainDirectionSign: 1,
   previousReportAt: 100000, currentReportAt: 220000,
-  userTrackKm: 12, gpsAccuracyM: 12, gpsFixAt: 225000, now: 230000
+  userTrackKm: 20, gpsAccuracyM: 12, gpsFixAt: 225000, now: 230000
 };
 
 test("fails closed while candidate route geometry is not production verified", () => {
