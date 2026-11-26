@@ -2,10 +2,25 @@ import fs from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { matchGpsToRoute } from "../track-map-matcher.js";
+import { CANDIDATE_ROUTE_FEATURE } from "../route-data.js";
 
 const routeDocument = JSON.parse(fs.readFileSync("gis-inspection/candidate-route.geojson", "utf8"));
-const routeFeature = routeDocument.features?.[0];
-assert.ok(routeFeature, "source-derived LGH-PLC route candidate must exist");
+const artifactRouteFeature = routeDocument.features?.[0];
+assert.ok(artifactRouteFeature, "source-derived LGH-PLC route candidate must exist");
+const routeFeature = CANDIDATE_ROUTE_FEATURE;
+assert.equal(routeFeature.geometry.coordinates.length, artifactRouteFeature.geometry.coordinates.length);
+assert.deepEqual(
+  routeFeature.properties.chainage_calibration,
+  artifactRouteFeature.properties.chainage_calibration
+);
+for (let i = 0; i < routeFeature.geometry.coordinates.length; i += 1) {
+  for (let axis = 0; axis < 2; axis += 1) {
+    assert.ok(
+      Math.abs(routeFeature.geometry.coordinates[i][axis] - artifactRouteFeature.geometry.coordinates[i][axis]) <= 0.0000006,
+      `bundled route coordinate drift at vertex ${i}, axis ${axis}`
+    );
+  }
+}
 
 const stationRows = fs.readFileSync(
   "gis-inspection/ir_stations_corridor_candidates.geojsonl",
