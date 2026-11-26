@@ -60,6 +60,18 @@ class TrainReportPollingClientTest {
     }
 
     @Test
+    fun filtersAValidReportForTheWrongTrainNumber() {
+        val now = 1_000_000L
+        val wrongTrain = validReport(now).put("trainNumber", "14705")
+        val feed = TrainReportPollingClient.parseExecutionResponse(
+            execution(validBody(now, JSONArray().put(wrongTrain))),
+            200,
+            now
+        )
+        assertEquals(0, feed.reports.size)
+    }
+
+    @Test
     fun rejectsWrongRouteIdentity() {
         val body = validBody().put("routeId", "OTHER-ROUTE")
         assertThrows(IOException::class.java) {
