@@ -1,5 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import { randomUUID } from "node:crypto";
+import { isValidTrainNumber } from "./train-identity.js";
 const PROJECT_ID="6b070890000e2fca34fd", DATABASE_ID="railway_mitra", TABLE_ID="train_movement_reports";
 const ROUTE_ID="14704-lgh-phl", FIREBASE_PROJECT_ID=process.env.FIREBASE_PROJECT_ID||"railway-mitra";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1";
@@ -105,7 +106,7 @@ export default async({req,res,log,error})=>{
       if(!station||String(Number(body.stationId))!==String(body.stationId))return res.json({error:"Choose a valid route station."},400);
       if(!["UP","DOWN"].includes(direction)||!["pass","halt","departure"].includes(movement)||!["passenger","goods"].includes(trainType))return res.json({error:"Invalid report details."},400);
       const trainNumber=String(body.trainNumber||"").trim().toUpperCase();
-      if(trainNumber&&(trainType==="passenger"?!/^\\d{4,6}$/.test(trainNumber):!/^[A-Z0-9-]{2,10}$/.test(trainNumber)))return res.json({error:"Enter a valid train number. Passenger trains use 4–6 digits; goods identifiers may use 2–10 letters, digits or hyphens."},400);
+      if(trainNumber&&!isValidTrainNumber(trainNumber,trainType))return res.json({error:"Enter a valid train number. Passenger trains use 4–6 digits; goods identifiers may use 2–10 letters, digits or hyphens."},400);
       const hasReportedKm=body.departureKm!==null&&body.departureKm!==undefined&&String(body.departureKm).trim()!=="";
       const departureKm=hasReportedKm?Number(body.departureKm):null;
       if(hasReportedKm&&(!Number.isFinite(departureKm)||departureKm<0||departureKm>158.15))return res.json({error:"Reported KM must be between 0 and 158.15."},400);
