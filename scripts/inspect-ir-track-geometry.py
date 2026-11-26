@@ -140,8 +140,17 @@ def main():
         interval_sets[section] = merged
         parts = projected[section]
         component_sizes = endpoint_components(parts)
+        identity_fields = ("assetid", "assetno", "gid", "gisid", "stationfro", "stationto", "linedetail", "gauge")
+        identity_metadata = {
+            field: sum(
+                1 for feature, _ in entries
+                if (feature.get("properties") or {}).get(field) not in (None, "", " ")
+            )
+            for field in identity_fields
+        }
         section_report[section] = {
             "feature_count": len(entries),
+            "track_identity_metadata_nonblank_counts": identity_metadata,
             "geometry_part_count": len(parts),
             "unique_objectid_count": len({
                 (entry[0].get("properties") or {}).get("objectid")
@@ -152,7 +161,7 @@ def main():
                 [round(start, 3), round(end, 3)] for start, end in merged
             ],
             "chainage_gaps": gaps,
-            "endpoint_components_with_10m_snap": component_sizes,
+                "endpoint_components_with_10m_snap": component_sizes,
             "summed_geometry_length_km_not_route_length": round(
                 sum(part.length for part in parts) / 1000.0, 3
             ),
@@ -244,6 +253,17 @@ def main():
                 "to_km": right_start,
                 "gap_km": round(right_start - left_end, 3),
             })
+    missing_identity = [
+        section for section in ROUTE_SECTIONS
+        if section_report[section]["feature_count"] > 0
+        and not any(section_report[section]["track_identity_metadata_nonblank_counts"].values())
+    ]
+    if missing_identity:
+        blockers.append({
+            "type": "track_identity_metadata_missing",
+            "sections": missing_identity,
+            "fields": ["assetid", "assetno", "gid", "gisid", "stationfro", "stationto", "linedetail", "gauge"],
+        })
     if cross_gap and cross_gap["minimum_geometry_separation_m"] > 100:
         blockers.append({
             "type": "geometry_discontinuity",
