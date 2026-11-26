@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 from pyproj import Transformer
-from shapely.geometry import LineString, shape
+from shapely.geometry import LineString, Point, shape
 from shapely.ops import nearest_points, transform, unary_union
 
 PROJECT = Transformer.from_crs("EPSG:4326", "EPSG:32643", always_xy=True).transform
@@ -35,6 +35,7 @@ def main():
     parser.add_argument("--gatishakti-tracks", required=True)
     parser.add_argument("--stations", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--route-output", required=True)
     args = parser.parse_args()
 
     ir_rows = read_jsonl(args.ir_tracks)
@@ -65,8 +66,10 @@ def main():
         ("GatiShakti_Railway_tracks", args.gatishakti_tracks),
     ]
     results = {}
+    source_rows = {}
     for label, path in sources:
         rows = read_jsonl(path)
+        source_rows[label] = rows
         candidates = []
         geometry_types = {}
         property_keys = set()
@@ -133,8 +136,234 @@ def main():
             "note": "Potential spatial bridges only; source identity, route identity, chainage and operational validity are not verified.",
         }
 
+    # Build a source-faithful candidate route only when the GatiShakti
+    # segments are chainage-contiguous and their original endpoints meet.
+    gati_rows = source_rows["GatiShakti_Railway_tracks"]
+    route_features = []
+    for feature in gati_rows:
+        props = feature.get("properties") or {}
+        if (
+            props.get("route") == "LGH-PLC"
+            and str(props.get("route_code")) == "671"
+            and str(props.get("line_code")) == "003"
+            and props.get("line") == "SL"
+            and props.get("gauge") == "BG"
+            and feature.get("geometry")
+        ):
+            try:
+                start_km = float(props.get("km_from")) + float(props.get("met_from") or 0) / 1000.0
+                end_km = float(props.get("km_to")) + float(props.get("met_to") or 0) / 1000.0
+            except (TypeError, ValueError):
+                continue
+            route_features.append((start_km, end_km, feature))
+    route_features.sort(key=lambda row: row[0])
+
+    route_candidate = {
+        "candidate_found": False,
+        "continuous": False,
+        "source_feature_count": len(route_features),
+        "source_feature_ids": [],
+        "segments": [],
+        "station_anchor_checks": [],
+        "independent_SOI_alignment": None,
+        "geometry_exported": False,
+    }
+    route_geojson = {"type": "FeatureCollection", "features": []}
+    if route_features:
+        station_by_name = {
+            str((row.get("properties") or {}).get("sttnname", "")).strip().upper(): row
+            for row in station_rows if row.get("geometry")
+        }
+        lalgarh_row = station_by_name.get("LALGARH")
+        lalgarh_point = transform(PROJECT, shape(lalgarh_row["geometry"])) if lalgarh_row else None
+        oriented_segments = []
+        previous_end = None
+        previous_chainage = None
+        endpoint_gaps = []
+        chainage_gaps = []
+        segment_metrics = []
+        chainage_ordered = True
+
+        for index, (start_km, end_km, feature) in enumerate(route_features):
+            geom_data = feature.get("geometry") or {}
+            geom = shape(geom_data)
+            if geom.geom_type != "LineString" or geom.is_empty or len(geom.coords) < 2:
+                chainage_ordered = False
+                continue
+            raw_coords = list(geom.coords)
+            projected_geom = transform(PROJECT, geom)
+            projected_coords = list(projected_geom.coords)
+            if index == 0 and lalgarh_point is not None:
+                reverse = Point(projected_coords[-1]).distance(lalgarh_point) < Point(projected_coords[0]).distance(lalgarh_point)
+            elif previous_end is not None:
+                reverse = math.hypot(previous_end[0] - projected_coords[-1][0], previous_end[1] - projected_coords[-1][1]) < math.hypot(previous_end[0] - projected_coords[0][0], previous_end[1] - projected_coords[0][1])
+            else:
+                reverse = False
+            if reverse:
+                raw_coords.reverse()
+                projected_coords.reverse()
+                projected_geom = LineString(projected_coords)
+
+            endpoint_gap = None
+            if previous_end is not None:
+                endpoint_gap = math.hypot(previous_end[0] - projected_coords[0][0], previous_end[1] - projected_coords[0][1])
+                endpoint_gaps.append(endpoint_gap)
+                if endpoint_gap > 0.01:
+                    chainage_ordered = False
+            if previous_chainage is not None:
+                chainage_gap = start_km - previous_chainage
+                chainage_gaps.append(chainage_gap)
+                if abs(chainage_gap) > 0.001:
+                    chainage_ordered = False
+
+            props = feature.get("properties") or {}
+            feature_id = props.get("objectid", feature.get("id"))
+            segment_length_km = projected_geom.length / 1000.0
+            segment_metrics.append({
+                "feature_id": feature_id,
+                "section": props.get("tmssection"),
+                "division": props.get("division"),
+                "chainage_from_km": round(start_km, 3),
+                "chainage_to_km": round(end_km, 3),
+                "geometry_length_km": round(segment_length_km, 3),
+                "geometry_minus_chainage_km": round(segment_length_km - (end_km - start_km), 3),
+                "orientation_reversed_from_source": reverse,
+                "connection_gap_from_previous_m": round(endpoint_gap, 3) if endpoint_gap is not None else None,
+            })
+            oriented_segments.append((raw_coords, projected_geom, start_km, end_km, feature_id))
+            previous_end = projected_coords[-1]
+            previous_chainage = end_km
+
+        route_continuous = (
+            len(oriented_segments) == len(route_features)
+            and len(oriented_segments) >= 2
+            and chainage_ordered
+            and all(abs(gap) <= 0.001 for gap in chainage_gaps)
+            and all(gap <= 0.01 for gap in endpoint_gaps)
+        )
+        route_candidate["candidate_found"] = True
+        route_candidate["continuous"] = route_continuous
+        route_candidate["source_feature_ids"] = [segment[4] for segment in oriented_segments]
+        route_candidate["segments"] = segment_metrics
+        route_candidate["chainage_gaps_km"] = [round(gap, 6) for gap in chainage_gaps]
+        route_candidate["endpoint_gaps_m"] = [round(gap, 3) for gap in endpoint_gaps]
+        if oriented_segments:
+            combined_coords = []
+            projected_parts = []
+            cumulative_lengths = []
+            total_length = 0.0
+            for raw_coords, projected_geom, start_km, end_km, feature_id in oriented_segments:
+                if not combined_coords:
+                    combined_coords.extend(raw_coords)
+                elif math.hypot(
+                    transform(PROJECT, Point(combined_coords[-1])).x - projected_geom.coords[0][0],
+                    transform(PROJECT, Point(combined_coords[-1])).y - projected_geom.coords[0][1],
+                ) <= 0.01:
+                    combined_coords.extend(raw_coords[1:])
+                projected_parts.append(projected_geom)
+                cumulative_lengths.append((total_length, total_length + projected_geom.length, start_km, end_km))
+                total_length += projected_geom.length
+
+            if route_continuous:
+                route_geom_wgs84 = LineString(combined_coords)
+                route_geom_projected = transform(PROJECT, route_geom_wgs84)
+                route_candidate["geometry_length_km"] = round(route_geom_projected.length / 1000.0, 3)
+                route_candidate["published_chainage_length_km"] = round(
+                    route_features[-1][1] - route_features[0][0], 3
+                )
+                route_candidate["geometry_minus_chainage_km"] = round(
+                    route_geom_projected.length / 1000.0 - (route_features[-1][1] - route_features[0][0]), 3
+                )
+                route_candidate["geometry_exported"] = True
+                route_geojson["features"].append({
+                    "type": "Feature",
+                    "properties": {
+                        "source": "GatiShakti_Railway_tracks",
+                        "route": "LGH-PLC",
+                        "route_code": "671",
+                        "line_code": "003",
+                        "line": "SL",
+                        "gauge": "BG",
+                        "candidate_status": "NOT_PRODUCTION_VERIFIED",
+                        "source_feature_ids": route_candidate["source_feature_ids"],
+                        "chainage_from_km": route_features[0][0],
+                        "chainage_to_km": route_features[-1][1],
+                    },
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [[float(x), float(y)] for x, y in route_geom_wgs84.coords],
+                    },
+                })
+
+                for name in sorted(ROUTE_STATION_NAMES := {
+                    "LALGARH", "GAJNER", "KOLAYAT", "DIYATRA ROAD",
+                    "NOKHRA", "BAAP", "MALAR", "PHALODI",
+                }):
+                    station = station_by_name.get(name)
+                    if not station:
+                        continue
+                    props = station.get("properties") or {}
+                    point = transform(PROJECT, shape(station["geometry"]))
+                    along = route_geom_projected.project(point)
+                    estimated_chainage = None
+                    for seg_start_m, seg_end_m, seg_start_km, seg_end_km in cumulative_lengths:
+                        if along <= seg_end_m + 0.001:
+                            fraction = max(0.0, min(1.0, (along - seg_start_m) / max(seg_end_m - seg_start_m, 0.001)))
+                            estimated_chainage = seg_start_km + fraction * (seg_end_km - seg_start_km)
+                            break
+                    try:
+                        station_chainage = float(props.get("distkm")) + float(props.get("distm") or 0) / 1000.0
+                    except (TypeError, ValueError):
+                        station_chainage = None
+                    route_candidate["station_anchor_checks"].append({
+                        "station": name,
+                        "station_chainage_km": round(station_chainage, 3) if station_chainage is not None else None,
+                        "projected_route_chainage_km": round(estimated_chainage, 3) if estimated_chainage is not None else None,
+                        "chainage_delta_km": round(estimated_chainage - station_chainage, 3) if estimated_chainage is not None and station_chainage is not None else None,
+                        "station_to_route_geometry_m": round(route_geom_projected.distance(point), 2),
+                    })
+
+                soi_rows = source_rows["SOI_Railway_Tracks"]
+                soi_ranked = []
+                for feature in soi_rows:
+                    if not feature.get("geometry"):
+                        continue
+                    geom = transform(PROJECT, shape(feature["geometry"]))
+                    if geom.geom_type not in ("LineString", "MultiLineString"):
+                        continue
+                    soi_ranked.append((geom.distance(route_geom_projected), feature, geom))
+                if soi_ranked:
+                    distance, feature, geom = min(soi_ranked, key=lambda item: item[0])
+                    vertices = []
+                    if geom.geom_type == "LineString":
+                        vertices = list(geom.coords)
+                    else:
+                        vertices = [point for part in geom.geoms for point in part.coords]
+                    offsets = [Point(point).distance(route_geom_projected) for point in vertices]
+                    props = feature.get("properties") or {}
+                    route_candidate["independent_SOI_alignment"] = {
+                        "feature_id": props.get("objectid"),
+                        "railway": props.get("rly_name"),
+                        "line_type": props.get("line_type"),
+                        "additional_info": props.get("addl_info"),
+                        "minimum_geometry_separation_m": round(distance, 2),
+                        "sampled_vertex_offset_max_m": round(max(offsets), 2) if offsets else None,
+                        "sampled_vertex_offset_median_m": round(sorted(offsets)[len(offsets)//2], 2) if offsets else None,
+                    }
+
+    Path(args.route_output).write_text(
+        json.dumps(route_geojson, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
     report = {
         "reference_source": "CC0 IR_Tracks",
+        "reference_sections": list(SECTIONS),
+        "IR_section_gap_m": round(left_union.distance(right_union), 2),
+        "gap_segment_length_m": round(gap_line.length, 2),
+        "projection_for_distance_checks": "EPSG:32643",
+        "alternate_sources": results,
+        "gati_lgh_plc_route_candidate": route_candidate,
         "reference_sections": list(SECTIONS),
         "IR_section_gap_m": round(left_union.distance(right_union), 2),
         "gap_segment_length_m": round(gap_line.length, 2),
@@ -144,8 +373,8 @@ def main():
         "production_alert_enablement_allowed": False,
         "limitations": [
             "All alternate features are discovery candidates from a broad geographic envelope.",
-            "A line near or intersecting both sections is not automatically the same main running line.",
-            "No cross-source snapping, merging, interpolation, or chainage calibration is performed.",
+            "The GatiShakti route candidate is source-derived but still requires authoritative route/asset validation and field or official operational verification.",
+            "No cross-source snapping, merging, or interpolation is performed.",
             "Station coordinates are comparison anchors only, not railway track geometry.",
         ],
     }
