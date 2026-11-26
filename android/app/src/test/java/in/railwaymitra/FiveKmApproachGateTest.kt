@@ -57,6 +57,14 @@ class FiveKmApproachGateTest {
     }
 
     @Test
+    fun rejectsAValidButWrongTrainOnThisRoute() {
+        assertEquals(
+            "train_identity_mismatch",
+            FiveKmApproachGate.evaluate(base.copy(currentTrainNumber = "14705")).reason
+        )
+    }
+
+    @Test
     fun rejectsMissingOrMismatchedTrainIdentity() {
         assertEquals(
             "train_identity_missing",
