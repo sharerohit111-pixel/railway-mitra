@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import org.json.JSONObject
 import android.webkit.SslErrorHandler
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -175,9 +176,16 @@ class MainActivity : ComponentActivity() {
             val p = getSharedPreferences("rm_location", MODE_PRIVATE)
             val lat = p.getString("lat", null) ?: return ""
             val lon = p.getString("lon", null) ?: return ""
+            val latitude = lat.toDoubleOrNull() ?: return ""
+            val longitude = lon.toDoubleOrNull() ?: return ""
             val accuracy = p.getFloat("accuracy", -1f)
             val timestamp = p.getLong("timestamp", 0L)
-            return "{\\\"latitude\\\":$lat,\\\"longitude\\\":$lon,\\\"accuracy\\\":$accuracy,\\\"timestamp\\\":$timestamp}"
+            return JSONObject()
+                .put("latitude", latitude)
+                .put("longitude", longitude)
+                .put("accuracy", accuracy)
+                .put("timestamp", timestamp)
+                .toString()
         }
 
         @JavascriptInterface
