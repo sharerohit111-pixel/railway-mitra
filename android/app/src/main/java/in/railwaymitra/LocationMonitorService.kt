@@ -91,7 +91,11 @@ class LocationMonitorService : Service(), LocationListener {
      */
     private fun startReportPollingIfArmed() {
         val alertPrefs = getSharedPreferences("rm_train_gps", MODE_PRIVATE)
-        if (!alertPrefs.getBoolean("alert_armed", false) || reportPollExecutor != null) return
+        if (!alertPrefs.getBoolean("alert_armed", false)
+            || !ROUTE_GEOMETRY_PRODUCTION_VERIFIED
+            || !REPORT_FEED_PRODUCTION_APPROVED
+            || reportPollExecutor != null
+        ) return
         reportPollExecutor = Executors.newSingleThreadScheduledExecutor()
         reportPollExecutor?.scheduleWithFixedDelay({
             try {
@@ -109,8 +113,8 @@ class LocationMonitorService : Service(), LocationListener {
                     nowMs = System.currentTimeMillis(),
                     armed = true,
                     // These remain hard-disabled until official route identity and backend rollout are approved.
-                    routeGeometryProductionVerified = false,
-                    reportFeedProductionApproved = false,
+                    routeGeometryProductionVerified = ROUTE_GEOMETRY_PRODUCTION_VERIFIED,
+                    reportFeedProductionApproved = REPORT_FEED_PRODUCTION_APPROVED,
                     // Train 14704 is scheduled Lalgarh -> Jaisalmer; route chainage increases in that direction.
                     // The UP/DOWN label is still required to remain consistent between independent reports.
                     directionSignFor = { trainNumber, _ ->
@@ -235,5 +239,7 @@ class LocationMonitorService : Service(), LocationListener {
         const val ACTION_START = "in.railwaymitra.START_LOCATION"
         const val ACTION_STOP = "in.railwaymitra.STOP_LOCATION"
         const val ACTION_STOP_TRAIN_ALERT = "in.railwaymitra.action.STOP_TRAIN_ALERT"
+        private const val ROUTE_GEOMETRY_PRODUCTION_VERIFIED = false
+        private const val REPORT_FEED_PRODUCTION_APPROVED = false
     }
 }
