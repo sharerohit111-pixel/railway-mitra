@@ -356,40 +356,109 @@ def main():
                         sorted(offsets)[len(offsets)//2],
                         geom.distance(route_geom_projected),
                         feature,
+                        geom,
+                        offsets,
                     ))
                 soi_ranked.sort(key=lambda item: (item[0], item[1], item[2]))
+                aligned_soi = [item for item in soi_ranked if item[0] <= 100.0]
+                oriented_soi = []
+                for item in aligned_soi:
+                    max_offset, median_offset, distance, feature, geom, offsets = item
+                    if geom.geom_type == "LineString":
+                        parts = [geom]
+                    else:
+                        parts = list(geom.geoms)
+                    for part in parts:
+                        coords = list(part.coords)
+                        if len(coords) < 2:
+                            continue
+                        start_measure = route_geom_projected.project(Point(coords[0]))
+                        end_measure = route_geom_projected.project(Point(coords[-1]))
+                        if end_measure < start_measure:
+                            coords.reverse()
+                            start_measure, end_measure = end_measure, start_measure
+                        oriented_soi.append({
+                            "feature": feature,
+                            "coords": coords,
+                            "start_measure": start_measure,
+                            "end_measure": end_measure,
+                            "max_offset": max_offset,
+                            "median_offset": median_offset,
+                            "distance": distance,
+                        })
+                oriented_soi.sort(key=lambda item: item["start_measure"])
+                soi_endpoint_gaps = []
+                soi_measure_gaps = []
+                combined_soi_coords = []
+                max_soi_vertex_spacing = 0.0
+                all_soi_offsets = []
+                for index, item in enumerate(oriented_soi):
+                    coords = item["coords"]
+                    all_soi_offsets.extend(
+                        Point(point).distance(route_geom_projected) for point in coords
+                    )
+                    for left_point, right_point in zip(coords, coords[1:]):
+                        max_soi_vertex_spacing = max(
+                            max_soi_vertex_spacing,
+                            math.hypot(left_point[0] - right_point[0], left_point[1] - right_point[1]),
+                        )
+                    if index:
+                        previous = combined_soi_coords[-1]
+                        gap = math.hypot(previous[0] - coords[0][0], previous[1] - coords[0][1])
+                        soi_endpoint_gaps.append(gap)
+                        soi_measure_gaps.append(
+                            item["start_measure"] - oriented_soi[index - 1]["end_measure"]
+                        )
+                        if gap <= 0.01:
+                            combined_soi_coords.extend(coords[1:])
+                        else:
+                            combined_soi_coords.extend(coords)
+                    else:
+                        combined_soi_coords.extend(coords)
+                soi_chain_continuous = (
+                    len(oriented_soi) >= 2
+                    and all(gap <= 0.01 for gap in soi_endpoint_gaps)
+                    and all(abs(gap) <= 0.001 for gap in soi_measure_gaps)
+                )
                 if soi_ranked:
-                    best_max, best_median, distance, feature = soi_ranked[0]
-                    props = feature.get("properties") or {}
-                    aligned = [
-                        item for item in soi_ranked
-                        if item[0] <= 100.0
-                    ]
+                    best_max, best_median, best_distance, best_feature, _, _ = soi_ranked[0]
+                    best_props = best_feature.get("properties") or {}
                     route_candidate["independent_SOI_alignment"] = {
-                        "selection_method": "lowest maximum sampled vertex offset to the candidate route",
-                        "feature_id": props.get("objectid"),
-                        "railway": props.get("rly_name"),
-                        "line_type": props.get("line_type"),
-                        "additional_info": props.get("addl_info"),
-                        "minimum_geometry_separation_m": round(distance, 2),
-                        "sampled_vertex_offset_max_m": round(best_max, 2),
-                        "sampled_vertex_offset_median_m": round(best_median, 2),
-                        "SOI_features_with_all_vertices_within_100m": len(aligned),
-                        "best_aligned_feature_ids": [
-                            {
-                                "objectid": item[3].get("properties", {}).get("objectid"),
-                                "max_vertex_offset_m": round(item[0], 2),
-                                "median_vertex_offset_m": round(item[1], 2),
-                            }
-                            for item in aligned[:10]
+                        "selection_method": "all SOI line features with every sampled vertex within 100m of the GatiShakti candidate",
+                        "best_feature_id_by_max_vertex_offset": best_props.get("objectid"),
+                        "best_feature_railway": best_props.get("rly_name"),
+                        "best_feature_line_type": best_props.get("line_type"),
+                        "best_feature_additional_info": best_props.get("addl_info"),
+                        "best_feature_minimum_geometry_separation_m": round(best_distance, 2),
+                        "best_feature_max_vertex_offset_m": round(best_max, 2),
+                        "best_feature_median_vertex_offset_m": round(best_median, 2),
+                        "aligned_feature_count": len(oriented_soi),
+                        "aligned_feature_ids": [
+                            item["feature"].get("properties", {}).get("objectid")
+                            for item in oriented_soi
                         ],
+                        "continuous_aligned_chain": soi_chain_continuous,
+                        "endpoint_gaps_m": [round(gap, 3) for gap in soi_endpoint_gaps],
+                        "route_measure_gaps_m": [round(gap, 3) for gap in soi_measure_gaps],
+                        "route_measure_coverage_km": (
+                            [round(oriented_soi[0]["start_measure"] / 1000.0, 3),
+                             round(oriented_soi[-1]["end_measure"] / 1000.0, 3)]
+                            if oriented_soi else None
+                        ),
+                        "all_aligned_vertices_max_offset_m": round(max(all_soi_offsets), 2) if all_soi_offsets else None,
+                        "all_aligned_vertices_median_offset_m": round(sorted(all_soi_offsets)[len(all_soi_offsets)//2], 2) if all_soi_offsets else None,
+                        "max_vertex_spacing_m": round(max_soi_vertex_spacing, 2),
                     }
 
     if not route_candidate["candidate_found"] or not route_candidate["continuous"] or not route_candidate["geometry_exported"]:
         raise SystemExit("GatiShakti LGH-PLC source route is not a continuous, exportable candidate")
     soi_alignment = route_candidate.get("independent_SOI_alignment")
-    if not soi_alignment or soi_alignment.get("sampled_vertex_offset_max_m", 1e9) > 100.0:
-        raise SystemExit("Independent SOI geometry does not corroborate the GatiShakti route within 100 metres")
+    if (
+        not soi_alignment
+        or not soi_alignment.get("continuous_aligned_chain")
+        or soi_alignment.get("all_aligned_vertices_max_offset_m", 1e9) > 100.0
+    ):
+        raise SystemExit("Independent SOI geometry does not form a continuous alignment within 100 metres")
 
     Path(args.route_output).write_text(
         json.dumps(route_geojson, indent=2, ensure_ascii=False) + "\n",
