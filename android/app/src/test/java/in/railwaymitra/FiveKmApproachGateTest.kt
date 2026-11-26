@@ -18,12 +18,12 @@ class FiveKmApproachGateTest {
         currentDirection = "UP",
         previousIndependentReporterCount = 2,
         currentIndependentReporterCount = 2,
-        previousTrainKm = 20.0,
+        previousTrainKm = 14.0,
         currentTrainKm = 16.0,
-        trainDirectionSign = -1,
+        trainDirectionSign = 1,
         previousReportAtMs = 100_000L,
         currentReportAtMs = 220_000L,
-        userTrackKm = 12.0,
+        userTrackKm = 20.0,
         gpsAccuracyM = 12.0,
         gpsFixAtMs = 225_000L,
         nowMs = 230_000L
@@ -34,8 +34,8 @@ class FiveKmApproachGateTest {
         val result = FiveKmApproachGate.evaluate(base)
         assertTrue(result.reason, result.eligible)
         assertEquals(4.0, result.distanceKm!!, 0.001)
-        assertEquals(8.0, result.previousDistanceKm!!, 0.001)
-        assertEquals(120.0, result.observedAverageSpeedKmh!!, 0.1)
+        assertEquals(6.0, result.previousDistanceKm!!, 0.001)
+        assertEquals(60.0, result.observedAverageSpeedKmh!!, 0.1)
     }
 
     @Test
@@ -114,10 +114,10 @@ class FiveKmApproachGateTest {
 
     @Test
     fun rejectsMovingAwayAndNonCrossingObservations() {
-        assertFalse(FiveKmApproachGate.evaluate(base.copy(currentTrainKm = 24.0)).eligible)
+        assertFalse(FiveKmApproachGate.evaluate(base.copy(currentTrainKm = 12.0)).eligible)
         assertEquals(
             "five_km_threshold_not_crossed",
-            FiveKmApproachGate.evaluate(base.copy(previousTrainKm = 16.0, currentTrainKm = 14.0)).reason
+            FiveKmApproachGate.evaluate(base.copy(previousTrainKm = 10.0, currentTrainKm = 12.0)).reason
         )
     }
 }
