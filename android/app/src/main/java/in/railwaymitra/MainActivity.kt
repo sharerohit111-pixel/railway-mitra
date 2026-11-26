@@ -132,8 +132,13 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun openAppSettings(): String {
+            return this@MainActivity.openAppSettings()
+        }
+
+        @JavascriptInterface
         fun openNotificationSettings(): String {
-            return openAppSettings()
+            return this@MainActivity.openAppSettings()
         }
 
         @JavascriptInterface
