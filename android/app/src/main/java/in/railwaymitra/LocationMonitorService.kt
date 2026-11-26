@@ -29,6 +29,7 @@ class LocationMonitorService : Service(), LocationListener {
     private var reportPollExecutor: ScheduledExecutorService? = null
     @Volatile private var previousReportFeed: TrainReportFeed? = null
     private val trackMapMatcher by lazy { TrackMapMatcher(this) }
+    private val trainAlertNotifier by lazy { TrainAlertNotifier(this) }
 
     override fun onCreate() {
         super.onCreate()
@@ -37,6 +38,10 @@ class LocationMonitorService : Service(), LocationListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_STOP_TRAIN_ALERT) {
+            trainAlertNotifier.stop()
+            return START_STICKY
+        }
         if (intent?.action == ACTION_STOP) {
             stopMonitoring()
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -109,6 +114,11 @@ class LocationMonitorService : Service(), LocationListener {
                     // UP/DOWN operational chainage orientation has not been field-verified.
                     directionSignFor = { null }
                 )
+                if (evaluation.eligible && evaluation.trainNumber != null && evaluation.distanceKm != null) {
+                    if (!trainAlertNotifier.start(evaluation.trainNumber, evaluation.distanceKm)) {
+                        Log.w("LocationMonitorService", "Five kilometre gate passed but notification permission is unavailable")
+                    }
+                }
                 alertPrefs.edit()
                     .putString("latest_public_train_reports", feed.toJson())
                     .putLong("train_reports_server_time", feed.serverTimeMs)
@@ -211,6 +221,7 @@ class LocationMonitorService : Service(), LocationListener {
     override fun onDestroy() {
         reportPollExecutor?.shutdownNow()
         reportPollExecutor = null
+        trainAlertNotifier.stop()
         stopMonitoring()
         super.onDestroy()
     }
@@ -220,5 +231,6 @@ class LocationMonitorService : Service(), LocationListener {
     companion object {
         const val ACTION_START = "in.railwaymitra.START_LOCATION"
         const val ACTION_STOP = "in.railwaymitra.STOP_LOCATION"
+        const val ACTION_STOP_TRAIN_ALERT = "in.railwaymitra.action.STOP_TRAIN_ALERT"
     }
 }
