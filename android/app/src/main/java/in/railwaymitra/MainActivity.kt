@@ -21,8 +21,10 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
     private lateinit var web: WebView
-    private val allowedHost = "sharerohit111-pixel.github.io"
-    private val allowedPath = "/railway-mitra/"
+    // The published site canonicalizes to the custom domain. Keep the GitHub Pages
+    // project URL as a secondary trusted origin for redirects and preview builds.
+    private val allowedHosts = setOf("railwaymitra.com", "www.railwaymitra.com", "sharerohit111-pixel.github.io")
+    private val githubPagesPath = "/railway-mitra/"
     private val permissionRequestCode = 4101
     private val backgroundPermissionRequestCode = 4102
 
@@ -45,9 +47,11 @@ class MainActivity : ComponentActivity() {
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                     val uri = request.url
-                    val trusted = uri.scheme == "https" &&
-                        uri.host == allowedHost &&
-                        uri.path?.startsWith(allowedPath) == true
+                    val trusted = uri.scheme == "https" && when (uri.host) {
+                        "railwaymitra.com", "www.railwaymitra.com" -> true
+                        "sharerohit111-pixel.github.io" -> uri.path?.startsWith(githubPagesPath) == true
+                        else -> false
+                    }
                     if (trusted) return false
                     if (request.isForMainFrame) {
                         // Keep navigation inside the trusted app origin; do not expose the native bridge elsewhere.
@@ -65,7 +69,7 @@ class MainActivity : ComponentActivity() {
         }
         setContentView(web)
         requestMissingPermissions()
-        web.loadUrl("https://$allowedHost$allowedPath")
+        web.loadUrl("https://railwaymitra.com/")
     }
 
     private fun hasBackgroundLocationPermission(): Boolean {
