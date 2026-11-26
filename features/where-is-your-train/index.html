@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#071326">
 <title>Where Is Your Train? | Railway Mitra</title>
 <link rel="stylesheet" href="../../assets/css/main.css">
-<link rel="stylesheet" href="train.css?v=5">
+<link rel="stylesheet" href="train.css?v=6">
 </head>
 <body>
 <header class="app-header rm-train-header">
@@ -20,15 +20,16 @@
       <div class="rm-train-track" id="routeTrack"><div class="rm-train-progress" id="routeProgress"></div><div class="rm-train-marker" id="trainMarker" aria-label="Estimated train position">🚆</div><div id="stationNodes" class="rm-train-stations"></div></div>
     </div>
     <div class="rm-train-position"><strong id="positionName">No movement report yet</strong><span id="positionMeta">Latest verified community report will appear here.</span></div>
-    <p class="rm-train-footnote">The moving marker represents the last reported station/KM, not a GPS-derived train position.</p>
+    <p class="rm-train-footnote">The train marker uses the last reported KM on the route chainage scale. It is not a GPS-derived train position.</p>
   </section>
   <section class="rm-train-report-card">
-    <div class="rm-train-card-heading"><div><span class="rm-train-kicker">5 KM APPROACH ALERT</span><h2>Get notified near your station</h2></div><span class="rm-train-flame">🔔</span></div>
+    <div class="rm-train-card-heading"><div><span class="rm-train-kicker">GPS LOCATION & 5 KM ALERT</span><h2>Alert based on your phone location</h2></div><span class="rm-train-flame">🔔</span></div>
     <div class="rm-train-alert-controls">
-      <label for="alertStation">Alert station</label><select id="alertStation"></select>
-      <label for="alertDirection">Train direction</label><select id="alertDirection"><option value="UP">UP</option><option value="DOWN">DOWN</option></select>
-      <button id="enableTrainAlert" type="button" class="rm-train-submit">Enable 5 km alert</button>
-      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">Keep this page open for live community-report checks.</p>
+      <div class="rm-gps-status" id="gpsStatus" role="status" aria-live="polite">Your phone location has not been fetched yet.</div>
+      <div class="rm-gps-details"><span>GPS coordinates</span><strong id="gpsCoordinates">Not available</strong><span>Railway KM</span><strong id="gpsKm">Waiting for verified track mapping</strong></div>
+      <button id="getGpsLocation" type="button" class="rm-train-submit">Get my phone location</button>
+      <button id="enableTrainAlert" type="button" class="rm-train-submit" disabled>5 KM alert unavailable</button>
+      <p id="alertMessage" class="rm-train-message" role="status" aria-live="polite">GPS can be read while this page is open. Background alert needs the Android location service and verified track geometry.</p>
     </div>
   </section>
   <section class="rm-train-report-card">
@@ -45,7 +46,7 @@
     </form>
   </section>
   <section class="rm-train-reports-card"><div class="rm-train-card-heading"><div><span class="rm-train-kicker">RECENT COMMUNITY UPDATES</span><h2>Latest reports</h2></div><button id="refreshReports" class="rm-train-refresh" type="button">↻ Refresh</button></div><ol id="reportList" class="rm-train-report-list"><li>Loading reports…</li></ol></section>
-  <p class="rm-train-privacy">Your report is associated with your signed-in Railway Mitra account. This page does not continuously track or upload your phone GPS location.</p>
+  <p class="rm-train-privacy">Your employee reports are separate from your phone GPS. GPS location is requested only when you tap the location button; it is not uploaded.</p>
   <section class="rm-train-hero">
     <span class="rm-train-kicker">14704 · JAISALMER EXPRESS ROUTE REFERENCE</span>
     <h2>Train movement, shared by railway employees</h2>
@@ -53,7 +54,7 @@
     <div class="rm-train-disclaimer">Community reports only · Not official live tracking · Not for railway operations or safety decisions.</div>
   </section>
 </main>
-<script src="train-language.js?v=3" defer></script>
-<script type="module" src="train.js?v=5"></script>
+<script src="train-language.js?v=4" defer></script>
+<script type="module" src="train.js?v=6"></script>
 </body>
 </html>
