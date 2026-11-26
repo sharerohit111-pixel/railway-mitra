@@ -13,8 +13,6 @@ on:
       - 'features/privacy/**'
       - 'features/where-is-your-train/**'
       - 'appwrite/functions/train-movement-api/**'
-      - 'features/where-is-your-train/**'
-      - 'appwrite/functions/train-movement-api/**'
       - 'manifest.json'
       - 'service-worker.js'
       - 'robots.txt'
@@ -31,6 +29,8 @@ on:
       - 'guides/**'
       - 'features/auth/login.js'
       - 'features/privacy/**'
+      - 'features/where-is-your-train/**'
+      - 'appwrite/functions/train-movement-api/**'
       - 'manifest.json'
       - 'service-worker.js'
       - 'robots.txt'
@@ -58,7 +58,7 @@ jobs:
           arrays = []
           for name in files:
               text = Path(name).read_text()
-              match = re.search(r'const ROUTE=(\\[.*?\\]);', text)
+              match = re.search(r'const ROUTE=(\[.*?\]);', text)
               if not match:
                   raise SystemExit(f'ROUTE array missing in {name}')
               arrays.append(match.group(1))
