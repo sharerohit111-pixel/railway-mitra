@@ -111,8 +111,11 @@ class LocationMonitorService : Service(), LocationListener {
                     // These remain hard-disabled until official route identity and backend rollout are approved.
                     routeGeometryProductionVerified = false,
                     reportFeedProductionApproved = false,
-                    // UP/DOWN operational chainage orientation has not been field-verified.
-                    directionSignFor = { null }
+                    // Train 14704 is scheduled Lalgarh -> Jaisalmer; route chainage increases in that direction.
+                    // The UP/DOWN label is still required to remain consistent between independent reports.
+                    directionSignFor = { trainNumber, _ ->
+                        if (trainNumber == FiveKmAlertEvaluator.EXPECTED_TRAIN_NUMBER) 1 else null
+                    }
                 )
                 if (evaluation.eligible && evaluation.trainNumber != null && evaluation.distanceKm != null) {
                     if (!trainAlertNotifier.start(evaluation.trainNumber, evaluation.distanceKm)) {
