@@ -161,7 +161,7 @@ def main():
                 [round(start, 3), round(end, 3)] for start, end in merged
             ],
             "chainage_gaps": gaps,
-                "endpoint_components_with_10m_snap": component_sizes,
+            "endpoint_components_with_10m_snap": component_sizes,
             "summed_geometry_length_km_not_route_length": round(
                 sum(part.length for part in parts) / 1000.0, 3
             ),
