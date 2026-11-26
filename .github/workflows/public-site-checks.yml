@@ -11,6 +11,10 @@ on:
       - 'guides/**'
       - 'features/auth/login.js'
       - 'features/privacy/**'
+      - 'features/where-is-your-train/**'
+      - 'appwrite/functions/train-movement-api/**'
+      - 'features/where-is-your-train/**'
+      - 'appwrite/functions/train-movement-api/**'
       - 'manifest.json'
       - 'service-worker.js'
       - 'robots.txt'
@@ -40,8 +44,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check login JavaScript syntax
-        run: node --check features/auth/login.js
+      - name: Check JavaScript syntax for public and train modules
+        run: |
+          node --check features/auth/login.js
+          node --check features/where-is-your-train/train.js
+          node --check appwrite/functions/train-movement-api/src/main.js
+      - name: Verify train route station chainage consistency
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          files = ['features/where-is-your-train/train.js', 'appwrite/functions/train-movement-api/src/main.js']
+          arrays = []
+          for name in files:
+              text = Path(name).read_text()
+              match = re.search(r'const ROUTE=(\\[.*?\\]);', text)
+              if not match:
+                  raise SystemExit(f'ROUTE array missing in {name}')
+              arrays.append(match.group(1))
+          if arrays[0] != arrays[1]:
+              raise SystemExit('Frontend and backend train route chainage arrays differ')
+          print('Train route chainage arrays match')
+          PY
       - name: Validate sitemap XML
         run: python -c "import xml.etree.ElementTree as ET; ET.parse('sitemap.xml'); print('Sitemap XML is valid')"
       - name: Validate PWA manifest and public pages
