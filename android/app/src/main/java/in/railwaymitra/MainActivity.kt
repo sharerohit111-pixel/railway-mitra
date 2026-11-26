@@ -189,12 +189,19 @@ class MainActivity : ComponentActivity() {
             val longitude = lon.toDoubleOrNull() ?: return ""
             val accuracy = p.getFloat("accuracy", -1f)
             val timestamp = p.getLong("timestamp", 0L)
-            return JSONObject()
+            val candidateTrackKm = p.getFloat("candidateTrackKm", Float.NaN)
+            val candidateTrackMatchReason = p.getString("candidateTrackMatchReason", "not_available") ?: "not_available"
+            val candidateRouteStatus = p.getString("candidateRouteStatus", "NOT_PRODUCTION_VERIFIED") ?: "NOT_PRODUCTION_VERIFIED"
+            val result = JSONObject()
                 .put("latitude", latitude)
                 .put("longitude", longitude)
                 .put("accuracy", accuracy)
                 .put("timestamp", timestamp)
-                .toString()
+                .put("candidateTrackMatchReason", candidateTrackMatchReason)
+                .put("candidateRouteStatus", candidateRouteStatus)
+            if (candidateTrackKm.isFinite()) result.put("candidateTrackKm", candidateTrackKm.toDouble())
+            else result.put("candidateTrackKm", JSONObject.NULL)
+            return result.toString()
         }
 
         @JavascriptInterface
