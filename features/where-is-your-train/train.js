@@ -2,7 +2,7 @@ import { auth } from "../../assets/js/firebase.js";
 import { getCandidateRouteFeature } from "./route-data.js";
 import { matchGpsToRoute } from "./track-map-matcher.js";
 const ENDPOINT="https://sgp.cloud.appwrite.io/v1", PROJECT="6b070890000e2fca34fd", FUNCTION="train-movement-api";
-const ROUTE=[["Lalgarh Junction",0],["Nal Halt",12],["Darbari",25],["Gajner",31],["Channi",39],["Kolayat",46],["Diyatra Road",62],["Nokhra",85],["Sird",105],["Bap",123],["Malar",145],["Phalodi Junction",158]];
+const ROUTE=[["Lalgarh Junction",0,true],["Nal Halt",11.19,true],["Darbari",25,false],["Gajner",30.9,true],["Channi",39,false],["Kolayat",46.15,true],["Diyatra Road",62.5,true],["Nokhra",84.85,true],["Sird",105,true],["Bap",122.74,true],["Malar",145.35,true],["Phalodi Junction",158.15,true]];
 const $=id=>document.getElementById(id), stationSelect=$("station");
 ROUTE.forEach(([name,km],i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=name+" · "+km+" km";stationSelect.appendChild(o);});
 $("movement").value="departure";
