@@ -88,7 +88,7 @@ class FiveKmAlertEvaluatorTest {
         val noTrack = FiveKmAlertEvaluator.evaluate(
             previous, current, null, 10.0, 225_000L, 230_000L,
             true, true, true
-        ) { -1 }
+        ) { _, _ -> -1 }
         assertEquals("user_track_match_missing", noTrack.reason)
     }
 
