@@ -4,8 +4,8 @@ package `in`.railwaymitra
  * Pairs consecutive public-feed observations for the same train and delegates
  * threshold/speed/freshness checks to FiveKmApproachGate.
  *
- * Production approvals and the UP/DOWN-to-chainage sign mapping are explicit
- * inputs. A missing mapping or approval always fails closed.
+ * Production approvals and the train-number-specific timetable direction are
+ * explicit inputs. A missing mapping or approval always fails closed.
  */
 data class FiveKmAlertEvaluation(
     val eligible: Boolean,
@@ -15,6 +15,7 @@ data class FiveKmAlertEvaluation(
 )
 
 object FiveKmAlertEvaluator {
+    const val EXPECTED_TRAIN_NUMBER = "14704"
     fun evaluate(
         previousFeed: TrainReportFeed?,
         currentFeed: TrainReportFeed,
@@ -25,7 +26,7 @@ object FiveKmAlertEvaluator {
         armed: Boolean,
         routeGeometryProductionVerified: Boolean,
         reportFeedProductionApproved: Boolean,
-        directionSignFor: (String) -> Int?
+        directionSignFor: (String, String) -> Int?
     ): FiveKmAlertEvaluation {
         fun fail(reason: String) = FiveKmAlertEvaluation(false, reason)
         if (!armed) return fail("not_armed")
@@ -39,8 +40,12 @@ object FiveKmAlertEvaluator {
             .associateBy { it.trainNumber to it.direction }
         var lastFailure = "matching_train_observation_missing"
         for (current in currentFeed.reports.sortedByDescending { it.createdAtMs }) {
+            if (current.trainNumber != EXPECTED_TRAIN_NUMBER) {
+                lastFailure = "target_train_mismatch"
+                continue
+            }
             val previous = previousByIdentity[current.trainNumber to current.direction] ?: continue
-            val directionSign = directionSignFor(current.direction)
+            val directionSign = directionSignFor(current.trainNumber, current.direction)
             if (directionSign != 1 && directionSign != -1) {
                 lastFailure = "direction_mapping_not_verified"
                 continue
@@ -54,6 +59,7 @@ object FiveKmAlertEvaluator {
                     trackRouteId = TrackMapMatcher.EXPECTED_ROUTE_ID,
                     previousTrainNumber = previous.trainNumber,
                     currentTrainNumber = current.trainNumber,
+                    expectedTrainNumber = EXPECTED_TRAIN_NUMBER,
                     previousDirection = previous.direction,
                     currentDirection = current.direction,
                     previousIndependentReporterCount = previous.independentReporterCount,
