@@ -82,6 +82,7 @@ class TrainReportPollingClient(
 
     companion object {
         const val EXPECTED_ROUTE_ID = "14704-lgh-phl"
+        const val EXPECTED_TRAIN_NUMBER = "14704"
         const val MAX_REPORT_AGE_MS = 15 * 60 * 1000L
 
         fun parseExecutionResponse(raw: String, httpStatus: Int = 200, nowMs: Long? = null): TrainReportFeed {
@@ -121,6 +122,7 @@ class TrainReportPollingClient(
                 val createdAt = row.optLong("createdAt", 0L)
                 val reporterCount = row.optInt("independentReporterCount", 0)
                 if (!trainNumber.matches(Regex("[A-Z0-9-]{2,10}"))) continue
+                if (trainNumber != EXPECTED_TRAIN_NUMBER) continue
                 if (direction != "UP" && direction != "DOWN") continue
                 if (stationName.isBlank() || !stationKm.isFinite() || stationKm !in 0.0..158.15) continue
                 if (trainType != "passenger" && trainType != "goods") continue
